@@ -134,12 +134,12 @@ const Index = () => {
               </div>
             </div>
 
-            <div className="relative">
+            <div className="relative lg:flex lg:items-center lg:justify-center">
               <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 blur-3xl -z-10 animate-pulse"></div>
               <img 
                 src={coachMascot} 
                 alt="Chefly.AI Coach - Tu entrenador nutricional personal" 
-                className="w-full max-w-md mx-auto drop-shadow-2xl animate-fade-in hover:scale-105 transition-transform duration-500"
+                className="w-full max-w-lg mx-auto drop-shadow-2xl animate-fade-in hover:scale-105 transition-transform duration-500"
               />
             </div>
           </div>
