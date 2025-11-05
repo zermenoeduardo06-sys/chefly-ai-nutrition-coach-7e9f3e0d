@@ -77,6 +77,19 @@ const Dashboard = () => {
   const loadMealPlan = async (userId: string) => {
     setLoading(true);
     try {
+      // First check if user has preferences
+      const { data: preferences } = await supabase
+        .from("user_preferences")
+        .select("*")
+        .eq("user_id", userId)
+        .single();
+
+      if (!preferences) {
+        // Redirect to onboarding if no preferences
+        navigate("/onboarding");
+        return;
+      }
+
       // Get the most recent meal plan
       const { data: plans, error: planError } = await supabase
         .from("meal_plans")
