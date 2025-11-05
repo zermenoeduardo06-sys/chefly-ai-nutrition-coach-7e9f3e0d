@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const RAPIDAPI_KEY = Deno.env.get('RAPIDAPI_KEY');
+const SPOONACULAR_API_KEY = Deno.env.get('RAPIDAPI_KEY');
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -56,8 +56,9 @@ serve(async (req) => {
     for (let day = 0; day < 7; day++) {
       for (const mealType of selectedMealTypes) {
         try {
-          // Search for recipes using RapidAPI
-          const searchUrl = new URL('https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/complexSearch');
+          // Search for recipes using Spoonacular API
+          const searchUrl = new URL('https://api.spoonacular.com/recipes/complexSearch');
+          searchUrl.searchParams.append('apiKey', SPOONACULAR_API_KEY!);
           searchUrl.searchParams.append('type', mealType);
           searchUrl.searchParams.append('number', '1');
           searchUrl.searchParams.append('addRecipeInformation', 'true');
@@ -67,11 +68,7 @@ serve(async (req) => {
           if (intolerances) searchUrl.searchParams.append('intolerances', intolerances);
 
           const recipeResponse = await fetch(searchUrl.toString(), {
-            method: 'GET',
-            headers: {
-              'X-RapidAPI-Key': RAPIDAPI_KEY!,
-              'X-RapidAPI-Host': 'spoonacular-recipe-food-nutrition-v1.p.rapidapi.com'
-            }
+            method: 'GET'
           });
 
           if (!recipeResponse.ok) {
