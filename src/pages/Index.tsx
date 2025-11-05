@@ -115,7 +115,7 @@ const Index = () => {
               </div>
               
               <h1 className="text-5xl lg:text-7xl font-bold leading-tight">
-                <span className="bg-gradient-to-r from-primary to-primary-hover bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                   Chefly.AI
                 </span>
               </h1>
