@@ -1,10 +1,22 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-nutrition.jpg";
-import { Utensils, Brain, TrendingUp, Clock } from "lucide-react";
+import testimonial1 from "@/assets/testimonial-1.jpg";
+import testimonial2 from "@/assets/testimonial-2.jpg";
+import testimonial3 from "@/assets/testimonial-3.jpg";
+import { Utensils, Brain, TrendingUp, Clock, Star, Users, CheckCircle2, Sparkles, ChefHat, Calendar } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 const Index = () => {
   const navigate = useNavigate();
+
+  const stats = [
+    { number: "50K+", label: "Usuarios activos", icon: Users },
+    { number: "2M+", label: "Comidas generadas", icon: Utensils },
+    { number: "4.9/5", label: "Calificación", icon: Star },
+    { number: "95%", label: "Éxito comprobado", icon: TrendingUp },
+  ];
 
   const features = [
     {
@@ -29,16 +41,63 @@ const Index = () => {
     },
   ];
 
+  const steps = [
+    {
+      number: "01",
+      icon: ChefHat,
+      title: "Cuéntanos tus objetivos",
+      description: "Responde unas preguntas sobre tu estilo de vida y metas",
+    },
+    {
+      number: "02",
+      icon: Sparkles,
+      title: "IA genera tu menú",
+      description: "Recibe un plan semanal personalizado al instante",
+    },
+    {
+      number: "03",
+      icon: Calendar,
+      title: "Disfruta y progresa",
+      description: "Sigue tu plan, chatea con tu coach y alcanza tus metas",
+    },
+  ];
+
+  const testimonials = [
+    {
+      name: "María González",
+      role: "Bajó 8kg en 2 meses",
+      image: testimonial1,
+      rating: 5,
+      text: "Chefly.AI cambió mi vida. Los menús son deliciosos y fáciles de seguir. ¡Perdí peso sin sufrir!",
+    },
+    {
+      name: "Carlos Ramírez",
+      role: "Ganó 5kg de músculo",
+      image: testimonial2,
+      rating: 5,
+      text: "Como atleta, necesitaba una nutrición precisa. La IA me creó el plan perfecto para mis entrenamientos.",
+    },
+    {
+      name: "Ana Martínez",
+      role: "Mejoró su salud",
+      image: testimonial3,
+      rating: 5,
+      text: "Tengo diabetes y el coach nutricional me ayudó a comer mejor. Mis análisis mejoraron increíblemente.",
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
       {/* Hero Section */}
       <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-secondary/5 to-background pointer-events-none"></div>
         <div className="container mx-auto px-4 py-20 lg:py-32">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8 animate-fade-in">
-              <div className="inline-block px-4 py-2 bg-primary/10 rounded-full">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full">
+                <Sparkles className="w-4 h-4 text-primary" />
                 <span className="text-primary font-semibold text-sm">
-                  🎉 Prueba gratis 4 días sin tarjeta
+                  Prueba gratis 4 días sin tarjeta
                 </span>
               </div>
               
@@ -61,10 +120,11 @@ const Index = () => {
                 <Button 
                   variant="hero" 
                   size="lg"
-                  className="text-lg px-8 py-6 h-auto"
+                  className="text-lg px-8 py-6 h-auto group"
                   onClick={() => navigate("/auth")}
                 >
                   Comienza gratis
+                  <Sparkles className="ml-2 w-5 h-5 group-hover:rotate-12 transition-transform" />
                 </Button>
                 <Button 
                   variant="outline" 
@@ -76,19 +136,98 @@ const Index = () => {
                 </Button>
               </div>
 
-              <p className="text-sm text-muted-foreground">
-                ✨ Sin tarjeta requerida • 🎯 4 días de prueba gratuita
-              </p>
+              <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-secondary" />
+                  <span>Sin tarjeta requerida</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-secondary" />
+                  <span>4 días de prueba</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-secondary" />
+                  <span>Cancela cuando quieras</span>
+                </div>
+              </div>
             </div>
 
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 blur-3xl -z-10"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 blur-3xl -z-10 animate-pulse"></div>
               <img 
                 src={heroImage} 
                 alt="Ingredientes saludables frescos" 
-                className="rounded-3xl shadow-2xl w-full object-cover"
+                className="rounded-3xl shadow-2xl w-full object-cover hover:scale-[1.02] transition-transform duration-300"
               />
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="py-16 bg-gradient-to-r from-primary/5 to-secondary/5 backdrop-blur-sm">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {stats.map((stat, index) => (
+              <div 
+                key={index}
+                className="text-center space-y-2 group animate-fade-in"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <stat.icon className="w-8 h-8 mx-auto text-primary group-hover:scale-110 transition-transform" />
+                <div className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  {stat.number}
+                </div>
+                <div className="text-sm text-muted-foreground font-medium">
+                  {stat.label}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section className="py-20">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16 space-y-4">
+            <Badge variant="secondary" className="px-4 py-2 text-sm">
+              Proceso simple
+            </Badge>
+            <h2 className="text-4xl lg:text-5xl font-bold">
+              Cómo funciona{" "}
+              <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                Chefly.AI
+              </span>
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Tres pasos simples para transformar tu alimentación
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {steps.map((step, index) => (
+              <div 
+                key={index}
+                className="relative group"
+              >
+                <Card className="h-full border-border/50 hover:shadow-[0_8px_30px_rgb(255,99,71,0.15)] transition-all hover:-translate-y-2 bg-gradient-to-br from-card to-card/50">
+                  <CardContent className="p-8 space-y-4">
+                    <div className="text-6xl font-bold text-primary/10 absolute top-4 right-4">
+                      {step.number}
+                    </div>
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary-hover flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <step.icon className="w-8 h-8 text-primary-foreground" />
+                    </div>
+                    <h3 className="text-2xl font-semibold">{step.title}</h3>
+                    <p className="text-muted-foreground">{step.description}</p>
+                  </CardContent>
+                </Card>
+                {index < steps.length - 1 && (
+                  <div className="hidden md:block absolute top-1/2 -right-4 w-8 h-0.5 bg-gradient-to-r from-primary to-secondary opacity-30"></div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -108,7 +247,8 @@ const Index = () => {
             {features.map((feature, index) => (
               <div 
                 key={index}
-                className="group p-8 rounded-2xl bg-card border border-border hover:shadow-[0_8px_30px_rgb(255,99,71,0.15)] transition-all hover:-translate-y-1"
+                className="group p-8 rounded-2xl bg-card border border-border hover:shadow-[0_8px_30px_rgb(255,99,71,0.15)] transition-all hover:-translate-y-1 animate-fade-in"
+                style={{ animationDelay: `${index * 100}ms` }}
               >
                 <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary to-primary-hover flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                   <feature.icon className="w-7 h-7 text-primary-foreground" />
@@ -121,24 +261,111 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Testimonials Section */}
+      <section className="py-20">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16 space-y-4">
+            <Badge variant="secondary" className="px-4 py-2 text-sm">
+              Testimonios reales
+            </Badge>
+            <h2 className="text-4xl lg:text-5xl font-bold">
+              Lo que dicen nuestros{" "}
+              <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                usuarios
+              </span>
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Miles de personas ya transformaron su vida con Chefly.AI
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {testimonials.map((testimonial, index) => (
+              <Card 
+                key={index}
+                className="border-border/50 hover:shadow-[0_8px_30px_rgb(255,99,71,0.15)] transition-all hover:-translate-y-2 bg-gradient-to-br from-card to-card/50 animate-fade-in"
+                style={{ animationDelay: `${index * 150}ms` }}
+              >
+                <CardContent className="p-6 space-y-4">
+                  <div className="flex gap-1">
+                    {[...Array(testimonial.rating)].map((_, i) => (
+                      <Star key={i} className="w-5 h-5 fill-primary text-primary" />
+                    ))}
+                  </div>
+                  <p className="text-muted-foreground italic">"{testimonial.text}"</p>
+                  <div className="flex items-center gap-4 pt-4 border-t border-border/50">
+                    <img 
+                      src={testimonial.image} 
+                      alt={testimonial.name}
+                      className="w-12 h-12 rounded-full object-cover ring-2 ring-primary/20"
+                    />
+                    <div>
+                      <div className="font-semibold">{testimonial.name}</div>
+                      <div className="text-sm text-muted-foreground">{testimonial.role}</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Trust Badges */}
+      <section className="py-12 border-y border-border/50 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-wrap justify-center items-center gap-8 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-secondary" />
+              <span className="font-medium">100% Seguro</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-secondary" />
+              <span className="font-medium">Datos Encriptados</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-secondary" />
+              <span className="font-medium">Soporte 24/7</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-secondary" />
+              <span className="font-medium">Garantía de Satisfacción</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-20">
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center space-y-8 p-12 rounded-3xl bg-gradient-to-br from-primary/10 to-secondary/10 border border-primary/20">
-            <h2 className="text-4xl lg:text-5xl font-bold">
-              Empieza tu transformación hoy
-            </h2>
-            <p className="text-xl text-muted-foreground">
-              Únete a miles de personas que ya están comiendo mejor y sintiéndose increíbles
-            </p>
-            <Button 
-              variant="hero" 
-              size="lg"
-              className="text-lg px-12 py-6 h-auto"
-              onClick={() => navigate("/auth")}
-            >
-              Prueba gratis por 4 días
-            </Button>
+          <div className="max-w-4xl mx-auto text-center space-y-8 p-12 rounded-3xl bg-gradient-to-br from-primary/10 via-secondary/10 to-primary/5 border border-primary/20 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 blur-3xl"></div>
+            <div className="relative z-10 space-y-8">
+              <Badge variant="secondary" className="px-4 py-2">
+                <Sparkles className="w-4 h-4 inline mr-2" />
+                Oferta especial
+              </Badge>
+              <h2 className="text-4xl lg:text-5xl font-bold">
+                Empieza tu transformación hoy
+              </h2>
+              <p className="text-xl text-muted-foreground">
+                Únete a miles de personas que ya están comiendo mejor y sintiéndose increíbles
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button 
+                  variant="hero" 
+                  size="lg"
+                  className="text-lg px-12 py-6 h-auto group"
+                  onClick={() => navigate("/auth")}
+                >
+                  Prueba gratis por 4 días
+                  <Sparkles className="ml-2 w-5 h-5 group-hover:rotate-12 transition-transform" />
+                </Button>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                🎉 Sin compromiso • 🚫 Sin tarjeta • ✨ Cancela cuando quieras
+              </p>
+            </div>
           </div>
         </div>
       </section>
