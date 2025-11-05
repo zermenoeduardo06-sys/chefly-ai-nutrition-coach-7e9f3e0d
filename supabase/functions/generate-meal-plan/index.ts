@@ -107,6 +107,48 @@ Genera ${7 * preferences.meals_per_day} recetas variadas y específicas. Cada re
     const mealData = JSON.parse(jsonContent);
     console.log('Parsed meal data:', JSON.stringify(mealData, null, 2));
 
+    // Generate images for each meal using Lovable AI
+    console.log('Generating images for meals...');
+    const mealsWithImages = await Promise.all(
+      mealData.meals.map(async (meal: any) => {
+        try {
+          const imagePrompt = `Foto profesional apetitosa de alta calidad de ${meal.name}, plato de comida ${preferences.diet_type}, presentación elegante, iluminación natural, estilo gastronómico`;
+          
+          const imageResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${Deno.env.get('LOVABLE_API_KEY')}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'google/gemini-2.5-flash-image',
+              messages: [{
+                role: 'user',
+                content: imagePrompt
+              }],
+              modalities: ['image', 'text']
+            }),
+          });
+
+          if (imageResponse.ok) {
+            const imageData = await imageResponse.json();
+            const imageUrl = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+            console.log(`Generated image for ${meal.name}`);
+            return { ...meal, image_url: imageUrl };
+          } else {
+            console.error(`Failed to generate image for ${meal.name}`);
+            return meal;
+          }
+        } catch (error) {
+          console.error(`Error generating image for ${meal.name}:`, error);
+          return meal;
+        }
+      })
+    );
+
+    mealData.meals = mealsWithImages;
+    console.log('Images generated successfully');
+
     // Create meal plan
     const { data: mealPlan } = await supabaseClient
       .from('meal_plans')
@@ -131,6 +173,7 @@ Genera ${7 * preferences.meals_per_day} recetas variadas y específicas. Cada re
       protein: meal.protein || 0,
       carbs: meal.carbs || 0,
       fats: meal.fats || 0,
+      image_url: meal.image_url || null,
     }));
 
     await supabaseClient.from('meals').insert(meals);

@@ -25,6 +25,7 @@ interface Meal {
   protein?: number;
   carbs?: number;
   fats?: number;
+  image_url?: string;
 }
 
 interface MealPlan {
@@ -401,18 +402,34 @@ const Dashboard = () => {
                         {meals.map((meal) => (
                           <Card 
                             key={meal.id} 
-                            className="border-border/50 bg-gradient-to-br from-card to-muted/20 hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]"
+                            className="border-border/50 bg-gradient-to-br from-card to-muted/20 hover:shadow-md transition-all cursor-pointer hover:scale-[1.02] overflow-hidden"
                             onClick={() => {
                               setSelectedMeal(meal);
                               setMealDialogOpen(true);
                             }}
                           >
-                            <CardContent className="p-4 space-y-3">
-                              <div className="flex items-start justify-between gap-2">
-                                <Badge variant="secondary" className="shrink-0">
-                                  {mealTypes[meal.meal_type]}
-                                </Badge>
+                            {meal.image_url && (
+                              <div className="relative h-40 w-full overflow-hidden">
+                                <img 
+                                  src={meal.image_url} 
+                                  alt={meal.name}
+                                  className="w-full h-full object-cover"
+                                />
+                                <div className="absolute top-2 right-2">
+                                  <Badge variant="secondary" className="backdrop-blur-sm bg-background/80">
+                                    {mealTypes[meal.meal_type]}
+                                  </Badge>
+                                </div>
                               </div>
+                            )}
+                            <CardContent className="p-4 space-y-3">
+                              {!meal.image_url && (
+                                <div className="flex items-start justify-between gap-2">
+                                  <Badge variant="secondary" className="shrink-0">
+                                    {mealTypes[meal.meal_type]}
+                                  </Badge>
+                                </div>
+                              )}
                               <div>
                                 <h4 className="font-semibold text-base mb-1">{meal.name}</h4>
                                 <p className="text-sm text-muted-foreground line-clamp-2">{meal.description}</p>

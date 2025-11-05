@@ -15,6 +15,7 @@ interface Meal {
   protein?: number;
   carbs?: number;
   fats?: number;
+  image_url?: string;
 }
 
 interface MealDetailDialogProps {
@@ -35,13 +36,33 @@ export function MealDetailDialog({ meal, open, onOpenChange }: MealDetailDialogP
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <div className="flex items-center gap-2 mb-2">
-            <Badge variant="secondary">{mealTypeLabel}</Badge>
+        {meal.image_url && (
+          <div className="relative -mt-6 -mx-6 mb-4 h-64 overflow-hidden rounded-t-lg">
+            <img 
+              src={meal.image_url} 
+              alt={meal.name}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+            <div className="absolute bottom-4 left-6 right-6">
+              <Badge variant="secondary" className="mb-2 backdrop-blur-sm bg-background/80">
+                {mealTypeLabel}
+              </Badge>
+              <DialogTitle className="text-3xl text-white drop-shadow-lg">{meal.name}</DialogTitle>
+            </div>
           </div>
-          <DialogTitle className="text-2xl">{meal.name}</DialogTitle>
-          <p className="text-muted-foreground">{meal.description}</p>
-        </DialogHeader>
+        )}
+        
+        {!meal.image_url && (
+          <DialogHeader>
+            <div className="flex items-center gap-2 mb-2">
+              <Badge variant="secondary">{mealTypeLabel}</Badge>
+            </div>
+            <DialogTitle className="text-2xl">{meal.name}</DialogTitle>
+          </DialogHeader>
+        )}
+
+        <p className="text-muted-foreground">{meal.description}</p>
 
         <Separator />
 
