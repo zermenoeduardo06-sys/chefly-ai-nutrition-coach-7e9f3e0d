@@ -148,8 +148,8 @@ const Chat = () => {
               <Bot className="h-6 w-6 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-xl font-bold">Coach Nutricional</h1>
-              <p className="text-xs text-muted-foreground">Siempre disponible para ayudarte</p>
+              <h1 className="text-xl font-bold">Chefly</h1>
+              <p className="text-xs text-muted-foreground">Tu coach nutricional personal</p>
             </div>
           </div>
         </div>
@@ -161,7 +161,7 @@ const Chat = () => {
             {messages.length === 0 ? (
               <Card className="p-8 text-center border-dashed">
                 <Bot className="h-12 w-12 mx-auto mb-4 text-primary" />
-                <h3 className="text-xl font-semibold mb-2">¡Hola! Soy tu coach nutricional</h3>
+                <h3 className="text-xl font-semibold mb-2">¡Hola! Soy Chefly</h3>
                 <p className="text-muted-foreground mb-6">
                   Pregúntame cualquier cosa sobre tu plan de comidas, nutrición o cambios en tu dieta
                 </p>

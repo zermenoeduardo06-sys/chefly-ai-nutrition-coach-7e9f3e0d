@@ -64,23 +64,66 @@ const Onboarding = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No user found");
 
-      const { error } = await supabase.from("user_preferences").insert({
-        user_id: user.id,
-        goal,
-        diet_type: dietType,
-        meals_per_day: parseInt(mealsPerDay),
-        allergies,
-      });
+      // First, save or update user preferences
+      const { data: existingPrefs } = await supabase
+        .from("user_preferences")
+        .select("id")
+        .eq("user_id", user.id)
+        .single();
 
-      if (error) throw error;
+      if (existingPrefs) {
+        // Update existing preferences
+        const { error } = await supabase
+          .from("user_preferences")
+          .update({
+            goal,
+            diet_type: dietType,
+            meals_per_day: parseInt(mealsPerDay),
+            allergies,
+          })
+          .eq("user_id", user.id);
+
+        if (error) throw error;
+      } else {
+        // Insert new preferences
+        const { error } = await supabase.from("user_preferences").insert({
+          user_id: user.id,
+          goal,
+          diet_type: dietType,
+          meals_per_day: parseInt(mealsPerDay),
+          allergies,
+        });
+
+        if (error) throw error;
+      }
 
       toast({
         title: "¡Perfecto!",
         description: "Generando tu primer menú semanal...",
       });
 
+      // Generate the first meal plan automatically
+      const { data, error: functionError } = await supabase.functions.invoke("generate-meal-plan", {
+        body: { userId: user.id },
+      });
+
+      if (functionError) {
+        console.error("Error generating meal plan:", functionError);
+        toast({
+          variant: "destructive",
+          title: "Error al generar el menú",
+          description: "Podrás generarlo manualmente desde el dashboard",
+        });
+      } else {
+        toast({
+          title: "¡Menú creado!",
+          description: "Tu plan semanal personalizado está listo",
+        });
+      }
+
       navigate("/dashboard");
     } catch (error: any) {
+      console.error("Onboarding error:", error);
       toast({
         variant: "destructive",
         title: "Error",
