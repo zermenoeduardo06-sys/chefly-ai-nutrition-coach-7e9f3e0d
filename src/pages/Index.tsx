@@ -7,87 +7,78 @@ import testimonial3 from "@/assets/testimonial-3.jpg";
 import { Utensils, Brain, TrendingUp, Clock, Star, Users, CheckCircle2, Sparkles, ChefHat, Calendar } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-
 const Index = () => {
   const navigate = useNavigate();
-
-  const stats = [
-    { number: "50K+", label: "Usuarios activos", icon: Users },
-    { number: "2M+", label: "Comidas generadas", icon: Utensils },
-    { number: "4.9/5", label: "Calificación", icon: Star },
-    { number: "95%", label: "Éxito comprobado", icon: TrendingUp },
-  ];
-
-  const features = [
-    {
-      icon: Brain,
-      title: "IA Personalizada",
-      description: "Menús adaptados a tus objetivos y preferencias",
-    },
-    {
-      icon: Utensils,
-      title: "Recetas Deliciosas",
-      description: "Comidas saludables que te encantarán",
-    },
-    {
-      icon: TrendingUp,
-      title: "Alcanza tus Metas",
-      description: "Bajar grasa, ganar músculo o comer saludable",
-    },
-    {
-      icon: Clock,
-      title: "Ahorra Tiempo",
-      description: "Lista de compras automática cada semana",
-    },
-  ];
-
-  const steps = [
-    {
-      number: "01",
-      icon: ChefHat,
-      title: "Cuéntanos tus objetivos",
-      description: "Responde unas preguntas sobre tu estilo de vida y metas",
-    },
-    {
-      number: "02",
-      icon: Sparkles,
-      title: "IA genera tu menú",
-      description: "Recibe un plan semanal personalizado al instante",
-    },
-    {
-      number: "03",
-      icon: Calendar,
-      title: "Disfruta y progresa",
-      description: "Sigue tu plan, chatea con tu coach y alcanza tus metas",
-    },
-  ];
-
-  const testimonials = [
-    {
-      name: "María González",
-      role: "Bajó 8kg en 2 meses",
-      image: testimonial1,
-      rating: 5,
-      text: "Chefly.AI cambió mi vida. Los menús son deliciosos y fáciles de seguir. ¡Perdí peso sin sufrir!",
-    },
-    {
-      name: "Carlos Ramírez",
-      role: "Ganó 5kg de músculo",
-      image: testimonial2,
-      rating: 5,
-      text: "Como atleta, necesitaba una nutrición precisa. La IA me creó el plan perfecto para mis entrenamientos.",
-    },
-    {
-      name: "Ana Martínez",
-      role: "Mejoró su salud",
-      image: testimonial3,
-      rating: 5,
-      text: "Tengo diabetes y el coach nutricional me ayudó a comer mejor. Mis análisis mejoraron increíblemente.",
-    },
-  ];
-
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+  const stats = [{
+    number: "50K+",
+    label: "Usuarios activos",
+    icon: Users
+  }, {
+    number: "2M+",
+    label: "Comidas generadas",
+    icon: Utensils
+  }, {
+    number: "4.9/5",
+    label: "Calificación",
+    icon: Star
+  }, {
+    number: "95%",
+    label: "Éxito comprobado",
+    icon: TrendingUp
+  }];
+  const features = [{
+    icon: Brain,
+    title: "IA Personalizada",
+    description: "Menús adaptados a tus objetivos y preferencias"
+  }, {
+    icon: Utensils,
+    title: "Recetas Deliciosas",
+    description: "Comidas saludables que te encantarán"
+  }, {
+    icon: TrendingUp,
+    title: "Alcanza tus Metas",
+    description: "Bajar grasa, ganar músculo o comer saludable"
+  }, {
+    icon: Clock,
+    title: "Ahorra Tiempo",
+    description: "Lista de compras automática cada semana"
+  }];
+  const steps = [{
+    number: "01",
+    icon: ChefHat,
+    title: "Cuéntanos tus objetivos",
+    description: "Responde unas preguntas sobre tu estilo de vida y metas"
+  }, {
+    number: "02",
+    icon: Sparkles,
+    title: "IA genera tu menú",
+    description: "Recibe un plan semanal personalizado al instante"
+  }, {
+    number: "03",
+    icon: Calendar,
+    title: "Disfruta y progresa",
+    description: "Sigue tu plan, chatea con tu coach y alcanza tus metas"
+  }];
+  const testimonials = [{
+    name: "María González",
+    role: "Bajó 8kg en 2 meses",
+    image: testimonial1,
+    rating: 5,
+    text: "Chefly.AI cambió mi vida. Los menús son deliciosos y fáciles de seguir. ¡Perdí peso sin sufrir!"
+  }, {
+    name: "Carlos Ramírez",
+    role: "Ganó 5kg de músculo",
+    image: testimonial2,
+    rating: 5,
+    text: "Como atleta, necesitaba una nutrición precisa. La IA me creó el plan perfecto para mis entrenamientos."
+  }, {
+    name: "Ana Martínez",
+    role: "Mejoró su salud",
+    image: testimonial3,
+    rating: 5,
+    text: "Tengo diabetes y el coach nutricional me ayudó a comer mejor. Mis análisis mejoraron increíblemente."
+  }];
+  return <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-secondary/5 to-background pointer-events-none"></div>
@@ -117,21 +108,11 @@ const Index = () => {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button 
-                  variant="hero" 
-                  size="lg"
-                  className="text-lg px-8 py-6 h-auto group"
-                  onClick={() => navigate("/auth")}
-                >
+                <Button variant="hero" size="lg" className="text-lg px-8 py-6 h-auto group" onClick={() => navigate("/auth")}>
                   Comienza gratis
                   <Sparkles className="ml-2 w-5 h-5 group-hover:rotate-12 transition-transform" />
                 </Button>
-                <Button 
-                  variant="outline" 
-                  size="lg"
-                  className="text-lg px-8 py-6 h-auto"
-                  onClick={() => navigate("/auth")}
-                >
+                <Button variant="outline" size="lg" className="text-lg px-8 py-6 h-auto" onClick={() => navigate("/auth")}>
                   Iniciar sesión
                 </Button>
               </div>
@@ -154,11 +135,7 @@ const Index = () => {
 
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 blur-3xl -z-10 animate-pulse"></div>
-              <img 
-                src={heroImage} 
-                alt="Ingredientes saludables frescos" 
-                className="rounded-3xl shadow-2xl w-full object-cover hover:scale-[1.02] transition-transform duration-300"
-              />
+              
             </div>
           </div>
         </div>
@@ -168,12 +145,9 @@ const Index = () => {
       <section className="py-16 bg-gradient-to-r from-primary/5 to-secondary/5 backdrop-blur-sm">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <div 
-                key={index}
-                className="text-center space-y-2 group animate-fade-in"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
+            {stats.map((stat, index) => <div key={index} className="text-center space-y-2 group animate-fade-in" style={{
+            animationDelay: `${index * 100}ms`
+          }}>
                 <stat.icon className="w-8 h-8 mx-auto text-primary group-hover:scale-110 transition-transform" />
                 <div className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                   {stat.number}
@@ -181,8 +155,7 @@ const Index = () => {
                 <div className="text-sm text-muted-foreground font-medium">
                   {stat.label}
                 </div>
-              </div>
-            ))}
+              </div>)}
           </div>
         </div>
       </section>
@@ -206,11 +179,7 @@ const Index = () => {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {steps.map((step, index) => (
-              <div 
-                key={index}
-                className="relative group"
-              >
+            {steps.map((step, index) => <div key={index} className="relative group">
                 <Card className="h-full border-border/50 hover:shadow-[0_8px_30px_rgb(255,99,71,0.15)] transition-all hover:-translate-y-2 bg-gradient-to-br from-card to-card/50">
                   <CardContent className="p-8 space-y-4">
                     <div className="text-6xl font-bold text-primary/10 absolute top-4 right-4">
@@ -223,11 +192,8 @@ const Index = () => {
                     <p className="text-muted-foreground">{step.description}</p>
                   </CardContent>
                 </Card>
-                {index < steps.length - 1 && (
-                  <div className="hidden md:block absolute top-1/2 -right-4 w-8 h-0.5 bg-gradient-to-r from-primary to-secondary opacity-30"></div>
-                )}
-              </div>
-            ))}
+                {index < steps.length - 1 && <div className="hidden md:block absolute top-1/2 -right-4 w-8 h-0.5 bg-gradient-to-r from-primary to-secondary opacity-30"></div>}
+              </div>)}
           </div>
         </div>
       </section>
@@ -244,19 +210,15 @@ const Index = () => {
           </h2>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => (
-              <div 
-                key={index}
-                className="group p-8 rounded-2xl bg-card border border-border hover:shadow-[0_8px_30px_rgb(255,99,71,0.15)] transition-all hover:-translate-y-1 animate-fade-in"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
+            {features.map((feature, index) => <div key={index} className="group p-8 rounded-2xl bg-card border border-border hover:shadow-[0_8px_30px_rgb(255,99,71,0.15)] transition-all hover:-translate-y-1 animate-fade-in" style={{
+            animationDelay: `${index * 100}ms`
+          }}>
                 <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary to-primary-hover flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                   <feature.icon className="w-7 h-7 text-primary-foreground" />
                 </div>
                 <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
                 <p className="text-muted-foreground">{feature.description}</p>
-              </div>
-            ))}
+              </div>)}
           </div>
         </div>
       </section>
@@ -280,33 +242,23 @@ const Index = () => {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {testimonials.map((testimonial, index) => (
-              <Card 
-                key={index}
-                className="border-border/50 hover:shadow-[0_8px_30px_rgb(255,99,71,0.15)] transition-all hover:-translate-y-2 bg-gradient-to-br from-card to-card/50 animate-fade-in"
-                style={{ animationDelay: `${index * 150}ms` }}
-              >
+            {testimonials.map((testimonial, index) => <Card key={index} className="border-border/50 hover:shadow-[0_8px_30px_rgb(255,99,71,0.15)] transition-all hover:-translate-y-2 bg-gradient-to-br from-card to-card/50 animate-fade-in" style={{
+            animationDelay: `${index * 150}ms`
+          }}>
                 <CardContent className="p-6 space-y-4">
                   <div className="flex gap-1">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="w-5 h-5 fill-primary text-primary" />
-                    ))}
+                    {[...Array(testimonial.rating)].map((_, i) => <Star key={i} className="w-5 h-5 fill-primary text-primary" />)}
                   </div>
                   <p className="text-muted-foreground italic">"{testimonial.text}"</p>
                   <div className="flex items-center gap-4 pt-4 border-t border-border/50">
-                    <img 
-                      src={testimonial.image} 
-                      alt={testimonial.name}
-                      className="w-12 h-12 rounded-full object-cover ring-2 ring-primary/20"
-                    />
+                    <img src={testimonial.image} alt={testimonial.name} className="w-12 h-12 rounded-full object-cover ring-2 ring-primary/20" />
                     <div>
                       <div className="font-semibold">{testimonial.name}</div>
                       <div className="text-sm text-muted-foreground">{testimonial.role}</div>
                     </div>
                   </div>
                 </CardContent>
-              </Card>
-            ))}
+              </Card>)}
           </div>
         </div>
       </section>
@@ -352,12 +304,7 @@ const Index = () => {
                 Únete a miles de personas que ya están comiendo mejor y sintiéndose increíbles
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button 
-                  variant="hero" 
-                  size="lg"
-                  className="text-lg px-12 py-6 h-auto group"
-                  onClick={() => navigate("/auth")}
-                >
+                <Button variant="hero" size="lg" className="text-lg px-12 py-6 h-auto group" onClick={() => navigate("/auth")}>
                   Prueba gratis por 4 días
                   <Sparkles className="ml-2 w-5 h-5 group-hover:rotate-12 transition-transform" />
                 </Button>
@@ -369,8 +316,6 @@ const Index = () => {
           </div>
         </div>
       </section>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
