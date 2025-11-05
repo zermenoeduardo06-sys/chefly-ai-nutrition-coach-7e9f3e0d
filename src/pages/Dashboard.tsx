@@ -5,12 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, RefreshCw, MessageCircle, LogOut, ShoppingCart, Calendar, User, Settings, TrendingUp, Utensils, Clock, ChefHat, Sparkles } from "lucide-react";
+import { Loader2, RefreshCw, MessageCircle, LogOut, ShoppingCart, Calendar, User, Settings, TrendingUp, Utensils, Clock, ChefHat, Sparkles, Check } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { MealDetailDialog } from "@/components/MealDetailDialog";
+import { MascotCompanion } from "@/components/MascotCompanion";
+import { Checkbox } from "@/components/ui/checkbox";
+import confetti from "canvas-confetti";
 
 interface Meal {
   id: string;
@@ -38,6 +41,14 @@ interface ShoppingList {
   items: string[];
 }
 
+interface UserStats {
+  total_points: number;
+  current_streak: number;
+  longest_streak: number;
+  meals_completed: number;
+  level: number;
+}
+
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -47,6 +58,16 @@ const Dashboard = () => {
   const [trialExpired, setTrialExpired] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null);
   const [mealDialogOpen, setMealDialogOpen] = useState(false);
+  const [userStats, setUserStats] = useState<UserStats>({
+    total_points: 0,
+    current_streak: 0,
+    longest_streak: 0,
+    meals_completed: 0,
+    level: 1,
+  });
+  const [completedMeals, setCompletedMeals] = useState<Set<string>>(new Set());
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [mascotMessage, setMascotMessage] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -69,7 +90,167 @@ const Dashboard = () => {
     }
 
     await loadProfile(user.id);
+    await loadUserStats(user.id);
     await loadMealPlan(user.id);
+  };
+
+  const loadUserStats = async (userId: string) => {
+    const { data, error } = await supabase
+      .from("user_stats")
+      .select("*")
+      .eq("user_id", userId)
+      .single();
+
+    if (data) {
+      setUserStats(data);
+    } else if (!error || error.code === 'PGRST116') {
+      // Create initial stats if they don't exist
+      const { data: newStats } = await supabase
+        .from("user_stats")
+        .insert({
+          user_id: userId,
+          total_points: 0,
+          current_streak: 0,
+          longest_streak: 0,
+          meals_completed: 0,
+          level: 1,
+        })
+        .select()
+        .single();
+      
+      if (newStats) {
+        setUserStats(newStats);
+      }
+    }
+  };
+
+  const loadCompletedMeals = async (userId: string) => {
+    const today = new Date().toISOString().split('T')[0];
+    const { data } = await supabase
+      .from("meal_completions")
+      .select("meal_id")
+      .eq("user_id", userId)
+      .gte("completed_at", today);
+
+    if (data) {
+      setCompletedMeals(new Set(data.map(c => c.meal_id)));
+    }
+  };
+
+  const completeMeal = async (mealId: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    // Check if already completed
+    if (completedMeals.has(mealId)) {
+      toast({
+        title: "¡Ya completaste esta comida!",
+        description: "Sigue así, vas muy bien 💪",
+      });
+      return;
+    }
+
+    // Mark as completed
+    const { error } = await supabase
+      .from("meal_completions")
+      .insert({
+        user_id: user.id,
+        meal_id: mealId,
+        points_earned: 10,
+      });
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo marcar la comida como completada",
+      });
+      return;
+    }
+
+    // Update local state
+    setCompletedMeals(prev => new Set([...prev, mealId]));
+
+    // Update stats
+    await updateUserStats(user.id);
+
+    // Show celebration
+    triggerCelebration();
+  };
+
+  const updateUserStats = async (userId: string) => {
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Calculate new streak
+    const { data: stats } = await supabase
+      .from("user_stats")
+      .select("*")
+      .eq("user_id", userId)
+      .single();
+
+    if (!stats) return;
+
+    const lastActivity = stats.last_activity_date;
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+    let newStreak = stats.current_streak;
+    if (!lastActivity || lastActivity === yesterdayStr) {
+      newStreak = stats.current_streak + 1;
+    } else if (lastActivity !== today) {
+      newStreak = 1;
+    }
+
+    const newPoints = stats.total_points + 10;
+    const newMealsCompleted = stats.meals_completed + 1;
+    const newLevel = Math.floor(newPoints / 100) + 1;
+    const newLongestStreak = Math.max(newStreak, stats.longest_streak);
+
+    // Update stats in database
+    const { data: updatedStats } = await supabase
+      .from("user_stats")
+      .update({
+        total_points: newPoints,
+        current_streak: newStreak,
+        longest_streak: newLongestStreak,
+        meals_completed: newMealsCompleted,
+        level: newLevel,
+        last_activity_date: today,
+      })
+      .eq("user_id", userId)
+      .select()
+      .single();
+
+    if (updatedStats) {
+      setUserStats(updatedStats);
+    }
+  };
+
+  const triggerCelebration = () => {
+    const messages = [
+      "¡Excelente! 🎉",
+      "¡Sigue así! 💪",
+      "¡Increíble! ⭐",
+      "¡Eres el mejor! 🏆",
+      "¡Qué pro! 🔥",
+    ];
+    
+    const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+    setMascotMessage(randomMessage);
+    setShowCelebration(true);
+
+    // Confetti
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 }
+    });
+
+    setTimeout(() => {
+      setShowCelebration(false);
+      setMascotMessage("");
+    }, 3000);
   };
 
   const loadProfile = async (userId: string) => {
@@ -140,6 +321,9 @@ const Dashboard = () => {
         if (shopping) {
           setShoppingList(shopping);
         }
+        
+        // Load completed meals for today
+        await loadCompletedMeals(userId);
       } else {
         // Generate first meal plan
         await generateMealPlan();
@@ -258,6 +442,47 @@ const Dashboard = () => {
             </AlertDescription>
           </Alert>
         )}
+
+        {/* Mascot and Gamification Section */}
+        <Card className="border-border/50 shadow-lg bg-gradient-to-br from-card to-muted/20">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex flex-col md:flex-row items-center gap-6">
+                <MascotCompanion
+                  points={userStats.total_points}
+                  streak={userStats.current_streak}
+                  level={userStats.level}
+                  showCelebration={showCelebration}
+                  message={mascotMessage}
+                />
+                <div className="text-center md:text-left">
+                  <h3 className="text-2xl font-bold">¡Hola! Soy tu compañero</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Te ayudaré a lograr tus metas de nutrición 🎯
+                  </p>
+                  <div className="flex flex-wrap gap-3 justify-center md:justify-start">
+                    <Badge variant="secondary" className="text-base px-4 py-2">
+                      Nivel {userStats.level}
+                    </Badge>
+                    <Badge variant="outline" className="text-base px-4 py-2">
+                      {userStats.meals_completed} comidas completadas
+                    </Badge>
+                    <Badge variant="outline" className="text-base px-4 py-2">
+                      Racha más larga: {userStats.longest_streak} días 🔥
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="text-sm text-muted-foreground mb-2">Progreso al siguiente nivel</div>
+                <Progress value={(userStats.total_points % 100)} className="w-48 h-3 mb-2" />
+                <div className="text-xs text-muted-foreground">
+                  {userStats.total_points % 100}/100 puntos
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Stats Overview */}
         <div className="grid gap-4 md:grid-cols-3">
@@ -399,49 +624,89 @@ const Dashboard = () => {
                     </CardHeader>
                     <CardContent className="p-6">
                       <div className="grid gap-4 md:grid-cols-3">
-                        {meals.map((meal) => (
-                          <Card 
-                            key={meal.id} 
-                            className="border-border/50 bg-gradient-to-br from-card to-muted/20 hover:shadow-md transition-all cursor-pointer hover:scale-[1.02] overflow-hidden"
-                            onClick={() => {
-                              setSelectedMeal(meal);
-                              setMealDialogOpen(true);
-                            }}
-                          >
-                            {meal.image_url && (
-                              <div className="relative h-40 w-full overflow-hidden">
-                                <img 
-                                  src={meal.image_url} 
-                                  alt={meal.name}
-                                  className="w-full h-full object-cover"
-                                />
-                                <div className="absolute top-2 right-2">
-                                  <Badge variant="secondary" className="backdrop-blur-sm bg-background/80">
-                                    {mealTypes[meal.meal_type]}
-                                  </Badge>
-                                </div>
-                              </div>
-                            )}
-                            <CardContent className="p-4 space-y-3">
-                              {!meal.image_url && (
-                                <div className="flex items-start justify-between gap-2">
-                                  <Badge variant="secondary" className="shrink-0">
-                                    {mealTypes[meal.meal_type]}
-                                  </Badge>
+                        {meals.map((meal) => {
+                          const isCompleted = completedMeals.has(meal.id);
+                          return (
+                            <Card 
+                              key={meal.id} 
+                              className={`border-border/50 bg-gradient-to-br from-card to-muted/20 hover:shadow-md transition-all overflow-hidden relative ${isCompleted ? 'ring-2 ring-green-500' : ''}`}
+                            >
+                              {meal.image_url && (
+                                <div className="relative h-40 w-full overflow-hidden">
+                                  <img 
+                                    src={meal.image_url} 
+                                    alt={meal.name}
+                                    className={`w-full h-full object-cover ${isCompleted ? 'opacity-60' : ''}`}
+                                  />
+                                  <div className="absolute top-2 right-2">
+                                    <Badge variant="secondary" className="backdrop-blur-sm bg-background/80">
+                                      {mealTypes[meal.meal_type]}
+                                    </Badge>
+                                  </div>
+                                  <div 
+                                    className="absolute top-2 left-2 bg-background/90 rounded-lg p-2 cursor-pointer hover:scale-110 transition-transform"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      completeMeal(meal.id);
+                                    }}
+                                  >
+                                    <Checkbox
+                                      checked={isCompleted}
+                                      className="pointer-events-none"
+                                    />
+                                  </div>
                                 </div>
                               )}
-                              <div>
-                                <h4 className="font-semibold text-base mb-1">{meal.name}</h4>
-                                <p className="text-sm text-muted-foreground line-clamp-2">{meal.description}</p>
-                              </div>
-                              <Separator />
-                              <div className="flex items-start gap-2">
-                                <Sparkles className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                                <p className="text-xs text-primary font-medium leading-relaxed">{meal.benefits}</p>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
+                              <CardContent 
+                                className="p-4 space-y-3 cursor-pointer"
+                                onClick={() => {
+                                  setSelectedMeal(meal);
+                                  setMealDialogOpen(true);
+                                }}
+                              >
+                                {!meal.image_url && (
+                                  <div className="flex items-start justify-between gap-2">
+                                    <Badge variant="secondary" className="shrink-0">
+                                      {mealTypes[meal.meal_type]}
+                                    </Badge>
+                                    <div 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        completeMeal(meal.id);
+                                      }}
+                                      className="cursor-pointer hover:scale-110 transition-transform"
+                                    >
+                                      <Checkbox
+                                        checked={isCompleted}
+                                        className="pointer-events-none"
+                                      />
+                                    </div>
+                                  </div>
+                                )}
+                                <div>
+                                  <h4 className={`font-semibold text-base mb-1 ${isCompleted ? 'line-through opacity-60' : ''}`}>
+                                    {meal.name}
+                                  </h4>
+                                  <p className="text-sm text-muted-foreground line-clamp-2">{meal.description}</p>
+                                </div>
+                                <Separator />
+                                <div className="flex items-start gap-2">
+                                  {isCompleted ? (
+                                    <>
+                                      <Check className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
+                                      <p className="text-xs text-green-600 font-medium leading-relaxed">¡Completada! +10 pts</p>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Sparkles className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                                      <p className="text-xs text-primary font-medium leading-relaxed">{meal.benefits}</p>
+                                    </>
+                                  )}
+                                </div>
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
                       </div>
                     </CardContent>
                   </Card>
