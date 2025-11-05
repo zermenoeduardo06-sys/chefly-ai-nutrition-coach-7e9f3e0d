@@ -6,8 +6,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const SPOONACULAR_API_KEY = Deno.env.get('RAPIDAPI_KEY');
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -29,93 +27,84 @@ serve(async (req) => {
 
     if (!preferences) throw new Error('No preferences found');
 
-    console.log('User preferences:', preferences);
+    console.log('Generating meal plan for user with preferences:', preferences);
 
-    // Map diet type to API parameters
-    const dietMap: Record<string, string> = {
-      'vegetariana': 'vegetarian',
-      'vegana': 'vegan',
-      'sin gluten': 'gluten free',
-      'cetogénica': 'ketogenic',
-      'mediterránea': 'mediterranean',
-      'omnívora': '',
+    // Map meal types
+    const mealTypeMap: Record<number, string[]> = {
+      1: ['breakfast'],
+      2: ['breakfast', 'lunch'],
+      3: ['breakfast', 'lunch', 'dinner'],
     };
 
-    const diet = dietMap[preferences.diet_type] || '';
-    const intolerances = preferences.allergies?.join(',') || '';
-    
-    // Meal types for the plan
-    const mealTypes = ['breakfast', 'lunch', 'dinner'];
-    const mealsPerDay = Math.min(preferences.meals_per_day, 3);
-    const selectedMealTypes = mealTypes.slice(0, mealsPerDay);
-    
-    const allMeals = [];
-    const allIngredients = new Set<string>();
+    const mealTypes = mealTypeMap[preferences.meals_per_day] || ['breakfast', 'lunch', 'dinner'];
+    const mealTypesES = {
+      breakfast: 'desayuno',
+      lunch: 'almuerzo',
+      dinner: 'cena'
+    };
 
-    // Generate meals for 7 days
-    for (let day = 0; day < 7; day++) {
-      for (const mealType of selectedMealTypes) {
-        try {
-          // Search for recipes using Spoonacular API
-          const searchUrl = new URL('https://api.spoonacular.com/recipes/complexSearch');
-          searchUrl.searchParams.append('apiKey', SPOONACULAR_API_KEY!);
-          searchUrl.searchParams.append('type', mealType);
-          searchUrl.searchParams.append('number', '1');
-          searchUrl.searchParams.append('addRecipeInformation', 'true');
-          searchUrl.searchParams.append('fillIngredients', 'true');
-          
-          if (diet) searchUrl.searchParams.append('diet', diet);
-          if (intolerances) searchUrl.searchParams.append('intolerances', intolerances);
+    // Generate meal plan with Lovable AI
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${Deno.env.get('LOVABLE_API_KEY')}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [{
+          role: 'system',
+          content: `Eres un nutricionista experto. Genera un plan de comidas semanal completo (7 días) con ${preferences.meals_per_day} comidas por día.
 
-          const recipeResponse = await fetch(searchUrl.toString(), {
-            method: 'GET'
-          });
+PREFERENCIAS DEL USUARIO:
+- Objetivo: ${preferences.goal}
+- Tipo de dieta: ${preferences.diet_type}
+- Alergias/Restricciones: ${preferences.allergies?.join(', ') || 'Ninguna'}
+- Comidas por día: ${preferences.meals_per_day}
 
-          if (!recipeResponse.ok) {
-            console.error('RapidAPI error:', await recipeResponse.text());
-            throw new Error('Failed to fetch recipes');
-          }
+INSTRUCCIONES:
+1. Crea recetas saludables, variadas y deliciosas para cada día
+2. Asegúrate de que todas las recetas sean apropiadas para la dieta "${preferences.diet_type}"
+3. NUNCA incluyas ingredientes que estén en la lista de alergias
+4. Las recetas deben estar alineadas con el objetivo: "${preferences.goal}"
+5. Incluye información nutricional relevante en los beneficios
+6. Genera exactamente ${7 * preferences.meals_per_day} comidas en total
 
-          const recipeData = await recipeResponse.json();
-          console.log(`Recipe for day ${day}, ${mealType}:`, recipeData);
+Responde ÚNICAMENTE con un objeto JSON válido (sin texto adicional) con esta estructura exacta:
+{
+  "meals": [
+    {
+      "day_of_week": 0,
+      "meal_type": "breakfast",
+      "name": "Nombre del plato",
+      "description": "Descripción breve de la receta y cómo prepararla (máximo 150 caracteres)",
+      "benefits": "Beneficios nutricionales específicos (ej: 350 kcal, 20g proteína, rico en fibra)"
+    }
+  ],
+  "shopping_list": ["ingrediente 1", "ingrediente 2", "ingrediente 3"]
+}
 
-          if (recipeData.results && recipeData.results.length > 0) {
-            const recipe = recipeData.results[0];
-            
-            // Extract ingredients
-            if (recipe.extendedIngredients) {
-              recipe.extendedIngredients.forEach((ing: any) => {
-                allIngredients.add(ing.original || ing.name);
-              });
-            }
+IMPORTANTE: 
+- day_of_week debe ser un número de 0 a 6
+- meal_type debe ser exactamente: ${mealTypes.map(m => `"${m}"`).join(' o ')}
+- La shopping_list debe contener todos los ingredientes únicos necesarios para la semana`
+        }]
+      }),
+    });
 
-            // Create meal entry
-            allMeals.push({
-              day_of_week: day,
-              meal_type: mealType,
-              name: recipe.title,
-              description: recipe.summary?.replace(/<[^>]*>/g, '').substring(0, 200) || 'Receta deliciosa y nutritiva',
-              benefits: `Calorías: ${recipe.nutrition?.nutrients?.find((n: any) => n.name === 'Calories')?.amount || 'N/A'} kcal. ${recipe.vegetarian ? 'Vegetariano. ' : ''}${recipe.vegan ? 'Vegano. ' : ''}${recipe.glutenFree ? 'Sin gluten.' : ''}`
-            });
-          }
-        } catch (error) {
-          console.error(`Error fetching recipe for day ${day}, ${mealType}:`, error);
-          // Fallback meal if API fails
-          allMeals.push({
-            day_of_week: day,
-            meal_type: mealType,
-            name: `${mealType === 'breakfast' ? 'Desayuno' : mealType === 'lunch' ? 'Almuerzo' : 'Cena'} saludable`,
-            description: 'Receta nutritiva adaptada a tus preferencias',
-            benefits: `Adaptado para ${preferences.goal}`
-          });
-        }
-      }
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Lovable AI error:', errorText);
+      throw new Error('Failed to generate meal plan with AI');
     }
 
-    const mealData = {
-      meals: allMeals,
-      shopping_list: Array.from(allIngredients)
-    };
+    const aiData = await response.json();
+    console.log('AI Response:', aiData);
+    
+    const content = aiData.choices[0].message.content;
+    // Remove markdown code blocks if present
+    const jsonContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    const mealData = JSON.parse(jsonContent);
 
     console.log('Generated meal data:', mealData);
 
