@@ -53,41 +53,37 @@ serve(async (req) => {
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [{
-          role: 'system',
-          content: `Eres un nutricionista experto. Genera un plan de comidas semanal completo (7 días) con ${preferences.meals_per_day} comidas por día.
+          role: 'user',
+          content: `Eres un chef nutricionista experto. Crea un plan de comidas REAL y específico para la semana (7 días) con ${preferences.meals_per_day} comidas por día.
 
-PREFERENCIAS DEL USUARIO:
+PREFERENCIAS:
 - Objetivo: ${preferences.goal}
-- Tipo de dieta: ${preferences.diet_type}
-- Alergias/Restricciones: ${preferences.allergies?.join(', ') || 'Ninguna'}
-- Comidas por día: ${preferences.meals_per_day}
+- Dieta: ${preferences.diet_type}
+- Alergias: ${preferences.allergies?.join(', ') || 'Ninguna'}
 
-INSTRUCCIONES:
-1. Crea recetas saludables, variadas y deliciosas para cada día
-2. Asegúrate de que todas las recetas sean apropiadas para la dieta "${preferences.diet_type}"
-3. NUNCA incluyas ingredientes que estén en la lista de alergias
-4. Las recetas deben estar alineadas con el objetivo: "${preferences.goal}"
-5. Incluye información nutricional relevante en los beneficios
-6. Genera exactamente ${7 * preferences.meals_per_day} comidas en total
+IMPORTANTE: Genera recetas REALES con nombres específicos, NO uses nombres genéricos como "Desayuno saludable". 
 
-Responde ÚNICAMENTE con un objeto JSON válido (sin texto adicional) con esta estructura exacta:
+Responde SOLO con JSON válido (sin markdown, sin texto adicional):
 {
   "meals": [
     {
       "day_of_week": 0,
       "meal_type": "breakfast",
-      "name": "Nombre del plato",
-      "description": "Descripción breve de la receta y cómo prepararla (máximo 150 caracteres)",
-      "benefits": "Beneficios nutricionales específicos (ej: 350 kcal, 20g proteína, rico en fibra)"
+      "name": "Avena con Frutas y Almendras",
+      "description": "Avena cocida con plátano, fresas y almendras tostadas",
+      "ingredients": ["1 taza avena", "1 plátano", "5 fresas", "30g almendras", "1 taza leche"],
+      "steps": ["Cocina la avena con leche", "Corta las frutas", "Agrega almendras tostadas"],
+      "calories": 420,
+      "protein": 18,
+      "carbs": 65,
+      "fats": 12,
+      "benefits": "Alto en fibra, proteína y grasas saludables. Ideal para energía matutina."
     }
   ],
-  "shopping_list": ["ingrediente 1", "ingrediente 2", "ingrediente 3"]
+  "shopping_list": ["avena", "plátano", "fresas", "almendras", "leche"]
 }
 
-IMPORTANTE: 
-- day_of_week debe ser un número de 0 a 6
-- meal_type debe ser exactamente: ${mealTypes.map(m => `"${m}"`).join(' o ')}
-- La shopping_list debe contener todos los ingredientes únicos necesarios para la semana`
+Genera ${7 * preferences.meals_per_day} recetas variadas y específicas. Cada receta DEBE tener nombre único, ingredientes reales, pasos de preparación y valores nutricionales.`
         }]
       }),
     });
@@ -99,14 +95,17 @@ IMPORTANTE:
     }
 
     const aiData = await response.json();
-    console.log('AI Response:', aiData);
+    console.log('AI Full Response:', JSON.stringify(aiData, null, 2));
     
     const content = aiData.choices[0].message.content;
+    console.log('AI Content:', content);
+    
     // Remove markdown code blocks if present
     const jsonContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    console.log('Cleaned JSON:', jsonContent);
+    
     const mealData = JSON.parse(jsonContent);
-
-    console.log('Generated meal data:', mealData);
+    console.log('Parsed meal data:', JSON.stringify(mealData, null, 2));
 
     // Create meal plan
     const { data: mealPlan } = await supabaseClient
@@ -126,6 +125,12 @@ IMPORTANTE:
       name: meal.name,
       description: meal.description,
       benefits: meal.benefits,
+      ingredients: meal.ingredients || [],
+      steps: meal.steps || [],
+      calories: meal.calories || 0,
+      protein: meal.protein || 0,
+      carbs: meal.carbs || 0,
+      fats: meal.fats || 0,
     }));
 
     await supabaseClient.from('meals').insert(meals);

@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
+import { MealDetailDialog } from "@/components/MealDetailDialog";
 
 interface Meal {
   id: string;
@@ -18,6 +19,12 @@ interface Meal {
   name: string;
   description: string;
   benefits: string;
+  ingredients?: string[];
+  steps?: string[];
+  calories?: number;
+  protein?: number;
+  carbs?: number;
+  fats?: number;
 }
 
 interface MealPlan {
@@ -37,6 +44,8 @@ const Dashboard = () => {
   const [mealPlan, setMealPlan] = useState<MealPlan | null>(null);
   const [shoppingList, setShoppingList] = useState<ShoppingList | null>(null);
   const [trialExpired, setTrialExpired] = useState(false);
+  const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null);
+  const [mealDialogOpen, setMealDialogOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -390,7 +399,14 @@ const Dashboard = () => {
                     <CardContent className="p-6">
                       <div className="grid gap-4 md:grid-cols-3">
                         {meals.map((meal) => (
-                          <Card key={meal.id} className="border-border/50 bg-gradient-to-br from-card to-muted/20 hover:shadow-md transition-shadow">
+                          <Card 
+                            key={meal.id} 
+                            className="border-border/50 bg-gradient-to-br from-card to-muted/20 hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]"
+                            onClick={() => {
+                              setSelectedMeal(meal);
+                              setMealDialogOpen(true);
+                            }}
+                          >
                             <CardContent className="p-4 space-y-3">
                               <div className="flex items-start justify-between gap-2">
                                 <Badge variant="secondary" className="shrink-0">
@@ -491,6 +507,12 @@ const Dashboard = () => {
           </TabsContent>
         </Tabs>
       </main>
+      
+      <MealDetailDialog 
+        meal={selectedMeal}
+        open={mealDialogOpen}
+        onOpenChange={setMealDialogOpen}
+      />
     </div>
   );
 };

@@ -65,33 +65,51 @@ export type Database = {
       meals: {
         Row: {
           benefits: string
+          calories: number | null
+          carbs: number | null
           created_at: string | null
           day_of_week: number
           description: string
+          fats: number | null
           id: string
+          ingredients: string[] | null
           meal_plan_id: string
           meal_type: string
           name: string
+          protein: number | null
+          steps: string[] | null
         }
         Insert: {
           benefits: string
+          calories?: number | null
+          carbs?: number | null
           created_at?: string | null
           day_of_week: number
           description: string
+          fats?: number | null
           id?: string
+          ingredients?: string[] | null
           meal_plan_id: string
           meal_type: string
           name: string
+          protein?: number | null
+          steps?: string[] | null
         }
         Update: {
           benefits?: string
+          calories?: number | null
+          carbs?: number | null
           created_at?: string | null
           day_of_week?: number
           description?: string
+          fats?: number | null
           id?: string
+          ingredients?: string[] | null
           meal_plan_id?: string
           meal_type?: string
           name?: string
+          protein?: number | null
+          steps?: string[] | null
         }
         Relationships: [
           {
