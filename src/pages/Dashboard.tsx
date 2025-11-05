@@ -12,6 +12,7 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { MealDetailDialog } from "@/components/MealDetailDialog";
 import { MascotCompanion } from "@/components/MascotCompanion";
+import { AchievementsDisplay } from "@/components/AchievementsDisplay";
 import { Checkbox } from "@/components/ui/checkbox";
 import confetti from "canvas-confetti";
 
@@ -49,6 +50,17 @@ interface UserStats {
   level: number;
 }
 
+interface Achievement {
+  id: string;
+  key: string;
+  title: string;
+  description: string;
+  icon: string;
+  requirement_type: string;
+  requirement_value: number;
+  points_reward: number;
+}
+
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -68,6 +80,8 @@ const Dashboard = () => {
   const [completedMeals, setCompletedMeals] = useState<Set<string>>(new Set());
   const [showCelebration, setShowCelebration] = useState(false);
   const [mascotMessage, setMascotMessage] = useState("");
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [unlockedAchievements, setUnlockedAchievements] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -91,7 +105,98 @@ const Dashboard = () => {
 
     await loadProfile(user.id);
     await loadUserStats(user.id);
+    await loadAchievements(user.id);
     await loadMealPlan(user.id);
+  };
+
+  const loadAchievements = async (userId: string) => {
+    // Load all achievements
+    const { data: allAchievements } = await supabase
+      .from("achievements")
+      .select("*")
+      .order("requirement_value", { ascending: true });
+
+    if (allAchievements) {
+      setAchievements(allAchievements);
+    }
+
+    // Load user's unlocked achievements
+    const { data: userAchievements } = await supabase
+      .from("user_achievements")
+      .select("achievement_id")
+      .eq("user_id", userId);
+
+    if (userAchievements) {
+      setUnlockedAchievements(new Set(userAchievements.map(ua => ua.achievement_id)));
+    }
+  };
+
+  const checkAndUnlockAchievements = async (userId: string, stats: UserStats) => {
+    const newlyUnlocked: Achievement[] = [];
+
+    for (const achievement of achievements) {
+      // Skip if already unlocked
+      if (unlockedAchievements.has(achievement.id)) continue;
+
+      let shouldUnlock = false;
+
+      switch (achievement.requirement_type) {
+        case 'meals_completed':
+          shouldUnlock = stats.meals_completed >= achievement.requirement_value;
+          break;
+        case 'streak':
+          shouldUnlock = stats.current_streak >= achievement.requirement_value;
+          break;
+        case 'points':
+          shouldUnlock = stats.total_points >= achievement.requirement_value;
+          break;
+      }
+
+      if (shouldUnlock) {
+        // Unlock the achievement
+        const { error } = await supabase
+          .from("user_achievements")
+          .insert({
+            user_id: userId,
+            achievement_id: achievement.id,
+          });
+
+        if (!error) {
+          newlyUnlocked.push(achievement);
+          setUnlockedAchievements(prev => new Set([...prev, achievement.id]));
+        }
+      }
+    }
+
+    // Show notifications for newly unlocked achievements
+    for (const achievement of newlyUnlocked) {
+      // Add bonus points
+      await supabase
+        .from("user_stats")
+        .update({
+          total_points: stats.total_points + achievement.points_reward,
+        })
+        .eq("user_id", userId);
+
+      // Update local stats
+      stats.total_points += achievement.points_reward;
+      setUserStats({ ...stats });
+
+      // Show toast notification
+      toast({
+        title: "🎉 ¡Logro Desbloqueado!",
+        description: `${achievement.icon} ${achievement.title} - +${achievement.points_reward} pts`,
+        duration: 5000,
+      });
+
+      // Celebration effect
+      confetti({
+        particleCount: 150,
+        spread: 100,
+        origin: { y: 0.6 },
+        colors: ['#FFD700', '#FFA500', '#FF6347'],
+      });
+    }
   };
 
   const loadUserStats = async (userId: string) => {
@@ -224,6 +329,8 @@ const Dashboard = () => {
 
     if (updatedStats) {
       setUserStats(updatedStats);
+      // Check for new achievements
+      await checkAndUnlockAchievements(userId, updatedStats);
     }
   };
 
@@ -577,6 +684,14 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
+
+        <Separator />
+
+        {/* Achievements Section */}
+        <AchievementsDisplay 
+          achievements={achievements}
+          unlockedAchievements={unlockedAchievements}
+        />
 
         <Separator />
 
