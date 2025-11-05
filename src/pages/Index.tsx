@@ -84,8 +84,8 @@ const Index = () => {
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-secondary/5 to-background pointer-events-none"></div>
         <div className="container mx-auto px-4 py-20 lg:py-32">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8 animate-fade-in">
+          <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-center">
+            <div className="space-y-6 lg:space-y-8 animate-fade-in order-1">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full">
                 <Sparkles className="w-4 h-4 text-primary" />
                 <span className="text-primary font-semibold text-sm">
@@ -134,12 +134,12 @@ const Index = () => {
               </div>
             </div>
 
-            <div className="relative lg:flex lg:items-center lg:justify-center">
+            <div className="relative flex items-center justify-center order-2">
               <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 blur-3xl -z-10 animate-pulse"></div>
               <img 
                 src={coachMascot} 
                 alt="Chefly.AI Coach - Tu entrenador nutricional personal" 
-                className="w-full max-w-lg mx-auto drop-shadow-2xl animate-fade-in hover:scale-105 transition-transform duration-500"
+                className="w-full max-w-sm md:max-w-md lg:max-w-lg drop-shadow-2xl animate-fade-in hover:scale-105 transition-transform duration-500"
               />
             </div>
           </div>
