@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-nutrition.jpg";
+import coachMascot from "@/assets/coach-mascot.png";
 import testimonial1 from "@/assets/testimonial-1.jpg";
 import testimonial2 from "@/assets/testimonial-2.jpg";
 import testimonial3 from "@/assets/testimonial-3.jpg";
@@ -135,7 +136,11 @@ const Index = () => {
 
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 blur-3xl -z-10 animate-pulse"></div>
-              
+              <img 
+                src={coachMascot} 
+                alt="Chefly.AI Coach - Tu entrenador nutricional personal" 
+                className="w-full max-w-md mx-auto drop-shadow-2xl animate-fade-in hover:scale-105 transition-transform duration-500"
+              />
             </div>
           </div>
         </div>
