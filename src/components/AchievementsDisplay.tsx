@@ -43,8 +43,8 @@ export const AchievementsDisplay = ({ achievements, unlockedAchievements }: Achi
         </CardDescription>
       </CardHeader>
       <CardContent className="p-6">
-        <ScrollArea className="h-[400px] pr-4">
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <ScrollArea className="h-[500px] pr-4">
+          <div className="grid gap-4 lg:grid-cols-2">
             {sortedAchievements.map((achievement) => {
               const isUnlocked = unlockedAchievements.has(achievement.id);
               
@@ -58,37 +58,37 @@ export const AchievementsDisplay = ({ achievements, unlockedAchievements }: Achi
                   <Card 
                     className={`relative overflow-hidden transition-all ${
                       isUnlocked 
-                        ? 'bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/50 shadow-md' 
+                        ? 'bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/50 shadow-md hover:shadow-lg' 
                         : 'bg-muted/30 opacity-70 hover:opacity-90'
                     }`}
                   >
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-3">
+                    <CardContent className="p-6">
+                      <div className="flex items-start gap-4">
                         <div 
-                          className={`text-4xl shrink-0 ${
+                          className={`text-5xl shrink-0 ${
                             !isUnlocked && 'grayscale opacity-50'
                           }`}
                         >
-                          {isUnlocked ? achievement.icon : <Lock className="w-10 h-10 text-muted-foreground" />}
+                          {isUnlocked ? achievement.icon : <Lock className="w-12 h-12 text-muted-foreground" />}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className={`font-semibold text-sm mb-1 ${
+                          <h4 className={`font-semibold text-lg mb-2 ${
                             isUnlocked ? 'text-foreground' : 'text-muted-foreground'
                           }`}>
                             {achievement.title}
                           </h4>
-                          <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
+                          <p className="text-sm text-muted-foreground mb-3">
                             {achievement.description}
                           </p>
                           <div className="flex items-center gap-2 flex-wrap">
                             <Badge 
                               variant={isUnlocked ? "default" : "outline"} 
-                              className="text-xs"
+                              className="text-sm px-3 py-1"
                             >
                               +{achievement.points_reward} pts
                             </Badge>
                             {isUnlocked && (
-                              <Badge variant="secondary" className="text-xs">
+                              <Badge variant="secondary" className="text-sm px-3 py-1">
                                 ✓ Desbloqueado
                               </Badge>
                             )}
@@ -96,7 +96,7 @@ export const AchievementsDisplay = ({ achievements, unlockedAchievements }: Achi
                         </div>
                       </div>
                       {isUnlocked && (
-                        <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-primary/20 to-transparent rounded-bl-full" />
+                        <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-primary/20 to-transparent rounded-bl-full" />
                       )}
                     </CardContent>
                   </Card>
