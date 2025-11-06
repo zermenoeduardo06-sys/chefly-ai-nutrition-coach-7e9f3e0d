@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { MealDetailDialog } from "@/components/MealDetailDialog";
 import { MascotCompanion } from "@/components/MascotCompanion";
 import { AchievementsDisplay } from "@/components/AchievementsDisplay";
+import { DailySummaryDialog } from "@/components/DailySummaryDialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import confetti from "canvas-confetti";
 
@@ -82,6 +83,14 @@ const Dashboard = () => {
   const [mascotMessage, setMascotMessage] = useState("");
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [unlockedAchievements, setUnlockedAchievements] = useState<Set<string>>(new Set());
+  const [showDailySummary, setShowDailySummary] = useState(false);
+  const [dailySummaryData, setDailySummaryData] = useState({
+    dayName: "",
+    totalCalories: 0,
+    totalProtein: 0,
+    totalCarbs: 0,
+    totalFats: 0,
+  });
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -281,6 +290,9 @@ const Dashboard = () => {
 
     // Show celebration
     triggerCelebration();
+
+    // Check if all meals for this day are completed
+    checkDayCompletion(mealId);
   };
 
   const updateUserStats = async (userId: string) => {
@@ -331,6 +343,49 @@ const Dashboard = () => {
       setUserStats(updatedStats);
       // Check for new achievements
       await checkAndUnlockAchievements(userId, updatedStats);
+    }
+  };
+
+  const checkDayCompletion = (completedMealId: string) => {
+    if (!mealPlan) return;
+
+    // Find the day of the completed meal
+    const completedMeal = mealPlan.meals.find(m => m.id === completedMealId);
+    if (!completedMeal) return;
+
+    const dayOfWeek = completedMeal.day_of_week;
+    
+    // Get all meals for this day
+    const dayMeals = mealPlan.meals.filter(m => m.day_of_week === dayOfWeek);
+    
+    // Check if all meals for this day are completed
+    const newCompletedSet = new Set([...completedMeals, completedMealId]);
+    const allDayMealsCompleted = dayMeals.every(meal => newCompletedSet.has(meal.id));
+
+    if (allDayMealsCompleted) {
+      // Calculate totals
+      const totalCalories = dayMeals.reduce((sum, meal) => sum + (meal.calories || 0), 0);
+      const totalProtein = dayMeals.reduce((sum, meal) => sum + (meal.protein || 0), 0);
+      const totalCarbs = dayMeals.reduce((sum, meal) => sum + (meal.carbs || 0), 0);
+      const totalFats = dayMeals.reduce((sum, meal) => sum + (meal.fats || 0), 0);
+
+      // Show summary dialog
+      setDailySummaryData({
+        dayName: dayNames[dayOfWeek],
+        totalCalories,
+        totalProtein,
+        totalCarbs,
+        totalFats,
+      });
+      setShowDailySummary(true);
+
+      // Extra celebration for completing the whole day
+      confetti({
+        particleCount: 200,
+        spread: 120,
+        origin: { y: 0.6 },
+        colors: ['#FFD700', '#FFA500', '#FF6347', '#00FF00'],
+      });
     }
   };
 
@@ -909,6 +964,16 @@ const Dashboard = () => {
         meal={selectedMeal}
         open={mealDialogOpen}
         onOpenChange={setMealDialogOpen}
+      />
+
+      <DailySummaryDialog
+        open={showDailySummary}
+        onOpenChange={setShowDailySummary}
+        dayName={dailySummaryData.dayName}
+        totalCalories={dailySummaryData.totalCalories}
+        totalProtein={dailySummaryData.totalProtein}
+        totalCarbs={dailySummaryData.totalCarbs}
+        totalFats={dailySummaryData.totalFats}
       />
     </div>
   );
