@@ -14,6 +14,7 @@ import { MealDetailDialog } from "@/components/MealDetailDialog";
 import { MascotCompanion } from "@/components/MascotCompanion";
 import { AchievementsDisplay } from "@/components/AchievementsDisplay";
 import { DailySummaryDialog } from "@/components/DailySummaryDialog";
+import { NutritionProgressCharts } from "@/components/NutritionProgressCharts";
 import { Checkbox } from "@/components/ui/checkbox";
 import confetti from "canvas-confetti";
 
@@ -747,6 +748,11 @@ const Dashboard = () => {
           achievements={achievements}
           unlockedAchievements={unlockedAchievements}
         />
+
+        <Separator />
+
+        {/* Nutrition Progress Charts */}
+        <NutritionProgressCharts />
 
         <Separator />
 
