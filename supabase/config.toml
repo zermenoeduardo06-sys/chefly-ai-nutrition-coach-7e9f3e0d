@@ -1,1 +1,10 @@
 project_id = "ppprnzkuivsnhrntkbyj"
+
+[functions.generate-meal-plan]
+verify_jwt = true
+
+[functions.nutrition-chat]
+verify_jwt = true
+
+[functions.generate-daily-challenges]
+verify_jwt = true

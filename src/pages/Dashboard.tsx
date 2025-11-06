@@ -15,6 +15,7 @@ import { MascotCompanion } from "@/components/MascotCompanion";
 import { AchievementsDisplay } from "@/components/AchievementsDisplay";
 import { DailySummaryDialog } from "@/components/DailySummaryDialog";
 import { NutritionProgressCharts } from "@/components/NutritionProgressCharts";
+import { DailyChallenges } from "@/components/DailyChallenges";
 import { Checkbox } from "@/components/ui/checkbox";
 import confetti from "canvas-confetti";
 
@@ -753,6 +754,11 @@ const Dashboard = () => {
 
         {/* Nutrition Progress Charts */}
         <NutritionProgressCharts />
+
+        <Separator />
+
+        {/* Daily Challenges */}
+        <DailyChallenges />
 
         <Separator />
 
