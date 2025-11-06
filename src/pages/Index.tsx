@@ -88,27 +88,20 @@ const Index = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-secondary/5 to-background"></div>
           
           {/* Animated wave shapes */}
-          <div className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-primary/10 to-transparent" style={{
-          clipPath: "ellipse(100% 100% at 50% 100%)"
-        }}></div>
+          <div className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-primary/10 to-transparent" 
+               style={{
+                 clipPath: "ellipse(100% 100% at 50% 100%)"
+               }}></div>
           
           {/* Decorative circles */}
           <div className="absolute top-20 left-10 w-32 h-32 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 blur-2xl animate-pulse"></div>
-          <div className="absolute top-40 right-20 w-48 h-48 rounded-full bg-gradient-to-br from-secondary/15 to-primary/15 blur-3xl animate-pulse" style={{
-          animationDelay: "1s"
-        }}></div>
-          <div className="absolute bottom-20 left-1/4 w-24 h-24 rounded-full bg-gradient-to-br from-primary/10 to-secondary/10 blur-xl animate-pulse" style={{
-          animationDelay: "2s"
-        }}></div>
+          <div className="absolute top-40 right-20 w-48 h-48 rounded-full bg-gradient-to-br from-secondary/15 to-primary/15 blur-3xl animate-pulse" style={{ animationDelay: "1s" }}></div>
+          <div className="absolute bottom-20 left-1/4 w-24 h-24 rounded-full bg-gradient-to-br from-primary/10 to-secondary/10 blur-xl animate-pulse" style={{ animationDelay: "2s" }}></div>
           
           {/* Small decorative stars/sparkles */}
           <div className="absolute top-32 right-1/4 w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-          <div className="absolute top-64 right-1/3 w-1.5 h-1.5 bg-secondary rounded-full animate-pulse" style={{
-          animationDelay: "0.5s"
-        }}></div>
-          <div className="absolute bottom-40 left-1/3 w-2 h-2 bg-primary rounded-full animate-pulse" style={{
-          animationDelay: "1.5s"
-        }}></div>
+          <div className="absolute top-64 right-1/3 w-1.5 h-1.5 bg-secondary rounded-full animate-pulse" style={{ animationDelay: "0.5s" }}></div>
+          <div className="absolute bottom-40 left-1/3 w-2 h-2 bg-primary rounded-full animate-pulse" style={{ animationDelay: "1.5s" }}></div>
         </div>
         
         <div className="container mx-auto px-4 py-20 lg:py-32 relative z-10">
@@ -164,14 +157,34 @@ const Index = () => {
 
             <div className="relative flex items-center justify-center order-2">
               <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 blur-3xl -z-10 animate-pulse"></div>
-              <img src={coachMascot} alt="Chefly.AI Coach - Tu entrenador nutricional personal" className="w-full max-w-sm md:max-w-md lg:max-w-lg drop-shadow-2xl animate-fade-in hover:scale-105 transition-transform duration-500" />
+              <img 
+                src={coachMascot} 
+                alt="Chefly.AI Coach - Tu entrenador nutricional personal" 
+                className="w-full max-w-sm md:max-w-md lg:max-w-lg drop-shadow-2xl animate-fade-in hover:scale-105 transition-transform duration-500"
+              />
             </div>
           </div>
         </div>
       </section>
 
       {/* Stats Section */}
-      
+      <section className="py-16 bg-gradient-to-r from-primary/5 to-secondary/5 backdrop-blur-sm">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {stats.map((stat, index) => <div key={index} className="text-center space-y-2 group animate-fade-in" style={{
+            animationDelay: `${index * 100}ms`
+          }}>
+                <stat.icon className="w-8 h-8 mx-auto text-primary group-hover:scale-110 transition-transform" />
+                <div className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  {stat.number}
+                </div>
+                <div className="text-sm text-muted-foreground font-medium">
+                  {stat.label}
+                </div>
+              </div>)}
+          </div>
+        </div>
+      </section>
 
       {/* How It Works Section */}
       <section className="py-20">
