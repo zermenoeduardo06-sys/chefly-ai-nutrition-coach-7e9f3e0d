@@ -295,13 +295,25 @@ const Dashboard = () => {
             });
 
           if (!error) {
-            // Award achievement points
-            await supabase
+            // Calculate new points
+            const newTotalPoints = stats.total_points + achievement.points_reward;
+            const newLevel = Math.floor(newTotalPoints / 100) + 1;
+            
+            // Award achievement points and update level
+            const { data: updatedStats } = await supabase
               .from("user_stats")
               .update({
-                total_points: stats.total_points + achievement.points_reward,
+                total_points: newTotalPoints,
+                level: newLevel,
               })
-              .eq("user_id", userId);
+              .eq("user_id", userId)
+              .select()
+              .single();
+
+            // Update local state immediately
+            if (updatedStats) {
+              setUserStats(updatedStats);
+            }
 
             // Show unlock animation
             setUnlockedAchievement(achievement);
