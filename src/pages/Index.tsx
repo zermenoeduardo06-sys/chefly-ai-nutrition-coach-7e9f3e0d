@@ -5,11 +5,36 @@ import coachMascot from "@/assets/coach-mascot.png";
 import testimonial1 from "@/assets/testimonial-1.jpg";
 import testimonial2 from "@/assets/testimonial-2.jpg";
 import testimonial3 from "@/assets/testimonial-3.jpg";
-import { Utensils, Brain, TrendingUp, Clock, Star, Users, CheckCircle2, Sparkles, ChefHat, Calendar } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Utensils, Brain, TrendingUp, Clock, Star, Users, CheckCircle2, Sparkles, ChefHat, Calendar, Check } from "lucide-react";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+
+interface SubscriptionPlan {
+  id: string;
+  name: string;
+  price_mxn: number;
+  billing_period: string;
+  features: string[];
+  display_order: number;
+}
 const Index = () => {
   const navigate = useNavigate();
+
+  const { data: plans } = useQuery({
+    queryKey: ["subscription-plans"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("subscription_plans")
+        .select("*")
+        .eq("is_active", true)
+        .order("display_order", { ascending: true });
+
+      if (error) throw error;
+      return data as SubscriptionPlan[];
+    },
+  });
   const stats = [{
     number: "50K+",
     label: "Usuarios activos",
@@ -245,6 +270,82 @@ const Index = () => {
                 <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
                 <p className="text-muted-foreground">{feature.description}</p>
               </div>)}
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section className="py-20">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16 space-y-4">
+            <Badge variant="secondary" className="px-4 py-2 text-sm">
+              Planes y precios
+            </Badge>
+            <h2 className="text-4xl lg:text-5xl font-bold">
+              Elige tu{" "}
+              <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                plan perfecto
+              </span>
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Comienza tu viaje hacia una mejor alimentación con el plan que mejor se adapte a ti
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {plans?.map((plan, index) => (
+              <Card
+                key={plan.id}
+                className={`relative flex flex-col border-border/50 hover:shadow-[0_8px_30px_rgb(255,99,71,0.15)] transition-all hover:-translate-y-2 bg-gradient-to-br from-card to-card/50 animate-fade-in ${
+                  index === 1 ? "md:scale-105 border-primary shadow-lg" : ""
+                }`}
+                style={{
+                  animationDelay: `${index * 150}ms`
+                }}
+              >
+                {index === 1 && (
+                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-secondary">
+                    Más Popular
+                  </Badge>
+                )}
+                
+                <CardHeader>
+                  <CardTitle className="text-2xl">{plan.name}</CardTitle>
+                  <CardDescription>
+                    <span className="text-4xl font-bold text-foreground">
+                      ${plan.price_mxn}
+                    </span>
+                    <span className="text-muted-foreground"> MXN/mes</span>
+                  </CardDescription>
+                </CardHeader>
+
+                <CardContent className="flex-1">
+                  <ul className="space-y-3">
+                    {plan.features.map((feature, idx) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                        <span className="text-sm">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+
+                <CardFooter>
+                  <Button
+                    className="w-full"
+                    variant={index === 1 ? "default" : "outline"}
+                    onClick={() => navigate("/auth")}
+                  >
+                    Comenzar ahora
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+
+          <div className="mt-12 text-center text-sm text-muted-foreground space-y-2">
+            <p>🎉 4 días de prueba gratis en todos los planes</p>
+            <p>✨ Cancela en cualquier momento sin compromiso</p>
           </div>
         </div>
       </section>
