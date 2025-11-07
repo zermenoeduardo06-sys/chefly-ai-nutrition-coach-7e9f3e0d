@@ -14,6 +14,7 @@ import { MealDetailDialog } from "@/components/MealDetailDialog";
 import { MascotCompanion } from "@/components/MascotCompanion";
 import { DailySummaryDialog } from "@/components/DailySummaryDialog";
 import { AchievementUnlockAnimation } from "@/components/AchievementUnlockAnimation";
+import { SubscriptionBanner } from "@/components/SubscriptionBanner";
 import { Checkbox } from "@/components/ui/checkbox";
 import confetti from "canvas-confetti";
 
@@ -529,30 +530,12 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
       <main className="container mx-auto px-4 py-6 space-y-6">
-        {/* Trial Alert */}
-        {trialExpired ? (
-          <Alert className="border-destructive bg-destructive/10">
-            <Sparkles className="h-4 w-4" />
-            <AlertDescription className="flex items-center justify-between">
-              <span>Tu prueba gratuita ha terminado. Suscríbete para continuar.</span>
-              <Button variant="hero" size="sm">
-                Suscribirme ahora
-              </Button>
-            </AlertDescription>
-          </Alert>
-        ) : profile && (
-          <Alert className="border-primary bg-gradient-to-r from-primary/10 to-secondary/10">
-            <Sparkles className="h-4 w-4 text-primary" />
-            <AlertDescription>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="font-medium">Prueba gratuita activa</span>
-                  <span className="text-sm">{daysRemaining} de 4 días restantes</span>
-                </div>
-                <Progress value={trialProgress} className="h-2" />
-              </div>
-            </AlertDescription>
-          </Alert>
+        {/* Subscription Banner */}
+        {profile && (
+          <SubscriptionBanner 
+            userId={profile.id} 
+            trialExpiresAt={profile.trial_expires_at}
+          />
         )}
 
         {/* Mascot and Gamification Section */}
