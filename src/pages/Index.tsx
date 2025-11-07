@@ -18,6 +18,8 @@ interface SubscriptionPlan {
   billing_period: string;
   features: string[];
   display_order: number;
+  coming_soon?: boolean;
+  is_active: boolean;
 }
 const Index = () => {
   const navigate = useNavigate();
@@ -28,7 +30,7 @@ const Index = () => {
       const { data, error } = await supabase
         .from("subscription_plans")
         .select("*")
-        .eq("is_active", true)
+        .or("is_active.eq.true,coming_soon.eq.true")
         .order("display_order", { ascending: true });
 
       if (error) throw error;
@@ -298,12 +300,16 @@ const Index = () => {
                 key={plan.id}
                 className={`relative flex flex-col border-border/50 hover:shadow-[0_8px_30px_rgb(255,99,71,0.15)] transition-all hover:-translate-y-2 bg-gradient-to-br from-card to-card/50 animate-fade-in ${
                   index === 1 ? "md:scale-105 border-primary shadow-lg" : ""
-                }`}
+                } ${plan.coming_soon ? "opacity-90" : ""}`}
                 style={{
                   animationDelay: `${index * 150}ms`
                 }}
               >
-                {index === 1 && (
+                {plan.coming_soon ? (
+                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-muted to-muted-foreground">
+                    Próximamente
+                  </Badge>
+                ) : index === 1 && (
                   <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-secondary">
                     Más Popular
                   </Badge>
@@ -333,10 +339,11 @@ const Index = () => {
                 <CardFooter>
                   <Button
                     className="w-full"
-                    variant={index === 1 ? "default" : "outline"}
+                    variant={index === 1 && !plan.coming_soon ? "default" : "outline"}
                     onClick={() => navigate("/auth")}
+                    disabled={plan.coming_soon}
                   >
-                    Comenzar ahora
+                    {plan.coming_soon ? "Próximamente" : "Comenzar ahora"}
                   </Button>
                 </CardFooter>
               </Card>

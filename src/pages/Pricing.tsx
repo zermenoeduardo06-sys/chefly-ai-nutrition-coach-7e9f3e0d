@@ -13,6 +13,8 @@ interface SubscriptionPlan {
   billing_period: string;
   features: string[];
   display_order: number;
+  coming_soon?: boolean;
+  is_active: boolean;
 }
 
 const Pricing = () => {
@@ -24,7 +26,7 @@ const Pricing = () => {
       const { data, error } = await supabase
         .from("subscription_plans")
         .select("*")
-        .eq("is_active", true)
+        .or("is_active.eq.true,coming_soon.eq.true")
         .order("display_order", { ascending: true });
 
       if (error) throw error;
@@ -66,9 +68,13 @@ const Pricing = () => {
               key={plan.id}
               className={`relative flex flex-col ${
                 index === 1 ? "border-primary shadow-lg scale-105" : ""
-              }`}
+              } ${plan.coming_soon ? "opacity-90" : ""}`}
             >
-              {index === 1 && (
+              {plan.coming_soon ? (
+                <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-muted to-muted-foreground">
+                  Próximamente
+                </Badge>
+              ) : index === 1 && (
                 <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">
                   Más Popular
                 </Badge>
@@ -98,10 +104,11 @@ const Pricing = () => {
               <CardFooter>
                 <Button
                   className="w-full"
-                  variant={index === 1 ? "default" : "outline"}
+                  variant={index === 1 && !plan.coming_soon ? "default" : "outline"}
                   onClick={() => handleSelectPlan(plan.id)}
+                  disabled={plan.coming_soon}
                 >
-                  Seleccionar Plan
+                  {plan.coming_soon ? "Próximamente" : "Seleccionar Plan"}
                 </Button>
               </CardFooter>
             </Card>
