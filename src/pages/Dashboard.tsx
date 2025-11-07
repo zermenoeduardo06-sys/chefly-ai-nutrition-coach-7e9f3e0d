@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { MealDetailDialog } from "@/components/MealDetailDialog";
 import { MascotCompanion } from "@/components/MascotCompanion";
 import { DailySummaryDialog } from "@/components/DailySummaryDialog";
+import { AchievementUnlockAnimation } from "@/components/AchievementUnlockAnimation";
 import { Checkbox } from "@/components/ui/checkbox";
 import confetti from "canvas-confetti";
 
@@ -77,6 +78,8 @@ const Dashboard = () => {
     totalCarbs: 0,
     totalFats: 0,
   });
+  const [showAchievementUnlock, setShowAchievementUnlock] = useState(false);
+  const [unlockedAchievement, setUnlockedAchievement] = useState<any>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -236,6 +239,81 @@ const Dashboard = () => {
 
     if (updatedStats) {
       setUserStats(updatedStats);
+      
+      // Check for achievement unlocks
+      await checkAchievementUnlocks(userId, updatedStats);
+    }
+  };
+
+  const checkAchievementUnlocks = async (userId: string, stats: UserStats) => {
+    try {
+      // Get all achievements
+      const { data: achievements } = await supabase
+        .from("achievements")
+        .select("*");
+
+      if (!achievements) return;
+
+      // Get user's already unlocked achievements
+      const { data: userAchievements } = await supabase
+        .from("user_achievements")
+        .select("achievement_id")
+        .eq("user_id", userId);
+
+      const unlockedIds = new Set(userAchievements?.map(ua => ua.achievement_id) || []);
+
+      // Check each achievement
+      for (const achievement of achievements) {
+        // Skip if already unlocked
+        if (unlockedIds.has(achievement.id)) continue;
+
+        let shouldUnlock = false;
+
+        // Check if requirements are met
+        switch (achievement.requirement_type) {
+          case "meals_completed":
+            shouldUnlock = stats.meals_completed >= achievement.requirement_value;
+            break;
+          case "streak":
+            shouldUnlock = stats.current_streak >= achievement.requirement_value;
+            break;
+          case "points":
+            shouldUnlock = stats.total_points >= achievement.requirement_value;
+            break;
+          case "level":
+            shouldUnlock = stats.level >= achievement.requirement_value;
+            break;
+        }
+
+        if (shouldUnlock) {
+          // Unlock the achievement
+          const { error } = await supabase
+            .from("user_achievements")
+            .insert({
+              user_id: userId,
+              achievement_id: achievement.id,
+            });
+
+          if (!error) {
+            // Award achievement points
+            await supabase
+              .from("user_stats")
+              .update({
+                total_points: stats.total_points + achievement.points_reward,
+              })
+              .eq("user_id", userId);
+
+            // Show unlock animation
+            setUnlockedAchievement(achievement);
+            setShowAchievementUnlock(true);
+
+            // Only show one achievement at a time
+            break;
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error checking achievements:", error);
     }
   };
 
@@ -826,6 +904,15 @@ const Dashboard = () => {
         totalProtein={dailySummaryData.totalProtein}
         totalCarbs={dailySummaryData.totalCarbs}
         totalFats={dailySummaryData.totalFats}
+      />
+
+      <AchievementUnlockAnimation
+        isOpen={showAchievementUnlock}
+        achievement={unlockedAchievement}
+        onClose={() => {
+          setShowAchievementUnlock(false);
+          setUnlockedAchievement(null);
+        }}
       />
     </div>
   );
