@@ -296,6 +296,7 @@ export type Database = {
       subscription_plans: {
         Row: {
           billing_period: string
+          coming_soon: boolean
           created_at: string
           display_order: number
           features: Json
@@ -307,6 +308,7 @@ export type Database = {
         }
         Insert: {
           billing_period?: string
+          coming_soon?: boolean
           created_at?: string
           display_order: number
           features?: Json
@@ -318,6 +320,7 @@ export type Database = {
         }
         Update: {
           billing_period?: string
+          coming_soon?: boolean
           created_at?: string
           display_order?: number
           features?: Json
