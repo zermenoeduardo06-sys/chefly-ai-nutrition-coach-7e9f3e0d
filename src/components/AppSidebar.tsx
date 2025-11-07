@@ -1,4 +1,4 @@
-import { Home, TrendingUp, Trophy, Target, MessageCircle, Users } from "lucide-react";
+import { Home, TrendingUp, Trophy, Target, MessageCircle, Users, CreditCard } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -19,6 +19,7 @@ const menuItems = [
   { title: "Desafíos Diarios", url: "/dashboard/challenges", icon: Target },
   { title: "Clasificación", url: "/dashboard/leaderboard", icon: Users },
   { title: "Coach IA", url: "/chat", icon: MessageCircle },
+  { title: "Planes de Pago", url: "/pricing", icon: CreditCard },
 ];
 
 export function AppSidebar() {
