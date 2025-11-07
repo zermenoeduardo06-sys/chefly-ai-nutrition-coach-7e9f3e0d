@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import Progress from "./pages/Progress";
 import Achievements from "./pages/Achievements";
 import Challenges from "./pages/Challenges";
+import Leaderboard from "./pages/Leaderboard";
 import Chat from "./pages/Chat";
 import NotFound from "./pages/NotFound";
 
@@ -45,6 +46,7 @@ const App = () => (
           <Route path="/dashboard/progress" element={<DashboardLayout><Progress /></DashboardLayout>} />
           <Route path="/dashboard/achievements" element={<DashboardLayout><Achievements /></DashboardLayout>} />
           <Route path="/dashboard/challenges" element={<DashboardLayout><Challenges /></DashboardLayout>} />
+          <Route path="/dashboard/leaderboard" element={<DashboardLayout><Leaderboard /></DashboardLayout>} />
           <Route path="/chat" element={<Chat />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

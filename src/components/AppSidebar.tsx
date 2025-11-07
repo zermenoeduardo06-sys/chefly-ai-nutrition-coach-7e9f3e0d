@@ -1,4 +1,4 @@
-import { Home, TrendingUp, Trophy, Target, MessageCircle } from "lucide-react";
+import { Home, TrendingUp, Trophy, Target, MessageCircle, Users } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -17,6 +17,7 @@ const menuItems = [
   { title: "Progreso Nutricional", url: "/dashboard/progress", icon: TrendingUp },
   { title: "Logros y Medallas", url: "/dashboard/achievements", icon: Trophy },
   { title: "Desafíos Diarios", url: "/dashboard/challenges", icon: Target },
+  { title: "Clasificación", url: "/dashboard/leaderboard", icon: Users },
   { title: "Coach IA", url: "/chat", icon: MessageCircle },
 ];
 
