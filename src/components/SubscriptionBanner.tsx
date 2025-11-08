@@ -19,12 +19,24 @@ export const SubscriptionBanner = ({ userId, trialExpiresAt }: SubscriptionBanne
 
   useEffect(() => {
     loadSubscription();
-    calculateTrialDays();
-  }, [userId, trialExpiresAt]);
+    if (!activePlan) {
+      calculateTrialDays();
+    }
+  }, [userId, trialExpiresAt, activePlan]);
 
   const loadSubscription = async () => {
     try {
-      // Get active subscription
+      // Check Stripe subscription
+      const { data: stripeData } = await supabase.functions.invoke("check-subscription");
+      
+      if (stripeData?.subscribed && stripeData?.product_id) {
+        // User has active Stripe subscription
+        setActivePlan("Intermedio"); // Default to Intermedio for paid plans
+        setIsTrialActive(false);
+        return;
+      }
+
+      // If no Stripe subscription, check database subscriptions
       const { data: subscription } = await supabase
         .from("user_subscriptions")
         .select(`
@@ -55,7 +67,47 @@ export const SubscriptionBanner = ({ userId, trialExpiresAt }: SubscriptionBanne
     setDaysRemaining(diffDays > 0 ? diffDays : 0);
   };
 
-  if (!isTrialActive && !activePlan) return null;
+  // Don't show banner if user has active paid plan
+  if (activePlan) {
+    return (
+      <Card className="mb-6 border-2 border-primary bg-gradient-to-r from-primary/10 to-secondary/10">
+        <CardContent className="p-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <div className="p-3 rounded-full bg-primary/20">
+                <Crown className="h-6 w-6 text-primary" />
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <h3 className="text-xl font-semibold">
+                    Plan {activePlan}
+                  </h3>
+                  <Badge variant="default" className="bg-primary">
+                    Activo
+                  </Badge>
+                </div>
+                
+                <p className="text-sm text-muted-foreground">
+                  Disfruta de todos los beneficios de tu plan
+                </p>
+              </div>
+            </div>
+
+            <Button 
+              variant="outline"
+              onClick={() => navigate("/subscription")}
+            >
+              Gestionar plan
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Show trial banner only if no active plan
+  if (!isTrialActive) return null;
 
   const isExpiringSoon = daysRemaining !== null && daysRemaining <= 1;
 
