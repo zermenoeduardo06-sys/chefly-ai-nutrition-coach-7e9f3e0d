@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, RefreshCw, MessageCircle, Calendar, Settings, TrendingUp, Utensils, Clock, Sparkles, Check, Lock } from "lucide-react";
+import { Loader2, RefreshCw, MessageCircle, Calendar, Settings, TrendingUp, Utensils, Clock, Sparkles, Check, Lock, CreditCard } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { MealDetailDialog } from "@/components/MealDetailDialog";
@@ -16,6 +16,7 @@ import { AchievementUnlockAnimation } from "@/components/AchievementUnlockAnimat
 import { SubscriptionBanner } from "@/components/SubscriptionBanner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
+import { useSubscription } from "@/hooks/useSubscription";
 import confetti from "canvas-confetti";
 
 interface Meal {
@@ -79,9 +80,12 @@ const Dashboard = () => {
   const [showAchievementUnlock, setShowAchievementUnlock] = useState(false);
   const [unlockedAchievement, setUnlockedAchievement] = useState<any>(null);
   const [userId, setUserId] = useState<string | undefined>(undefined);
+  const [portalLoading, setPortalLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { limits, refreshLimits } = useSubscriptionLimits(userId);
+  const subscription = useSubscription(userId);
+  const [searchParams] = useSearchParams();
 
   const dayNames = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
   const mealTypes: { [key: string]: string } = {
@@ -93,6 +97,19 @@ const Dashboard = () => {
   useEffect(() => {
     checkAuth();
   }, []);
+
+  // Check subscription status on return from Stripe
+  useEffect(() => {
+    const subscriptionStatus = searchParams.get('subscription');
+    if (subscriptionStatus === 'success' && userId) {
+      toast({
+        title: "¡Suscripción exitosa!",
+        description: "Tu suscripción ha sido activada. Refrescando estado...",
+      });
+      subscription.checkSubscription();
+      refreshLimits();
+    }
+  }, [searchParams, userId]);
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -413,14 +430,20 @@ const Dashboard = () => {
       setTrialExpired(expired && !hasActiveSubscription);
       
       // Block access if trial expired and no active subscription
+      // Check subscription status with Stripe
       if (expired && !hasActiveSubscription) {
-        toast({
-          title: "Trial expirado",
-          description: "Tu periodo de prueba ha terminado. Elige un plan para continuar.",
-          variant: "destructive",
-        });
-        navigate("/pricing");
-        return;
+        // Verify with Stripe before blocking
+        const { data: subData } = await supabase.functions.invoke("check-subscription");
+        
+        if (!subData?.subscribed) {
+          toast({
+            title: "Trial expirado",
+            description: "Tu periodo de prueba ha terminado. Elige un plan para continuar.",
+            variant: "destructive",
+          });
+          navigate("/pricing");
+          return;
+        }
       }
     }
   };
@@ -629,6 +652,28 @@ const Dashboard = () => {
     return acc;
   }, {} as { [key: number]: Meal[] }) || {};
 
+  const handleManageSubscription = async () => {
+    setPortalLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("customer-portal");
+
+      if (error) throw error;
+
+      if (data.url) {
+        window.open(data.url, "_blank");
+      }
+    } catch (error) {
+      console.error("Error opening customer portal:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo abrir el portal de gestión. Intenta de nuevo.",
+      });
+    } finally {
+      setPortalLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -745,7 +790,7 @@ const Dashboard = () => {
             <CardTitle className="text-lg">Acciones Rápidas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <Button
                 onClick={generateMealPlan}
                 disabled={generating}
@@ -782,6 +827,27 @@ const Dashboard = () => {
                 <Settings className="h-5 w-5" />
                 <span className="text-sm">Ajustar preferencias</span>
               </Button>
+
+              {subscription.subscribed && (
+                <Button
+                  onClick={handleManageSubscription}
+                  disabled={portalLoading}
+                  variant="outline"
+                  className="h-auto py-4 flex-col gap-2"
+                >
+                  {portalLoading ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <span className="text-sm">Abriendo...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="h-5 w-5" />
+                      <span className="text-sm">Gestionar suscripción</span>
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
