@@ -409,7 +409,19 @@ const Dashboard = () => {
     if (data) {
       setProfile(data);
       const expired = new Date(data.trial_expires_at) < new Date();
-      setTrialExpired(expired && !data.is_subscribed);
+      const hasActiveSubscription = data.is_subscribed;
+      setTrialExpired(expired && !hasActiveSubscription);
+      
+      // Block access if trial expired and no active subscription
+      if (expired && !hasActiveSubscription) {
+        toast({
+          title: "Trial expirado",
+          description: "Tu periodo de prueba ha terminado. Elige un plan para continuar.",
+          variant: "destructive",
+        });
+        navigate("/pricing");
+        return;
+      }
     }
   };
 
