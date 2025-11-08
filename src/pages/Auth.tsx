@@ -41,8 +41,19 @@ const Auth = () => {
     setLoading(true);
 
     try {
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!email || !emailRegex.test(email) || email.length > 255) {
+        throw new Error('Correo electrónico inválido');
+      }
+      
+      // Validate password
+      if (!password || password.length < 8 || password.length > 128) {
+        throw new Error('La contraseña debe tener entre 8 y 128 caracteres');
+      }
+
       const { error } = await supabase.auth.signUp({
-        email,
+        email: email.trim().toLowerCase(),
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
@@ -73,8 +84,19 @@ const Auth = () => {
     setLoading(true);
 
     try {
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!email || !emailRegex.test(email)) {
+        throw new Error('Correo electrónico inválido');
+      }
+      
+      // Validate password exists
+      if (!password || password.length < 6) {
+        throw new Error('Contraseña inválida');
+      }
+
       const { error } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim().toLowerCase(),
         password,
       });
 
@@ -140,11 +162,12 @@ const Auth = () => {
                     <Input
                       id="signup-password"
                       type="password"
-                      placeholder="Mínimo 6 caracteres"
+                      placeholder="Mínimo 8 caracteres"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      minLength={6}
+                      minLength={8}
+                      maxLength={128}
                       disabled={loading}
                     />
                   </div>

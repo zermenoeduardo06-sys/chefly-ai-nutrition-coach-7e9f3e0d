@@ -8,3 +8,6 @@ verify_jwt = true
 
 [functions.generate-daily-challenges]
 verify_jwt = true
+
+[functions.generate-single-meal]
+verify_jwt = true

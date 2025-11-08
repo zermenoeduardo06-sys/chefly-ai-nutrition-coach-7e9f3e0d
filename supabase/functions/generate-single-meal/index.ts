@@ -13,21 +13,55 @@ serve(async (req) => {
 
   try {
     const { mealId, mealType, dayOfWeek, mealPlanId } = await req.json();
+    
+    // Validate inputs
+    if (!mealType || !dayOfWeek || !mealPlanId) {
+      throw new Error('Invalid input parameters');
+    }
 
+    // Initialize Supabase clients
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
+    
+    // Get authenticated user using the auth header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('No authorization header');
+    }
+    const token = authHeader.replace('Bearer ', '');
+    
+    // Create auth client to verify user
+    const authClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+    );
+    const { data: { user }, error: userError } = await authClient.auth.getUser(token);
+    
+    if (userError || !user) {
+      throw new Error('Unauthorized');
+    }
 
-    // Get user preferences
-    const { data: mealPlan } = await supabaseClient
+    // Fetch meal plan and verify ownership
+    const { data: mealPlan, error: mealPlanError } = await supabaseClient
       .from("meal_plans")
       .select("user_id")
       .eq("id", mealPlanId)
       .single();
 
+    if (mealPlanError) {
+      console.error('Error fetching meal plan:', mealPlanError);
+      throw new Error('Failed to fetch meal plan');
+    }
+    
     if (!mealPlan) {
       throw new Error("Meal plan not found");
+    }
+    
+    // Verify the user owns this meal plan
+    if (mealPlan.user_id !== user.id) {
+      throw new Error('Unauthorized: You do not own this meal plan');
     }
 
     const { data: preferences } = await supabaseClient

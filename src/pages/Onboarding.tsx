@@ -38,8 +38,33 @@ const Onboarding = () => {
   ];
 
   const addAllergy = () => {
-    if (allergyInput.trim() && !allergies.includes(allergyInput.trim())) {
-      setAllergies([...allergies, allergyInput.trim()]);
+    const trimmedInput = allergyInput.trim();
+    
+    // Validate allergy input
+    if (!trimmedInput) return;
+    
+    if (trimmedInput.length > 100) {
+      toast({
+        variant: "destructive",
+        title: "Entrada muy larga",
+        description: "La alergia no puede tener más de 100 caracteres",
+      });
+      return;
+    }
+    
+    // Only allow letters, spaces, and common accented characters
+    const allergyRegex = /^[a-záéíóúñA-ZÁÉÍÓÚÑ\s]+$/;
+    if (!allergyRegex.test(trimmedInput)) {
+      toast({
+        variant: "destructive",
+        title: "Entrada inválida",
+        description: "Solo se permiten letras y espacios",
+      });
+      return;
+    }
+    
+    if (!allergies.includes(trimmedInput)) {
+      setAllergies([...allergies, trimmedInput]);
       setAllergyInput("");
     }
   };

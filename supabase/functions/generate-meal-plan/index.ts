@@ -13,6 +13,11 @@ serve(async (req) => {
 
   try {
     const { userId } = await req.json();
+    
+    // Validate userId
+    if (!userId || typeof userId !== 'string') {
+      throw new Error('Invalid userId');
+    }
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''

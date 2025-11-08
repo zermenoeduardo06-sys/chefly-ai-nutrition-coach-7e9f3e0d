@@ -14,6 +14,11 @@ serve(async (req) => {
   try {
     const { userId } = await req.json();
     
+    // Validate userId
+    if (!userId || typeof userId !== 'string') {
+      throw new Error('Invalid userId');
+    }
+    
     if (!userId) {
       throw new Error("userId is required");
     }

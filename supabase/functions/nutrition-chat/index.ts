@@ -13,6 +13,17 @@ serve(async (req) => {
 
   try {
     const { message, userId } = await req.json();
+    
+    // Validate inputs
+    if (!message || typeof message !== 'string' || message.trim().length === 0) {
+      throw new Error('Invalid message');
+    }
+    if (message.length > 2000) {
+      throw new Error('Message too long (max 2000 characters)');
+    }
+    if (!userId || typeof userId !== 'string') {
+      throw new Error('Invalid userId');
+    }
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
