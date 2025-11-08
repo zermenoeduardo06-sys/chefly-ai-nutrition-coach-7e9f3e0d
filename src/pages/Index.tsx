@@ -5,7 +5,7 @@ import coachMascot from "@/assets/coach-mascot.png";
 import testimonial1 from "@/assets/testimonial-1.jpg";
 import testimonial2 from "@/assets/testimonial-2.jpg";
 import testimonial3 from "@/assets/testimonial-3.jpg";
-import { Utensils, Brain, TrendingUp, Clock, Star, Users, CheckCircle2, Sparkles, ChefHat, Calendar, Check } from "lucide-react";
+import { Utensils, Brain, TrendingUp, Clock, Star, Users, CheckCircle2, Sparkles, ChefHat, Calendar, Check, Phone, MessageCircle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
@@ -446,6 +446,52 @@ const Index = () => {
               <p className="text-sm text-muted-foreground">
                 🎉 Sin compromiso • 🚫 Sin tarjeta • ✨ Cancela cuando quieras
               </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Contact Section */}
+      <section className="py-20 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="max-w-2xl mx-auto text-center space-y-8">
+            <Badge variant="secondary" className="px-4 py-2 text-sm">
+              Contacto
+            </Badge>
+            <h2 className="text-4xl lg:text-5xl font-bold">
+              ¿Necesitas{" "}
+              <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                ayuda?
+              </span>
+            </h2>
+            <p className="text-xl text-muted-foreground">
+              Estamos aquí para responder tus preguntas
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-8">
+              <a 
+                href="tel:+528712185196"
+                className="flex items-center gap-3 px-8 py-4 bg-card border border-border rounded-xl hover:shadow-lg transition-all hover:-translate-y-1 group"
+              >
+                <Phone className="w-6 h-6 text-primary group-hover:scale-110 transition-transform" />
+                <div className="text-left">
+                  <div className="text-sm text-muted-foreground">Llámanos</div>
+                  <div className="font-semibold text-lg">+52 871 218 5196</div>
+                </div>
+              </a>
+              
+              <a 
+                href="https://wa.me/528712185196"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 px-8 py-4 bg-gradient-to-br from-primary to-primary-hover text-primary-foreground rounded-xl hover:shadow-lg transition-all hover:-translate-y-1 group"
+              >
+                <MessageCircle className="w-6 h-6 group-hover:scale-110 transition-transform" />
+                <div className="text-left">
+                  <div className="text-sm opacity-90">Escríbenos por</div>
+                  <div className="font-semibold text-lg">WhatsApp</div>
+                </div>
+              </a>
             </div>
           </div>
         </div>
