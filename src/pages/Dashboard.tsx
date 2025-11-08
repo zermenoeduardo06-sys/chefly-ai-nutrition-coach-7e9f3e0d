@@ -5,9 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, RefreshCw, MessageCircle, ShoppingCart, Calendar, Settings, TrendingUp, Utensils, Clock, Sparkles, Check } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loader2, RefreshCw, MessageCircle, Calendar, Settings, TrendingUp, Utensils, Clock, Sparkles, Check } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { MealDetailDialog } from "@/components/MealDetailDialog";
@@ -40,10 +38,6 @@ interface MealPlan {
   meals: Meal[];
 }
 
-interface ShoppingList {
-  items: string[];
-}
-
 interface UserStats {
   total_points: number;
   current_streak: number;
@@ -57,7 +51,6 @@ const Dashboard = () => {
   const [generating, setGenerating] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const [mealPlan, setMealPlan] = useState<MealPlan | null>(null);
-  const [shoppingList, setShoppingList] = useState<ShoppingList | null>(null);
   const [trialExpired, setTrialExpired] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null);
   const [mealDialogOpen, setMealDialogOpen] = useState(false);
@@ -456,17 +449,6 @@ const Dashboard = () => {
           week_start_date: plans[0].week_start_date,
           meals: meals || [],
         });
-
-        // Get shopping list
-        const { data: shopping, error: shoppingError } = await supabase
-          .from("shopping_lists")
-          .select("*")
-          .eq("meal_plan_id", planId)
-          .single();
-
-        if (shopping) {
-          setShoppingList(shopping);
-        }
         
         // Load completed meals for today
         await loadCompletedMeals(userId);
@@ -675,75 +657,91 @@ const Dashboard = () => {
 
         <Separator />
 
-        {/* Main Content Tabs */}
-        <Tabs defaultValue="meals" className="space-y-6">
+        {/* Weekly Meal Plan */}
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <TabsList className="grid grid-cols-2">
-              <TabsTrigger value="meals" className="gap-2">
-                <Calendar className="h-4 w-4" />
-                <span className="hidden sm:inline">Menú Semanal</span>
-                <span className="sm:hidden">Menú</span>
-              </TabsTrigger>
-              <TabsTrigger value="shopping" className="gap-2">
-                <ShoppingCart className="h-4 w-4" />
-                <span className="hidden sm:inline">Lista de Compras</span>
-                <span className="sm:hidden">Compras</span>
-              </TabsTrigger>
-            </TabsList>
-            
+            <div className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-primary" />
+              <h2 className="text-2xl font-bold">Menú Semanal</h2>
+            </div>
             {mealPlan && (
-              <Badge variant="secondary" className="hidden sm:flex">
+              <Badge variant="secondary">
                 Semana del {new Date(mealPlan.week_start_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}
               </Badge>
             )}
           </div>
 
-          <TabsContent value="meals" className="space-y-4">
-            {Object.keys(groupedMeals).length > 0 ? (
-              Object.keys(groupedMeals).map((dayIndex) => {
-                const day = parseInt(dayIndex);
-                const meals = groupedMeals[day];
+          {Object.keys(groupedMeals).length > 0 ? (
+            Object.keys(groupedMeals).map((dayIndex) => {
+              const day = parseInt(dayIndex);
+              const meals = groupedMeals[day];
 
-                return (
-                  <Card key={day} className="overflow-hidden border-border/50 shadow-lg hover:shadow-xl transition-all">
-                    <CardHeader className="bg-gradient-to-r from-primary/5 to-secondary/5 border-b">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-                            <span className="text-primary-foreground font-bold text-sm">{day + 1}</span>
-                          </div>
-                          <span className="text-xl">{dayNames[day]}</span>
-                        </CardTitle>
-                        <Badge variant="outline">{meals.length} comidas</Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="p-6">
-                      <div className="grid gap-4 md:grid-cols-3">
-                        {meals.map((meal) => {
-                          const isCompleted = completedMeals.has(meal.id);
-                          return (
-                            <Card 
-                              key={meal.id} 
-                              className={`border-border/50 bg-gradient-to-br from-card to-muted/20 hover:shadow-md transition-all overflow-hidden relative ${isCompleted ? 'ring-2 ring-green-500' : ''}`}
-                            >
-                              {meal.image_url && (
-                                <div className="relative h-40 w-full overflow-hidden">
-                                  <img 
-                                    src={meal.image_url} 
-                                    alt={meal.name}
-                                    className={`w-full h-full object-cover ${isCompleted ? 'opacity-60' : ''}`}
+              return (
+                <Card key={day} className="overflow-hidden border-border/50 shadow-lg hover:shadow-xl transition-all">
+                  <CardHeader className="bg-gradient-to-r from-primary/5 to-secondary/5 border-b">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                          <span className="text-primary-foreground font-bold text-sm">{day + 1}</span>
+                        </div>
+                        <span className="text-xl">{dayNames[day]}</span>
+                      </CardTitle>
+                      <Badge variant="outline">{meals.length} comidas</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="grid gap-4 md:grid-cols-3">
+                      {meals.map((meal) => {
+                        const isCompleted = completedMeals.has(meal.id);
+                        return (
+                          <Card 
+                            key={meal.id} 
+                            className={`border-border/50 bg-gradient-to-br from-card to-muted/20 hover:shadow-md transition-all overflow-hidden relative ${isCompleted ? 'ring-2 ring-green-500' : ''}`}
+                          >
+                            {meal.image_url && (
+                              <div className="relative h-40 w-full overflow-hidden">
+                                <img 
+                                  src={meal.image_url} 
+                                  alt={meal.name}
+                                  className={`w-full h-full object-cover ${isCompleted ? 'opacity-60' : ''}`}
+                                />
+                                <div className="absolute top-2 right-2">
+                                  <Badge variant="secondary" className="backdrop-blur-sm bg-background/80">
+                                    {mealTypes[meal.meal_type]}
+                                  </Badge>
+                                </div>
+                                <div 
+                                  className="absolute top-2 left-2 bg-background/90 rounded-lg p-2 cursor-pointer hover:scale-110 transition-transform"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    completeMeal(meal.id);
+                                  }}
+                                >
+                                  <Checkbox
+                                    checked={isCompleted}
+                                    className="pointer-events-none"
                                   />
-                                  <div className="absolute top-2 right-2">
-                                    <Badge variant="secondary" className="backdrop-blur-sm bg-background/80">
-                                      {mealTypes[meal.meal_type]}
-                                    </Badge>
-                                  </div>
+                                </div>
+                              </div>
+                            )}
+                            <CardContent 
+                              className="p-4 space-y-3 cursor-pointer"
+                              onClick={() => {
+                                setSelectedMeal(meal);
+                                setMealDialogOpen(true);
+                              }}
+                            >
+                              {!meal.image_url && (
+                                <div className="flex items-start justify-between gap-2">
+                                  <Badge variant="secondary" className="shrink-0">
+                                    {mealTypes[meal.meal_type]}
+                                  </Badge>
                                   <div 
-                                    className="absolute top-2 left-2 bg-background/90 rounded-lg p-2 cursor-pointer hover:scale-110 transition-transform"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       completeMeal(meal.id);
                                     }}
+                                    className="cursor-pointer hover:scale-110 transition-transform"
                                   >
                                     <Checkbox
                                       checked={isCompleted}
@@ -752,137 +750,60 @@ const Dashboard = () => {
                                   </div>
                                 </div>
                               )}
-                              <CardContent 
-                                className="p-4 space-y-3 cursor-pointer"
-                                onClick={() => {
-                                  setSelectedMeal(meal);
-                                  setMealDialogOpen(true);
-                                }}
-                              >
-                                {!meal.image_url && (
-                                  <div className="flex items-start justify-between gap-2">
-                                    <Badge variant="secondary" className="shrink-0">
-                                      {mealTypes[meal.meal_type]}
-                                    </Badge>
-                                    <div 
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        completeMeal(meal.id);
-                                      }}
-                                      className="cursor-pointer hover:scale-110 transition-transform"
-                                    >
-                                      <Checkbox
-                                        checked={isCompleted}
-                                        className="pointer-events-none"
-                                      />
-                                    </div>
-                                  </div>
+                              <div>
+                                <h4 className={`font-semibold text-base mb-1 ${isCompleted ? 'line-through opacity-60' : ''}`}>
+                                  {meal.name}
+                                </h4>
+                                <p className="text-sm text-muted-foreground line-clamp-2">{meal.description}</p>
+                              </div>
+                              <Separator />
+                              <div className="flex items-start gap-2">
+                                {isCompleted ? (
+                                  <>
+                                    <Check className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
+                                    <p className="text-xs text-green-600 font-medium leading-relaxed">¡Completada! +10 pts</p>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Sparkles className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                                    <p className="text-xs text-primary font-medium leading-relaxed">{meal.benefits}</p>
+                                  </>
                                 )}
-                                <div>
-                                  <h4 className={`font-semibold text-base mb-1 ${isCompleted ? 'line-through opacity-60' : ''}`}>
-                                    {meal.name}
-                                  </h4>
-                                  <p className="text-sm text-muted-foreground line-clamp-2">{meal.description}</p>
-                                </div>
-                                <Separator />
-                                <div className="flex items-start gap-2">
-                                  {isCompleted ? (
-                                    <>
-                                      <Check className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
-                                      <p className="text-xs text-green-600 font-medium leading-relaxed">¡Completada! +10 pts</p>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Sparkles className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                                      <p className="text-xs text-primary font-medium leading-relaxed">{meal.benefits}</p>
-                                    </>
-                                  )}
-                                </div>
-                              </CardContent>
-                            </Card>
-                          );
-                        })}
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })
-            ) : (
-              <Card className="border-dashed">
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <Utensils className="w-16 h-16 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No hay plan de comidas</h3>
-                  <p className="text-muted-foreground text-center mb-6">
-                    Genera tu primer plan semanal personalizado
-                  </p>
-                  <Button onClick={generateMealPlan} disabled={generating} variant="hero">
-                    {generating ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Generando...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="mr-2 h-4 w-4" />
-                        Generar plan
-                      </>
-                    )}
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-
-          <TabsContent value="shopping">
-            <Card className="shadow-lg border-border/50">
-              <CardHeader className="bg-gradient-to-r from-primary/5 to-secondary/5 border-b">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
-                    <ShoppingCart className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle>Lista de Compras Semanal</CardTitle>
-                    <CardDescription>
-                      Todos los ingredientes que necesitas para esta semana
-                    </CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="p-6">
-                {shoppingList ? (
-                  <>
-                    <div className="mb-4 flex items-center justify-between">
-                      <Badge variant="secondary" className="text-sm">
-                        {shoppingList.items.length} ingredientes
-                      </Badge>
-                      <Button variant="outline" size="sm">
-                        Imprimir lista
-                      </Button>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
                     </div>
-                    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                      {shoppingList.items.map((item, index) => (
-                        <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 border border-border/50 hover:bg-muted/50 transition-colors group">
-                          <div className="w-2 h-2 rounded-full bg-gradient-to-r from-primary to-secondary shrink-0"></div>
-                          <span className="text-sm">{item}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                ) : (
-                  <div className="text-center py-12">
-                    <ShoppingCart className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground mb-4">
-                      Genera un menú para ver tu lista de compras
-                    </p>
-                    <Button onClick={generateMealPlan} disabled={generating} variant="outline">
+                  </CardContent>
+                </Card>
+              );
+            })
+          ) : (
+            <Card className="border-dashed">
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <Utensils className="w-16 h-16 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No hay plan de comidas</h3>
+                <p className="text-muted-foreground text-center mb-6">
+                  Genera tu primer plan semanal personalizado
+                </p>
+                <Button onClick={generateMealPlan} disabled={generating} variant="hero">
+                  {generating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Generando...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="mr-2 h-4 w-4" />
                       Generar plan
-                    </Button>
-                  </div>
-                )}
+                    </>
+                  )}
+                </Button>
               </CardContent>
             </Card>
-          </TabsContent>
-        </Tabs>
+          )}
+        </div>
       </main>
       
       <MealDetailDialog 
@@ -904,10 +825,7 @@ const Dashboard = () => {
       <AchievementUnlockAnimation
         isOpen={showAchievementUnlock}
         achievement={unlockedAchievement}
-        onClose={() => {
-          setShowAchievementUnlock(false);
-          setUnlockedAchievement(null);
-        }}
+        onClose={() => setShowAchievementUnlock(false)}
       />
     </div>
   );
