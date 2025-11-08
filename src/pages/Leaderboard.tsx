@@ -4,8 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, Medal, Crown, Award } from "lucide-react";
+import { Trophy, Medal, Crown, Award, Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useTrialGuard } from "@/hooks/useTrialGuard";
 
 interface LeaderboardEntry {
   user_id: string;
@@ -21,6 +22,7 @@ const Leaderboard = () => {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const { isBlocked, isLoading: trialLoading } = useTrialGuard();
 
   useEffect(() => {
     loadLeaderboard();
@@ -111,16 +113,20 @@ const Leaderboard = () => {
     return email.substring(0, 2).toUpperCase();
   };
 
-  if (loading) {
+  if (loading || trialLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
         <main className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-center py-12">
-            <p className="text-muted-foreground">Cargando clasificación...</p>
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         </main>
       </div>
     );
+  }
+
+  if (isBlocked) {
+    return null;
   }
 
   return (

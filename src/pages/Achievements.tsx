@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AchievementsDisplay } from "@/components/AchievementsDisplay";
+import { useTrialGuard } from "@/hooks/useTrialGuard";
+import { Loader2 } from "lucide-react";
 
 interface Achievement {
   id: string;
@@ -19,6 +21,7 @@ const Achievements = () => {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [unlockedAchievements, setUnlockedAchievements] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const { isBlocked, isLoading: trialLoading } = useTrialGuard();
 
   useEffect(() => {
     loadAchievements();
@@ -58,6 +61,18 @@ const Achievements = () => {
       setLoading(false);
     }
   };
+
+  if (trialLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (isBlocked) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">

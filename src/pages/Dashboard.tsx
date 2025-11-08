@@ -18,6 +18,7 @@ import { ConfirmNewPlanDialog } from "@/components/ConfirmNewPlanDialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useTrialGuard } from "@/hooks/useTrialGuard";
 import confetti from "canvas-confetti";
 
 interface Meal {
@@ -86,6 +87,7 @@ const Dashboard = () => {
   const { toast } = useToast();
   const { limits, refreshLimits } = useSubscriptionLimits(userId);
   const subscription = useSubscription(userId);
+  const { isBlocked, isLoading: trialLoading } = useTrialGuard();
   const [searchParams] = useSearchParams();
 
   const dayNames = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
@@ -674,12 +676,16 @@ const Dashboard = () => {
     }
   };
 
-  if (loading) {
+  if (loading || trialLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
+  }
+
+  if (isBlocked) {
+    return null; // Will redirect to pricing
   }
 
   const daysRemaining = profile ? Math.ceil((new Date(profile.trial_expires_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : 0;

@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Send, ArrowLeft, Bot, User, Lock } from "lucide-react";
+import { Loader2, Send, ArrowLeft, Bot, User } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { Badge } from "@/components/ui/badge";
+import { useTrialGuard } from "@/hooks/useTrialGuard";
 
 interface Message {
   id: string;
@@ -27,6 +28,7 @@ const Chat = () => {
   const { toast } = useToast();
   const scrollRef = useRef<HTMLDivElement>(null);
   const { limits, refreshLimits } = useSubscriptionLimits(userId);
+  const { isBlocked, isLoading: trialLoading } = useTrialGuard();
 
   useEffect(() => {
     checkAuth();
@@ -147,12 +149,16 @@ const Chat = () => {
     }
   };
 
-  if (initialLoading) {
+  if (initialLoading || trialLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
+  }
+
+  if (isBlocked) {
+    return null;
   }
 
   return (
