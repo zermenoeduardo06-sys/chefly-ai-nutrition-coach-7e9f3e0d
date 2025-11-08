@@ -9,6 +9,7 @@ import { Loader2, RefreshCw, MessageCircle, Calendar, Settings, TrendingUp, Uten
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { MealDetailDialog } from "@/components/MealDetailDialog";
+import { SwapMealDialog } from "@/components/SwapMealDialog";
 import { MascotCompanion } from "@/components/MascotCompanion";
 import { DailySummaryDialog } from "@/components/DailySummaryDialog";
 import { AchievementUnlockAnimation } from "@/components/AchievementUnlockAnimation";
@@ -54,6 +55,8 @@ const Dashboard = () => {
   const [trialExpired, setTrialExpired] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null);
   const [mealDialogOpen, setMealDialogOpen] = useState(false);
+  const [swapDialogOpen, setSwapDialogOpen] = useState(false);
+  const [isReplacingMeal, setIsReplacingMeal] = useState(false);
   const [userStats, setUserStats] = useState<UserStats>({
     total_points: 0,
     current_streak: 0,
@@ -492,6 +495,86 @@ const Dashboard = () => {
     }
   };
 
+  const handleReplaceMeal = async (mealId: string) => {
+    if (!mealPlan) return;
+    
+    setIsReplacingMeal(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No user found");
+
+      const meal = mealPlan.meals.find(m => m.id === mealId);
+      if (!meal) throw new Error("Meal not found");
+
+      const { error } = await supabase.functions.invoke("generate-single-meal", {
+        body: {
+          mealId: meal.id,
+          mealType: meal.meal_type,
+          dayOfWeek: meal.day_of_week,
+          mealPlanId: mealPlan.id,
+        },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "¡Comida reemplazada!",
+        description: "Se generó una nueva opción para ti",
+      });
+
+      setMealDialogOpen(false);
+      await loadMealPlan(user.id);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
+    } finally {
+      setIsReplacingMeal(false);
+    }
+  };
+
+  const handleSwapMeal = (mealId: string) => {
+    setSwapDialogOpen(true);
+  };
+
+  const handleConfirmSwap = async (sourceMealId: string, targetMealId: string) => {
+    if (!mealPlan) return;
+
+    try {
+      const sourceMeal = mealPlan.meals.find(m => m.id === sourceMealId);
+      const targetMeal = mealPlan.meals.find(m => m.id === targetMealId);
+
+      if (!sourceMeal || !targetMeal) throw new Error("Meals not found");
+
+      // Swap day_of_week values
+      await supabase
+        .from("meals")
+        .update({ day_of_week: targetMeal.day_of_week })
+        .eq("id", sourceMeal.id);
+
+      await supabase
+        .from("meals")
+        .update({ day_of_week: sourceMeal.day_of_week })
+        .eq("id", targetMeal.id);
+
+      toast({
+        title: "¡Comidas intercambiadas!",
+        description: "Las comidas se han movido exitosamente",
+      });
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) await loadMealPlan(user.id);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
+    }
+  };
+
   const groupedMeals = mealPlan?.meals.reduce((acc, meal) => {
     if (!acc[meal.day_of_week]) acc[meal.day_of_week] = [];
     acc[meal.day_of_week].push(meal);
@@ -810,6 +893,17 @@ const Dashboard = () => {
         meal={selectedMeal}
         open={mealDialogOpen}
         onOpenChange={setMealDialogOpen}
+        onReplaceMeal={handleReplaceMeal}
+        onSwapMeal={handleSwapMeal}
+        isReplacing={isReplacingMeal}
+      />
+
+      <SwapMealDialog
+        open={swapDialogOpen}
+        onOpenChange={setSwapDialogOpen}
+        sourceMeal={selectedMeal}
+        allMeals={mealPlan?.meals || []}
+        onConfirmSwap={handleConfirmSwap}
       />
 
       <DailySummaryDialog

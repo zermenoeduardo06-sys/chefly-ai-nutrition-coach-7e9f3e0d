@@ -1,7 +1,8 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Flame, Apple, Beef, Cookie } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Flame, Apple, Beef, Cookie, RefreshCw, ArrowLeftRight } from "lucide-react";
 
 interface Meal {
   id: string;
@@ -22,9 +23,19 @@ interface MealDetailDialogProps {
   meal: Meal | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onReplaceMeal?: (mealId: string) => void;
+  onSwapMeal?: (mealId: string) => void;
+  isReplacing?: boolean;
 }
 
-export function MealDetailDialog({ meal, open, onOpenChange }: MealDetailDialogProps) {
+export function MealDetailDialog({ 
+  meal, 
+  open, 
+  onOpenChange, 
+  onReplaceMeal,
+  onSwapMeal,
+  isReplacing = false 
+}: MealDetailDialogProps) {
   if (!meal) return null;
 
   const mealTypeLabel = {
@@ -139,6 +150,45 @@ export function MealDetailDialog({ meal, open, onOpenChange }: MealDetailDialogP
                 ))}
               </ol>
             </div>
+          </>
+        )}
+
+        {/* Action Buttons */}
+        {(onReplaceMeal || onSwapMeal) && (
+          <>
+            <Separator />
+            <DialogFooter className="flex-col sm:flex-row gap-2">
+              {onSwapMeal && (
+                <Button
+                  variant="outline"
+                  onClick={() => onSwapMeal(meal.id)}
+                  className="w-full sm:w-auto"
+                >
+                  <ArrowLeftRight className="mr-2 h-4 w-4" />
+                  Intercambiar con otro día
+                </Button>
+              )}
+              {onReplaceMeal && (
+                <Button
+                  variant="default"
+                  onClick={() => onReplaceMeal(meal.id)}
+                  disabled={isReplacing}
+                  className="w-full sm:w-auto"
+                >
+                  {isReplacing ? (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                      Generando...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                      Reemplazar comida
+                    </>
+                  )}
+                </Button>
+              )}
+            </DialogFooter>
           </>
         )}
       </DialogContent>
