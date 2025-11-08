@@ -450,6 +450,59 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* Footer */}
+      <footer className="py-12 border-t border-border/50 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+            <div>
+              <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                <ChefHat className="w-6 h-6 text-primary" />
+                Chefly AI
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Tu coach de nutrición con inteligencia artificial. Come mejor, vive mejor.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Enlaces Rápidos</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>
+                  <button onClick={() => navigate("/pricing")} className="hover:text-foreground transition-colors">
+                    Planes y Precios
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => navigate("/auth")} className="hover:text-foreground transition-colors">
+                    Iniciar Sesión
+                  </button>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Legal</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>
+                  <button onClick={() => navigate("/privacy")} className="hover:text-foreground transition-colors">
+                    Política de Privacidad
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => navigate("/terms")} className="hover:text-foreground transition-colors">
+                    Términos y Condiciones
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div className="pt-8 border-t border-border/50 text-center text-sm text-muted-foreground">
+            <p>© {new Date().getFullYear()} Chefly AI Nutrition Coach. Todos los derechos reservados.</p>
+            <p className="mt-2 text-xs">
+              Esta aplicación no proporciona asesoramiento médico. Consulte con un profesional de la salud antes de hacer cambios dietéticos significativos.
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>;
 };
 export default Index;

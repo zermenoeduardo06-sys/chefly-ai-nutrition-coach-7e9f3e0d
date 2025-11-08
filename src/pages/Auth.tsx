@@ -232,9 +232,25 @@ const Auth = () => {
               </TabsContent>
             </Tabs>
 
-            <div className="mt-6 text-center text-sm text-muted-foreground">
+            <div className="mt-6 text-center text-sm text-muted-foreground space-y-2">
               <p>✨ Prueba gratuita de 4 días</p>
               <p>🚫 Sin tarjeta de crédito requerida</p>
+              <p className="text-xs mt-4">
+                Al registrarte, aceptas nuestros{" "}
+                <button 
+                  onClick={() => navigate("/terms")} 
+                  className="text-primary hover:underline"
+                >
+                  Términos y Condiciones
+                </button>
+                {" "}y{" "}
+                <button 
+                  onClick={() => navigate("/privacy")} 
+                  className="text-primary hover:underline"
+                >
+                  Política de Privacidad
+                </button>
+              </p>
             </div>
           </CardContent>
         </Card>
