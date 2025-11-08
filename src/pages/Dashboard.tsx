@@ -58,7 +58,6 @@ const Dashboard = () => {
   const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null);
   const [mealDialogOpen, setMealDialogOpen] = useState(false);
   const [swapDialogOpen, setSwapDialogOpen] = useState(false);
-  const [isReplacingMeal, setIsReplacingMeal] = useState(false);
   const [userStats, setUserStats] = useState<UserStats>({
     total_points: 0,
     current_streak: 0,
@@ -545,57 +544,6 @@ const Dashboard = () => {
     }
   };
 
-  const handleReplaceMeal = async (mealId: string) => {
-    if (!mealPlan) return;
-    
-    // Check if user has permission
-    if (!limits.canReplaceMeals) {
-      toast({
-        variant: "destructive",
-        title: "Función no disponible",
-        description: "Necesitas el plan Intermedio para reemplazar comidas. ¡Actualiza tu plan!",
-      });
-      navigate("/pricing");
-      return;
-    }
-    
-    setIsReplacingMeal(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("No user found");
-
-      const meal = mealPlan.meals.find(m => m.id === mealId);
-      if (!meal) throw new Error("Meal not found");
-
-      const { error } = await supabase.functions.invoke("generate-single-meal", {
-        body: {
-          mealId: meal.id,
-          mealType: meal.meal_type,
-          dayOfWeek: meal.day_of_week,
-          mealPlanId: mealPlan.id,
-        },
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "¡Comida reemplazada!",
-        description: "Se generó una nueva opción para ti",
-      });
-
-      setMealDialogOpen(false);
-      await loadMealPlan(user.id);
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message,
-      });
-    } finally {
-      setIsReplacingMeal(false);
-    }
-  };
-
   const handleSwapMeal = (mealId: string) => {
     // Check if user has permission
     if (!limits.canSwapMeals) {
@@ -790,26 +738,7 @@ const Dashboard = () => {
             <CardTitle className="text-lg">Acciones Rápidas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <Button
-                onClick={generateMealPlan}
-                disabled={generating}
-                variant="outline"
-                className="h-auto py-4 flex-col gap-2"
-              >
-                {generating ? (
-                  <>
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    <span className="text-sm">Generando...</span>
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw className="h-5 w-5" />
-                    <span className="text-sm">Nuevo plan semanal</span>
-                  </>
-                )}
-              </Button>
-              
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <Button
                 onClick={() => navigate("/chat")}
                 variant="outline"
@@ -848,6 +777,29 @@ const Dashboard = () => {
                   )}
                 </Button>
               )}
+            </div>
+            
+            {/* Less prominent generate new plan button */}
+            <div className="mt-4 pt-4 border-t border-border/30">
+              <Button
+                onClick={generateMealPlan}
+                disabled={generating}
+                variant="ghost"
+                size="sm"
+                className="w-full text-muted-foreground hover:text-foreground"
+              >
+                {generating ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    <span className="text-xs">Generando nuevo plan...</span>
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    <span className="text-xs">Generar nuevo plan semanal</span>
+                  </>
+                )}
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -1007,10 +959,7 @@ const Dashboard = () => {
         meal={selectedMeal}
         open={mealDialogOpen}
         onOpenChange={setMealDialogOpen}
-        onReplaceMeal={handleReplaceMeal}
         onSwapMeal={handleSwapMeal}
-        isReplacing={isReplacingMeal}
-        canReplace={limits.canReplaceMeals}
         canSwap={limits.canSwapMeals}
       />
 

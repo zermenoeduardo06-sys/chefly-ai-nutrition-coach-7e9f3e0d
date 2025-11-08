@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { Flame, Apple, Beef, Cookie, RefreshCw, ArrowLeftRight, Lock } from "lucide-react";
+import { Flame, Apple, Beef, Cookie, ArrowLeftRight, Lock } from "lucide-react";
 
 interface Meal {
   id: string;
@@ -23,10 +23,7 @@ interface MealDetailDialogProps {
   meal: Meal | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onReplaceMeal?: (mealId: string) => void;
   onSwapMeal?: (mealId: string) => void;
-  isReplacing?: boolean;
-  canReplace?: boolean;
   canSwap?: boolean;
 }
 
@@ -34,10 +31,7 @@ export function MealDetailDialog({
   meal, 
   open, 
   onOpenChange, 
-  onReplaceMeal,
   onSwapMeal,
-  isReplacing = false,
-  canReplace = true,
   canSwap = true
 }: MealDetailDialogProps) {
   if (!meal) return null;
@@ -158,43 +152,20 @@ export function MealDetailDialog({
         )}
 
         {/* Action Buttons */}
-        {(onReplaceMeal || onSwapMeal) && (
+        {onSwapMeal && (
           <>
             <Separator />
-            <DialogFooter className="flex-col sm:flex-row gap-2">
-              {onSwapMeal && (
-                <Button
-                  variant="outline"
-                  onClick={() => onSwapMeal(meal.id)}
-                  disabled={!canSwap}
-                  className="w-full sm:w-auto"
-                >
-                  {!canSwap && <Lock className="mr-2 h-4 w-4" />}
-                  <ArrowLeftRight className="mr-2 h-4 w-4" />
-                  Intercambiar con otro día
-                </Button>
-              )}
-              {onReplaceMeal && (
-                <Button
-                  variant="default"
-                  onClick={() => onReplaceMeal(meal.id)}
-                  disabled={isReplacing || !canReplace}
-                  className="w-full sm:w-auto"
-                >
-                  {isReplacing ? (
-                    <>
-                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                      Generando...
-                    </>
-                  ) : (
-                    <>
-                      {!canReplace && <Lock className="mr-2 h-4 w-4" />}
-                      <RefreshCw className="mr-2 h-4 w-4" />
-                      Reemplazar comida
-                    </>
-                  )}
-                </Button>
-              )}
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => onSwapMeal(meal.id)}
+                disabled={!canSwap}
+                className="w-full"
+              >
+                {!canSwap && <Lock className="mr-2 h-4 w-4" />}
+                <ArrowLeftRight className="mr-2 h-4 w-4" />
+                Intercambiar con otro día
+              </Button>
             </DialogFooter>
           </>
         )}
