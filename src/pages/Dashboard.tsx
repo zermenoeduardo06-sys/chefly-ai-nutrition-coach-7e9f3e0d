@@ -14,6 +14,7 @@ import { MascotCompanion } from "@/components/MascotCompanion";
 import { DailySummaryDialog } from "@/components/DailySummaryDialog";
 import { AchievementUnlockAnimation } from "@/components/AchievementUnlockAnimation";
 import { SubscriptionBanner } from "@/components/SubscriptionBanner";
+import { ConfirmNewPlanDialog } from "@/components/ConfirmNewPlanDialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -80,6 +81,7 @@ const Dashboard = () => {
   const [unlockedAchievement, setUnlockedAchievement] = useState<any>(null);
   const [userId, setUserId] = useState<string | undefined>(undefined);
   const [portalLoading, setPortalLoading] = useState(false);
+  const [showConfirmNewPlan, setShowConfirmNewPlan] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { limits, refreshLimits } = useSubscriptionLimits(userId);
@@ -504,7 +506,45 @@ const Dashboard = () => {
     }
   };
 
-  const generateMealPlan = async () => {
+  const checkCanGenerateNewPlan = async (): Promise<boolean> => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      // Get the most recent meal plan
+      const { data: plans } = await supabase
+        .from("meal_plans")
+        .select("created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      if (!plans || plans.length === 0) {
+        return true; // No plans yet, allow generation
+      }
+
+      const lastPlanDate = new Date(plans[0].created_at);
+      const now = new Date();
+      const hoursSinceLastPlan = (now.getTime() - lastPlanDate.getTime()) / (1000 * 60 * 60);
+
+      if (hoursSinceLastPlan < 24) {
+        const hoursRemaining = Math.ceil(24 - hoursSinceLastPlan);
+        toast({
+          variant: "destructive",
+          title: "Demasiado pronto",
+          description: `Debes esperar ${hoursRemaining} hora${hoursRemaining !== 1 ? 's' : ''} más antes de generar un nuevo plan.`,
+        });
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Error checking plan generation limit:", error);
+      return true; // Allow on error
+    }
+  };
+
+  const initiateGenerateMealPlan = async () => {
     // Check if user has permission
     if (!limits.canGeneratePlans) {
       toast({
@@ -515,7 +555,19 @@ const Dashboard = () => {
       navigate("/pricing");
       return;
     }
-    
+
+    // Check 24-hour limit
+    const canGenerate = await checkCanGenerateNewPlan();
+    if (!canGenerate) {
+      return;
+    }
+
+    // Show confirmation dialog
+    setShowConfirmNewPlan(true);
+  };
+
+  const generateMealPlan = async () => {
+    setShowConfirmNewPlan(false);
     setGenerating(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -782,7 +834,7 @@ const Dashboard = () => {
             {/* Less prominent generate new plan button */}
             <div className="mt-4 pt-4 border-t border-border/30">
               <Button
-                onClick={generateMealPlan}
+                onClick={initiateGenerateMealPlan}
                 disabled={generating}
                 variant="ghost"
                 size="sm"
@@ -985,6 +1037,13 @@ const Dashboard = () => {
         isOpen={showAchievementUnlock}
         achievement={unlockedAchievement}
         onClose={() => setShowAchievementUnlock(false)}
+      />
+
+      <ConfirmNewPlanDialog
+        open={showConfirmNewPlan}
+        onOpenChange={setShowConfirmNewPlan}
+        onConfirm={generateMealPlan}
+        isGenerating={generating}
       />
     </div>
   );
