@@ -76,12 +76,22 @@ serve(async (req) => {
     if (hasActiveSub) {
       const subscription = subscriptions.data[0];
       
+      // Log raw value for debugging
+      logStep("Processing subscription", { 
+        current_period_end: subscription.current_period_end,
+        current_period_end_type: typeof subscription.current_period_end 
+      });
+      
       // Safely convert timestamp to ISO string
       if (subscription.current_period_end && typeof subscription.current_period_end === 'number') {
-        try {
-          subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-        } catch (dateError) {
-          logStep("Error converting subscription end date", { error: dateError });
+        const timestamp = subscription.current_period_end * 1000;
+        const date = new Date(timestamp);
+        
+        // Check if the date is valid before converting to ISO string
+        if (!isNaN(date.getTime())) {
+          subscriptionEnd = date.toISOString();
+        } else {
+          logStep("Invalid date created from timestamp", { timestamp, current_period_end: subscription.current_period_end });
           subscriptionEnd = null;
         }
       }
