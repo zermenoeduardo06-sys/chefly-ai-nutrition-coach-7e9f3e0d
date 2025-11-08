@@ -22,7 +22,7 @@ const menuItems = [
   { title: "Desafíos Diarios", url: "/dashboard/challenges", icon: Target },
   { title: "Clasificación", url: "/dashboard/leaderboard", icon: Users },
   { title: "Coach IA", url: "/chat", icon: MessageCircle },
-  { title: "Planes de Pago", url: "/pricing", icon: CreditCard },
+  { title: "Mi Suscripción", url: "/subscription", icon: CreditCard },
 ];
 
 export function AppSidebar() {

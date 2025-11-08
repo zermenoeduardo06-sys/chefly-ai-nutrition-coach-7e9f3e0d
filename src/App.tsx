@@ -15,6 +15,7 @@ import Challenges from "./pages/Challenges";
 import Leaderboard from "./pages/Leaderboard";
 import Chat from "./pages/Chat";
 import Pricing from "./pages/Pricing";
+import Subscription from "./pages/Subscription";
 import Welcome from "./pages/Welcome";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
@@ -54,6 +55,7 @@ const App = () => (
           <Route path="/dashboard/leaderboard" element={<DashboardLayout><Leaderboard /></DashboardLayout>} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/pricing" element={<Pricing />} />
+          <Route path="/subscription" element={<DashboardLayout><Subscription /></DashboardLayout>} />
           <Route path="/welcome" element={<Welcome />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
