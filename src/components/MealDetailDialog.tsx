@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { Flame, Apple, Beef, Cookie, RefreshCw, ArrowLeftRight } from "lucide-react";
+import { Flame, Apple, Beef, Cookie, RefreshCw, ArrowLeftRight, Lock } from "lucide-react";
 
 interface Meal {
   id: string;
@@ -26,6 +26,8 @@ interface MealDetailDialogProps {
   onReplaceMeal?: (mealId: string) => void;
   onSwapMeal?: (mealId: string) => void;
   isReplacing?: boolean;
+  canReplace?: boolean;
+  canSwap?: boolean;
 }
 
 export function MealDetailDialog({ 
@@ -34,7 +36,9 @@ export function MealDetailDialog({
   onOpenChange, 
   onReplaceMeal,
   onSwapMeal,
-  isReplacing = false 
+  isReplacing = false,
+  canReplace = true,
+  canSwap = true
 }: MealDetailDialogProps) {
   if (!meal) return null;
 
@@ -162,8 +166,10 @@ export function MealDetailDialog({
                 <Button
                   variant="outline"
                   onClick={() => onSwapMeal(meal.id)}
+                  disabled={!canSwap}
                   className="w-full sm:w-auto"
                 >
+                  {!canSwap && <Lock className="mr-2 h-4 w-4" />}
                   <ArrowLeftRight className="mr-2 h-4 w-4" />
                   Intercambiar con otro día
                 </Button>
@@ -172,7 +178,7 @@ export function MealDetailDialog({
                 <Button
                   variant="default"
                   onClick={() => onReplaceMeal(meal.id)}
-                  disabled={isReplacing}
+                  disabled={isReplacing || !canReplace}
                   className="w-full sm:w-auto"
                 >
                   {isReplacing ? (
@@ -182,6 +188,7 @@ export function MealDetailDialog({
                     </>
                   ) : (
                     <>
+                      {!canReplace && <Lock className="mr-2 h-4 w-4" />}
                       <RefreshCw className="mr-2 h-4 w-4" />
                       Reemplazar comida
                     </>

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, RefreshCw, MessageCircle, Calendar, Settings, TrendingUp, Utensils, Clock, Sparkles, Check } from "lucide-react";
+import { Loader2, RefreshCw, MessageCircle, Calendar, Settings, TrendingUp, Utensils, Clock, Sparkles, Check, Lock } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { MealDetailDialog } from "@/components/MealDetailDialog";
@@ -15,6 +15,7 @@ import { DailySummaryDialog } from "@/components/DailySummaryDialog";
 import { AchievementUnlockAnimation } from "@/components/AchievementUnlockAnimation";
 import { SubscriptionBanner } from "@/components/SubscriptionBanner";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import confetti from "canvas-confetti";
 
 interface Meal {
@@ -77,8 +78,10 @@ const Dashboard = () => {
   });
   const [showAchievementUnlock, setShowAchievementUnlock] = useState(false);
   const [unlockedAchievement, setUnlockedAchievement] = useState<any>(null);
+  const [userId, setUserId] = useState<string | undefined>(undefined);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { limits, refreshLimits } = useSubscriptionLimits(userId);
 
   const dayNames = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
   const mealTypes: { [key: string]: string } = {
@@ -98,6 +101,7 @@ const Dashboard = () => {
       return;
     }
 
+    setUserId(user.id);
     await loadProfile(user.id);
     await loadUserStats(user.id);
     await loadMealPlan(user.id);
@@ -467,6 +471,17 @@ const Dashboard = () => {
   };
 
   const generateMealPlan = async () => {
+    // Check if user has permission
+    if (!limits.canGeneratePlans) {
+      toast({
+        variant: "destructive",
+        title: "Función no disponible",
+        description: "Necesitas el plan Intermedio para generar nuevos planes. ¡Actualiza tu plan!",
+      });
+      navigate("/pricing");
+      return;
+    }
+    
     setGenerating(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -497,6 +512,17 @@ const Dashboard = () => {
 
   const handleReplaceMeal = async (mealId: string) => {
     if (!mealPlan) return;
+    
+    // Check if user has permission
+    if (!limits.canReplaceMeals) {
+      toast({
+        variant: "destructive",
+        title: "Función no disponible",
+        description: "Necesitas el plan Intermedio para reemplazar comidas. ¡Actualiza tu plan!",
+      });
+      navigate("/pricing");
+      return;
+    }
     
     setIsReplacingMeal(true);
     try {
@@ -536,6 +562,16 @@ const Dashboard = () => {
   };
 
   const handleSwapMeal = (mealId: string) => {
+    // Check if user has permission
+    if (!limits.canSwapMeals) {
+      toast({
+        variant: "destructive",
+        title: "Función no disponible",
+        description: "Necesitas el plan Intermedio para intercambiar comidas. ¡Actualiza tu plan!",
+      });
+      navigate("/pricing");
+      return;
+    }
     setSwapDialogOpen(true);
   };
 
@@ -896,6 +932,8 @@ const Dashboard = () => {
         onReplaceMeal={handleReplaceMeal}
         onSwapMeal={handleSwapMeal}
         isReplacing={isReplacingMeal}
+        canReplace={limits.canReplaceMeals}
+        canSwap={limits.canSwapMeals}
       />
 
       <SwapMealDialog

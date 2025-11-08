@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Send, ArrowLeft, Bot, User } from "lucide-react";
+import { Loader2, Send, ArrowLeft, Bot, User, Lock } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
+import { Badge } from "@/components/ui/badge";
 
 interface Message {
   id: string;
@@ -20,9 +22,11 @@ const Chat = () => {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [userId, setUserId] = useState<string | undefined>(undefined);
   const navigate = useNavigate();
   const { toast } = useToast();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { limits, refreshLimits } = useSubscriptionLimits(userId);
 
   useEffect(() => {
     checkAuth();
@@ -44,6 +48,7 @@ const Chat = () => {
       navigate("/auth");
       return;
     }
+    setUserId(user.id);
     await loadMessages(user.id);
   };
 
@@ -70,6 +75,17 @@ const Chat = () => {
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || loading) return;
+
+    // Check chat limit
+    if (limits.chatMessagesUsed >= limits.dailyChatLimit) {
+      toast({
+        variant: "destructive",
+        title: "Límite de mensajes alcanzado",
+        description: `Has alcanzado el límite de ${limits.dailyChatLimit} mensajes diarios del plan Básico. Actualiza al plan Intermedio para chat ilimitado.`,
+      });
+      navigate("/pricing");
+      return;
+    }
 
     const userMessage = input.trim();
     setInput("");
@@ -117,6 +133,9 @@ const Chat = () => {
         role: "assistant",
         content: data.response,
       });
+
+      // Refresh limits after sending
+      refreshLimits();
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -143,7 +162,7 @@ const Chat = () => {
           <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-1">
             <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center">
               <Bot className="h-6 w-6 text-primary-foreground" />
             </div>
@@ -152,6 +171,11 @@ const Chat = () => {
               <p className="text-xs text-muted-foreground">Tu coach nutricional personal</p>
             </div>
           </div>
+          {limits.isBasicPlan && (
+            <Badge variant="outline" className="ml-auto">
+              {limits.chatMessagesUsed}/{limits.dailyChatLimit} mensajes
+            </Badge>
+          )}
         </div>
       </header>
 
