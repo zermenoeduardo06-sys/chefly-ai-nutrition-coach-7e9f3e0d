@@ -75,10 +75,24 @@ serve(async (req) => {
 
     if (hasActiveSub) {
       const subscription = subscriptions.data[0];
-      subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+      
+      // Safely convert timestamp to ISO string
+      if (subscription.current_period_end && typeof subscription.current_period_end === 'number') {
+        try {
+          subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+        } catch (dateError) {
+          logStep("Error converting subscription end date", { error: dateError });
+          subscriptionEnd = null;
+        }
+      }
+      
       logStep("Active subscription found", { subscriptionId: subscription.id, endDate: subscriptionEnd });
-      productId = subscription.items.data[0].price.product as string;
-      logStep("Determined subscription tier", { productId });
+      
+      // Safely get product ID
+      if (subscription.items?.data?.[0]?.price?.product) {
+        productId = subscription.items.data[0].price.product as string;
+        logStep("Determined subscription tier", { productId });
+      }
       
       // Update profile with subscription status
       await supabaseClient
