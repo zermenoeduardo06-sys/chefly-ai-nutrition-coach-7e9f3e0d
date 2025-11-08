@@ -61,12 +61,37 @@ serve(async (req) => {
           role: 'user',
           content: `Eres un chef nutricionista experto. Crea un plan de comidas REAL y específico para la semana (7 días) con ${preferences.meals_per_day} comidas por día.
 
-PREFERENCIAS:
+PERFIL DEL USUARIO:
 - Objetivo: ${preferences.goal}
 - Dieta: ${preferences.diet_type}
+- Nivel de actividad: ${preferences.activity_level || 'moderado'}
 - Alergias: ${preferences.allergies?.join(', ') || 'Ninguna'}
+- No le gusta: ${preferences.dislikes?.join(', ') || 'Nada en particular'}
 
-IMPORTANTE: Genera recetas REALES con nombres específicos, NO uses nombres genéricos como "Desayuno saludable". 
+PREFERENCIAS DE COCINA:
+- Nivel de habilidad: ${preferences.cooking_skill || 'principiante'}
+- Presupuesto: ${preferences.budget || 'medio'}
+- Tiempo disponible: ${preferences.cooking_time || 30} minutos por comida
+- Cocina para: ${preferences.servings || 1} persona(s)
+- Complejidad preferida: ${preferences.meal_complexity || 'simple'}
+
+GUSTOS Y PREFERENCIAS:
+- Sabores preferidos: ${preferences.flavor_preferences?.join(', ') || 'Todos'}
+- Cocinas preferidas: ${preferences.preferred_cuisines?.join(', ') || 'Variado'}
+${preferences.age ? `- Edad: ${preferences.age} años` : ''}
+${preferences.weight ? `- Peso: ${preferences.weight} kg` : ''}
+${preferences.gender ? `- Género: ${preferences.gender}` : ''}
+${preferences.additional_notes ? `\nNOTAS ADICIONALES: ${preferences.additional_notes}` : ''}
+
+IMPORTANTE: 
+- Genera recetas REALES con nombres específicos que se alineen con las preferencias del usuario
+- Respeta el nivel de habilidad (recetas más simples para principiantes, más elaboradas para avanzados)
+- Ajusta el presupuesto (ingredientes económicos para presupuesto bajo, premium para alto)
+- Las recetas NO deben exceder el tiempo de cocina preferido
+- Ajusta las porciones según el número de personas
+- Incluye variedad de las cocinas y sabores preferidos
+- Evita completamente los alérgenos y los ingredientes que no le gustan
+- Ajusta las calorías según el nivel de actividad y objetivos
 
 Responde SOLO con JSON válido (sin markdown, sin texto adicional):
 {
@@ -88,7 +113,7 @@ Responde SOLO con JSON válido (sin markdown, sin texto adicional):
   "shopping_list": ["avena", "plátano", "fresas", "almendras", "leche"]
 }
 
-Genera ${7 * preferences.meals_per_day} recetas variadas y específicas. Cada receta DEBE tener nombre único, ingredientes reales, pasos de preparación y valores nutricionales.`
+Genera ${7 * preferences.meals_per_day} recetas variadas y específicas. Cada receta DEBE tener nombre único, ingredientes reales, pasos de preparación y valores nutricionales ajustados al perfil del usuario.`
         }]
       }),
     });

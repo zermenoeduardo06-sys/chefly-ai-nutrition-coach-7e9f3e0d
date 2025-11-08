@@ -404,34 +404,73 @@ export type Database = {
       }
       user_preferences: {
         Row: {
+          activity_level: string | null
+          additional_notes: string | null
+          age: number | null
           allergies: string[] | null
+          budget: string | null
+          cooking_skill: string | null
+          cooking_time: number | null
           created_at: string | null
           diet_type: string
+          dislikes: string[] | null
+          flavor_preferences: string[] | null
+          gender: string | null
           goal: string
           id: string
+          meal_complexity: string | null
           meals_per_day: number
+          preferred_cuisines: string[] | null
+          servings: number | null
           updated_at: string | null
           user_id: string
+          weight: number | null
         }
         Insert: {
+          activity_level?: string | null
+          additional_notes?: string | null
+          age?: number | null
           allergies?: string[] | null
+          budget?: string | null
+          cooking_skill?: string | null
+          cooking_time?: number | null
           created_at?: string | null
           diet_type: string
+          dislikes?: string[] | null
+          flavor_preferences?: string[] | null
+          gender?: string | null
           goal: string
           id?: string
+          meal_complexity?: string | null
           meals_per_day?: number
+          preferred_cuisines?: string[] | null
+          servings?: number | null
           updated_at?: string | null
           user_id: string
+          weight?: number | null
         }
         Update: {
+          activity_level?: string | null
+          additional_notes?: string | null
+          age?: number | null
           allergies?: string[] | null
+          budget?: string | null
+          cooking_skill?: string | null
+          cooking_time?: number | null
           created_at?: string | null
           diet_type?: string
+          dislikes?: string[] | null
+          flavor_preferences?: string[] | null
+          gender?: string | null
           goal?: string
           id?: string
+          meal_complexity?: string | null
           meals_per_day?: number
+          preferred_cuisines?: string[] | null
+          servings?: number | null
           updated_at?: string | null
           user_id?: string
+          weight?: number | null
         }
         Relationships: []
       }
