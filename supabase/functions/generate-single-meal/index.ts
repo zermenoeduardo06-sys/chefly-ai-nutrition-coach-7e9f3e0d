@@ -87,7 +87,19 @@ Responde SOLO con un objeto JSON válido sin markdown ni texto adicional:
       }),
     });
 
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("AI API error:", response.status, errorText);
+      throw new Error(`AI API error: ${response.status} - ${errorText}`);
+    }
+
     const aiData = await response.json();
+    
+    if (!aiData.choices || !aiData.choices[0] || !aiData.choices[0].message) {
+      console.error("Invalid AI response structure:", aiData);
+      throw new Error("Invalid response from AI API");
+    }
+
     let mealData = aiData.choices[0].message.content;
 
     // Clean and parse JSON response
@@ -112,8 +124,21 @@ Responde SOLO con un objeto JSON válido sin markdown ni texto adicional:
       }),
     });
 
-    const imageData = await imageResponse.json();
-    const imageUrl = imageData.choices[0].message.content.trim();
+    if (!imageResponse.ok) {
+      console.error("Image generation API error:", imageResponse.status);
+      // Continue without image if image generation fails
+    }
+
+    let imageUrl = "";
+    try {
+      const imageData = await imageResponse.json();
+      if (imageData.choices && imageData.choices[0] && imageData.choices[0].message) {
+        imageUrl = imageData.choices[0].message.content.trim();
+      }
+    } catch (error) {
+      console.error("Error parsing image response:", error);
+      // Continue without image
+    }
 
     // Delete old meal if provided
     if (mealId) {
