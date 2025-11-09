@@ -33,31 +33,43 @@ export const useSubscriptionLimits = (userId: string | undefined) => {
     if (!userId) return;
 
     try {
-      // Get active subscription
-      const { data: subscription } = await supabase
-        .from("user_subscriptions")
-        .select(`
-          *,
-          plan:subscription_plans(name, id)
-        `)
-        .eq("user_id", userId)
-        .eq("status", "active")
-        .single();
-
-      // Check if trial is still active
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("trial_expires_at, is_subscribed")
-        .eq("id", userId)
-        .single();
-
-      const hasActiveTrial = profile && new Date(profile.trial_expires_at) > new Date();
-      const isSubscribed = profile?.is_subscribed || false;
+      // Check Stripe subscription first
+      const { data: stripeData } = await supabase.functions.invoke("check-subscription");
       
-      // Determine plan type
-      const planName = subscription?.plan?.name || (hasActiveTrial ? "Trial" : "None");
-      const isBasicPlan = planName === "Básico" || (!isSubscribed && !hasActiveTrial);
-      const isIntermediatePlan = planName === "Intermedio" || hasActiveTrial;
+      let planName = "None";
+      let isIntermediatePlan = false;
+      let isBasicPlan = true;
+      
+      if (stripeData?.subscribed && stripeData?.product_id) {
+        // User has active Stripe subscription
+        planName = "Intermedio";
+        isIntermediatePlan = true;
+        isBasicPlan = false;
+      } else {
+        // Check database subscription and trial
+        const { data: subscription } = await supabase
+          .from("user_subscriptions")
+          .select(`
+            *,
+            plan:subscription_plans(name, id)
+          `)
+          .eq("user_id", userId)
+          .eq("status", "active")
+          .single();
+
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("trial_expires_at, is_subscribed")
+          .eq("id", userId)
+          .single();
+
+        const hasActiveTrial = profile && new Date(profile.trial_expires_at) > new Date();
+        const isSubscribed = profile?.is_subscribed || false;
+        
+        planName = subscription?.plan?.name || (hasActiveTrial ? "Trial" : "None");
+        isBasicPlan = planName === "Básico" || (!isSubscribed && !hasActiveTrial);
+        isIntermediatePlan = planName === "Intermedio" || hasActiveTrial;
+      }
 
       // Count chat messages used today
       const today = new Date().toISOString().split('T')[0];
