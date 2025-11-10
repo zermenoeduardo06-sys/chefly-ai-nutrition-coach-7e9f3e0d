@@ -152,6 +152,7 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
+          preferences_hash: string | null
           updated_at: string | null
           user_id: string
           week_start_date: string
@@ -159,6 +160,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           id?: string
+          preferences_hash?: string | null
           updated_at?: string | null
           user_id: string
           week_start_date: string
@@ -166,6 +168,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           id?: string
+          preferences_hash?: string | null
           updated_at?: string | null
           user_id?: string
           week_start_date?: string

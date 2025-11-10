@@ -34,6 +34,95 @@ serve(async (req) => {
 
     console.log('Generating meal plan for user with preferences:', preferences);
 
+    // Create preferences hash for caching
+    const preferencesHash = JSON.stringify({
+      goal: preferences.goal,
+      diet_type: preferences.diet_type,
+      activity_level: preferences.activity_level,
+      allergies: preferences.allergies?.sort(),
+      dislikes: preferences.dislikes?.sort(),
+      cooking_skill: preferences.cooking_skill,
+      budget: preferences.budget,
+      cooking_time: preferences.cooking_time,
+      servings: preferences.servings,
+      meal_complexity: preferences.meal_complexity,
+      flavor_preferences: preferences.flavor_preferences?.sort(),
+      preferred_cuisines: preferences.preferred_cuisines?.sort(),
+      meals_per_day: preferences.meals_per_day,
+    });
+
+    console.log('Preferences hash:', preferencesHash);
+
+    // Check if a meal plan with the same preferences exists
+    const { data: cachedPlan } = await supabaseClient
+      .from('meal_plans')
+      .select('id')
+      .eq('preferences_hash', preferencesHash)
+      .limit(1)
+      .single();
+
+    if (cachedPlan) {
+      console.log('Found cached meal plan:', cachedPlan.id);
+
+      // Create new meal plan
+      const { data: newMealPlan } = await supabaseClient
+        .from('meal_plans')
+        .insert({
+          user_id: userId,
+          week_start_date: new Date().toISOString().split('T')[0],
+          preferences_hash: preferencesHash,
+        })
+        .select()
+        .single();
+
+      // Copy meals from cached plan
+      const { data: cachedMeals } = await supabaseClient
+        .from('meals')
+        .select('*')
+        .eq('meal_plan_id', cachedPlan.id);
+
+      if (cachedMeals && cachedMeals.length > 0) {
+        const newMeals = cachedMeals.map((meal: any) => ({
+          meal_plan_id: newMealPlan.id,
+          day_of_week: meal.day_of_week,
+          meal_type: meal.meal_type,
+          name: meal.name,
+          description: meal.description,
+          benefits: meal.benefits,
+          ingredients: meal.ingredients,
+          steps: meal.steps,
+          calories: meal.calories,
+          protein: meal.protein,
+          carbs: meal.carbs,
+          fats: meal.fats,
+          image_url: meal.image_url,
+        }));
+
+        await supabaseClient.from('meals').insert(newMeals);
+      }
+
+      // Copy shopping list from cached plan
+      const { data: cachedShoppingList } = await supabaseClient
+        .from('shopping_lists')
+        .select('items')
+        .eq('meal_plan_id', cachedPlan.id)
+        .single();
+
+      if (cachedShoppingList) {
+        await supabaseClient.from('shopping_lists').insert({
+          meal_plan_id: newMealPlan.id,
+          items: cachedShoppingList.items,
+        });
+      }
+
+      console.log('Successfully created meal plan from cache');
+      return new Response(JSON.stringify({ success: true, cached: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log('No cached plan found, generating new meal plan with AI');
+
     // Map meal types
     const mealTypeMap: Record<number, string[]> = {
       1: ['breakfast'],
@@ -185,6 +274,7 @@ Genera ${7 * preferences.meals_per_day} recetas variadas y específicas. Cada re
       .insert({
         user_id: userId,
         week_start_date: new Date().toISOString().split('T')[0],
+        preferences_hash: preferencesHash,
       })
       .select()
       .single();
