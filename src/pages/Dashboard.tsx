@@ -568,7 +568,7 @@ const Dashboard = () => {
     setShowConfirmNewPlan(true);
   };
 
-  const generateMealPlan = async () => {
+  const generateMealPlan = async (forceNew: boolean = false) => {
     setShowConfirmNewPlan(false);
     setGenerating(true);
     try {
@@ -576,14 +576,18 @@ const Dashboard = () => {
       if (!user) throw new Error("No user found");
 
       const { data, error } = await supabase.functions.invoke("generate-meal-plan", {
-        body: { userId: user.id },
+        body: { userId: user.id, forceNew },
       });
 
       if (error) throw error;
 
+      const isCached = data?.cached === true;
+      
       toast({
-        title: "¡Menú generado!",
-        description: "Tu nuevo plan semanal está listo",
+        title: isCached ? "¡Menú listo!" : "¡Menú generado!",
+        description: isCached 
+          ? "Se reutilizó un menú existente con tus preferencias" 
+          : "Tu nuevo plan semanal fue creado con IA",
       });
 
       await loadMealPlan(user.id);
@@ -994,7 +998,7 @@ const Dashboard = () => {
                 <p className="text-muted-foreground text-center mb-6">
                   Genera tu primer plan semanal personalizado
                 </p>
-                <Button onClick={generateMealPlan} disabled={generating} variant="hero">
+                <Button onClick={initiateGenerateMealPlan} disabled={generating} variant="hero">
                   {generating ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
