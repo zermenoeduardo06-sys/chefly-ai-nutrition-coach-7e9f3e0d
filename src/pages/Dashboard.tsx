@@ -804,10 +804,15 @@ const Dashboard = () => {
               <Button
                 onClick={() => navigate("/chat")}
                 variant="outline"
-                className="h-auto py-4 flex-col gap-2"
+                className="h-auto py-4 flex-col gap-2 relative"
               >
                 <MessageCircle className="h-5 w-5" />
                 <span className="text-sm">Hablar con coach</span>
+                {limits.isBasicPlan && (
+                  <Badge variant="secondary" className="absolute -top-2 -right-2 text-xs">
+                    {limits.chatMessagesUsed}/{limits.dailyChatLimit}
+                  </Badge>
+                )}
               </Button>
 
               <Button
@@ -841,14 +846,14 @@ const Dashboard = () => {
               )}
             </div>
             
-            {/* Less prominent generate new plan button */}
+            {/* Generate new plan button */}
             <div className="mt-4 pt-4 border-t border-border/30">
               <Button
                 onClick={initiateGenerateMealPlan}
-                disabled={generating}
+                disabled={generating || !limits.canGeneratePlans}
                 variant="ghost"
                 size="sm"
-                className="w-full text-muted-foreground hover:text-foreground"
+                className="w-full text-muted-foreground hover:text-foreground relative"
               >
                 {generating ? (
                   <>
@@ -857,12 +862,57 @@ const Dashboard = () => {
                   </>
                 ) : (
                   <>
+                    {!limits.canGeneratePlans && <Lock className="h-3 w-3 mr-2" />}
                     <RefreshCw className="h-4 w-4 mr-2" />
                     <span className="text-xs">Generar nuevo plan semanal</span>
+                    {!limits.canGeneratePlans && (
+                      <Badge variant="outline" className="ml-2 text-xs">
+                        Plan Intermedio
+                      </Badge>
+                    )}
                   </>
                 )}
               </Button>
             </div>
+
+            {/* Plan limitations info for basic users */}
+            {limits.isBasicPlan && !subscription.subscribed && (
+              <div className="mt-4 p-4 bg-muted/50 rounded-lg border border-border/50">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center flex-shrink-0">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-semibold mb-1">Desbloquea todas las funciones</h4>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Con el plan Intermedio puedes:
+                    </p>
+                    <ul className="space-y-1 text-xs text-muted-foreground mb-3">
+                      <li className="flex items-center gap-2">
+                        <Check className="h-3 w-3 text-primary" />
+                        <span>Generar planes de comida ilimitados</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Check className="h-3 w-3 text-primary" />
+                        <span>Intercambiar comidas entre días</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Check className="h-3 w-3 text-primary" />
+                        <span>Chat ilimitado con tu coach</span>
+                      </li>
+                    </ul>
+                    <Button 
+                      onClick={() => navigate("/pricing")} 
+                      size="sm" 
+                      className="w-full"
+                      variant="default"
+                    >
+                      Ver planes
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
