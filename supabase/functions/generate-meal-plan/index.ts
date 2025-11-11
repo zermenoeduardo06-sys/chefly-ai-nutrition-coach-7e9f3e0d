@@ -12,12 +12,14 @@ serve(async (req) => {
   }
 
   try {
-    const { userId } = await req.json();
+    const { userId, forceNew = false } = await req.json();
     
     // Validate userId
     if (!userId || typeof userId !== 'string') {
       throw new Error('Invalid userId');
     }
+    
+    console.log('Force new meal plan:', forceNew);
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -53,13 +55,17 @@ serve(async (req) => {
 
     console.log('Preferences hash:', preferencesHash);
 
-    // Check if a meal plan with the same preferences exists
-    const { data: cachedPlan } = await supabaseClient
-      .from('meal_plans')
-      .select('id')
-      .eq('preferences_hash', preferencesHash)
-      .limit(1)
-      .single();
+    // Check if a meal plan with the same preferences exists (only if not forcing new)
+    let cachedPlan = null;
+    if (!forceNew) {
+      const { data } = await supabaseClient
+        .from('meal_plans')
+        .select('id')
+        .eq('preferences_hash', preferencesHash)
+        .limit(1)
+        .single();
+      cachedPlan = data;
+    }
 
     if (cachedPlan) {
       console.log('Found cached meal plan:', cachedPlan.id);
