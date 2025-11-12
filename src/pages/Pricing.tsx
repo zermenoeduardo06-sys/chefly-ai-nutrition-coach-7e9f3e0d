@@ -82,8 +82,14 @@ const Pricing = () => {
         return;
       }
 
+      // Capturar el ID de referido de Endorsely desde window
+      const endorselyReferral = (window as any).endorsely_referral;
+
       const { data, error } = await supabase.functions.invoke("create-checkout", {
-        body: { priceId: plan.stripe_price_id },
+        body: { 
+          priceId: plan.stripe_price_id,
+          endorselyReferral: endorselyReferral || null,
+        },
       });
 
       if (error) throw error;

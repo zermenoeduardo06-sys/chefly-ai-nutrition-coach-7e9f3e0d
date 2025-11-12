@@ -33,10 +33,10 @@ serve(async (req) => {
     
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const { priceId } = await req.json();
+    const { priceId, endorselyReferral } = await req.json();
     if (!priceId) throw new Error("Price ID is required");
     
-    logStep("Price ID received", { priceId });
+    logStep("Price ID received", { priceId, endorselyReferral });
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { 
       apiVersion: "2025-08-27.basil" 
@@ -51,6 +51,13 @@ serve(async (req) => {
       logStep("Creating new customer");
     }
 
+    // Preparar metadata incluyendo el referido de Endorsely si existe
+    const metadata: Record<string, string> = {};
+    if (endorselyReferral) {
+      metadata.endorsely_referral = endorselyReferral;
+      logStep("Endorsely referral added to metadata", { endorselyReferral });
+    }
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
@@ -63,6 +70,7 @@ serve(async (req) => {
       mode: "subscription",
       success_url: `${req.headers.get("origin")}/welcome?subscription=success`,
       cancel_url: `${req.headers.get("origin")}/pricing?subscription=canceled`,
+      ...(Object.keys(metadata).length > 0 && { metadata }),
     });
 
     logStep("Checkout session created", { sessionId: session.id });
