@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { InteractiveDemoSection } from "@/components/InteractiveDemoSection";
 
 interface SubscriptionPlan {
   id: string;
@@ -250,6 +251,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* Interactive Demo Section */}
+      <InteractiveDemoSection />
 
       {/* Features Section */}
       <section className="py-20 bg-card/50">
