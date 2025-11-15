@@ -14,7 +14,6 @@ import { MascotCompanion } from "@/components/MascotCompanion";
 import { DailySummaryDialog } from "@/components/DailySummaryDialog";
 import { AchievementUnlockAnimation } from "@/components/AchievementUnlockAnimation";
 import { SubscriptionBanner } from "@/components/SubscriptionBanner";
-import { ConfirmNewPlanDialog } from "@/components/ConfirmNewPlanDialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -82,7 +81,6 @@ const Dashboard = () => {
   const [unlockedAchievement, setUnlockedAchievement] = useState<any>(null);
   const [userId, setUserId] = useState<string | undefined>(undefined);
   const [portalLoading, setPortalLoading] = useState(false);
-  const [showConfirmNewPlan, setShowConfirmNewPlan] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { limits, refreshLimits } = useSubscriptionLimits(userId);
@@ -564,12 +562,11 @@ const Dashboard = () => {
       return;
     }
 
-    // Show confirmation dialog
-    setShowConfirmNewPlan(true);
+    // Generate new unique plan automatically
+    await generateMealPlan(true);
   };
 
   const generateMealPlan = async (forceNew: boolean = false) => {
-    setShowConfirmNewPlan(false);
     setGenerating(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -1099,12 +1096,6 @@ const Dashboard = () => {
         onClose={() => setShowAchievementUnlock(false)}
       />
 
-      <ConfirmNewPlanDialog
-        open={showConfirmNewPlan}
-        onOpenChange={setShowConfirmNewPlan}
-        onConfirm={generateMealPlan}
-        isGenerating={generating}
-      />
     </div>
   );
 };

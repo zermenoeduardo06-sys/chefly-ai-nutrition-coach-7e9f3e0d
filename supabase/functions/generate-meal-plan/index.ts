@@ -55,79 +55,22 @@ serve(async (req) => {
 
     console.log('Preferences hash:', preferencesHash);
 
-    // Check if a meal plan with the same preferences exists (only if not forcing new)
-    let cachedPlan = null;
-    if (!forceNew) {
-      const { data } = await supabaseClient
-        .from('meal_plans')
-        .select('id')
-        .eq('preferences_hash', preferencesHash)
-        .limit(1)
-        .single();
-      cachedPlan = data;
-    }
-
-    if (cachedPlan) {
-      console.log('Found cached meal plan:', cachedPlan.id);
-
-      // Create new meal plan
-      const { data: newMealPlan } = await supabaseClient
-        .from('meal_plans')
-        .insert({
-          user_id: userId,
-          week_start_date: new Date().toISOString().split('T')[0],
-          preferences_hash: preferencesHash,
-        })
-        .select()
-        .single();
-
-      // Copy meals from cached plan
-      const { data: cachedMeals } = await supabaseClient
-        .from('meals')
-        .select('*')
-        .eq('meal_plan_id', cachedPlan.id);
-
-      if (cachedMeals && cachedMeals.length > 0) {
-        const newMeals = cachedMeals.map((meal: any) => ({
-          meal_plan_id: newMealPlan.id,
-          day_of_week: meal.day_of_week,
-          meal_type: meal.meal_type,
-          name: meal.name,
-          description: meal.description,
-          benefits: meal.benefits,
-          ingredients: meal.ingredients,
-          steps: meal.steps,
-          calories: meal.calories,
-          protein: meal.protein,
-          carbs: meal.carbs,
-          fats: meal.fats,
-          image_url: meal.image_url,
-        }));
-
-        await supabaseClient.from('meals').insert(newMeals);
-      }
-
-      // Copy shopping list from cached plan
-      const { data: cachedShoppingList } = await supabaseClient
-        .from('shopping_lists')
-        .select('items')
-        .eq('meal_plan_id', cachedPlan.id)
-        .single();
-
-      if (cachedShoppingList) {
-        await supabaseClient.from('shopping_lists').insert({
-          meal_plan_id: newMealPlan.id,
-          items: cachedShoppingList.items,
-        });
-      }
-
-      console.log('Successfully created meal plan from cache');
-      return new Response(JSON.stringify({ success: true, cached: true }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    console.log('No cached plan found, generating new meal plan with AI');
+    // Always generate unique plans - no caching
+    console.log('Generating new unique meal plan with AI...');
+    
+    // Add random variation seed to ensure unique results
+    const variationSeed = Math.floor(Math.random() * 10000);
+    const seasonalVariations = [
+      'ingredientes de temporada y frescos',
+      'sabores tradicionales auténticos',
+      'recetas innovadoras y modernas',
+      'platos reconfortantes caseros',
+      'fusión de sabores internacionales',
+      'cocina ligera y refrescante'
+    ];
+    const randomVariation = seasonalVariations[Math.floor(Math.random() * seasonalVariations.length)];
+    
+    console.log(`Applying variation seed: ${variationSeed} with theme: ${randomVariation}`);
 
     // Map meal types
     const mealTypeMap: Record<number, string[]> = {
@@ -154,7 +97,9 @@ serve(async (req) => {
         model: 'google/gemini-2.5-flash',
         messages: [{
           role: 'user',
-          content: `Eres un chef nutricionista experto. Crea un plan de comidas REAL y específico para la semana (7 días) con ${preferences.meals_per_day} comidas por día.
+          content: `Eres un chef nutricionista experto. Crea un plan de comidas COMPLETAMENTE ÚNICO Y ORIGINAL para la semana (7 días) con ${preferences.meals_per_day} comidas por día.
+
+CRÍTICO: Este es el plan de menú #${variationSeed}. Debe ser TOTALMENTE DIFERENTE a cualquier plan anterior. Prioriza ${randomVariation} en este plan para garantizar variedad máxima.
 
 PERFIL DEL USUARIO:
 - Objetivo: ${preferences.goal}
@@ -179,7 +124,10 @@ ${preferences.gender ? `- Género: ${preferences.gender}` : ''}
 ${preferences.additional_notes ? `\nNOTAS ADICIONALES: ${preferences.additional_notes}` : ''}
 
 IMPORTANTE: 
-- Genera recetas REALES con nombres específicos que se alineen con las preferencias del usuario
+- Usa creatividad extrema - NUNCA repitas recetas exactas
+- Enfoque especial en: ${randomVariation}
+- Mezcla diferentes técnicas de cocción cada día
+- Varía los ingredientes principales entre comidas
 - Respeta el nivel de habilidad (recetas más simples para principiantes, más elaboradas para avanzados)
 - Ajusta el presupuesto (ingredientes económicos para presupuesto bajo, premium para alto)
 - Las recetas NO deben exceder el tiempo de cocina preferido
