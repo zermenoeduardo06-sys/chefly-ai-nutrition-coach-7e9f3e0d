@@ -10,31 +10,33 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { toast } from "sonner";
 import { Loader2, Send, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-
-const contactSchema = z.object({
-  name: z.string()
-    .trim()
-    .min(1, { message: "El nombre es requerido" })
-    .max(100, { message: "El nombre debe tener máximo 100 caracteres" }),
-  email: z.string()
-    .trim()
-    .email({ message: "Email inválido" })
-    .max(255, { message: "El email debe tener máximo 255 caracteres" }),
-  subject: z.string()
-    .trim()
-    .min(1, { message: "El asunto es requerido" })
-    .max(200, { message: "El asunto debe tener máximo 200 caracteres" }),
-  message: z.string()
-    .trim()
-    .min(10, { message: "El mensaje debe tener al menos 10 caracteres" })
-    .max(2000, { message: "El mensaje debe tener máximo 2000 caracteres" })
-});
-
-type ContactFormData = z.infer<typeof contactSchema>;
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const ContactForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const { t } = useLanguage();
+
+  const contactSchema = z.object({
+    name: z.string()
+      .trim()
+      .min(1, { message: t("contact.validation.nameRequired") })
+      .max(100, { message: t("contact.validation.nameMax") }),
+    email: z.string()
+      .trim()
+      .email({ message: t("contact.validation.emailInvalid") })
+      .max(255, { message: t("contact.validation.emailMax") }),
+    subject: z.string()
+      .trim()
+      .min(1, { message: t("contact.validation.subjectRequired") })
+      .max(200, { message: t("contact.validation.subjectMax") }),
+    message: z.string()
+      .trim()
+      .min(10, { message: t("contact.validation.messageMin") })
+      .max(2000, { message: t("contact.validation.messageMax") })
+  });
+
+  type ContactFormData = z.infer<typeof contactSchema>;
 
   const form = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema),
@@ -54,8 +56,8 @@ export const ContactForm = () => {
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       setIsSuccess(true);
-      toast.success("¡Mensaje enviado!", {
-        description: "Nos pondremos en contacto contigo pronto."
+      toast.success(t("contact.form.success"), {
+        description: t("contact.form.successDesc")
       });
       
       form.reset();
@@ -63,8 +65,8 @@ export const ContactForm = () => {
       // Reset success state after 5 seconds
       setTimeout(() => setIsSuccess(false), 5000);
     } catch (error) {
-      toast.error("Error al enviar el mensaje", {
-        description: "Por favor, inténtalo de nuevo más tarde."
+      toast.error(t("contact.form.error"), {
+        description: t("contact.form.errorDesc")
       });
     } finally {
       setIsSubmitting(false);
@@ -74,9 +76,9 @@ export const ContactForm = () => {
   return (
     <Card className="border-border/50 shadow-xl bg-gradient-to-br from-card to-card/80 backdrop-blur-sm max-w-2xl mx-auto">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Envíanos un mensaje</CardTitle>
+        <CardTitle className="text-2xl">{t("contact.form.title")}</CardTitle>
         <CardDescription>
-          Completa el formulario y te responderemos lo antes posible
+          {t("contact.form.subtitle")}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -85,12 +87,12 @@ export const ContactForm = () => {
             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
               <CheckCircle2 className="w-8 h-8 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold">¡Mensaje enviado!</h3>
+            <h3 className="text-xl font-semibold">{t("contact.form.success")}</h3>
             <p className="text-muted-foreground text-center max-w-sm">
-              Gracias por contactarnos. Revisaremos tu mensaje y te responderemos pronto.
+              {t("contact.form.successDesc")}
             </p>
             <Button onClick={() => setIsSuccess(false)} variant="outline">
-              Enviar otro mensaje
+              {t("contact.form.sendAnother")}
             </Button>
           </div>
         ) : (

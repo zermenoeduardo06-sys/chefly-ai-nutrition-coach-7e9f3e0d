@@ -8,9 +8,11 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const FAQ = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const faqCategories = [
     {
