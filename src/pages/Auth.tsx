@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -15,6 +16,7 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   useEffect(() => {
     // Check if user is already logged in
@@ -44,12 +46,12 @@ const Auth = () => {
       // Validate email format
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!email || !emailRegex.test(email) || email.length > 255) {
-        throw new Error('Correo electrónico inválido');
+        throw new Error(t("auth.invalidEmail"));
       }
       
       // Validate password
       if (!password || password.length < 8 || password.length > 128) {
-        throw new Error('La contraseña debe tener entre 8 y 128 caracteres');
+        throw new Error(t("auth.passwordLength"));
       }
 
       const { error } = await supabase.auth.signUp({
@@ -63,15 +65,15 @@ const Auth = () => {
       if (error) throw error;
 
       toast({
-        title: "¡Cuenta creada!",
-        description: "Bienvenido a Chefly.AI. Configuremos tus preferencias.",
+        title: t("auth.accountCreated"),
+        description: t("auth.accountCreatedDesc"),
       });
       
       navigate("/onboarding");
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Error",
+        title: t("auth.error"),
         description: error.message,
       });
     } finally {
@@ -87,12 +89,12 @@ const Auth = () => {
       // Validate email format
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!email || !emailRegex.test(email)) {
-        throw new Error('Correo electrónico inválido');
+        throw new Error(t("auth.invalidEmail"));
       }
       
       // Validate password exists
       if (!password || password.length < 6) {
-        throw new Error('Contraseña inválida');
+        throw new Error(t("auth.invalidPassword"));
       }
 
       const { error } = await supabase.auth.signInWithPassword({
@@ -103,13 +105,13 @@ const Auth = () => {
       if (error) throw error;
 
       toast({
-        title: "¡Bienvenido de nuevo!",
-        description: "Iniciando sesión...",
+        title: t("auth.welcomeBack"),
+        description: t("auth.welcomeBackDesc"),
       });
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Error al iniciar sesión",
+        title: t("auth.loginError"),
         description: error.message,
       });
     } finally {
@@ -139,14 +141,14 @@ const Auth = () => {
           <CardContent>
             <Tabs defaultValue="signup" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="signup">Registrarse</TabsTrigger>
-                <TabsTrigger value="signin">Iniciar Sesión</TabsTrigger>
+                <TabsTrigger value="signup">{t("auth.signup")}</TabsTrigger>
+                <TabsTrigger value="signin">{t("auth.login")}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="signup">
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
+                    <Label htmlFor="signup-email">{t("auth.email")}</Label>
                     <Input
                       id="signup-email"
                       type="email"
@@ -158,7 +160,7 @@ const Auth = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password">Contraseña</Label>
+                    <Label htmlFor="signup-password">{t("auth.password")}</Label>
                     <Input
                       id="signup-password"
                       type="password"
@@ -180,10 +182,10 @@ const Auth = () => {
                     {loading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Creando cuenta...
+                        {t("common.loading")}
                       </>
                     ) : (
-                      "Crear cuenta gratis"
+                      t("auth.signup")
                     )}
                   </Button>
                 </form>
@@ -192,7 +194,7 @@ const Auth = () => {
               <TabsContent value="signin">
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signin-email">Email</Label>
+                    <Label htmlFor="signin-email">{t("auth.email")}</Label>
                     <Input
                       id="signin-email"
                       type="email"
@@ -204,7 +206,7 @@ const Auth = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signin-password">Contraseña</Label>
+                    <Label htmlFor="signin-password">{t("auth.password")}</Label>
                     <Input
                       id="signin-password"
                       type="password"
@@ -222,10 +224,10 @@ const Auth = () => {
                     {loading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Iniciando sesión...
+                        {t("common.loading")}
                       </>
                     ) : (
-                      "Iniciar sesión"
+                      t("auth.login")
                     )}
                   </Button>
                 </form>
