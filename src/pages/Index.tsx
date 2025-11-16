@@ -12,6 +12,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { InteractiveDemoSection } from "@/components/InteractiveDemoSection";
 import { ContactForm } from "@/components/ContactForm";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { LanguageToggle } from "@/components/LanguageToggle";
 
 interface SubscriptionPlan {
   id: string;
@@ -25,6 +27,7 @@ interface SubscriptionPlan {
 }
 const Index = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const { data: plans } = useQuery({
     queryKey: ["subscription-plans"],
@@ -41,74 +44,84 @@ const Index = () => {
   });
   const stats = [{
     number: "50K+",
-    label: "Usuarios activos",
+    label: t("stats.users"),
     icon: Users
   }, {
     number: "2M+",
-    label: "Comidas generadas",
+    label: t("stats.meals"),
     icon: Utensils
   }, {
     number: "4.9/5",
-    label: "Calificación",
+    label: t("stats.rating"),
     icon: Star
   }, {
     number: "95%",
-    label: "Éxito comprobado",
+    label: t("stats.success"),
     icon: TrendingUp
   }];
   const features = [{
     icon: Brain,
-    title: "IA Personalizada",
-    description: "Menús adaptados a tus objetivos y preferencias"
+    title: t("features.ai.title"),
+    description: t("features.ai.desc")
   }, {
     icon: Utensils,
-    title: "Recetas Deliciosas",
-    description: "Comidas saludables que te encantarán"
+    title: t("features.recipes.title"),
+    description: t("features.recipes.desc")
   }, {
     icon: TrendingUp,
-    title: "Alcanza tus Metas",
-    description: "Bajar grasa, ganar músculo o comer saludable"
+    title: t("features.goals.title"),
+    description: t("features.goals.desc")
   }, {
     icon: Clock,
-    title: "Ahorra Tiempo",
-    description: "Lista de compras automática cada semana"
+    title: t("features.time.title"),
+    description: t("features.time.desc")
   }];
   const steps = [{
     number: "01",
     icon: ChefHat,
-    title: "Cuéntanos tus objetivos",
-    description: "Responde unas preguntas sobre tu estilo de vida y metas"
+    title: t("how.step1.title"),
+    description: t("how.step1.desc")
   }, {
     number: "02",
     icon: Sparkles,
-    title: "IA genera tu menú",
-    description: "Recibe un plan semanal personalizado al instante"
+    title: t("how.step2.title"),
+    description: t("how.step2.desc")
   }, {
     number: "03",
     icon: Calendar,
-    title: "Disfruta y progresa",
-    description: "Sigue tu plan, chatea con tu coach y alcanza tus metas"
+    title: t("how.step3.title"),
+    description: t("how.step3.desc")
   }];
   const testimonials = [{
-    name: "María González",
-    role: "Bajó 8kg en 2 meses",
+    name: t("testimonials.1.name"),
+    role: t("testimonials.1.role"),
     image: testimonial1,
     rating: 5,
-    text: "Chefly.AI cambió mi vida. Los menús son deliciosos y fáciles de seguir. ¡Perdí peso sin sufrir!"
+    text: t("testimonials.1.text")
   }, {
-    name: "Carlos Ramírez",
-    role: "Ganó 5kg de músculo",
+    name: t("testimonials.2.name"),
+    role: t("testimonials.2.role"),
     image: testimonial2,
     rating: 5,
-    text: "Como atleta, necesitaba una nutrición precisa. La IA me creó el plan perfecto para mis entrenamientos."
+    text: t("testimonials.2.text")
   }, {
-    name: "Ana Martínez",
-    role: "Mejoró su salud",
+    name: t("testimonials.3.name"),
+    role: t("testimonials.3.role"),
     image: testimonial3,
     rating: 5,
-    text: "Tengo diabetes y el coach nutricional me ayudó a comer mejor. Mis análisis mejoraron increíblemente."
+    text: t("testimonials.3.text")
   }];
   return <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+      {/* Navigation Bar */}
+      <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            Chefly.AI
+          </h2>
+          <LanguageToggle />
+        </div>
+      </nav>
+      
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         {/* Decorative Background Elements */}
@@ -139,7 +152,7 @@ const Index = () => {
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full">
                 <Sparkles className="w-4 h-4 text-primary" />
                 <span className="text-primary font-semibold text-sm">
-                  Prueba gratis 4 días sin tarjeta
+                  {t("hero.trial")}
                 </span>
               </div>
               
@@ -150,21 +163,20 @@ const Index = () => {
               </h1>
               
               <p className="text-2xl lg:text-3xl font-semibold text-foreground/90">
-                Tu entrenador alimenticio con IA
+                {t("hero.title")}
               </p>
               
               <p className="text-lg text-muted-foreground max-w-xl">
-                Recibe menús semanales personalizados, habla con tu coach virtual 
-                y alcanza tus objetivos de salud de forma simple y deliciosa.
+                {t("hero.subtitle")}
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button variant="hero" size="lg" className="text-lg px-8 py-6 h-auto group" onClick={() => navigate("/auth")}>
-                  Comienza gratis
+                  {t("hero.cta")}
                   <Sparkles className="ml-2 w-5 h-5 group-hover:rotate-12 transition-transform" />
                 </Button>
                 <Button variant="outline" size="lg" className="text-lg px-8 py-6 h-auto" onClick={() => navigate("/auth")}>
-                  Iniciar sesión
+                  {t("nav.login")}
                 </Button>
               </div>
 
@@ -219,18 +231,9 @@ const Index = () => {
       <section className="py-20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16 space-y-4">
-            <Badge variant="secondary" className="px-4 py-2 text-sm">
-              Proceso simple
-            </Badge>
             <h2 className="text-4xl lg:text-5xl font-bold">
-              Cómo funciona{" "}
-              <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                Chefly.AI
-              </span>
+              {t("how.title")}
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Tres pasos simples para transformar tu alimentación
-            </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
@@ -260,11 +263,7 @@ const Index = () => {
       <section className="py-20 bg-card/50">
         <div className="container mx-auto px-4">
           <h2 className="text-4xl font-bold text-center mb-16">
-            ¿Por qué elegir{" "}
-            <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Chefly.AI
-            </span>
-            ?
+            {t("features.title")}
           </h2>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -285,17 +284,11 @@ const Index = () => {
       <section className="py-20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16 space-y-4">
-            <Badge variant="secondary" className="px-4 py-2 text-sm">
-              Planes y precios
-            </Badge>
             <h2 className="text-4xl lg:text-5xl font-bold">
-              Elige tu{" "}
-              <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                plan perfecto
-              </span>
+              {t("pricing.title")}
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Comienza tu viaje hacia una mejor alimentación con el plan que mejor se adapte a ti
+              {t("pricing.subtitle")}
             </p>
           </div>
 
@@ -312,7 +305,7 @@ const Index = () => {
               >
                 {plan.coming_soon ? (
                   <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-muted to-muted-foreground">
-                    Próximamente
+                    {t("pricing.comingSoon")}
                   </Badge>
                 ) : index === 1 && (
                   <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-secondary">
@@ -326,7 +319,7 @@ const Index = () => {
                     <span className="text-4xl font-bold text-foreground">
                       ${plan.price_mxn}
                     </span>
-                    <span className="text-muted-foreground"> MXN/mes</span>
+                    <span className="text-muted-foreground"> MXN/{t("pricing.month")}</span>
                   </CardDescription>
                 </CardHeader>
 
@@ -348,7 +341,7 @@ const Index = () => {
                     onClick={() => navigate("/auth")}
                     disabled={plan.coming_soon}
                   >
-                    {plan.coming_soon ? "Próximamente" : "Comenzar ahora"}
+                    {plan.coming_soon ? t("pricing.comingSoon") : t("pricing.cta")}
                   </Button>
                 </CardFooter>
               </Card>
@@ -366,18 +359,9 @@ const Index = () => {
       <section className="py-20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16 space-y-4">
-            <Badge variant="secondary" className="px-4 py-2 text-sm">
-              Testimonios reales
-            </Badge>
             <h2 className="text-4xl lg:text-5xl font-bold">
-              Lo que dicen nuestros{" "}
-              <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                usuarios
-              </span>
+              {t("testimonials.title")}
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Miles de personas ya transformaron su vida con Chefly.AI
-            </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -460,17 +444,11 @@ const Index = () => {
       <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12 space-y-4">
-            <Badge variant="secondary" className="px-4 py-2 text-sm">
-              Contacto
-            </Badge>
             <h2 className="text-4xl lg:text-5xl font-bold">
-              ¿Necesitas{" "}
-              <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                ayuda?
-              </span>
+              {t("contact.title")}
             </h2>
             <p className="text-xl text-muted-foreground">
-              Estamos aquí para responder tus preguntas
+              {t("contact.subtitle")}
             </p>
           </div>
           
