@@ -2,6 +2,8 @@ import { Home, TrendingUp, Trophy, Target, MessageCircle, Users, CreditCard, Log
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { LanguageToggle } from "@/components/LanguageToggle";
 import {
   Sidebar,
   SidebarContent,
@@ -15,21 +17,22 @@ import {
 } from "@/components/ui/sidebar";
 import { NavLink } from "@/components/NavLink";
 
-const menuItems = [
-  { title: "Dashboard", url: "/dashboard", icon: Home },
-  { title: "Progreso Nutricional", url: "/dashboard/progress", icon: TrendingUp },
-  { title: "Logros y Medallas", url: "/dashboard/achievements", icon: Trophy },
-  { title: "Desafíos Diarios", url: "/dashboard/challenges", icon: Target },
-  { title: "Clasificación", url: "/dashboard/leaderboard", icon: Users },
-  { title: "Coach IA", url: "/chat", icon: MessageCircle },
-  { title: "Mi Suscripción", url: "/subscription", icon: CreditCard },
-];
-
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
+
+  const menuItems = [
+    { title: t("sidebar.dashboard"), url: "/dashboard", icon: Home },
+    { title: t("sidebar.progress"), url: "/dashboard/progress", icon: TrendingUp },
+    { title: t("sidebar.achievements"), url: "/dashboard/achievements", icon: Trophy },
+    { title: t("sidebar.challenges"), url: "/dashboard/challenges", icon: Target },
+    { title: t("sidebar.leaderboard"), url: "/dashboard/leaderboard", icon: Users },
+    { title: t("sidebar.coach"), url: "/chat", icon: MessageCircle },
+    { title: t("sidebar.subscription"), url: "/subscription", icon: CreditCard },
+  ];
 
   const handleLogout = async () => {
     try {
@@ -56,7 +59,7 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className={collapsed ? "opacity-0" : ""}>
-            Menú Principal
+            {t("sidebar.menu")}
           </SidebarGroupLabel>
 
           <SidebarGroupContent>
@@ -75,13 +78,19 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup className="mt-auto">
+        <SidebarGroup className="mt-auto space-y-4">
+          {!collapsed && (
+            <div className="px-4">
+              <LanguageToggle />
+            </div>
+          )}
+          
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton onClick={handleLogout} className="text-destructive hover:text-destructive hover:bg-destructive/10">
                   <LogOut className="h-5 w-5" />
-                  {!collapsed && <span>Cerrar sesión</span>}
+                  {!collapsed && <span>{t("sidebar.logout")}</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
