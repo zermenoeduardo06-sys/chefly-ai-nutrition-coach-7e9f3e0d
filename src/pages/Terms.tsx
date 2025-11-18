@@ -2,9 +2,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Terms = () => {
   const navigate = useNavigate();
+  const { t, language } = useLanguage();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 py-12 px-4">
@@ -15,14 +17,14 @@ const Terms = () => {
           className="mb-6"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Volver
+          {t("terms.back")}
         </Button>
 
         <Card className="shadow-xl">
           <CardHeader>
-            <CardTitle className="text-3xl">Términos y Condiciones</CardTitle>
+            <CardTitle className="text-3xl">{t("terms.title")}</CardTitle>
             <p className="text-muted-foreground">
-              Última actualización: {new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}
+              {t("terms.lastUpdated")}: {new Date().toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
             </p>
           </CardHeader>
           <CardContent className="space-y-6">
