@@ -2,10 +2,12 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Home, ArrowLeft } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const NotFound = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   useEffect(() => {
     console.error("404 Error: User attempted to access non-existent route:", location.pathname);
@@ -16,11 +18,11 @@ const NotFound = () => {
       <div className="text-center space-y-8 px-4 max-w-2xl">
         <div className="space-y-4">
           <div className="text-8xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            404
+            {t("notfound.title")}
           </div>
-          <h1 className="text-4xl font-bold">Página no encontrada</h1>
+          <h1 className="text-4xl font-bold">{t("notfound.heading")}</h1>
           <p className="text-xl text-muted-foreground">
-            Lo sentimos, la página que buscas no existe o ha sido movida.
+            {t("notfound.message")}
           </p>
         </div>
         
@@ -32,7 +34,7 @@ const NotFound = () => {
             className="gap-2"
           >
             <ArrowLeft className="w-4 h-4" />
-            Volver atrás
+            {t("notfound.goBack")}
           </Button>
           <Button 
             onClick={() => navigate("/")}
@@ -41,7 +43,7 @@ const NotFound = () => {
             className="gap-2"
           >
             <Home className="w-4 h-4" />
-            Ir al inicio
+            {t("notfound.goHome")}
           </Button>
         </div>
       </div>

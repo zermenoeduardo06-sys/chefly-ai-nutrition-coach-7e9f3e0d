@@ -10,6 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { Badge } from "@/components/ui/badge";
 import { useTrialGuard } from "@/hooks/useTrialGuard";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Message {
   id: string;
@@ -29,6 +30,7 @@ const Chat = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { limits, refreshLimits } = useSubscriptionLimits(userId);
   const { isBlocked, isLoading: trialLoading } = useTrialGuard();
+  const { t } = useLanguage();
 
   useEffect(() => {
     checkAuth();
@@ -82,8 +84,8 @@ const Chat = () => {
     if (limits.chatMessagesUsed >= limits.dailyChatLimit) {
       toast({
         variant: "destructive",
-        title: "Límite de mensajes alcanzado",
-        description: `Has alcanzado el límite de ${limits.dailyChatLimit} mensajes diarios del plan Básico. Actualiza al plan Intermedio para chat ilimitado.`,
+        title: t("chat.limitReached"),
+        description: t("chat.limitReachedDesc").replace("{{limit}}", limits.dailyChatLimit.toString()),
       });
       navigate("/pricing");
       return;
