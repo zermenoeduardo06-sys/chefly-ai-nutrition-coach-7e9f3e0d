@@ -11,6 +11,7 @@ import {
 import { useState } from "react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ConfirmNewPlanDialogProps {
   open: boolean;
@@ -25,6 +26,7 @@ export function ConfirmNewPlanDialog({
   onConfirm,
   isGenerating,
 }: ConfirmNewPlanDialogProps) {
+  const { t } = useLanguage();
   const [generationType, setGenerationType] = useState<"cached" | "new">("cached");
 
   const handleConfirm = () => {
@@ -35,9 +37,9 @@ export function ConfirmNewPlanDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="max-w-md">
         <AlertDialogHeader>
-          <AlertDialogTitle>¿Generar nuevo plan semanal?</AlertDialogTitle>
+          <AlertDialogTitle>{t('confirmPlan.title')}</AlertDialogTitle>
           <AlertDialogDescription>
-            Esto reemplazará tu plan actual. Elige cómo quieres generar tu nuevo menú:
+            {t('confirmPlan.description')}
           </AlertDialogDescription>
         </AlertDialogHeader>
         
@@ -46,10 +48,10 @@ export function ConfirmNewPlanDialog({
             <RadioGroupItem value="cached" id="cached" />
             <div className="flex-1 space-y-1">
               <Label htmlFor="cached" className="text-sm font-medium cursor-pointer">
-                Usar menú existente (Recomendado)
+                {t('confirmPlan.cached')}
               </Label>
               <p className="text-xs text-muted-foreground">
-                Reutiliza un menú con tus mismas preferencias. No consume créditos de IA. ✨
+                {t('confirmPlan.cachedDesc')}
               </p>
             </div>
           </div>
@@ -58,19 +60,19 @@ export function ConfirmNewPlanDialog({
             <RadioGroupItem value="new" id="new" />
             <div className="flex-1 space-y-1">
               <Label htmlFor="new" className="text-sm font-medium cursor-pointer">
-                Generar menú completamente nuevo
+                {t('confirmPlan.new')}
               </Label>
               <p className="text-xs text-muted-foreground">
-                Crea un menú único con IA. Consume créditos de Lovable AI. 🤖
+                {t('confirmPlan.newDesc')}
               </p>
             </div>
           </div>
         </RadioGroup>
 
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isGenerating}>Cancelar</AlertDialogCancel>
+          <AlertDialogCancel disabled={isGenerating}>{t('confirmPlan.cancel')}</AlertDialogCancel>
           <AlertDialogAction onClick={handleConfirm} disabled={isGenerating}>
-            {isGenerating ? "Generando..." : "Generar plan"}
+            {isGenerating ? t('confirmPlan.generating') : t('confirmPlan.generate')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

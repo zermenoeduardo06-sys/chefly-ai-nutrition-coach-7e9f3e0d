@@ -8,6 +8,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { TrendingUp, Flame, Drumstick, Wheat, Droplet } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface DailySummaryDialogProps {
   open: boolean;
@@ -28,16 +29,18 @@ export const DailySummaryDialog = ({
   totalCarbs,
   totalFats,
 }: DailySummaryDialogProps) => {
+  const { t } = useLanguage();
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-2xl">
             <TrendingUp className="w-6 h-6 text-primary" />
-            ¡Día Completado!
+            {t('dailySummary.title')}
           </DialogTitle>
           <DialogDescription className="text-base">
-            Resumen nutricional de {dayName}
+            {t('dailySummary.subtitle')} {dayName}
           </DialogDescription>
         </DialogHeader>
 
