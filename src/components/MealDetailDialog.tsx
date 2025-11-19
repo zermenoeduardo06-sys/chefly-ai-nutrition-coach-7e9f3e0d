@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Flame, Apple, Beef, Cookie, ArrowLeftRight, Lock } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Meal {
   id: string;
@@ -34,13 +35,10 @@ export function MealDetailDialog({
   onSwapMeal,
   canSwap = true
 }: MealDetailDialogProps) {
+  const { t } = useLanguage();
   if (!meal) return null;
 
-  const mealTypeLabel = {
-    breakfast: "Desayuno",
-    lunch: "Almuerzo",
-    dinner: "Cena",
-  }[meal.meal_type] || meal.meal_type;
+  const mealTypeLabel = t(`mealDetail.${meal.meal_type}`) || t(`dashboard.meals.${meal.meal_type}`);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -79,28 +77,28 @@ export function MealDetailDialog({
         <div>
           <h3 className="font-semibold mb-3 flex items-center gap-2">
             <Flame className="h-5 w-5 text-primary" />
-            Información Nutricional
+            {t('mealDetail.nutritionalInfo')}
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-secondary/20 rounded-lg p-3 text-center">
               <Flame className="h-5 w-5 mx-auto mb-1 text-orange-500" />
               <p className="text-2xl font-bold">{meal.calories || 0}</p>
-              <p className="text-xs text-muted-foreground">Calorías</p>
+              <p className="text-xs text-muted-foreground">{t('mealDetail.calories')}</p>
             </div>
             <div className="bg-secondary/20 rounded-lg p-3 text-center">
               <Beef className="h-5 w-5 mx-auto mb-1 text-red-500" />
               <p className="text-2xl font-bold">{meal.protein || 0}g</p>
-              <p className="text-xs text-muted-foreground">Proteína</p>
+              <p className="text-xs text-muted-foreground">{t('mealDetail.protein')}</p>
             </div>
             <div className="bg-secondary/20 rounded-lg p-3 text-center">
               <Cookie className="h-5 w-5 mx-auto mb-1 text-yellow-500" />
               <p className="text-2xl font-bold">{meal.carbs || 0}g</p>
-              <p className="text-xs text-muted-foreground">Carbohidratos</p>
+              <p className="text-xs text-muted-foreground">{t('mealDetail.carbs')}</p>
             </div>
             <div className="bg-secondary/20 rounded-lg p-3 text-center">
               <Apple className="h-5 w-5 mx-auto mb-1 text-green-500" />
               <p className="text-2xl font-bold">{meal.fats || 0}g</p>
-              <p className="text-xs text-muted-foreground">Grasas</p>
+              <p className="text-xs text-muted-foreground">{t('mealDetail.fats')}</p>
             </div>
           </div>
         </div>
@@ -109,7 +107,7 @@ export function MealDetailDialog({
 
         {/* Beneficios */}
         <div>
-          <h3 className="font-semibold mb-2">Beneficios</h3>
+          <h3 className="font-semibold mb-2">{t('mealDetail.benefits')}</h3>
           <p className="text-sm text-muted-foreground">{meal.benefits}</p>
         </div>
 
@@ -118,7 +116,7 @@ export function MealDetailDialog({
           <>
             <Separator />
             <div>
-              <h3 className="font-semibold mb-3">Ingredientes</h3>
+              <h3 className="font-semibold mb-3">{t('mealDetail.ingredients')}</h3>
               <ul className="space-y-2">
                 {meal.ingredients.map((ingredient, index) => (
                   <li key={index} className="flex items-start gap-2">
@@ -136,7 +134,7 @@ export function MealDetailDialog({
           <>
             <Separator />
             <div>
-              <h3 className="font-semibold mb-3">Preparación</h3>
+              <h3 className="font-semibold mb-3">{t('mealDetail.steps')}</h3>
               <ol className="space-y-3">
                 {meal.steps.map((step, index) => (
                   <li key={index} className="flex gap-3">
@@ -164,7 +162,7 @@ export function MealDetailDialog({
               >
                 {!canSwap && <Lock className="mr-2 h-4 w-4" />}
                 <ArrowLeftRight className="mr-2 h-4 w-4" />
-                Intercambiar con otro día
+                {t('mealDetail.swapMeal')}
               </Button>
             </DialogFooter>
           </>

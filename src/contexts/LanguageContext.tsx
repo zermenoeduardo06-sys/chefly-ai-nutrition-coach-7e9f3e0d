@@ -289,6 +289,110 @@ export const translations = {
     "notfound.message": "Lo sentimos, la página que buscas no existe o ha sido movida.",
     "notfound.goBack": "Volver atrás",
     "notfound.goHome": "Ir al inicio",
+    
+    // Meal Detail
+    "mealDetail.nutritionalInfo": "Información Nutricional",
+    "mealDetail.calories": "Calorías",
+    "mealDetail.protein": "Proteína",
+    "mealDetail.carbs": "Carbohidratos",
+    "mealDetail.fats": "Grasas",
+    "mealDetail.benefits": "Beneficios",
+    "mealDetail.ingredients": "Ingredientes",
+    "mealDetail.steps": "Pasos a seguir",
+    "mealDetail.swapMeal": "Intercambiar comida",
+    "mealDetail.lockedMessage": "Necesitas estar suscrito para intercambiar comidas",
+    
+    // Swap Meal
+    "swapMeal.title": "Intercambiar comida",
+    "swapMeal.description": "Selecciona con qué comida quieres intercambiar",
+    
+    // Challenges
+    "challenges.title": "Desafíos Diarios",
+    "challenges.subtitle": "Completa desafíos para ganar puntos extra",
+    "challenges.noChallenges": "No hay desafíos activos",
+    "challenges.generateNew": "Generar nuevos desafíos",
+    "challenges.generating": "Generando...",
+    "challenges.errorLoading": "No se pudieron cargar los desafíos",
+    "challenges.errorGenerating": "No se pudieron generar los desafíos",
+    "challenges.challengesGenerated": "¡Desafíos generados!",
+    "challenges.newChallenges": "Tienes 3 nuevos desafíos diarios",
+    "challenges.complete": "Completar",
+    "challenges.completed": "¡Completado!",
+    "challenges.progress": "Progreso",
+    "challenges.reward": "Recompensa",
+    "challenges.bonus": "Bonus",
+    "challenges.points": "puntos",
+    
+    // Achievements
+    "achievements.title": "Logros y Medallas",
+    "achievements.subtitle": "Desbloquea medallas completando retos",
+    "achievements.unlocked": "Desbloqueado",
+    "achievements.points": "pts",
+    
+    // Nutrition Charts
+    "nutritionCharts.title": "Progreso Nutricional",
+    "nutritionCharts.subtitle": "Visualiza tu evolución en el tiempo",
+    "nutritionCharts.weekly": "Semanal (28 días)",
+    "nutritionCharts.monthly": "Mensual (12 semanas)",
+    "nutritionCharts.calories": "Calorías",
+    "nutritionCharts.protein": "Proteínas",
+    "nutritionCharts.carbs": "Carbohidratos",
+    "nutritionCharts.fats": "Grasas",
+    "nutritionCharts.mealsCompleted": "Comidas Completadas",
+    "nutritionCharts.noData": "No hay datos disponibles aún. Completa comidas para ver tu progreso.",
+    
+    // Confirm Plan
+    "confirmPlan.title": "¿Generar nuevo plan semanal?",
+    "confirmPlan.description": "Esto reemplazará tu plan actual. Elige cómo quieres generar tu nuevo menú:",
+    "confirmPlan.cached": "Usar menú existente (Recomendado)",
+    "confirmPlan.cachedDesc": "Reutiliza un menú con tus mismas preferencias. No consume créditos de IA. ✨",
+    "confirmPlan.new": "Generar menú completamente nuevo",
+    "confirmPlan.newDesc": "Crea un menú único con IA. Consume créditos de Lovable AI. 🤖",
+    "confirmPlan.cancel": "Cancelar",
+    "confirmPlan.generate": "Generar plan",
+    "confirmPlan.generating": "Generando...",
+    
+    // Daily Summary
+    "dailySummary.title": "¡Día Completado!",
+    "dailySummary.subtitle": "Resumen nutricional de",
+    "dailySummary.congrats": "¡Excelente trabajo completando todas tus comidas del día!",
+    "dailySummary.totalCalories": "Calorías Totales",
+    "dailySummary.kcal": "kcal",
+    "dailySummary.proteins": "Proteínas",
+    "dailySummary.carbohydrates": "Carbohidratos",
+    "dailySummary.fats": "Grasas",
+    "dailySummary.motivational": "Mantén este ritmo para alcanzar tus objetivos de salud 💪",
+    
+    // Subscription Banner
+    "subscription.activePlan": "Plan",
+    "subscription.active": "Activo",
+    "subscription.managePlan": "Gestionar plan",
+    "subscription.enjoyBenefits": "Disfruta de todos los beneficios de tu plan",
+    "subscription.trialExpiring": "Tu periodo de prueba está por vencer",
+    "subscription.daysRemaining": "días restantes",
+    "subscription.oneDay": "¡Solo queda 1 día!",
+    "subscription.subscribeNow": "Suscribirme ahora",
+    "subscription.upgradePrompt": "Suscríbete para continuar disfrutando de todas las funciones",
+    
+    // Demo
+    "demo.badge": "Demo interactiva",
+    "demo.title": "Descubre cómo funciona",
+    "demo.subtitle": "Sigue el flujo completo desde tu registro hasta tu primer plan de comidas personalizado",
+    "demo.startDemo": "Iniciar Demo",
+    "demo.restart": "Reiniciar Demo",
+    "demo.step1Title": "Paso 1: Bienvenida",
+    "demo.step1Desc": "Comenzamos conociendo tus objetivos",
+    "demo.step2Title": "Paso 2: Preferencias",
+    "demo.step2Desc": "Personalizamos tu experiencia",
+    "demo.step3Title": "Paso 3: Generación IA",
+    "demo.step3Desc": "Creamos tu plan personalizado",
+    "demo.step4Title": "Paso 4: Tu Dashboard",
+    "demo.step4Desc": "Accede a tu plan y características",
+    
+    // Achievement Unlock
+    "achievementUnlock.unlocked": "¡Logro Desbloqueado!",
+    "achievementUnlock.earned": "Has ganado",
+    "achievementUnlock.clickToContinue": "Haz clic para continuar",
   },
   en: {
     // Navigation
@@ -567,6 +671,110 @@ export const translations = {
     "notfound.message": "Sorry, the page you're looking for doesn't exist or has been moved.",
     "notfound.goBack": "Go back",
     "notfound.goHome": "Go home",
+    
+    // Meal Detail
+    "mealDetail.nutritionalInfo": "Nutritional Information",
+    "mealDetail.calories": "Calories",
+    "mealDetail.protein": "Protein",
+    "mealDetail.carbs": "Carbohydrates",
+    "mealDetail.fats": "Fats",
+    "mealDetail.benefits": "Benefits",
+    "mealDetail.ingredients": "Ingredients",
+    "mealDetail.steps": "Cooking Steps",
+    "mealDetail.swapMeal": "Swap meal",
+    "mealDetail.lockedMessage": "You need to be subscribed to swap meals",
+    
+    // Swap Meal
+    "swapMeal.title": "Swap meal",
+    "swapMeal.description": "Select which meal you want to swap with",
+    
+    // Challenges
+    "challenges.title": "Daily Challenges",
+    "challenges.subtitle": "Complete challenges to earn extra points",
+    "challenges.noChallenges": "No active challenges",
+    "challenges.generateNew": "Generate new challenges",
+    "challenges.generating": "Generating...",
+    "challenges.errorLoading": "Could not load challenges",
+    "challenges.errorGenerating": "Could not generate challenges",
+    "challenges.challengesGenerated": "Challenges generated!",
+    "challenges.newChallenges": "You have 3 new daily challenges",
+    "challenges.complete": "Complete",
+    "challenges.completed": "Completed!",
+    "challenges.progress": "Progress",
+    "challenges.reward": "Reward",
+    "challenges.bonus": "Bonus",
+    "challenges.points": "points",
+    
+    // Achievements
+    "achievements.title": "Achievements and Badges",
+    "achievements.subtitle": "Unlock badges by completing challenges",
+    "achievements.unlocked": "Unlocked",
+    "achievements.points": "pts",
+    
+    // Nutrition Charts
+    "nutritionCharts.title": "Nutritional Progress",
+    "nutritionCharts.subtitle": "Visualize your evolution over time",
+    "nutritionCharts.weekly": "Weekly (28 days)",
+    "nutritionCharts.monthly": "Monthly (12 weeks)",
+    "nutritionCharts.calories": "Calories",
+    "nutritionCharts.protein": "Protein",
+    "nutritionCharts.carbs": "Carbohydrates",
+    "nutritionCharts.fats": "Fats",
+    "nutritionCharts.mealsCompleted": "Meals Completed",
+    "nutritionCharts.noData": "No data available yet. Complete meals to see your progress.",
+    
+    // Confirm Plan
+    "confirmPlan.title": "Generate new weekly plan?",
+    "confirmPlan.description": "This will replace your current plan. Choose how you want to generate your new menu:",
+    "confirmPlan.cached": "Use existing menu (Recommended)",
+    "confirmPlan.cachedDesc": "Reuse a menu with your same preferences. Doesn't consume AI credits. ✨",
+    "confirmPlan.new": "Generate completely new menu",
+    "confirmPlan.newDesc": "Create a unique menu with AI. Consumes Lovable AI credits. 🤖",
+    "confirmPlan.cancel": "Cancel",
+    "confirmPlan.generate": "Generate plan",
+    "confirmPlan.generating": "Generating...",
+    
+    // Daily Summary
+    "dailySummary.title": "Day Completed!",
+    "dailySummary.subtitle": "Nutritional summary for",
+    "dailySummary.congrats": "Excellent work completing all your meals for the day!",
+    "dailySummary.totalCalories": "Total Calories",
+    "dailySummary.kcal": "kcal",
+    "dailySummary.proteins": "Protein",
+    "dailySummary.carbohydrates": "Carbohydrates",
+    "dailySummary.fats": "Fats",
+    "dailySummary.motivational": "Keep up this pace to reach your health goals 💪",
+    
+    // Subscription Banner
+    "subscription.activePlan": "Plan",
+    "subscription.active": "Active",
+    "subscription.managePlan": "Manage plan",
+    "subscription.enjoyBenefits": "Enjoy all the benefits of your plan",
+    "subscription.trialExpiring": "Your trial period is about to expire",
+    "subscription.daysRemaining": "days remaining",
+    "subscription.oneDay": "Only 1 day left!",
+    "subscription.subscribeNow": "Subscribe now",
+    "subscription.upgradePrompt": "Subscribe to continue enjoying all features",
+    
+    // Demo
+    "demo.badge": "Interactive demo",
+    "demo.title": "Discover how it works",
+    "demo.subtitle": "Follow the complete flow from your signup to your first personalized meal plan",
+    "demo.startDemo": "Start Demo",
+    "demo.restart": "Restart Demo",
+    "demo.step1Title": "Step 1: Welcome",
+    "demo.step1Desc": "We start by learning your goals",
+    "demo.step2Title": "Step 2: Preferences",
+    "demo.step2Desc": "We personalize your experience",
+    "demo.step3Title": "Step 3: AI Generation",
+    "demo.step3Desc": "We create your personalized plan",
+    "demo.step4Title": "Step 4: Your Dashboard",
+    "demo.step4Desc": "Access your plan and features",
+    
+    // Achievement Unlock
+    "achievementUnlock.unlocked": "Achievement Unlocked!",
+    "achievementUnlock.earned": "You have earned",
+    "achievementUnlock.clickToContinue": "Click to continue",
   },
 };
 

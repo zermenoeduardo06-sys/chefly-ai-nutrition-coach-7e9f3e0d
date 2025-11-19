@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Meal {
   id: string;
@@ -28,13 +29,14 @@ export function SwapMealDialog({
   allMeals,
   onConfirmSwap 
 }: SwapMealDialogProps) {
+  const { t, getArray } = useLanguage();
   if (!sourceMeal) return null;
 
-  const dayNames = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+  const dayNames = getArray('dashboard.days');
   const mealTypes: { [key: string]: string } = {
-    breakfast: "Desayuno",
-    lunch: "Almuerzo",
-    dinner: "Cena",
+    breakfast: t('dashboard.meals.breakfast'),
+    lunch: t('dashboard.meals.lunch'),
+    dinner: t('dashboard.meals.dinner'),
   };
 
   // Group meals by day, excluding the source meal
@@ -50,9 +52,9 @@ export function SwapMealDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Intercambiar comida</DialogTitle>
+          <DialogTitle>{t('swapMeal.title')}</DialogTitle>
           <DialogDescription>
-            Selecciona con qué comida quieres intercambiar "{sourceMeal.name}"
+            {t('swapMeal.description')} "{sourceMeal.name}"
           </DialogDescription>
         </DialogHeader>
 
