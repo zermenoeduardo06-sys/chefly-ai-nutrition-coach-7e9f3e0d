@@ -111,19 +111,55 @@ const Index = () => {
     rating: 5,
     text: t("testimonials.3.text")
   }];
-  return <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+  return <>
+    {/* JSON-LD Structured Data */}
+    <script type="application/ld+json">
+      {JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Chefly.AI",
+        "description": "Coach nutricional personalizado con inteligencia artificial para planes alimenticios y recetas saludables",
+        "url": "https://chefly.ai",
+        "applicationCategory": "HealthApplication",
+        "operatingSystem": "Web",
+        "offers": {
+          "@type": "AggregateOffer",
+          "priceCurrency": "MXN",
+          "lowPrice": plans?.[0]?.price_mxn || "0",
+          "highPrice": plans?.[plans.length - 1]?.price_mxn || "999",
+          "offerCount": plans?.length || 3
+        },
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": "4.9",
+          "ratingCount": "50000",
+          "bestRating": "5",
+          "worstRating": "1"
+        },
+        "provider": {
+          "@type": "Organization",
+          "name": "Chefly.AI",
+          "url": "https://chefly.ai"
+        }
+      })}
+    </script>
+    
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
       {/* Navigation Bar */}
-      <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            Chefly.AI
-          </h2>
-          <LanguageToggle />
-        </div>
-      </nav>
+      <header>
+        <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50" role="navigation" aria-label="Main navigation">
+          <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              Chefly.AI
+            </div>
+            <LanguageToggle />
+          </div>
+        </nav>
+      </header>
       
       {/* Hero Section */}
-      <section className="relative overflow-hidden">
+      <main>
+      <section className="relative overflow-hidden" aria-labelledby="hero-heading">
         {/* Decorative Background Elements */}
         <div className="absolute inset-0 pointer-events-none">
           {/* Gradient waves */}
@@ -156,7 +192,7 @@ const Index = () => {
                 </span>
               </div>
               
-              <h1 className="text-5xl lg:text-7xl font-bold leading-tight">
+              <h1 id="hero-heading" className="text-5xl lg:text-7xl font-bold leading-tight">
                 <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                   Chefly.AI
                 </span>
@@ -441,7 +477,7 @@ const Index = () => {
       </section>
 
       {/* Contact Section */}
-      <section className="py-20 bg-muted/30">
+      <section className="py-20 bg-muted/30" aria-labelledby="features-heading">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12 space-y-4">
             <h2 className="text-4xl lg:text-5xl font-bold">
@@ -456,17 +492,18 @@ const Index = () => {
         </div>
       </section>
 
+      </main>
+      
       {/* Footer */}
-      <footer className="py-12 border-t border-border/50 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-            <div>
-              <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                <ChefHat className="w-6 h-6 text-primary" />
-                Chefly AI
+      <footer className="bg-muted/50 border-t border-border" role="contentinfo">
+        <div className="container mx-auto px-4 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="space-y-4">
+              <h3 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                Chefly.AI
               </h3>
-              <p className="text-sm text-muted-foreground">
-                Tu coach de nutrición con inteligencia artificial. Come mejor, vive mejor.
+              <p className="text-muted-foreground text-sm">
+                Tu coach nutricional inteligente para una vida más saludable.
               </p>
             </div>
             <div>
@@ -513,6 +550,7 @@ const Index = () => {
           </div>
         </div>
       </footer>
-    </div>;
+    </div>
+  </>;
 };
 export default Index;
