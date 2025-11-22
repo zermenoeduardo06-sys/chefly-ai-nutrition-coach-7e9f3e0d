@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-nutrition.jpg";
-import coachMascot from "@/assets/coach-mascot-optimized.webp";
-import testimonial1 from "@/assets/testimonial-1-optimized.webp";
-import testimonial2 from "@/assets/testimonial-2-optimized.webp";
-import testimonial3 from "@/assets/testimonial-3-optimized.webp";
+import coachMascot from "@/assets/coach-mascot.png";
+import testimonial1 from "@/assets/testimonial-1.jpg";
+import testimonial2 from "@/assets/testimonial-2.jpg";
+import testimonial3 from "@/assets/testimonial-3.jpg";
 import { Utensils, Brain, TrendingUp, Clock, Star, Users, CheckCircle2, Sparkles, ChefHat, Calendar, Check } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -237,9 +237,6 @@ const Index = () => {
               <img 
                 src={coachMascot} 
                 alt="Chefly.AI Coach - Tu entrenador nutricional personal" 
-                width="1024"
-                height="1024"
-                fetchPriority="high"
                 className="w-full max-w-sm md:max-w-md lg:max-w-lg drop-shadow-2xl animate-fade-in hover:scale-105 transition-transform duration-500"
               />
             </div>
@@ -413,13 +410,7 @@ const Index = () => {
                   </div>
                   <p className="text-muted-foreground italic">"{testimonial.text}"</p>
                   <div className="flex items-center gap-4 pt-4 border-t border-border/50">
-                    <img 
-                      src={testimonial.image} 
-                      alt={testimonial.name} 
-                      width="512"
-                      height="512"
-                      className="w-12 h-12 rounded-full object-cover ring-2 ring-primary/20" 
-                    />
+                    <img src={testimonial.image} alt={testimonial.name} className="w-12 h-12 rounded-full object-cover ring-2 ring-primary/20" />
                     <div>
                       <div className="font-semibold">{testimonial.name}</div>
                       <div className="text-sm text-muted-foreground">{testimonial.role}</div>
