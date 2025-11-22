@@ -149,8 +149,19 @@ const Index = () => {
       <header>
         <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50" role="navigation" aria-label="Main navigation">
           <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-            <div className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Chefly.AI
+            <div className="flex items-center gap-6">
+              <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                Chefly.AI
+              </span>
+              <nav className="hidden md:flex gap-4" role="navigation" aria-label="Secondary navigation">
+                <Button
+                  variant="ghost"
+                  onClick={() => navigate("/blog")}
+                  className="text-foreground/80 hover:text-foreground"
+                >
+                  Blog
+                </Button>
+              </nav>
             </div>
             <LanguageToggle />
           </div>
