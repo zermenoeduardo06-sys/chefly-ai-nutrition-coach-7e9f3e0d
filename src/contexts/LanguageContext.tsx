@@ -431,8 +431,8 @@ export const translations = {
     ],
     "blog.article1.tags": ["pérdida de peso", "planificación", "nutrición", "meal prep"],
     "blog.article1.readTime": "8 min",
-    "blog.article1.date": "20 de enero de 2025",
-    "blog.article1.author": "Dra. María González, Nutrióloga",
+    "blog.article1.date": "24 de enero de 2025",
+    "blog.article1.author": "Eduardo Zermeño",
   },
   en: {
     // Navigation
@@ -853,8 +853,8 @@ export const translations = {
     ],
     "blog.article1.tags": ["weight loss", "planning", "nutrition", "meal prep"],
     "blog.article1.readTime": "8 min",
-    "blog.article1.date": "January 20, 2025",
-    "blog.article1.author": "Dr. María González, Nutritionist",
+    "blog.article1.date": "January 24, 2025",
+    "blog.article1.author": "Eduardo Zermeño",
   },
 };
 

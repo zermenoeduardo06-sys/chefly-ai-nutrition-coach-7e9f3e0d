@@ -183,7 +183,36 @@ const BlogArticle = () => {
           })}
         </div>
 
-        <div className="mt-12 pt-8 border-t">
+        <div className="mt-12 p-8 bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl border border-primary/20">
+          <div className="text-center">
+            <h3 className="text-2xl font-bold mb-3">
+              {language === "es" ? "¿Listo para transformar tu alimentación?" : "Ready to transform your nutrition?"}
+            </h3>
+            <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
+              {language === "es" 
+                ? "Únete a miles de usuarios que ya están alcanzando sus metas de salud con Chefly.AI. Comienza hoy con 7 días gratis." 
+                : "Join thousands of users who are already achieving their health goals with Chefly.AI. Start today with 7 days free."}
+            </p>
+            <div className="flex flex-wrap gap-4 justify-center">
+              <Button 
+                size="lg" 
+                onClick={() => navigate("/auth")}
+                className="gap-2"
+              >
+                {language === "es" ? "Comenzar Gratis" : "Start Free"}
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline"
+                onClick={() => navigate("/")}
+              >
+                {language === "es" ? "Conocer más" : "Learn more"}
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-12 pt-8 border-t flex justify-between items-center">
           <Button
             onClick={() => navigate("/blog")}
             variant="outline"
@@ -192,12 +221,31 @@ const BlogArticle = () => {
             <ArrowLeft className="h-4 w-4" />
             {t("blog.backToBlog")}
           </Button>
+          <Button
+            onClick={() => navigate("/")}
+            variant="ghost"
+          >
+            {language === "es" ? "Ir al inicio" : "Go to home"}
+          </Button>
         </div>
       </article>
 
       <footer className="border-t mt-16 py-8 bg-card/50">
-        <div className="container mx-auto px-4 text-center text-muted-foreground">
-          <p>&copy; 2025 Chefly.AI. {language === "es" ? "Todos los derechos reservados" : "All rights reserved"}.</p>
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-muted-foreground">&copy; 2025 Chefly.AI. {language === "es" ? "Todos los derechos reservados" : "All rights reserved"}.</p>
+            <div className="flex gap-4">
+              <Button variant="ghost" size="sm" onClick={() => navigate("/")}>
+                {language === "es" ? "Inicio" : "Home"}
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => navigate("/pricing")}>
+                {language === "es" ? "Precios" : "Pricing"}
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => navigate("/blog")}>
+                Blog
+              </Button>
+            </div>
+          </div>
         </div>
       </footer>
     </div>
