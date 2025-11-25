@@ -14,6 +14,7 @@ import { InteractiveDemoSection } from "@/components/InteractiveDemoSection";
 import { ContactForm } from "@/components/ContactForm";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { useAffiliateTracking } from "@/hooks/useAffiliateTracking";
 
 interface SubscriptionPlan {
   id: string;
@@ -28,6 +29,9 @@ interface SubscriptionPlan {
 const Index = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  
+  // Activar tracking de afiliados
+  useAffiliateTracking();
 
   const { data: plans } = useQuery({
     queryKey: ["subscription-plans"],

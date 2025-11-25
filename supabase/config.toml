@@ -20,3 +20,12 @@ verify_jwt = true
 
 [functions.customer-portal]
 verify_jwt = true
+
+[functions.track-affiliate-click]
+verify_jwt = false
+
+[functions.endorsely-webhook]
+verify_jwt = false
+
+[functions.process-affiliate-sale]
+verify_jwt = false
