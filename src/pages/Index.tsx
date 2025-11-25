@@ -158,13 +158,6 @@ const Index = () => {
             </span>
             <div className="flex items-center gap-4">
               <Button
-                variant="ghost"
-                onClick={() => navigate("/programa-afiliados")}
-                className="hidden sm:inline-flex"
-              >
-                Afiliados
-              </Button>
-              <Button
                 variant="outline"
                 onClick={() => navigate("/auth")}
               >
@@ -534,8 +527,8 @@ const Index = () => {
                   </button>
                 </li>
                 <li>
-                  <button onClick={() => navigate("/programa-afiliados")} className="hover:text-foreground transition-colors">
-                    Programa de Afiliados
+                  <button onClick={() => navigate("/affiliates")} className="hover:text-foreground transition-colors">
+                    Afiliados
                   </button>
                 </li>
                 <li>
