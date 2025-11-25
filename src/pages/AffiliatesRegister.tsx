@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { Loader2, ArrowLeft, Home } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function AffiliatesRegister() {
@@ -86,15 +86,21 @@ export default function AffiliatesRegister() {
   };
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-2xl">
-      <Button
-        variant="ghost"
-        onClick={() => navigate("/affiliates")}
-        className="mb-4"
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Volver
-      </Button>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      <div className="container mx-auto py-8 px-4 max-w-2xl">
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold">Registro de Afiliado</h1>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => navigate("/")}>
+              <Home className="h-4 w-4 mr-2" />
+              Inicio
+            </Button>
+            <Button variant="outline" onClick={() => navigate("/programa-afiliados")}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Volver
+            </Button>
+          </div>
+        </div>
 
       <Card>
         <CardHeader>
@@ -246,6 +252,7 @@ export default function AffiliatesRegister() {
           </form>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

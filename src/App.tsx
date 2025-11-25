@@ -70,8 +70,8 @@ const App = () => (
           <Route path="/faq" element={<FAQ />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:articleId" element={<BlogArticle />} />
-          <Route path="/affiliates" element={<DashboardLayout><AffiliatesDashboard /></DashboardLayout>} />
-          <Route path="/affiliates/register" element={<DashboardLayout><AffiliatesRegister /></DashboardLayout>} />
+          <Route path="/affiliates" element={<AffiliatesDashboard />} />
+          <Route path="/affiliates/register" element={<AffiliatesRegister />} />
           <Route path="/programa-afiliados" element={<AffiliatesLanding />} />
           <Route path="/admin/affiliates" element={<DashboardLayout><AdminAffiliatesDashboard /></DashboardLayout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
