@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,13 +7,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, ArrowLeft, Home } from "lucide-react";
+import { Loader2, ArrowLeft, Home, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function AffiliatesRegister() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
@@ -26,24 +29,63 @@ export default function AffiliatesRegister() {
     bank_clabe: "",
   });
 
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
+  const checkAuthStatus = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsAuthenticated(!!user);
+      if (user && !formData.email) {
+        setFormData(prev => ({ ...prev, email: user.email || "" }));
+      }
+    } catch (error) {
+      console.error("Error checking auth:", error);
+      setIsAuthenticated(false);
+    } finally {
+      setCheckingAuth(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!isAuthenticated) {
+      toast({
+        title: "Inicia sesión primero",
+        description: "Necesitas crear una cuenta o iniciar sesión para registrarte como afiliado",
+        variant: "destructive",
+      });
+      navigate("/auth");
+      return;
+    }
+
     setLoading(true);
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
+        toast({
+          title: "Error de autenticación",
+          description: "Por favor inicia sesión nuevamente",
+          variant: "destructive",
+        });
         navigate("/auth");
         return;
       }
 
-      // Generar código de afiliado usando la función de la base de datos
+      console.log("Generating affiliate code...");
       const { data: codeData, error: codeError } = await supabase
         .rpc("generate_affiliate_code");
 
-      if (codeError) throw codeError;
+      if (codeError) {
+        console.error("Error generating code:", codeError);
+        throw codeError;
+      }
 
+      console.log("Inserting affiliate profile...", { user_id: user.id, code: codeData });
       const { error } = await supabase
         .from("affiliate_profiles")
         .insert({
@@ -51,7 +93,7 @@ export default function AffiliatesRegister() {
           affiliate_code: codeData,
           full_name: formData.full_name,
           email: formData.email || user.email,
-          phone: formData.phone,
+          phone: formData.phone || null,
           country: formData.country,
           payout_method: formData.payout_method as any,
           paypal_email: formData.payout_method === "paypal" ? formData.paypal_email : null,
@@ -61,8 +103,12 @@ export default function AffiliatesRegister() {
           status: "pending",
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error inserting profile:", error);
+        throw error;
+      }
 
+      console.log("Affiliate profile created successfully!");
       toast({
         title: "¡Solicitud enviada!",
         description: "Tu solicitud será revisada en 1-2 días hábiles",
@@ -72,8 +118,8 @@ export default function AffiliatesRegister() {
     } catch (error: any) {
       console.error("Error registering affiliate:", error);
       toast({
-        title: "Error",
-        description: error.message || "No se pudo completar el registro",
+        title: "Error al registrar",
+        description: error.message || "No se pudo completar el registro. Por favor intenta nuevamente.",
         variant: "destructive",
       });
     } finally {
@@ -84,6 +130,14 @@ export default function AffiliatesRegister() {
   const updateFormData = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
+
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
@@ -101,6 +155,22 @@ export default function AffiliatesRegister() {
             </Button>
           </div>
         </div>
+
+        {!isAuthenticated && (
+          <Alert className="mb-6 border-yellow-500 bg-yellow-500/10">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Necesitas iniciar sesión para registrarte como afiliado.{" "}
+              <Button 
+                variant="link" 
+                className="p-0 h-auto font-semibold underline"
+                onClick={() => navigate("/auth")}
+              >
+                Inicia sesión aquí
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
 
       <Card>
         <CardHeader>
