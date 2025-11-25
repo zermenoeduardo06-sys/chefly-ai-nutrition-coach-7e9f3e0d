@@ -431,6 +431,51 @@ export type Database = {
         }
         Relationships: []
       }
+      body_measurements: {
+        Row: {
+          arms: number | null
+          chest: number | null
+          created_at: string
+          hips: number | null
+          id: string
+          measurement_date: string
+          neck: number | null
+          notes: string | null
+          thighs: number | null
+          user_id: string
+          waist: number | null
+          weight: number | null
+        }
+        Insert: {
+          arms?: number | null
+          chest?: number | null
+          created_at?: string
+          hips?: number | null
+          id?: string
+          measurement_date: string
+          neck?: number | null
+          notes?: string | null
+          thighs?: number | null
+          user_id: string
+          waist?: number | null
+          weight?: number | null
+        }
+        Update: {
+          arms?: number | null
+          chest?: number | null
+          created_at?: string
+          hips?: number | null
+          id?: string
+          measurement_date?: string
+          neck?: number | null
+          notes?: string | null
+          thighs?: number | null
+          user_id?: string
+          waist?: number | null
+          weight?: number | null
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           content: string
