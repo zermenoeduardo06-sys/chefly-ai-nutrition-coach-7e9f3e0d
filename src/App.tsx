@@ -26,6 +26,7 @@ import BlogArticle from "./pages/BlogArticle";
 import NotFound from "./pages/NotFound";
 import AffiliatesDashboard from "./pages/AffiliatesDashboard";
 import AffiliatesRegister from "./pages/AffiliatesRegister";
+import AffiliatesLanding from "./pages/AffiliatesLanding";
 
 const queryClient = new QueryClient();
 
@@ -70,6 +71,7 @@ const App = () => (
           <Route path="/blog/:articleId" element={<BlogArticle />} />
           <Route path="/affiliates" element={<DashboardLayout><AffiliatesDashboard /></DashboardLayout>} />
           <Route path="/affiliates/register" element={<DashboardLayout><AffiliatesRegister /></DashboardLayout>} />
+          <Route path="/programa-afiliados" element={<AffiliatesLanding />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
