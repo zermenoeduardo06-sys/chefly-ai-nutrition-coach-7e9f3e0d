@@ -167,17 +167,20 @@ export type Database = {
           commission_rate_intermediate: number | null
           country: string | null
           created_at: string
+          current_tier: Database["public"]["Enums"]["affiliate_tier"]
           email: string
           endorsely_affiliate_id: string | null
           endorsely_referral_link: string | null
           full_name: string
           id: string
           last_payout_at: string | null
+          lifetime_sales_mxn: number | null
           payout_method: Database["public"]["Enums"]["payout_method"] | null
           paypal_email: string | null
           pending_balance_mxn: number | null
           phone: string | null
           status: Database["public"]["Enums"]["affiliate_status"] | null
+          tier_upgraded_at: string | null
           total_clicks: number | null
           total_conversions: number | null
           total_earned_mxn: number | null
@@ -195,17 +198,20 @@ export type Database = {
           commission_rate_intermediate?: number | null
           country?: string | null
           created_at?: string
+          current_tier?: Database["public"]["Enums"]["affiliate_tier"]
           email: string
           endorsely_affiliate_id?: string | null
           endorsely_referral_link?: string | null
           full_name: string
           id?: string
           last_payout_at?: string | null
+          lifetime_sales_mxn?: number | null
           payout_method?: Database["public"]["Enums"]["payout_method"] | null
           paypal_email?: string | null
           pending_balance_mxn?: number | null
           phone?: string | null
           status?: Database["public"]["Enums"]["affiliate_status"] | null
+          tier_upgraded_at?: string | null
           total_clicks?: number | null
           total_conversions?: number | null
           total_earned_mxn?: number | null
@@ -223,17 +229,20 @@ export type Database = {
           commission_rate_intermediate?: number | null
           country?: string | null
           created_at?: string
+          current_tier?: Database["public"]["Enums"]["affiliate_tier"]
           email?: string
           endorsely_affiliate_id?: string | null
           endorsely_referral_link?: string | null
           full_name?: string
           id?: string
           last_payout_at?: string | null
+          lifetime_sales_mxn?: number | null
           payout_method?: Database["public"]["Enums"]["payout_method"] | null
           paypal_email?: string | null
           pending_balance_mxn?: number | null
           phone?: string | null
           status?: Database["public"]["Enums"]["affiliate_status"] | null
+          tier_upgraded_at?: string | null
           total_clicks?: number | null
           total_conversions?: number | null
           total_earned_mxn?: number | null
@@ -376,6 +385,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      affiliate_tiers: {
+        Row: {
+          benefits: Json | null
+          color: string
+          commission_bonus_percentage: number | null
+          created_at: string
+          display_order: number
+          icon: string
+          id: string
+          min_conversions: number
+          min_sales_mxn: number
+          name_en: string
+          name_es: string
+          tier: Database["public"]["Enums"]["affiliate_tier"]
+        }
+        Insert: {
+          benefits?: Json | null
+          color: string
+          commission_bonus_percentage?: number | null
+          created_at?: string
+          display_order: number
+          icon: string
+          id?: string
+          min_conversions: number
+          min_sales_mxn: number
+          name_en: string
+          name_es: string
+          tier: Database["public"]["Enums"]["affiliate_tier"]
+        }
+        Update: {
+          benefits?: Json | null
+          color?: string
+          commission_bonus_percentage?: number | null
+          created_at?: string
+          display_order?: number
+          icon?: string
+          id?: string
+          min_conversions?: number
+          min_sales_mxn?: number
+          name_en?: string
+          name_es?: string
+          tier?: Database["public"]["Enums"]["affiliate_tier"]
+        }
+        Relationships: []
       }
       chat_messages: {
         Row: {
@@ -918,9 +972,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      update_affiliate_tier: {
+        Args: { affiliate_profile_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       affiliate_status: "pending" | "active" | "suspended" | "inactive"
+      affiliate_tier: "bronce" | "plata" | "oro" | "platino" | "diamante"
       app_role: "admin" | "moderator" | "user"
       commission_status: "pending" | "approved" | "paid" | "rejected"
       payout_method: "paypal" | "bank_transfer" | "spei"
@@ -1053,6 +1112,7 @@ export const Constants = {
   public: {
     Enums: {
       affiliate_status: ["pending", "active", "suspended", "inactive"],
+      affiliate_tier: ["bronce", "plata", "oro", "platino", "diamante"],
       app_role: ["admin", "moderator", "user"],
       commission_status: ["pending", "approved", "paid", "rejected"],
       payout_method: ["paypal", "bank_transfer", "spei"],

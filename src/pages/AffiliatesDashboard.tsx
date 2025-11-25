@@ -11,6 +11,8 @@ import { AffiliateSalesTable } from "@/components/affiliate/AffiliateSalesTable"
 import { AffiliatePayoutRequest } from "@/components/affiliate/AffiliatePayoutRequest";
 import { AffiliatePayoutHistory } from "@/components/affiliate/AffiliatePayoutHistory";
 import { AffiliatePerformanceChart } from "@/components/affiliate/AffiliatePerformanceChart";
+import { AffiliateTierProgress } from "@/components/affiliate/AffiliateTierProgress";
+import { AffiliateTierBadge } from "@/components/affiliate/AffiliateTierBadge";
 
 export default function AffiliatesDashboard() {
   const navigate = useNavigate();
@@ -135,11 +137,16 @@ export default function AffiliatesDashboard() {
   return (
     <div className="container mx-auto py-8 px-4 space-y-8">
       <div>
-        <h1 className="text-3xl font-bold">Dashboard de Afiliado</h1>
-        <p className="text-muted-foreground mt-2">
+        <div className="flex items-center gap-3 mb-2">
+          <h1 className="text-3xl font-bold">Dashboard de Afiliado</h1>
+          <AffiliateTierBadge tier={affiliateProfile.current_tier} size="lg" />
+        </div>
+        <p className="text-muted-foreground">
           Código de Afiliado: <span className="font-mono font-semibold">{affiliateProfile.affiliate_code}</span>
         </p>
       </div>
+
+      <AffiliateTierProgress profile={affiliateProfile} />
 
       <AffiliateStats profile={affiliateProfile} />
 

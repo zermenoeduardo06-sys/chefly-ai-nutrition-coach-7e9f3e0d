@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { DollarSign, TrendingUp, Users, Zap, CheckCircle2, Link2 } from "lucide-react";
+import { DollarSign, TrendingUp, Users, Zap, CheckCircle2, Link2, Award, Medal, Crown, Star, Gem } from "lucide-react";
 
 export default function AffiliatesLanding() {
   const navigate = useNavigate();
@@ -64,6 +64,49 @@ export default function AffiliatesLanding() {
       step: "4",
       title: "Retira tus Ganancias",
       description: "Solicita tu pago cuando alcances $500 MXN vía PayPal o transferencia bancaria"
+    }
+  ];
+
+  const tiers = [
+    {
+      name: "Bronce",
+      icon: Award,
+      color: "#CD7F32",
+      requirements: "Inicio",
+      bonus: "+0%",
+      benefits: ["Comisión base 20-25%", "Dashboard básico", "Materiales de marketing"]
+    },
+    {
+      name: "Plata",
+      icon: Medal,
+      color: "#C0C0C0",
+      requirements: "$10,000 MXN en ventas",
+      bonus: "+5%",
+      benefits: ["Comisión +5% adicional", "Soporte prioritario", "Materiales premium"]
+    },
+    {
+      name: "Oro",
+      icon: Crown,
+      color: "#FFD700",
+      requirements: "$50,000 MXN en ventas",
+      bonus: "+10%",
+      benefits: ["Comisión +10% adicional", "Gestor dedicado", "Acceso anticipado"]
+    },
+    {
+      name: "Platino",
+      icon: Star,
+      color: "#E5E4E2",
+      requirements: "$150,000 MXN en ventas",
+      bonus: "+15%",
+      benefits: ["Comisión +15% adicional", "Bonos trimestrales", "Co-marketing"]
+    },
+    {
+      name: "Diamante",
+      icon: Gem,
+      color: "#B9F2FF",
+      requirements: "$500,000 MXN en ventas",
+      bonus: "+25%",
+      benefits: ["Comisión +25% adicional", "Revenue share", "Eventos VIP"]
     }
   ];
 
@@ -149,8 +192,52 @@ export default function AffiliatesLanding() {
         </div>
       </section>
 
-      {/* How It Works Section */}
+      {/* Tiers Section */}
       <section className="py-16 px-4 bg-muted/50">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-foreground">
+            Sistema de Niveles
+          </h2>
+          <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
+            Sube de nivel y aumenta tus comisiones mientras generas más ventas
+          </p>
+          
+          <div className="grid md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {tiers.map((tier, index) => (
+              <Card key={index} className="border-2 hover:border-primary transition-colors">
+                <CardHeader className="text-center">
+                  <tier.icon className="h-12 w-12 mx-auto mb-3" style={{ color: tier.color }} />
+                  <CardTitle className="text-xl">{tier.name}</CardTitle>
+                  <CardDescription className="text-sm">{tier.requirements}</CardDescription>
+                </CardHeader>
+                <CardContent className="text-center">
+                  <div className="mb-4 p-3 bg-primary/10 rounded-lg">
+                    <div className="text-2xl font-bold text-primary">{tier.bonus}</div>
+                    <div className="text-xs text-muted-foreground">bonificación</div>
+                  </div>
+                  <ul className="text-xs text-left space-y-1.5">
+                    {tier.benefits.map((benefit, i) => (
+                      <li key={i} className="flex items-start gap-1.5">
+                        <CheckCircle2 className="h-3 w-3 text-primary flex-shrink-0 mt-0.5" />
+                        <span className="text-muted-foreground">{benefit}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          
+          <div className="mt-8 text-center">
+            <p className="text-muted-foreground">
+              🚀 <strong>¡Progresa automáticamente!</strong> Tu nivel se actualiza automáticamente cuando alcanzas los requisitos
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section className="py-16 px-4">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-foreground">
             ¿Cómo Funciona?
@@ -174,7 +261,7 @@ export default function AffiliatesLanding() {
       </section>
 
       {/* Features List */}
-      <section className="py-16 px-4">
+      <section className="py-16 px-4 bg-muted/50">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-foreground">
             Todo lo que Incluye
