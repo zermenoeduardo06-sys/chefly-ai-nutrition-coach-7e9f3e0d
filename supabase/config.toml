@@ -1,5 +1,8 @@
 project_id = "ppprnzkuivsnhrntkbyj"
 
+[functions.stripe-webhook]
+verify_jwt = false
+
 [functions.generate-meal-plan]
 verify_jwt = true
 
