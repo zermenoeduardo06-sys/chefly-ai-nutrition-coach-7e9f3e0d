@@ -14,7 +14,6 @@ import { AffiliatePayoutHistory } from "@/components/affiliate/AffiliatePayoutHi
 import { AffiliatePerformanceChart } from "@/components/affiliate/AffiliatePerformanceChart";
 import { AffiliateTierProgress } from "@/components/affiliate/AffiliateTierProgress";
 import { AffiliateTierBadge } from "@/components/affiliate/AffiliateTierBadge";
-import { AffiliateMarketingMaterials } from "@/components/affiliate/AffiliateMarketingMaterials";
 import { AffiliateQuickGuide } from "@/components/affiliate/AffiliateQuickGuide";
 import { AffiliateResourcesHub } from "@/components/affiliate/AffiliateResourcesHub";
 
@@ -247,11 +246,10 @@ export default function AffiliatesDashboard() {
       </div>
 
         <Tabs defaultValue="performance" className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="performance">Rendimiento</TabsTrigger>
             <TabsTrigger value="sales">Ventas</TabsTrigger>
             <TabsTrigger value="payouts">Pagos</TabsTrigger>
-            <TabsTrigger value="marketing">Marketing</TabsTrigger>
             <TabsTrigger value="guide">Guía</TabsTrigger>
             <TabsTrigger value="resources">Recursos</TabsTrigger>
           </TabsList>
@@ -266,10 +264,6 @@ export default function AffiliatesDashboard() {
 
           <TabsContent value="payouts">
             <AffiliatePayoutHistory affiliateId={affiliateProfile.id} />
-          </TabsContent>
-
-          <TabsContent value="marketing">
-            <AffiliateMarketingMaterials affiliateCode={affiliateProfile.affiliate_code} />
           </TabsContent>
 
           <TabsContent value="guide">
