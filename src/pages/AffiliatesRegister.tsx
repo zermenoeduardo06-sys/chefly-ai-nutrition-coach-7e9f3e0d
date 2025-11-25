@@ -11,6 +11,40 @@ import { Loader2, ArrowLeft, Home, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
+const AffiliateHeader = () => {
+  const navigate = useNavigate();
+  
+  return (
+    <header className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg sticky top-0 z-50">
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <h1 className="text-2xl font-bold">Chefly Afiliados</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              className="text-primary-foreground hover:bg-primary-foreground/20"
+              onClick={() => navigate("/")}
+            >
+              <Home className="h-4 w-4 mr-2" />
+              Inicio
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="text-primary-foreground hover:bg-primary-foreground/20"
+              onClick={() => navigate("/programa-afiliados")}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Información
+            </Button>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+};
+
 export default function AffiliatesRegister() {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -133,29 +167,19 @@ export default function AffiliatesRegister() {
 
   if (checkingAuth) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+        <AffiliateHeader />
+        <div className="flex items-center justify-center min-h-[80vh]">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      <AffiliateHeader />
       <div className="container mx-auto py-8 px-4 max-w-2xl">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold">Registro de Afiliado</h1>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => navigate("/")}>
-              <Home className="h-4 w-4 mr-2" />
-              Inicio
-            </Button>
-            <Button variant="outline" onClick={() => navigate("/programa-afiliados")}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver
-            </Button>
-          </div>
-        </div>
-
         {!isAuthenticated && (
           <Alert className="mb-6 border-yellow-500 bg-yellow-500/10">
             <AlertCircle className="h-4 w-4" />
