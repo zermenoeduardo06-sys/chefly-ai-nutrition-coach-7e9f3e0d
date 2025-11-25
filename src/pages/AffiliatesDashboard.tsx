@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, ArrowLeft, Home } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AffiliateStats } from "@/components/affiliate/AffiliateStats";
 import { AffiliateLinkGenerator } from "@/components/affiliate/AffiliateLinkGenerator";
@@ -13,6 +14,9 @@ import { AffiliatePayoutHistory } from "@/components/affiliate/AffiliatePayoutHi
 import { AffiliatePerformanceChart } from "@/components/affiliate/AffiliatePerformanceChart";
 import { AffiliateTierProgress } from "@/components/affiliate/AffiliateTierProgress";
 import { AffiliateTierBadge } from "@/components/affiliate/AffiliateTierBadge";
+import { AffiliateMarketingMaterials } from "@/components/affiliate/AffiliateMarketingMaterials";
+import { AffiliateQuickGuide } from "@/components/affiliate/AffiliateQuickGuide";
+import { AffiliateResourcesHub } from "@/components/affiliate/AffiliateResourcesHub";
 
 export default function AffiliatesDashboard() {
   const navigate = useNavigate();
@@ -135,16 +139,29 @@ export default function AffiliatesDashboard() {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4 space-y-8">
-      <div>
-        <div className="flex items-center gap-3 mb-2">
-          <h1 className="text-3xl font-bold">Dashboard de Afiliado</h1>
-          <AffiliateTierBadge tier={affiliateProfile.current_tier} size="lg" />
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      <div className="container mx-auto py-8 px-4 space-y-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="text-3xl font-bold">Dashboard de Afiliado</h1>
+              <AffiliateTierBadge tier={affiliateProfile.current_tier} size="lg" />
+            </div>
+            <p className="text-muted-foreground">
+              Código de Afiliado: <span className="font-mono font-semibold">{affiliateProfile.affiliate_code}</span>
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => navigate("/")}>
+              <Home className="h-4 w-4 mr-2" />
+              Inicio
+            </Button>
+            <Button variant="outline" onClick={() => navigate("/programa-afiliados")}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Volver
+            </Button>
+          </div>
         </div>
-        <p className="text-muted-foreground">
-          Código de Afiliado: <span className="font-mono font-semibold">{affiliateProfile.affiliate_code}</span>
-        </p>
-      </div>
 
       <AffiliateTierProgress profile={affiliateProfile} />
 
@@ -155,25 +172,41 @@ export default function AffiliatesDashboard() {
         <AffiliatePayoutRequest profile={affiliateProfile} onSuccess={loadAffiliateProfile} />
       </div>
 
-      <Tabs defaultValue="performance" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="performance">Rendimiento</TabsTrigger>
-          <TabsTrigger value="sales">Ventas</TabsTrigger>
-          <TabsTrigger value="payouts">Pagos</TabsTrigger>
-        </TabsList>
+        <Tabs defaultValue="performance" className="w-full">
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="performance">Rendimiento</TabsTrigger>
+            <TabsTrigger value="sales">Ventas</TabsTrigger>
+            <TabsTrigger value="payouts">Pagos</TabsTrigger>
+            <TabsTrigger value="marketing">Marketing</TabsTrigger>
+            <TabsTrigger value="guide">Guía</TabsTrigger>
+            <TabsTrigger value="resources">Recursos</TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="performance" className="space-y-4">
-          <AffiliatePerformanceChart affiliateId={affiliateProfile.id} />
-        </TabsContent>
+          <TabsContent value="performance" className="space-y-4">
+            <AffiliatePerformanceChart affiliateId={affiliateProfile.id} />
+          </TabsContent>
 
-        <TabsContent value="sales">
-          <AffiliateSalesTable affiliateId={affiliateProfile.id} />
-        </TabsContent>
+          <TabsContent value="sales">
+            <AffiliateSalesTable affiliateId={affiliateProfile.id} />
+          </TabsContent>
 
-        <TabsContent value="payouts">
-          <AffiliatePayoutHistory affiliateId={affiliateProfile.id} />
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="payouts">
+            <AffiliatePayoutHistory affiliateId={affiliateProfile.id} />
+          </TabsContent>
+
+          <TabsContent value="marketing">
+            <AffiliateMarketingMaterials affiliateCode={affiliateProfile.affiliate_code} />
+          </TabsContent>
+
+          <TabsContent value="guide">
+            <AffiliateQuickGuide />
+          </TabsContent>
+
+          <TabsContent value="resources">
+            <AffiliateResourcesHub />
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 }
