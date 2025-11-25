@@ -139,9 +139,9 @@ const Pricing = () => {
                 <CardTitle className="text-2xl">{plan.name}</CardTitle>
                 <CardDescription>
                   <span className="text-4xl font-bold text-foreground">
-                    ${plan.price_mxn}
+                    ${Math.round(plan.price_mxn / 20)}
                   </span>
-                  <span className="text-muted-foreground"> MXN/mes</span>
+                  <span className="text-muted-foreground"> USD/mes</span>
                 </CardDescription>
               </CardHeader>
 

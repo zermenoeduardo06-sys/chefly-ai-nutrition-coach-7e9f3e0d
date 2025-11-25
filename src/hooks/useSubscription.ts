@@ -14,13 +14,13 @@ export const SUBSCRIPTION_TIERS = {
     product_id: "prod_TO2fjEwGT0uZws",
     price_id: "price_1SRGa3RXGCRSzpK7yJ0D6pIq",
     name: "Básico",
-    price: 99,
+    price: 240,
   },
   INTERMEDIATE: {
     product_id: "prod_TO2fq5FTwt27xw",
     price_id: "price_1SRGaLRXGCRSzpK79WCV1y1M",
     name: "Intermedio",
-    price: 199,
+    price: 290,
   },
 };
 
