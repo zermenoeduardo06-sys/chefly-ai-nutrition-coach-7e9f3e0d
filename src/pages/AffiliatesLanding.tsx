@@ -177,7 +177,7 @@ export default function AffiliatesLanding() {
       color: "#CD7F32",
       requirements: "Inicio",
       bonus: "+0%",
-      benefits: ["Comisión base 20-25%", "Dashboard básico", "Materiales de marketing"]
+      benefits: ["Comisión base 20-25%", "Dashboard básico"]
     },
     {
       name: "Plata",
@@ -185,7 +185,7 @@ export default function AffiliatesLanding() {
       color: "#C0C0C0",
       requirements: "$10,000 MXN en ventas",
       bonus: "+5%",
-      benefits: ["Comisión +5% adicional", "Soporte prioritario", "Materiales premium"]
+      benefits: ["Comisión +5% adicional", "Soporte prioritario"]
     },
     {
       name: "Oro",
@@ -486,7 +486,6 @@ export default function AffiliatesLanding() {
               "Reportes detallados de ventas",
               "Historial completo de pagos",
               "Soporte prioritario para afiliados",
-              "Material promocional descargable",
               "Pagos seguros vía PayPal o transferencia"
             ].map((feature, index) => (
               <div key={index} className="flex items-start gap-3">
