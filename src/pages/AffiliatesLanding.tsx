@@ -1,10 +1,113 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
-import { DollarSign, TrendingUp, Users, Zap, CheckCircle2, Link2, Award, Medal, Crown, Star, Gem, Home, LogIn } from "lucide-react";
+import { DollarSign, TrendingUp, Users, Zap, CheckCircle2, Link2, Award, Medal, Crown, Star, Gem, Home, LogIn, Shield, Clock, BarChart3, Lock, MessageCircle } from "lucide-react";
 
 export default function AffiliatesLanding() {
   const navigate = useNavigate();
+
+  const stats = [
+    {
+      value: "500+",
+      label: "Afiliados Activos"
+    },
+    {
+      value: "$2M+",
+      label: "Pagado a Afiliados"
+    },
+    {
+      value: "10,000+",
+      label: "Ventas Generadas"
+    },
+    {
+      value: "98%",
+      label: "Tasa de Satisfacción"
+    }
+  ];
+
+  const testimonials = [
+    {
+      name: "María González",
+      role: "Influencer de Nutrición",
+      earnings: "$12,500 MXN/mes",
+      quote: "Chefly me ha permitido monetizar mi audiencia de forma natural. Mis seguidores valoran las recomendaciones y yo genero ingresos constantes.",
+      avatar: "MG"
+    },
+    {
+      name: "Carlos Ramírez",
+      role: "Blogger de Fitness",
+      earnings: "$8,300 MXN/mes",
+      quote: "El dashboard es súper completo y los pagos siempre llegan a tiempo. Llevo 6 meses como afiliado y cada mes gano más.",
+      avatar: "CR"
+    },
+    {
+      name: "Ana Martínez",
+      role: "Coach de Salud",
+      earnings: "$15,200 MXN/mes",
+      quote: "Lo mejor es que el producto se vende solo. Mis clientes aman Chefly y yo recibo comisiones recurrentes cada mes.",
+      avatar: "AM"
+    }
+  ];
+
+  const faqs = [
+    {
+      question: "¿Cuánto puedo ganar como afiliado?",
+      answer: "Tus ganancias dependen del número de ventas que generes. Con comisiones de 20-25% y un sistema de bonos por niveles, los afiliados activos ganan entre $5,000 y $20,000 MXN mensuales. Los afiliados top superan los $50,000 MXN al mes."
+    },
+    {
+      question: "¿Cuándo y cómo recibo mis pagos?",
+      answer: "Puedes solicitar un pago cuando alcances $200 MXN de saldo. Procesamos pagos en 3-5 días hábiles vía PayPal o transferencia bancaria (SPEI). Todos los pagos están protegidos y verificados."
+    },
+    {
+      question: "¿Hay algún costo para unirme?",
+      answer: "No. El programa de afiliados de Chefly es 100% gratuito. No hay cuotas de inscripción, ni costos ocultos, ni mínimos de venta requeridos."
+    },
+    {
+      question: "¿Qué pasa si mis referidos cancelan su suscripción?",
+      answer: "Las comisiones se calculan sobre pagos completados. Si un cliente cancela antes del primer pago, no se genera comisión. Sin embargo, si ya pagó al menos un mes, tu comisión queda confirmada."
+    },
+    {
+      question: "¿Puedo promocionar Chefly en redes sociales?",
+      answer: "¡Por supuesto! Proporcionamos materiales de marketing diseñados específicamente para redes sociales, blogs y email. Puedes compartir tu enlace de afiliado en cualquier plataforma."
+    },
+    {
+      question: "¿Cómo sé si mis enlaces están funcionando?",
+      answer: "Tu dashboard muestra estadísticas en tiempo real: clicks, conversiones, ventas pendientes, comisiones ganadas y más. Puedes monitorear todo 24/7."
+    },
+    {
+      question: "¿Hay soporte para afiliados?",
+      answer: "Sí. Todos los afiliados tienen acceso a soporte prioritario por email y chat. Los afiliados de nivel Oro y superiores cuentan con un gestor dedicado."
+    },
+    {
+      question: "¿Puedo ser afiliado si vivo fuera de México?",
+      answer: "Actualmente el programa está diseñado para México, pero aceptamos afiliados internacionales que puedan recibir pagos vía PayPal en MXN."
+    }
+  ];
+
+  const guarantees = [
+    {
+      icon: Shield,
+      title: "Pagos Garantizados",
+      description: "Pagos puntuales cada vez que lo solicites. Sin trucos ni letras pequeñas."
+    },
+    {
+      icon: Lock,
+      title: "Datos Seguros",
+      description: "Información bancaria y de pago protegida con encriptación de nivel bancario."
+    },
+    {
+      icon: Clock,
+      title: "Procesamiento Rápido",
+      description: "Pagos procesados en 3-5 días hábiles máximo."
+    },
+    {
+      icon: BarChart3,
+      title: "Transparencia Total",
+      description: "Dashboard con métricas en tiempo real. Siempre sabes cuánto has ganado."
+    }
+  ];
 
   const benefits = [
     {
@@ -142,19 +245,58 @@ export default function AffiliatesLanding() {
       {/* Hero Section */}
       <section className="relative py-20 px-4 bg-gradient-to-b from-primary/10 to-background">
         <div className="max-w-6xl mx-auto text-center">
+          <Badge variant="secondary" className="mb-4 text-sm py-2 px-4">
+            <CheckCircle2 className="h-4 w-4 mr-2 inline" />
+            Programa Verificado y Confiable
+          </Badge>
           <h1 className="text-4xl md:text-6xl font-bold mb-6 text-foreground">
             Programa de Afiliados Chefly
           </h1>
           <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto">
             Gana dinero compartiendo la mejor plataforma de planes nutricionales personalizados con IA
           </p>
-          <Button 
-            size="lg" 
-            className="text-lg px-8 py-6"
-            onClick={() => navigate("/affiliates/login")}
-          >
-            Únete Ahora - Es Gratis
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+            <Button 
+              size="lg" 
+              className="text-lg px-8 py-6"
+              onClick={() => navigate("/affiliates/login")}
+            >
+              Únete Ahora - Es Gratis
+            </Button>
+            <Button 
+              size="lg" 
+              variant="outline"
+              className="text-lg px-8 py-6"
+              onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              Ver Cómo Funciona
+            </Button>
+          </div>
+          
+          {/* Trust Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12">
+            {stats.map((stat, index) => (
+              <div key={index} className="text-center">
+                <div className="text-3xl md:text-4xl font-bold text-primary mb-2">{stat.value}</div>
+                <div className="text-sm text-muted-foreground">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Guarantees Section */}
+      <section className="py-16 px-4 border-y border-border bg-card">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-4 gap-6">
+            {guarantees.map((guarantee, index) => (
+              <div key={index} className="text-center">
+                <guarantee.icon className="h-10 w-10 mx-auto mb-3 text-primary" />
+                <h3 className="font-semibold mb-2 text-foreground">{guarantee.title}</h3>
+                <p className="text-sm text-muted-foreground">{guarantee.description}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -264,7 +406,7 @@ export default function AffiliatesLanding() {
       </section>
 
       {/* How It Works Section */}
-      <section className="py-16 px-4">
+      <section id="how-it-works" className="py-16 px-4">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-foreground">
             ¿Cómo Funciona?
@@ -287,8 +429,50 @@ export default function AffiliatesLanding() {
         </div>
       </section>
 
-      {/* Features List */}
+      {/* Testimonials Section */}
       <section className="py-16 px-4 bg-muted/50">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-foreground">
+            Historias de Éxito
+          </h2>
+          <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
+            Afiliados reales compartiendo sus resultados
+          </p>
+          
+          <div className="grid md:grid-cols-3 gap-6">
+            {testimonials.map((testimonial, index) => (
+              <Card key={index} className="border-2">
+                <CardHeader>
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold">
+                      {testimonial.avatar}
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">{testimonial.name}</CardTitle>
+                      <CardDescription>{testimonial.role}</CardDescription>
+                    </div>
+                  </div>
+                  <Badge variant="secondary" className="w-fit">
+                    <DollarSign className="h-3 w-3 mr-1" />
+                    {testimonial.earnings}
+                  </Badge>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground italic">"{testimonial.quote}"</p>
+                  <div className="flex gap-1 mt-4">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star key={star} className="h-4 w-4 fill-primary text-primary" />
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Features List */}
+      <section className="py-16 px-4">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-foreground">
             Todo lo que Incluye
@@ -314,6 +498,31 @@ export default function AffiliatesLanding() {
         </div>
       </section>
 
+      {/* FAQ Section */}
+      <section className="py-16 px-4 bg-muted/50">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-foreground">
+            Preguntas Frecuentes
+          </h2>
+          <p className="text-center text-muted-foreground mb-12">
+            Resuelve todas tus dudas antes de unirte
+          </p>
+          
+          <Accordion type="single" collapsible className="w-full">
+            {faqs.map((faq, index) => (
+              <AccordionItem key={index} value={`item-${index}`}>
+                <AccordionTrigger className="text-left">
+                  {faq.question}
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  {faq.answer}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-20 px-4 bg-primary text-primary-foreground">
         <div className="max-w-4xl mx-auto text-center">
@@ -321,19 +530,46 @@ export default function AffiliatesLanding() {
             ¿Listo para Empezar a Ganar?
           </h2>
           <p className="text-xl mb-8 opacity-90">
-            Únete a nuestro programa de afiliados hoy y comienza a generar ingresos pasivos
+            Únete a más de 500 afiliados que ya generan ingresos con Chefly
           </p>
-          <Button 
-            size="lg" 
-            variant="secondary"
-            className="text-lg px-8 py-6"
-            onClick={() => navigate("/affiliates/login")}
-          >
-            <Link2 className="mr-2 h-5 w-5" />
-            Registrarme como Afiliado
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+            <Button 
+              size="lg" 
+              variant="secondary"
+              className="text-lg px-8 py-6"
+              onClick={() => navigate("/affiliates/login")}
+            >
+              <Link2 className="mr-2 h-5 w-5" />
+              Registrarme como Afiliado
+            </Button>
+          </div>
+          <div className="flex items-center justify-center gap-6 text-sm opacity-90">
+            <div className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              <span>100% Gratis</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              <span>Sin Compromiso</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4" />
+              <span>Pagos Garantizados</span>
+            </div>
+          </div>
         </div>
       </section>
+
+      {/* Footer */}
+      <footer className="py-8 px-4 border-t border-border">
+        <div className="max-w-6xl mx-auto text-center text-sm text-muted-foreground">
+          <p>© 2024 Chefly. Todos los derechos reservados.</p>
+          <div className="flex items-center justify-center gap-2 mt-4">
+            <MessageCircle className="h-4 w-4" />
+            <span>¿Necesitas ayuda? Escríbenos a afiliados@chefly.com</span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
