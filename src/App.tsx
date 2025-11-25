@@ -27,6 +27,7 @@ import NotFound from "./pages/NotFound";
 import AffiliatesDashboard from "./pages/AffiliatesDashboard";
 import AffiliatesRegister from "./pages/AffiliatesRegister";
 import AffiliatesLanding from "./pages/AffiliatesLanding";
+import AffiliatesLogin from "./pages/AffiliatesLogin";
 import AdminAffiliatesDashboard from "./pages/AdminAffiliatesDashboard";
 
 const queryClient = new QueryClient();
@@ -71,6 +72,7 @@ const App = () => (
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:articleId" element={<BlogArticle />} />
           <Route path="/affiliates" element={<AffiliatesDashboard />} />
+          <Route path="/affiliates/login" element={<AffiliatesLogin />} />
           <Route path="/affiliates/register" element={<AffiliatesRegister />} />
           <Route path="/programa-afiliados" element={<AffiliatesLanding />} />
           <Route path="/admin/affiliates" element={<DashboardLayout><AdminAffiliatesDashboard /></DashboardLayout>} />

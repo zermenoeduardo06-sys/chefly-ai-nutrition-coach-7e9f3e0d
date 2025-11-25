@@ -20,6 +20,20 @@ import { AffiliateResourcesHub } from "@/components/affiliate/AffiliateResources
 
 const AffiliateHeader = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: "Sesión cerrada",
+        description: "Has cerrado sesión correctamente",
+      });
+      navigate("/programa-afiliados");
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
   
   return (
     <header className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg sticky top-0 z-50">
@@ -45,6 +59,13 @@ const AffiliateHeader = () => {
               <ArrowLeft className="h-4 w-4 mr-2" />
               Información
             </Button>
+            <Button 
+              variant="ghost" 
+              className="text-primary-foreground hover:bg-primary-foreground/20"
+              onClick={handleLogout}
+            >
+              Cerrar Sesión
+            </Button>
           </div>
         </div>
       </div>
@@ -67,7 +88,7 @@ export default function AffiliatesDashboard() {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        navigate("/auth");
+        navigate("/affiliates/login");
         return;
       }
 
