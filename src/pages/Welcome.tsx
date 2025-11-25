@@ -21,9 +21,43 @@ const Welcome = () => {
         return;
       }
       setUserId(user.id);
+      
+      // Procesar conversión de afiliado si existe
+      const affiliateCode = localStorage.getItem("affiliate_code");
+      if (affiliateCode && subscribed) {
+        try {
+          // Obtener información de la suscripción
+          const { data: subData } = await supabase.functions.invoke("check-subscription");
+          
+          if (subData?.product_id) {
+            // Registrar la venta del afiliado
+            const { error } = await supabase.functions.invoke("process-affiliate-sale", {
+              body: {
+                affiliateCode,
+                customerId: user.id,
+                customerEmail: user.email || "",
+                productId: subData.product_id,
+                stripeSubscriptionId: "",
+                stripeCustomerId: "",
+              },
+            });
+
+            if (!error) {
+              console.log("Affiliate sale registered successfully");
+              // Limpiar código después de procesar
+              localStorage.removeItem("affiliate_code");
+              localStorage.removeItem("affiliate_referral_stored");
+            } else {
+              console.error("Error registering affiliate sale:", error);
+            }
+          }
+        } catch (err) {
+          console.error("Exception processing affiliate conversion:", err);
+        }
+      }
     };
     checkUser();
-  }, [navigate]);
+  }, [navigate, subscribed]);
 
   useEffect(() => {
     if (subscribed && planName) {

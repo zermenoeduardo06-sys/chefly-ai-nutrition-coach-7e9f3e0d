@@ -82,12 +82,14 @@ const Pricing = () => {
         return;
       }
 
-      // Capturar el ID de referido de Endorsely desde window
+      // Capturar código de afiliado y referido de Endorsely
+      const affiliateCode = localStorage.getItem("affiliate_code");
       const endorselyReferral = (window as any).endorsely_referral;
 
       const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: { 
           priceId: plan.stripe_price_id,
+          affiliateCode: affiliateCode || null,
           endorselyReferral: endorselyReferral || null,
         },
       });

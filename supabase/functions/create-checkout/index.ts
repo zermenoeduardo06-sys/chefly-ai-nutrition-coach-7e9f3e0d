@@ -33,10 +33,10 @@ serve(async (req) => {
     
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const { priceId, endorselyReferral } = await req.json();
+    const { priceId, endorselyReferral, affiliateCode } = await req.json();
     if (!priceId) throw new Error("Price ID is required");
     
-    logStep("Price ID received", { priceId, endorselyReferral });
+    logStep("Price ID received", { priceId, endorselyReferral, affiliateCode });
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { 
       apiVersion: "2025-08-27.basil" 
@@ -51,11 +51,15 @@ serve(async (req) => {
       logStep("Creating new customer");
     }
 
-    // Preparar metadata incluyendo el referido de Endorsely si existe
+    // Preparar metadata incluyendo el referido de Endorsely y código de afiliado
     const metadata: Record<string, string> = {};
     if (endorselyReferral) {
       metadata.endorsely_referral = endorselyReferral;
       logStep("Endorsely referral added to metadata", { endorselyReferral });
+    }
+    if (affiliateCode) {
+      metadata.affiliate_code = affiliateCode;
+      logStep("Affiliate code added to metadata", { affiliateCode });
     }
 
     const session = await stripe.checkout.sessions.create({
