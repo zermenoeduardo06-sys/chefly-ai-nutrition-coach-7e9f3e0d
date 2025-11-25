@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Loader2, ArrowLeft, Home } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import cheflyLogo from "@/assets/chefly-logo.png";
 import { AffiliateStats } from "@/components/affiliate/AffiliateStats";
 import { AffiliateLinkGenerator } from "@/components/affiliate/AffiliateLinkGenerator";
 import { AffiliateSalesTable } from "@/components/affiliate/AffiliateSalesTable";
@@ -39,6 +40,7 @@ const AffiliateHeader = () => {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
+            <img src={cheflyLogo} alt="Chefly Logo" className="h-10 w-10" />
             <h1 className="text-2xl font-bold">Chefly Afiliados</h1>
           </div>
           <div className="flex items-center gap-2">
