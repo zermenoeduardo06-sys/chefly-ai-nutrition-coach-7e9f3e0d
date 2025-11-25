@@ -17,26 +17,26 @@ export function AffiliateMarketingMaterials({ affiliateCode }: AffiliateMarketin
   const materials = [
     {
       title: "Banner 728x90",
-      code: `<a href="${bannerUrl}"><img src="${window.location.origin}/banner-728x90.png" alt="NutriPlan Banner" /></a>`,
+      code: `<a href="${bannerUrl}"><img src="${window.location.origin}/banner-728x90.png" alt="Chefly Banner" /></a>`,
     },
     {
       title: "Banner 300x250",
-      code: `<a href="${bannerUrl}"><img src="${window.location.origin}/banner-300x250.png" alt="NutriPlan Banner" /></a>`,
+      code: `<a href="${bannerUrl}"><img src="${window.location.origin}/banner-300x250.png" alt="Chefly Banner" /></a>`,
     },
   ];
 
   const copyTexts = [
     {
       title: "Texto Promocional - Corto",
-      text: `🥗 Transforma tu alimentación con NutriPlan - Planes personalizados con IA. Usa mi código: ${affiliateCode} y ahorra en tu suscripción. ${bannerUrl}`,
+      text: `🥗 Transforma tu alimentación con Chefly - Planes personalizados con IA. Usa mi código: ${affiliateCode} y ahorra en tu suscripción. ${bannerUrl}`,
     },
     {
       title: "Texto Promocional - Largo",
-      text: `¿Cansado de las dietas genéricas? 💪\n\nDescubre NutriPlan, la plataforma de nutrición personalizada con IA que se adapta a TUS necesidades:\n\n✅ Planes 100% personalizados\n✅ Recetas deliciosas y fáciles\n✅ Seguimiento de progreso\n✅ Chat con nutricionista IA\n\nUsa mi código de afiliado: ${affiliateCode} para obtener un descuento especial.\n\n👉 ${bannerUrl}`,
+      text: `¿Cansado de las dietas genéricas? 💪\n\nDescubre Chefly, la plataforma de nutrición personalizada con IA que se adapta a TUS necesidades:\n\n✅ Planes 100% personalizados\n✅ Recetas deliciosas y fáciles\n✅ Seguimiento de progreso\n✅ Chat con nutricionista IA\n\nUsa mi código de afiliado: ${affiliateCode} para obtener un descuento especial.\n\n👉 ${bannerUrl}`,
     },
     {
       title: "Post para Redes Sociales",
-      text: `🌟 Nuevo descubrimiento: NutriPlan\n\nLlevo usando esta app de nutrición y los resultados son increíbles. Lo mejor es que TODO es personalizado para ti.\n\n🎁 Usa mi código: ${affiliateCode}\n\n🔗 ${bannerUrl}\n\n#NutriPlan #VidaSaludable #NutriciónPersonalizada`,
+      text: `🌟 Nuevo descubrimiento: Chefly\n\nLlevo usando esta app de nutrición y los resultados son increíbles. Lo mejor es que TODO es personalizado para ti.\n\n🎁 Usa mi código: ${affiliateCode}\n\n🔗 ${bannerUrl}\n\n#Chefly #VidaSaludable #NutriciónPersonalizada`,
     },
   ];
 

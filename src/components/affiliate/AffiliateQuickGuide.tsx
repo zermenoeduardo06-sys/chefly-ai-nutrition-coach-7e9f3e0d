@@ -21,7 +21,7 @@ export function AffiliateQuickGuide() {
     {
       icon: CheckCircle2,
       title: "Sé Auténtico",
-      description: "Comparte tu experiencia real con NutriPlan para generar confianza.",
+      description: "Comparte tu experiencia real con Chefly para generar confianza.",
     },
   ];
 
@@ -78,7 +78,7 @@ export function AffiliateQuickGuide() {
             </h4>
             <p className="text-sm text-muted-foreground">
               Los afiliados más exitosos crean contenido educativo valioso primero y 
-              luego introducen NutriPlan como una solución natural. No vendas, ayuda.
+              luego introducen Chefly como una solución natural. No vendas, ayuda.
             </p>
           </div>
         </CardContent>
