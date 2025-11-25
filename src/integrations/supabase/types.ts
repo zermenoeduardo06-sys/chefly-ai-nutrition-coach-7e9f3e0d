@@ -804,6 +804,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_stats: {
         Row: {
           created_at: string
@@ -890,9 +911,17 @@ export type Database = {
     }
     Functions: {
       generate_affiliate_code: { Args: never; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       affiliate_status: "pending" | "active" | "suspended" | "inactive"
+      app_role: "admin" | "moderator" | "user"
       commission_status: "pending" | "approved" | "paid" | "rejected"
       payout_method: "paypal" | "bank_transfer" | "spei"
       payout_status: "pending" | "processing" | "completed" | "failed"
@@ -1024,6 +1053,7 @@ export const Constants = {
   public: {
     Enums: {
       affiliate_status: ["pending", "active", "suspended", "inactive"],
+      app_role: ["admin", "moderator", "user"],
       commission_status: ["pending", "approved", "paid", "rejected"],
       payout_method: ["paypal", "bank_transfer", "spei"],
       payout_status: ["pending", "processing", "completed", "failed"],
