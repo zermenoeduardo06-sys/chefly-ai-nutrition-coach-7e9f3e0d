@@ -19,7 +19,7 @@ export function AffiliatePayoutRequest({ profile, onSuccess }: AffiliatePayoutRe
   const [amount, setAmount] = useState("");
   const [payoutMethod, setPayoutMethod] = useState(profile.payout_method || "paypal");
 
-  const minPayout = 500; // Mínimo $500 MXN
+  const minPayout = 200; // Mínimo $200 MXN
   const availableBalance = parseFloat(profile.pending_balance_mxn || 0);
 
   const handleSubmit = async (e: React.FormEvent) => {

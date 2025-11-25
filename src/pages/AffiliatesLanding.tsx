@@ -15,7 +15,7 @@ export default function AffiliatesLanding() {
     {
       icon: TrendingUp,
       title: "Pagos Puntuales",
-      description: "Retira tus ganancias cuando alcances el mínimo de $500 MXN"
+      description: "Retira tus ganancias cuando alcances el mínimo de $200 MXN"
     },
     {
       icon: Users,
@@ -63,7 +63,7 @@ export default function AffiliatesLanding() {
     {
       step: "4",
       title: "Retira tus Ganancias",
-      description: "Solicita tu pago cuando alcances $500 MXN vía PayPal o transferencia bancaria"
+      description: "Solicita tu pago cuando alcances $200 MXN vía PayPal o transferencia bancaria"
     }
   ];
 

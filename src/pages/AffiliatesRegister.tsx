@@ -228,7 +228,7 @@ export default function AffiliatesRegister() {
               <ul className="text-sm space-y-1">
                 <li>• Plan Básico: 20% de comisión ($48 MXN por venta)</li>
                 <li>• Plan Intermedio: 25% de comisión ($72.50 MXN por venta)</li>
-                <li>• Pago mínimo: $500 MXN</li>
+                <li>• Pago mínimo: $200 MXN</li>
                 <li>• Pagos procesados cada 15 días</li>
               </ul>
             </div>
