@@ -129,8 +129,8 @@ export default function AffiliatesLanding() {
               Inicio
             </Button>
             <Button
-              variant="outline"
-              onClick={() => navigate("/affiliates")}
+              variant="default"
+              onClick={() => navigate("/affiliates/login")}
             >
               <LogIn className="h-4 w-4 mr-2" />
               Acceder
@@ -151,7 +151,7 @@ export default function AffiliatesLanding() {
           <Button 
             size="lg" 
             className="text-lg px-8 py-6"
-            onClick={() => navigate("/affiliates/register")}
+            onClick={() => navigate("/affiliates/login")}
           >
             Únete Ahora - Es Gratis
           </Button>
@@ -327,7 +327,7 @@ export default function AffiliatesLanding() {
             size="lg" 
             variant="secondary"
             className="text-lg px-8 py-6"
-            onClick={() => navigate("/affiliates/register")}
+            onClick={() => navigate("/affiliates/login")}
           >
             <Link2 className="mr-2 h-5 w-5" />
             Registrarme como Afiliado

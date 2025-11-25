@@ -91,7 +91,7 @@ export default function AffiliatesRegister() {
         description: "Necesitas crear una cuenta o iniciar sesión para registrarte como afiliado",
         variant: "destructive",
       });
-      navigate("/auth");
+      navigate("/affiliates/login");
       return;
     }
 
@@ -106,7 +106,7 @@ export default function AffiliatesRegister() {
           description: "Por favor inicia sesión nuevamente",
           variant: "destructive",
         });
-        navigate("/auth");
+        navigate("/affiliates/login");
         return;
       }
 
@@ -180,7 +180,6 @@ export default function AffiliatesRegister() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <AffiliateHeader />
       <div className="container mx-auto py-8 px-4 max-w-2xl">
-        {!isAuthenticated && (
           <Alert className="mb-6 border-yellow-500 bg-yellow-500/10">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
@@ -188,13 +187,12 @@ export default function AffiliatesRegister() {
               <Button 
                 variant="link" 
                 className="p-0 h-auto font-semibold underline"
-                onClick={() => navigate("/auth")}
+                onClick={() => navigate("/affiliates/login")}
               >
                 Inicia sesión aquí
               </Button>
             </AlertDescription>
           </Alert>
-        )}
 
       <Card>
         <CardHeader>
