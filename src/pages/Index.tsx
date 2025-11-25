@@ -353,9 +353,9 @@ const Index = () => {
                   <CardTitle className="text-2xl">{plan.name}</CardTitle>
                   <CardDescription>
                     <span className="text-4xl font-bold text-foreground">
-                      ${plan.price_mxn}
+                      ${Math.round(plan.price_mxn / 20)}
                     </span>
-                    <span className="text-muted-foreground"> MXN/{t("pricing.month")}</span>
+                    <span className="text-muted-foreground"> USD/{t("pricing.month")}</span>
                   </CardDescription>
                 </CardHeader>
 
