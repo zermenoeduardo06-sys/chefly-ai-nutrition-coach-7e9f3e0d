@@ -72,8 +72,8 @@ serve(async (req) => {
       }
 
       // Process affiliate commission if affiliate code exists
-      const affiliateCode = session.metadata?.affiliateCode;
-      const endorselyReferral = session.metadata?.endorselyReferral;
+      const affiliateCode = session.metadata?.affiliate_code;
+      const endorselyReferral = session.metadata?.endorsely_referral;
 
       if (affiliateCode || endorselyReferral) {
         console.log("Processing affiliate sale:", { affiliateCode, endorselyReferral });
