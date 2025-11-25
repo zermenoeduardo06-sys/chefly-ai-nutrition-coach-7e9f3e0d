@@ -567,7 +567,7 @@ export default function AffiliatesLanding() {
           <p>© 2024 Chefly. Todos los derechos reservados.</p>
           <div className="flex items-center justify-center gap-2 mt-4">
             <MessageCircle className="h-4 w-4" />
-            <span>¿Necesitas ayuda? Escríbenos a afiliados@chefly.com</span>
+            <span>¿Necesitas ayuda? Escríbenos a mailchefly.ia@gmail.com</span>
           </div>
         </div>
       </footer>
