@@ -50,6 +50,333 @@ export type Database = {
         }
         Relationships: []
       }
+      affiliate_commissions: {
+        Row: {
+          affiliate_id: string
+          commission_earned_mxn: number | null
+          commission_paid_mxn: number | null
+          commission_pending_mxn: number | null
+          created_at: string
+          id: string
+          month: number
+          total_amount_mxn: number | null
+          total_sales: number | null
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          affiliate_id: string
+          commission_earned_mxn?: number | null
+          commission_paid_mxn?: number | null
+          commission_pending_mxn?: number | null
+          created_at?: string
+          id?: string
+          month: number
+          total_amount_mxn?: number | null
+          total_sales?: number | null
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          affiliate_id?: string
+          commission_earned_mxn?: number | null
+          commission_paid_mxn?: number | null
+          commission_pending_mxn?: number | null
+          created_at?: string
+          id?: string
+          month?: number
+          total_amount_mxn?: number | null
+          total_sales?: number | null
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_commissions_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "affiliate_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      affiliate_payouts: {
+        Row: {
+          admin_notes: string | null
+          affiliate_id: string
+          amount_mxn: number
+          completed_at: string | null
+          created_at: string
+          id: string
+          payout_details: Json | null
+          payout_method: Database["public"]["Enums"]["payout_method"]
+          processed_at: string | null
+          rejection_reason: string | null
+          requested_at: string
+          status: Database["public"]["Enums"]["payout_status"] | null
+          transaction_id: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          affiliate_id: string
+          amount_mxn: number
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          payout_details?: Json | null
+          payout_method: Database["public"]["Enums"]["payout_method"]
+          processed_at?: string | null
+          rejection_reason?: string | null
+          requested_at?: string
+          status?: Database["public"]["Enums"]["payout_status"] | null
+          transaction_id?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          affiliate_id?: string
+          amount_mxn?: number
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          payout_details?: Json | null
+          payout_method?: Database["public"]["Enums"]["payout_method"]
+          processed_at?: string | null
+          rejection_reason?: string | null
+          requested_at?: string
+          status?: Database["public"]["Enums"]["payout_status"] | null
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_payouts_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "affiliate_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      affiliate_profiles: {
+        Row: {
+          affiliate_code: string
+          approved_at: string | null
+          bank_account: string | null
+          bank_clabe: string | null
+          bank_name: string | null
+          commission_rate_basic: number | null
+          commission_rate_intermediate: number | null
+          country: string | null
+          created_at: string
+          email: string
+          endorsely_affiliate_id: string | null
+          endorsely_referral_link: string | null
+          full_name: string
+          id: string
+          last_payout_at: string | null
+          payout_method: Database["public"]["Enums"]["payout_method"] | null
+          paypal_email: string | null
+          pending_balance_mxn: number | null
+          phone: string | null
+          status: Database["public"]["Enums"]["affiliate_status"] | null
+          total_clicks: number | null
+          total_conversions: number | null
+          total_earned_mxn: number | null
+          total_paid_mxn: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          affiliate_code: string
+          approved_at?: string | null
+          bank_account?: string | null
+          bank_clabe?: string | null
+          bank_name?: string | null
+          commission_rate_basic?: number | null
+          commission_rate_intermediate?: number | null
+          country?: string | null
+          created_at?: string
+          email: string
+          endorsely_affiliate_id?: string | null
+          endorsely_referral_link?: string | null
+          full_name: string
+          id?: string
+          last_payout_at?: string | null
+          payout_method?: Database["public"]["Enums"]["payout_method"] | null
+          paypal_email?: string | null
+          pending_balance_mxn?: number | null
+          phone?: string | null
+          status?: Database["public"]["Enums"]["affiliate_status"] | null
+          total_clicks?: number | null
+          total_conversions?: number | null
+          total_earned_mxn?: number | null
+          total_paid_mxn?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          affiliate_code?: string
+          approved_at?: string | null
+          bank_account?: string | null
+          bank_clabe?: string | null
+          bank_name?: string | null
+          commission_rate_basic?: number | null
+          commission_rate_intermediate?: number | null
+          country?: string | null
+          created_at?: string
+          email?: string
+          endorsely_affiliate_id?: string | null
+          endorsely_referral_link?: string | null
+          full_name?: string
+          id?: string
+          last_payout_at?: string | null
+          payout_method?: Database["public"]["Enums"]["payout_method"] | null
+          paypal_email?: string | null
+          pending_balance_mxn?: number | null
+          phone?: string | null
+          status?: Database["public"]["Enums"]["affiliate_status"] | null
+          total_clicks?: number | null
+          total_conversions?: number | null
+          total_earned_mxn?: number | null
+          total_paid_mxn?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      affiliate_referrals: {
+        Row: {
+          affiliate_id: string
+          clicked_at: string
+          converted: boolean | null
+          converted_at: string | null
+          created_at: string
+          id: string
+          ip_address: string | null
+          landing_page: string | null
+          referrer_url: string | null
+          sale_id: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          affiliate_id: string
+          clicked_at?: string
+          converted?: boolean | null
+          converted_at?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          landing_page?: string | null
+          referrer_url?: string | null
+          sale_id?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          affiliate_id?: string
+          clicked_at?: string
+          converted?: boolean | null
+          converted_at?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          landing_page?: string | null
+          referrer_url?: string | null
+          sale_id?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_referrals_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "affiliate_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      affiliate_sales: {
+        Row: {
+          affiliate_id: string
+          approved_at: string | null
+          commission_amount_mxn: number
+          commission_rate: number
+          commission_status:
+            | Database["public"]["Enums"]["commission_status"]
+            | null
+          created_at: string
+          customer_email: string
+          customer_id: string | null
+          endorsely_metadata: Json | null
+          id: string
+          paid_at: string | null
+          plan_name: string
+          product_id: string
+          referral_id: string | null
+          sale_amount_mxn: number
+          stripe_customer_id: string | null
+          stripe_metadata: Json | null
+          stripe_subscription_id: string | null
+        }
+        Insert: {
+          affiliate_id: string
+          approved_at?: string | null
+          commission_amount_mxn: number
+          commission_rate: number
+          commission_status?:
+            | Database["public"]["Enums"]["commission_status"]
+            | null
+          created_at?: string
+          customer_email: string
+          customer_id?: string | null
+          endorsely_metadata?: Json | null
+          id?: string
+          paid_at?: string | null
+          plan_name: string
+          product_id: string
+          referral_id?: string | null
+          sale_amount_mxn: number
+          stripe_customer_id?: string | null
+          stripe_metadata?: Json | null
+          stripe_subscription_id?: string | null
+        }
+        Update: {
+          affiliate_id?: string
+          approved_at?: string | null
+          commission_amount_mxn?: number
+          commission_rate?: number
+          commission_status?:
+            | Database["public"]["Enums"]["commission_status"]
+            | null
+          created_at?: string
+          customer_email?: string
+          customer_id?: string | null
+          endorsely_metadata?: Json | null
+          id?: string
+          paid_at?: string | null
+          plan_name?: string
+          product_id?: string
+          referral_id?: string | null
+          sale_amount_mxn?: number
+          stripe_customer_id?: string | null
+          stripe_metadata?: Json | null
+          stripe_subscription_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_sales_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "affiliate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "affiliate_sales_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "affiliate_referrals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_messages: {
         Row: {
           content: string
@@ -562,10 +889,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_affiliate_code: { Args: never; Returns: string }
     }
     Enums: {
-      [_ in never]: never
+      affiliate_status: "pending" | "active" | "suspended" | "inactive"
+      commission_status: "pending" | "approved" | "paid" | "rejected"
+      payout_method: "paypal" | "bank_transfer" | "spei"
+      payout_status: "pending" | "processing" | "completed" | "failed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -692,6 +1022,11 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      affiliate_status: ["pending", "active", "suspended", "inactive"],
+      commission_status: ["pending", "approved", "paid", "rejected"],
+      payout_method: ["paypal", "bank_transfer", "spei"],
+      payout_status: ["pending", "processing", "completed", "failed"],
+    },
   },
 } as const
