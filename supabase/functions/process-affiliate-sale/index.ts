@@ -36,10 +36,10 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // Buscar afiliado
+    // Buscar afiliado con tier
     const { data: affiliate, error: affiliateError } = await supabaseAdmin
       .from("affiliate_profiles")
-      .select("id, commission_rate_basic, commission_rate_intermediate")
+      .select("id, commission_rate_basic, commission_rate_intermediate, current_tier")
       .eq("affiliate_code", affiliateCode.toUpperCase())
       .single();
 
@@ -54,10 +54,22 @@ serve(async (req) => {
       throw new Error("Invalid product ID");
     }
 
-    // Calcular comisión
-    const commissionRate = productInfo.plan === "Básico" 
+    // Obtener bonificación de tier
+    const { data: tierInfo } = await supabaseAdmin
+      .from("affiliate_tiers")
+      .select("commission_bonus_percentage")
+      .eq("tier", affiliate.current_tier)
+      .single();
+
+    const tierBonus = tierInfo?.commission_bonus_percentage || 0;
+
+    // Calcular comisión base
+    let commissionRate = productInfo.plan === "Básico" 
       ? affiliate.commission_rate_basic 
       : affiliate.commission_rate_intermediate;
+    
+    // Aplicar bonificación de tier
+    commissionRate = commissionRate + tierBonus;
     
     const commissionAmount = (productInfo.amount * commissionRate) / 100;
 
@@ -111,10 +123,10 @@ serve(async (req) => {
         .eq("id", referral.id);
     }
 
-    // Actualizar estadísticas del afiliado
+    // Actualizar estadísticas del afiliado y lifetime sales
     const { data: currentStats } = await supabaseAdmin
       .from("affiliate_profiles")
-      .select("total_conversions, total_earned_mxn, pending_balance_mxn")
+      .select("total_conversions, total_earned_mxn, pending_balance_mxn, lifetime_sales_mxn")
       .eq("id", affiliate.id)
       .single();
 
@@ -125,8 +137,14 @@ serve(async (req) => {
           total_conversions: (currentStats.total_conversions || 0) + 1,
           total_earned_mxn: parseFloat(currentStats.total_earned_mxn || "0") + commissionAmount,
           pending_balance_mxn: parseFloat(currentStats.pending_balance_mxn || "0") + commissionAmount,
+          lifetime_sales_mxn: parseFloat(currentStats.lifetime_sales_mxn || "0") + productInfo.amount,
         })
         .eq("id", affiliate.id);
+
+      // Actualizar tier del afiliado basado en rendimiento
+      await supabaseAdmin.rpc("update_affiliate_tier", {
+        affiliate_profile_id: affiliate.id,
+      });
     }
 
     // Actualizar comisión mensual
