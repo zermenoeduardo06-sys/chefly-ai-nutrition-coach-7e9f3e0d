@@ -4,6 +4,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { DollarSign, TrendingUp, Users, Zap, CheckCircle2, Link2, Award, Medal, Crown, Star, Gem, Home, LogIn, Shield, Clock, BarChart3, Lock, MessageCircle } from "lucide-react";
+import cheflyLogo from "@/assets/chefly-logo.png";
 
 export default function AffiliatesLanding() {
   const navigate = useNavigate();
@@ -218,7 +219,8 @@ export default function AffiliatesLanding() {
       {/* Navigation Header */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
         <nav className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <img src={cheflyLogo} alt="Chefly Logo" className="h-10 w-10" />
             <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               Chefly Afiliados
             </span>
