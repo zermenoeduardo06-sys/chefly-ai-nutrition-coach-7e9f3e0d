@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { DollarSign, TrendingUp, Users, Zap, CheckCircle2, Link2, Award, Medal, Crown, Star, Gem } from "lucide-react";
+import { DollarSign, TrendingUp, Users, Zap, CheckCircle2, Link2, Award, Medal, Crown, Star, Gem, Home, LogIn } from "lucide-react";
 
 export default function AffiliatesLanding() {
   const navigate = useNavigate();
@@ -112,6 +112,33 @@ export default function AffiliatesLanding() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Navigation Header */}
+      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
+        <nav className="container mx-auto px-4 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              Chefly Afiliados
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              onClick={() => navigate("/")}
+            >
+              <Home className="h-4 w-4 mr-2" />
+              Inicio
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => navigate("/affiliates")}
+            >
+              <LogIn className="h-4 w-4 mr-2" />
+              Acceder
+            </Button>
+          </div>
+        </nav>
+      </header>
+
       {/* Hero Section */}
       <section className="relative py-20 px-4 bg-gradient-to-b from-primary/10 to-background">
         <div className="max-w-6xl mx-auto text-center">

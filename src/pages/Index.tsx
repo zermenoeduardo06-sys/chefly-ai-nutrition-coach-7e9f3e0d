@@ -156,7 +156,22 @@ const Index = () => {
             <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               Chefly.AI
             </span>
-            <LanguageToggle />
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                onClick={() => navigate("/programa-afiliados")}
+                className="hidden sm:inline-flex"
+              >
+                Afiliados
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate("/auth")}
+              >
+                {t("nav.login")}
+              </Button>
+              <LanguageToggle />
+            </div>
           </div>
         </nav>
       </header>
