@@ -120,6 +120,10 @@ export function AdminAffiliatePayouts() {
     return <Badge variant={variants[status]}>{labels[status]}</Badge>;
   };
 
+  const totalPendingPayouts = payouts
+    .filter(p => p.status === "pending")
+    .reduce((sum, p) => sum + Number(p.amount_mxn || 0), 0);
+
   if (loading) {
     return (
       <div className="flex justify-center py-8">
@@ -129,11 +133,66 @@ export function AdminAffiliatePayouts() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Solicitudes de Pago</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <div className="space-y-6">
+      {/* Resumen de Pagos Pendientes */}
+      <Card className="border-2 border-primary bg-primary/5">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>💰 Total a Pagar</span>
+            <span className="text-3xl font-bold text-primary">
+              ${totalPendingPayouts.toFixed(2)} MXN
+            </span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Tienes {payouts.filter(p => p.status === "pending").length} solicitudes de pago pendientes
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Filtros */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar por nombre o email..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setPage(1);
+                  }}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            <Select value={statusFilter} onValueChange={(value) => {
+              setStatusFilter(value);
+              setPage(1);
+            }}>
+              <SelectTrigger className="w-full md:w-[200px]">
+                <SelectValue placeholder="Estado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los estados</SelectItem>
+                <SelectItem value="pending">Pendiente</SelectItem>
+                <SelectItem value="processing">Procesando</SelectItem>
+                <SelectItem value="completed">Completado</SelectItem>
+                <SelectItem value="rejected">Rechazado</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Solicitudes de Pago</CardTitle>
+        </CardHeader>
+        <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
@@ -167,8 +226,10 @@ export function AdminAffiliatePayouts() {
                     </div>
                   </TableCell>
                   <TableCell className="capitalize">{payout.payout_method}</TableCell>
-                  <TableCell className="font-medium">
-                    ${Number(payout.amount_mxn).toFixed(2)} MXN
+                  <TableCell>
+                    <div className="font-bold text-lg text-primary">
+                      ${Number(payout.amount_mxn).toFixed(2)} MXN
+                    </div>
                   </TableCell>
                   <TableCell>{getStatusBadge(payout.status)}</TableCell>
                   <TableCell>
@@ -198,7 +259,37 @@ export function AdminAffiliatePayouts() {
             )}
           </TableBody>
         </Table>
+
+        {/* Paginación */}
+        {totalCount > pageSize && (
+          <div className="flex items-center justify-between px-6 py-4 border-t">
+            <div className="text-sm text-muted-foreground">
+              Mostrando {((page - 1) * pageSize) + 1} a {Math.min(page * pageSize, totalCount)} de {totalCount} solicitudes
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Anterior
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(p => p + 1)}
+                disabled={page * pageSize >= totalCount}
+              >
+                Siguiente
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
+    </div>
   );
 }
