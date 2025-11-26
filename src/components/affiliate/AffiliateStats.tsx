@@ -50,12 +50,12 @@ export function AffiliateStats({ profile, onRequestPayout }: AffiliateStatsProps
         <Alert className="border-2 border-primary bg-gradient-to-r from-primary/10 to-primary/5">
           <Wallet className="h-5 w-5 text-primary" />
           <AlertTitle className="text-lg font-bold text-primary">
-            ¡Puedes solicitar tu retiro! 💰
+            ¡Retiro disponible! 💰
           </AlertTitle>
           <AlertDescription className="space-y-3">
             <p className="text-base">
-              Tienes <span className="font-bold text-primary">${pendingBalance.toFixed(2)} MXN</span> disponibles para retirar.
-              El mínimo para solicitar un pago es de $200 MXN.
+              Tienes <span className="font-bold text-primary">${pendingBalance.toFixed(2)} MXN</span> disponibles.
+              El pago se procesa automáticamente al confirmar el retiro.
             </p>
             {onRequestPayout && (
               <Button 
@@ -64,7 +64,7 @@ export function AffiliateStats({ profile, onRequestPayout }: AffiliateStatsProps
                 size="lg"
               >
                 <Wallet className="h-4 w-4 mr-2" />
-                Solicitar Retiro Ahora
+                Retirar Ahora
               </Button>
             )}
           </AlertDescription>
