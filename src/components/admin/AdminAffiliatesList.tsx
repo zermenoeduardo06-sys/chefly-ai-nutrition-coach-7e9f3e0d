@@ -231,18 +231,23 @@ export function AdminAffiliatesList() {
               <TableHead>Estado</TableHead>
               <TableHead>Conversiones</TableHead>
               <TableHead>Ganado</TableHead>
+              <TableHead className="text-right">Balance Pendiente</TableHead>
               <TableHead>Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {affiliates.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
                   No se encontraron afiliados
                 </TableCell>
               </TableRow>
             ) : (
-              affiliates.map((affiliate) => (
+              affiliates.map((affiliate) => {
+                const pendingBalance = Number(affiliate.pending_balance_mxn || 0);
+                const canRequestPayout = pendingBalance >= 200;
+                
+                return (
                 <TableRow key={affiliate.id}>
                   <TableCell className="font-medium">{affiliate.full_name}</TableCell>
                   <TableCell className="text-sm">{affiliate.email}</TableCell>
@@ -256,6 +261,16 @@ export function AdminAffiliatesList() {
                   <TableCell>{affiliate.total_conversions || 0}</TableCell>
                   <TableCell className="font-medium">
                     ${Number(affiliate.total_earned_mxn || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className={`font-bold ${canRequestPayout ? 'text-lg text-primary' : ''}`}>
+                      ${pendingBalance.toFixed(2)} MXN
+                    </div>
+                    {canRequestPayout && (
+                      <Badge variant="default" className="mt-1 bg-primary">
+                        ✓ Puede retirar
+                      </Badge>
+                    )}
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
@@ -416,7 +431,8 @@ export function AdminAffiliatesList() {
                     </div>
                   </TableCell>
                 </TableRow>
-              ))
+              );
+              })
             )}
           </TableBody>
         </Table>

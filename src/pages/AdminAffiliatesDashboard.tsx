@@ -7,6 +7,7 @@ import { AdminAffiliatesOverview } from "@/components/admin/AdminAffiliatesOverv
 import { AdminAffiliatesList } from "@/components/admin/AdminAffiliatesList";
 import { AdminAffiliateSales } from "@/components/admin/AdminAffiliateSales";
 import { AdminAffiliatePayouts } from "@/components/admin/AdminAffiliatePayouts";
+import { AdminAffiliatesPendingPayouts } from "@/components/admin/AdminAffiliatesPendingPayouts";
 
 export default function AdminAffiliatesDashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -75,6 +76,7 @@ export default function AdminAffiliatesDashboard() {
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList>
           <TabsTrigger value="overview">Resumen</TabsTrigger>
+          <TabsTrigger value="ready-to-pay">Listos para Cobrar</TabsTrigger>
           <TabsTrigger value="affiliates">Afiliados</TabsTrigger>
           <TabsTrigger value="sales">Ventas</TabsTrigger>
           <TabsTrigger value="payouts">Pagos</TabsTrigger>
@@ -82,6 +84,10 @@ export default function AdminAffiliatesDashboard() {
 
         <TabsContent value="overview" className="space-y-6">
           <AdminAffiliatesOverview />
+        </TabsContent>
+
+        <TabsContent value="ready-to-pay">
+          <AdminAffiliatesPendingPayouts />
         </TabsContent>
 
         <TabsContent value="affiliates">
