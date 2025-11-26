@@ -45,31 +45,23 @@ export function AffiliatePayoutRequest({ profile, onSuccess }: AffiliatePayoutRe
       return;
     }
 
-    // Check if Stripe is connected
-    if (!profile.stripe_account_id || !profile.stripe_onboarding_completed) {
-      toast({
-        title: "Cuenta de Stripe no conectada",
-        description: "Debes conectar tu cuenta de Stripe antes de solicitar un retiro",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke("process-affiliate-payout", {
-        body: {
-          amount: requestAmount,
-          payoutMethod,
-        },
-      });
+      const { error } = await supabase
+        .from("affiliate_payouts")
+        .insert({
+          affiliate_id: profile.id,
+          amount_mxn: requestAmount,
+          payout_method: payoutMethod,
+          status: "pending",
+        });
 
       if (error) throw error;
 
       toast({
-        title: "¡Pago procesado exitosamente!",
-        description: `Se ha transferido $${requestAmount.toFixed(2)} MXN a tu cuenta de Stripe. El dinero llegará en 1-3 días hábiles.`,
+        title: "¡Solicitud enviada!",
+        description: `Tu solicitud de retiro por $${requestAmount.toFixed(2)} MXN ha sido enviada. Nuestro equipo la procesará en 1-3 días hábiles.`,
       });
 
       setAmount("");
@@ -95,7 +87,7 @@ export function AffiliatePayoutRequest({ profile, onSuccess }: AffiliatePayoutRe
           Retirar Saldo
         </CardTitle>
         <CardDescription>
-          Disponible: ${availableBalance.toFixed(2)} MXN • Pago automático instantáneo
+          Disponible: ${availableBalance.toFixed(2)} MXN • Procesado en 1-3 días hábiles
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -132,27 +124,21 @@ export function AffiliatePayoutRequest({ profile, onSuccess }: AffiliatePayoutRe
           <Button 
             type="submit" 
             className="w-full"
-            disabled={loading || availableBalance < minPayout || !profile.stripe_account_id || !profile.stripe_onboarding_completed}
+            disabled={loading || availableBalance < minPayout}
           >
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Procesando transferencia...
+                Enviando solicitud...
               </>
             ) : (
-              "Retirar ahora"
+              "Solicitar retiro"
             )}
           </Button>
 
           {availableBalance < minPayout && (
             <p className="text-xs text-muted-foreground text-center">
               Necesitas al menos ${minPayout} MXN para solicitar un pago
-            </p>
-          )}
-          
-          {(!profile.stripe_account_id || !profile.stripe_onboarding_completed) && (
-            <p className="text-xs text-orange-600 text-center font-medium">
-              Debes conectar tu cuenta de Stripe para poder retirar
             </p>
           )}
         </form>
