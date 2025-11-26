@@ -223,7 +223,7 @@ Genera ${7 * preferences.meals_per_day} recetas variadas y específicas. Cada re
     console.log('Images generated successfully');
 
     // Create meal plan
-    const { data: mealPlan } = await supabaseClient
+    const { data: mealPlan, error: mealPlanError } = await supabaseClient
       .from('meal_plans')
       .insert({
         user_id: userId,
@@ -232,6 +232,13 @@ Genera ${7 * preferences.meals_per_day} recetas variadas y específicas. Cada re
       })
       .select()
       .single();
+
+    if (mealPlanError || !mealPlan) {
+      console.error('Error creating meal plan:', mealPlanError);
+      throw new Error('Failed to create meal plan in database');
+    }
+
+    console.log('Meal plan created with ID:', mealPlan.id);
 
     // Insert meals
     const meals = mealData.meals.map((meal: any) => ({
@@ -250,21 +257,72 @@ Genera ${7 * preferences.meals_per_day} recetas variadas y específicas. Cada re
       image_url: meal.image_url || null,
     }));
 
-    await supabaseClient.from('meals').insert(meals);
+    const { data: insertedMeals, error: mealsError } = await supabaseClient
+      .from('meals')
+      .insert(meals)
+      .select();
+
+    if (mealsError || !insertedMeals || insertedMeals.length === 0) {
+      console.error('Error inserting meals:', mealsError);
+      // Cleanup: delete the meal plan if meals failed to insert
+      await supabaseClient.from('meal_plans').delete().eq('id', mealPlan.id);
+      throw new Error('Failed to insert meals into database');
+    }
+
+    console.log(`Successfully inserted ${insertedMeals.length} meals`);
 
     // Insert shopping list
-    await supabaseClient.from('shopping_lists').insert({
-      meal_plan_id: mealPlan.id,
-      items: mealData.shopping_list,
-    });
+    const { error: shoppingListError } = await supabaseClient
+      .from('shopping_lists')
+      .insert({
+        meal_plan_id: mealPlan.id,
+        items: mealData.shopping_list,
+      });
 
-    return new Response(JSON.stringify({ success: true }), {
+    if (shoppingListError) {
+      console.error('Error inserting shopping list:', shoppingListError);
+      // Don't fail the whole operation for shopping list
+    }
+
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        mealPlanId: mealPlan.id,
+        mealsCount: insertedMeals.length,
+        cached: false
+      }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error: any) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    console.error('Error in generate-meal-plan function:', error);
+    
+    // Handle specific error types
+    let errorMessage = 'Error al generar el plan de comidas';
+    let statusCode = 500;
+    
+    if (error.message?.includes('Rate limit') || error.message?.includes('429')) {
+      errorMessage = 'Demasiadas solicitudes. Por favor, espera un momento e intenta de nuevo.';
+      statusCode = 429;
+    } else if (error.message?.includes('Invalid userId')) {
+      errorMessage = 'Usuario inválido';
+      statusCode = 400;
+    } else if (error.message?.includes('No preferences found')) {
+      errorMessage = 'No se encontraron preferencias. Por favor, completa el onboarding primero.';
+      statusCode = 400;
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    return new Response(
+      JSON.stringify({ 
+        error: errorMessage,
+        details: error.message,
+        success: false 
+      }),
+      { 
+        status: statusCode,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    );
   }
 });

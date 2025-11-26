@@ -473,7 +473,10 @@ const Dashboard = () => {
         .order("created_at", { ascending: false })
         .limit(1);
 
-      if (planError) throw planError;
+      if (planError) {
+        console.error("Error loading meal plans:", planError);
+        throw planError;
+      }
 
       if (plans && plans.length > 0) {
         const planId = plans[0].id;
@@ -485,22 +488,41 @@ const Dashboard = () => {
           .eq("meal_plan_id", planId)
           .order("day_of_week", { ascending: true });
 
-        if (mealsError) throw mealsError;
+        if (mealsError) {
+          console.error("Error loading meals:", mealsError);
+          throw mealsError;
+        }
+
+        // Verify meals exist and are valid
+        if (!meals || meals.length === 0) {
+          console.warn("Meal plan exists but has no meals, regenerating...");
+          // Delete the empty plan
+          await supabase.from("meal_plans").delete().eq("id", planId);
+          // Generate new plan
+          await generateMealPlan();
+          return;
+        }
 
         setMealPlan({
           id: planId,
           week_start_date: plans[0].week_start_date,
-          meals: meals || [],
+          meals: meals,
         });
         
         // Load completed meals for today
         await loadCompletedMeals(userId);
       } else {
-        // Generate first meal plan
+        // No meal plan exists, generate first one
+        console.log("No meal plan found, generating first plan...");
         await generateMealPlan();
       }
     } catch (error: any) {
       console.error("Error loading meal plan:", error);
+      toast({
+        variant: "destructive",
+        title: "Error al cargar el plan",
+        description: "Hubo un problema cargando tu plan de comidas. Por favor, intenta generar uno nuevo.",
+      });
     } finally {
       setLoading(false);
     }
@@ -566,17 +588,29 @@ const Dashboard = () => {
     await generateMealPlan(true);
   };
 
-  const generateMealPlan = async (forceNew: boolean = false) => {
+  const generateMealPlan = async (forceNew: boolean = false, retryCount: number = 0) => {
+    const maxRetries = 2;
     setGenerating(true);
+    
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("No user found");
+      if (!user) throw new Error("No se encontró usuario autenticado");
+
+      console.log("Generating meal plan...", { userId: user.id, forceNew, retryCount });
 
       const { data, error } = await supabase.functions.invoke("generate-meal-plan", {
         body: { userId: user.id, forceNew },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Edge function error:", error);
+        throw new Error(error.message || "Error al generar el plan de comidas");
+      }
+
+      if (!data || !data.mealPlanId) {
+        console.error("Invalid response from edge function:", data);
+        throw new Error("Respuesta inválida del servidor");
+      }
 
       const isCached = data?.cached === true;
       
@@ -587,13 +621,32 @@ const Dashboard = () => {
           : "Tu nuevo plan semanal fue creado con IA",
       });
 
+      // Reload meal plan to get fresh data
       await loadMealPlan(user.id);
+      
     } catch (error: any) {
+      console.error("Error generating meal plan:", error, { retryCount });
+      
+      // Retry logic
+      if (retryCount < maxRetries) {
+        console.log(`Retrying meal plan generation... (attempt ${retryCount + 1}/${maxRetries})`);
+        toast({
+          title: "Reintentando...",
+          description: `Intento ${retryCount + 1} de ${maxRetries + 1}`,
+        });
+        setTimeout(() => generateMealPlan(forceNew, retryCount + 1), 2000);
+        return;
+      }
+      
+      // Final error after all retries
       toast({
         variant: "destructive",
-        title: "Error",
-        description: error.message,
+        title: "Error al generar el plan",
+        description: error.message || "No se pudo generar el plan de comidas. Por favor, intenta de nuevo más tarde.",
       });
+      
+      // Set meal plan to null so the UI shows the generate button
+      setMealPlan(null);
     } finally {
       setGenerating(false);
     }
@@ -679,8 +732,11 @@ const Dashboard = () => {
 
   if (loading || trialLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-muted/30">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+          <p className="text-muted-foreground">Cargando tu panel de nutrición...</p>
+        </div>
       </div>
     );
   }
@@ -1037,27 +1093,45 @@ const Dashboard = () => {
                 </Card>
               );
             })
-          ) : (
-            <Card className="border-dashed">
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <Utensils className="w-16 h-16 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No hay plan de comidas</h3>
-                <p className="text-muted-foreground text-center mb-6">
-                  Genera tu primer plan semanal personalizado
+           ) : (
+            <Card className="border-dashed border-2">
+              <CardContent className="flex flex-col items-center justify-center py-16 px-6">
+                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center mb-6">
+                  <Utensils className="w-10 h-10 text-primary" />
+                </div>
+                <h3 className="text-2xl font-bold mb-3">No hay plan de comidas</h3>
+                <p className="text-muted-foreground text-center mb-8 max-w-md">
+                  {generating 
+                    ? "Estamos creando tu plan personalizado con IA. Esto puede tomar hasta 30 segundos..."
+                    : "Genera tu primer plan semanal personalizado basado en tus preferencias nutricionales"
+                  }
                 </p>
-                <Button onClick={initiateGenerateMealPlan} disabled={generating} variant="hero">
-                  {generating ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Generando...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="mr-2 h-4 w-4" />
-                      Generar plan
-                    </>
-                  )}
-                </Button>
+                {generating ? (
+                  <div className="flex flex-col items-center gap-4">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <p className="text-sm text-muted-foreground">Generando menú único con IA...</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Button 
+                      onClick={initiateGenerateMealPlan} 
+                      disabled={generating}
+                      size="lg"
+                      className="min-w-[200px]"
+                    >
+                      <Sparkles className="mr-2 h-5 w-5" />
+                      Generar plan ahora
+                    </Button>
+                    <Button 
+                      onClick={() => navigate("/onboarding")}
+                      variant="outline"
+                      size="lg"
+                    >
+                      <Settings className="mr-2 h-4 w-4" />
+                      Ajustar preferencias
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
