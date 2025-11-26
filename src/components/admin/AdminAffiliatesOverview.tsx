@@ -17,6 +17,7 @@ export function AdminAffiliatesOverview() {
     monthCommissions: 0,
     conversionRate: 0,
     avgCommission: 0,
+    totalPendingBalance: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -37,7 +38,8 @@ export function AdminAffiliatesOverview() {
         allSales,
         monthSales,
         payouts,
-        referrals
+        referrals,
+        affiliateProfiles
       ] = await Promise.all([
         supabase.from("affiliate_profiles").select("id", { count: "exact" }),
         supabase.from("affiliate_profiles").select("id", { count: "exact" }).eq("status", "active"),
@@ -46,6 +48,7 @@ export function AdminAffiliatesOverview() {
         supabase.from("affiliate_sales").select("commission_amount_mxn, sale_amount_mxn").gte("created_at", firstDayOfMonth),
         supabase.from("affiliate_payouts").select("amount_mxn").eq("status", "pending"),
         supabase.from("affiliate_referrals").select("id, converted", { count: "exact" }),
+        supabase.from("affiliate_profiles").select("pending_balance_mxn"),
       ]);
 
       const totalEarned = allSales.data?.reduce((sum, sale) => sum + Number(sale.commission_amount_mxn), 0) || 0;
@@ -58,6 +61,7 @@ export function AdminAffiliatesOverview() {
       const totalConversions = referrals.data?.filter(r => r.converted).length || 0;
       const conversionRate = totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0;
       const avgCommission = allSales.data && allSales.data.length > 0 ? totalEarned / allSales.data.length : 0;
+      const totalPendingBalance = affiliateProfiles.data?.reduce((sum, profile) => sum + Number(profile.pending_balance_mxn || 0), 0) || 0;
 
       setStats({
         totalAffiliates: affiliates.count || 0,
@@ -70,6 +74,7 @@ export function AdminAffiliatesOverview() {
         monthCommissions,
         conversionRate,
         avgCommission,
+        totalPendingBalance,
       });
     } catch (error) {
       console.error("Error loading stats:", error);
@@ -146,6 +151,25 @@ export function AdminAffiliatesOverview() {
           Actualizar
         </Button>
       </div>
+
+      {/* Tarjeta destacada de balance pendiente */}
+      <Card className="border-2 border-primary bg-gradient-to-br from-primary/10 to-primary/5">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between text-2xl">
+            <span className="flex items-center gap-2">
+              💰 Total a Pagar a Afiliados
+            </span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-5xl font-bold text-primary mb-2">
+            ${stats.totalPendingBalance.toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Balance pendiente acumulado de todos los afiliados activos
+          </p>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {cards.map((card) => (
