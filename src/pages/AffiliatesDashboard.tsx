@@ -17,7 +17,7 @@ import { AffiliateTierProgress } from "@/components/affiliate/AffiliateTierProgr
 import { AffiliateTierBadge } from "@/components/affiliate/AffiliateTierBadge";
 import { AffiliateQuickGuide } from "@/components/affiliate/AffiliateQuickGuide";
 import { AffiliateResourcesHub } from "@/components/affiliate/AffiliateResourcesHub";
-import { StripeConnectSetup } from "@/components/affiliate/StripeConnectSetup";
+import { PayoutMethodSetup } from "@/components/affiliate/PayoutMethodSetup";
 
 const AffiliateHeader = () => {
   const navigate = useNavigate();
@@ -260,9 +260,9 @@ export default function AffiliatesDashboard() {
 
       <AffiliateTierProgress profile={affiliateProfile} />
 
-      <StripeConnectSetup profile={affiliateProfile} onStatusUpdate={loadAffiliateProfile} />
+      <PayoutMethodSetup profile={affiliateProfile} />
 
-      <AffiliateStats 
+      <AffiliateStats
         profile={affiliateProfile} 
         onRequestPayout={() => {
           // Scroll suave hacia la sección de solicitar pago
