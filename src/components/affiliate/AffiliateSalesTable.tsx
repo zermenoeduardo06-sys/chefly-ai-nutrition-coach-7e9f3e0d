@@ -3,7 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -17,10 +18,15 @@ export function AffiliateSalesTable({ affiliateId }: AffiliateSalesTableProps) {
 
   useEffect(() => {
     loadSales();
+    
+    // Auto-refresh every 30 seconds
+    const interval = setInterval(loadSales, 30000);
+    return () => clearInterval(interval);
   }, [affiliateId]);
 
   const loadSales = async () => {
     try {
+      setLoading(true);
       const { data, error } = await supabase
         .from("affiliate_sales")
         .select("*")
@@ -29,6 +35,7 @@ export function AffiliateSalesTable({ affiliateId }: AffiliateSalesTableProps) {
         .limit(50);
 
       if (error) throw error;
+      console.log("Loaded sales:", data?.length || 0);
       setSales(data || []);
     } catch (error) {
       console.error("Error loading sales:", error);
@@ -60,16 +67,37 @@ export function AffiliateSalesTable({ affiliateId }: AffiliateSalesTableProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Historial de Ventas</CardTitle>
-        <CardDescription>
-          Últimas {sales.length} ventas realizadas
-        </CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Historial de Ventas</CardTitle>
+            <CardDescription>
+              Últimas {sales.length} ventas realizadas
+            </CardDescription>
+          </div>
+          <Button
+            onClick={loadSales}
+            variant="outline"
+            size="sm"
+            disabled={loading}
+          >
+            {loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         {sales.length === 0 ? (
-          <p className="text-center text-muted-foreground py-8">
-            Aún no tienes ventas registradas
-          </p>
+          <div className="text-center py-12">
+            <p className="text-muted-foreground mb-4">
+              Aún no tienes ventas registradas
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Comparte tu link de afiliado para comenzar a ganar comisiones
+            </p>
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <Table>
