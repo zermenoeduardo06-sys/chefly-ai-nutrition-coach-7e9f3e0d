@@ -5,21 +5,35 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Check, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Check, X, Download, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function AdminAffiliatePayouts() {
   const [payouts, setPayouts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const { toast } = useToast();
+  const pageSize = 15;
 
   useEffect(() => {
     loadPayouts();
-  }, []);
+  }, [statusFilter, searchQuery, page]);
 
   const loadPayouts = async () => {
-    const { data, error } = await supabase
+    setLoading(true);
+    let query = supabase
       .from("affiliate_payouts")
       .select(`
         *,
@@ -28,11 +42,32 @@ export function AdminAffiliatePayouts() {
           email,
           affiliate_code
         )
-      `)
-      .order("requested_at", { ascending: false });
+      `, { count: "exact" })
+      .order("requested_at", { ascending: false })
+      .range((page - 1) * pageSize, page * pageSize - 1);
+
+    if (statusFilter !== "all") {
+      query = query.eq("status", statusFilter as "pending" | "processing" | "completed" | "failed");
+    }
+
+    if (searchQuery.trim()) {
+      // Buscar en datos del afiliado relacionado
+      const { data: affiliateProfiles } = await supabase
+        .from("affiliate_profiles")
+        .select("id")
+        .or(`full_name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%`);
+      
+      if (affiliateProfiles && affiliateProfiles.length > 0) {
+        const affiliateIds = affiliateProfiles.map(a => a.id);
+        query = query.in("affiliate_id", affiliateIds);
+      }
+    }
+
+    const { data, error, count } = await query;
 
     if (!error && data) {
       setPayouts(data);
+      setTotalCount(count || 0);
     }
     setLoading(false);
   };
