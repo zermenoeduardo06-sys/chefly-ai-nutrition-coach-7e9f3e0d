@@ -17,6 +17,7 @@ import { AffiliateTierProgress } from "@/components/affiliate/AffiliateTierProgr
 import { AffiliateTierBadge } from "@/components/affiliate/AffiliateTierBadge";
 import { AffiliateQuickGuide } from "@/components/affiliate/AffiliateQuickGuide";
 import { AffiliateResourcesHub } from "@/components/affiliate/AffiliateResourcesHub";
+import { StripeConnectSetup } from "@/components/affiliate/StripeConnectSetup";
 
 const AffiliateHeader = () => {
   const navigate = useNavigate();
@@ -258,6 +259,8 @@ export default function AffiliatesDashboard() {
         </div>
 
       <AffiliateTierProgress profile={affiliateProfile} />
+
+      <StripeConnectSetup profile={affiliateProfile} onStatusUpdate={loadAffiliateProfile} />
 
       <AffiliateStats 
         profile={affiliateProfile} 

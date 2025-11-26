@@ -88,6 +88,7 @@ export function AffiliatePayoutHistory({ affiliateId }: AffiliatePayoutHistoryPr
                   <TableHead>Monto</TableHead>
                   <TableHead>Método</TableHead>
                   <TableHead>Estado</TableHead>
+                  <TableHead>ID Transacción</TableHead>
                   <TableHead>Fecha Pago</TableHead>
                 </TableRow>
               </TableHeader>
@@ -102,6 +103,15 @@ export function AffiliatePayoutHistory({ affiliateId }: AffiliatePayoutHistoryPr
                     </TableCell>
                     <TableCell>{getMethodLabel(payout.payout_method)}</TableCell>
                     <TableCell>{getStatusBadge(payout.status)}</TableCell>
+                    <TableCell>
+                      {payout.transaction_id ? (
+                        <code className="text-xs bg-muted px-2 py-1 rounded">
+                          {payout.transaction_id.slice(0, 15)}...
+                        </code>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">-</span>
+                      )}
+                    </TableCell>
                     <TableCell>
                       {payout.completed_at 
                         ? format(new Date(payout.completed_at), "dd MMM yyyy", { locale: es })

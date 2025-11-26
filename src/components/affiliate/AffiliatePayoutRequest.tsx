@@ -45,49 +45,41 @@ export function AffiliatePayoutRequest({ profile, onSuccess }: AffiliatePayoutRe
       return;
     }
 
+    // Check if Stripe is connected
+    if (!profile.stripe_account_id || !profile.stripe_onboarding_completed) {
+      toast({
+        title: "Cuenta de Stripe no conectada",
+        description: "Debes conectar tu cuenta de Stripe antes de solicitar un retiro",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const now = new Date().toISOString();
+      const { data, error } = await supabase.functions.invoke("process-affiliate-payout", {
+        body: {
+          amount: requestAmount,
+          payoutMethod,
+        },
+      });
 
-      // Crear el payout automáticamente aprobado y completado
-      const { error: payoutError } = await supabase
-        .from("affiliate_payouts")
-        .insert({
-          affiliate_id: profile.id,
-          amount_mxn: requestAmount,
-          payout_method: payoutMethod,
-          status: "completed",
-          processed_at: now,
-          completed_at: now,
-        });
-
-      if (payoutError) throw payoutError;
-
-      // Actualizar el balance del afiliado
-      const { error: profileError } = await supabase
-        .from("affiliate_profiles")
-        .update({
-          pending_balance_mxn: availableBalance - requestAmount,
-          total_paid_mxn: (profile.total_paid_mxn || 0) + requestAmount,
-          last_payout_at: now,
-        })
-        .eq("id", profile.id);
-
-      if (profileError) throw profileError;
+      if (error) throw error;
 
       toast({
         title: "¡Pago procesado exitosamente!",
-        description: `Se ha procesado tu retiro de $${requestAmount.toFixed(2)} MXN. El pago será transferido a tu método de pago seleccionado.`,
+        description: `Se ha transferido $${requestAmount.toFixed(2)} MXN a tu cuenta de Stripe. El dinero llegará en 1-3 días hábiles.`,
       });
 
       setAmount("");
       onSuccess();
     } catch (error: any) {
       console.error("Error requesting payout:", error);
+      const errorMsg = error?.message || "No se pudo procesar la solicitud";
       toast({
         title: "Error",
-        description: "No se pudo procesar la solicitud",
+        description: errorMsg,
         variant: "destructive",
       });
     } finally {
@@ -140,12 +132,12 @@ export function AffiliatePayoutRequest({ profile, onSuccess }: AffiliatePayoutRe
           <Button 
             type="submit" 
             className="w-full"
-            disabled={loading || availableBalance < minPayout}
+            disabled={loading || availableBalance < minPayout || !profile.stripe_account_id || !profile.stripe_onboarding_completed}
           >
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Procesando pago...
+                Procesando transferencia...
               </>
             ) : (
               "Retirar ahora"
@@ -155,6 +147,12 @@ export function AffiliatePayoutRequest({ profile, onSuccess }: AffiliatePayoutRe
           {availableBalance < minPayout && (
             <p className="text-xs text-muted-foreground text-center">
               Necesitas al menos ${minPayout} MXN para solicitar un pago
+            </p>
+          )}
+          
+          {(!profile.stripe_account_id || !profile.stripe_onboarding_completed) && (
+            <p className="text-xs text-orange-600 text-center font-medium">
+              Debes conectar tu cuenta de Stripe para poder retirar
             </p>
           )}
         </form>

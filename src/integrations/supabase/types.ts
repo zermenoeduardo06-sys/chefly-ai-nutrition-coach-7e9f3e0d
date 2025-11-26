@@ -180,6 +180,9 @@ export type Database = {
           pending_balance_mxn: number | null
           phone: string | null
           status: Database["public"]["Enums"]["affiliate_status"] | null
+          stripe_account_id: string | null
+          stripe_account_status: string | null
+          stripe_onboarding_completed: boolean | null
           tier_upgraded_at: string | null
           total_clicks: number | null
           total_conversions: number | null
@@ -211,6 +214,9 @@ export type Database = {
           pending_balance_mxn?: number | null
           phone?: string | null
           status?: Database["public"]["Enums"]["affiliate_status"] | null
+          stripe_account_id?: string | null
+          stripe_account_status?: string | null
+          stripe_onboarding_completed?: boolean | null
           tier_upgraded_at?: string | null
           total_clicks?: number | null
           total_conversions?: number | null
@@ -242,6 +248,9 @@ export type Database = {
           pending_balance_mxn?: number | null
           phone?: string | null
           status?: Database["public"]["Enums"]["affiliate_status"] | null
+          stripe_account_id?: string | null
+          stripe_account_status?: string | null
+          stripe_onboarding_completed?: boolean | null
           tier_upgraded_at?: string | null
           total_clicks?: number | null
           total_conversions?: number | null
