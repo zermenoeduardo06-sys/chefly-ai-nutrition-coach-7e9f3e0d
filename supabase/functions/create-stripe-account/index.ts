@@ -29,7 +29,7 @@ serve(async (req) => {
       .from("affiliate_profiles")
       .select("*")
       .eq("user_id", user.id)
-      .single();
+      .maybeSingle();
 
     if (profileError) throw profileError;
     if (!profile) throw new Error("Affiliate profile not found");
