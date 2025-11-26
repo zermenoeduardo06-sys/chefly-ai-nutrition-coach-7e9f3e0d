@@ -133,25 +133,32 @@ export const SubscriptionBanner = ({ userId, trialExpiresAt }: SubscriptionBanne
             <div className="space-y-2">
               <div className="flex items-center gap-3 flex-wrap">
                 <h3 className="text-xl font-semibold">
-                  {activePlan ? `Plan ${activePlan}` : "Periodo de Prueba"}
+                  {activePlan ? `Plan ${activePlan}` : "Periodo de Prueba Gratis"}
                 </h3>
-                {activePlan && (
-                  <Badge variant="default" className="bg-primary">
-                    Activo
+                {!activePlan && (
+                  <Badge variant="secondary" className="bg-primary/20 text-primary">
+                    Prueba Activa
                   </Badge>
                 )}
               </div>
               
               {isTrialActive && daysRemaining !== null && (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Clock className="h-4 w-4" />
-                  <span>
-                    {daysRemaining > 0 
-                      ? `${daysRemaining} ${daysRemaining === 1 ? "día restante" : "días restantes"} de prueba gratis`
-                      : "Tu periodo de prueba ha expirado"
-                    }
-                  </span>
-                </div>
+                <>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Clock className="h-4 w-4" />
+                    <span>
+                      {daysRemaining > 0 
+                        ? `${daysRemaining} ${daysRemaining === 1 ? "día restante" : "días restantes"} de prueba gratis`
+                        : "Tu periodo de prueba ha expirado"
+                      }
+                    </span>
+                  </div>
+                  {daysRemaining > 0 && (
+                    <p className="text-sm text-muted-foreground">
+                      💡 Puedes suscribirte ahora y disfrutar de todos los beneficios premium
+                    </p>
+                  )}
+                </>
               )}
 
               {!isTrialActive && activePlan && (
@@ -162,13 +169,15 @@ export const SubscriptionBanner = ({ userId, trialExpiresAt }: SubscriptionBanne
             </div>
           </div>
 
-          <Button 
-            variant={isExpiringSoon ? "default" : "outline"}
-            className={isExpiringSoon ? "bg-primary hover:bg-primary/90" : ""}
-            onClick={() => navigate("/pricing")}
-          >
-            {activePlan ? "Cambiar plan" : "Ver planes"}
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button 
+              variant={isExpiringSoon ? "default" : "outline"}
+              className={isExpiringSoon ? "bg-primary hover:bg-primary/90" : ""}
+              onClick={() => navigate("/pricing")}
+            >
+              {daysRemaining && daysRemaining > 0 ? "Suscribirme ahora" : "Ver planes"}
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
