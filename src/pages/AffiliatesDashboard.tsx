@@ -259,9 +259,18 @@ export default function AffiliatesDashboard() {
 
       <AffiliateTierProgress profile={affiliateProfile} />
 
-      <AffiliateStats profile={affiliateProfile} />
+      <AffiliateStats 
+        profile={affiliateProfile} 
+        onRequestPayout={() => {
+          // Scroll suave hacia la sección de solicitar pago
+          const payoutSection = document.querySelector('[data-payout-request]');
+          if (payoutSection) {
+            payoutSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }}
+      />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" data-payout-request>
         <AffiliateLinkGenerator affiliateCode={affiliateProfile.affiliate_code} />
         <AffiliatePayoutRequest profile={affiliateProfile} onSuccess={loadAffiliateProfile} />
       </div>
