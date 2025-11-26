@@ -15,6 +15,7 @@ import { ContactForm } from "@/components/ContactForm";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { useAffiliateTracking } from "@/hooks/useAffiliateTracking";
+import { AffiliatePromoBanner } from "@/components/AffiliatePromoBanner";
 
 interface SubscriptionPlan {
   id: string;
@@ -274,6 +275,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* Affiliate Promo Banner */}
+      <AffiliatePromoBanner />
 
       {/* How It Works Section */}
       <section className="py-20">
