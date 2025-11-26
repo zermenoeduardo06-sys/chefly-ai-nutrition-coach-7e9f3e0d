@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Loader2, ArrowLeft, Home } from "lucide-react";
+import { Loader2, ArrowLeft, Home, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import cheflyLogo from "@/assets/chefly-logo.png";
 import { AffiliateStats } from "@/components/affiliate/AffiliateStats";
@@ -236,6 +236,25 @@ export default function AffiliatesDashboard() {
               Código de Afiliado: <span className="font-mono font-semibold">{affiliateProfile.affiliate_code}</span>
             </p>
           </div>
+          <Button 
+            onClick={() => {
+              setLoading(true);
+              loadAffiliateProfile();
+              toast({
+                title: "Actualizando datos",
+                description: "Refrescando tu información de afiliado...",
+              });
+            }}
+            variant="outline"
+            disabled={loading}
+          >
+            {loading ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            ) : (
+              <TrendingUp className="h-4 w-4 mr-2" />
+            )}
+            Refrescar datos
+          </Button>
         </div>
 
       <AffiliateTierProgress profile={affiliateProfile} />
