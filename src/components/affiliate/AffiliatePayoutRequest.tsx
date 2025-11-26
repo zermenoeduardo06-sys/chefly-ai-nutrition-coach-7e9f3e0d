@@ -48,20 +48,37 @@ export function AffiliatePayoutRequest({ profile, onSuccess }: AffiliatePayoutRe
     setLoading(true);
 
     try {
-      const { error } = await supabase
+      const now = new Date().toISOString();
+
+      // Crear el payout automáticamente aprobado y completado
+      const { error: payoutError } = await supabase
         .from("affiliate_payouts")
         .insert({
           affiliate_id: profile.id,
           amount_mxn: requestAmount,
           payout_method: payoutMethod,
-          status: "pending",
+          status: "completed",
+          processed_at: now,
+          completed_at: now,
         });
 
-      if (error) throw error;
+      if (payoutError) throw payoutError;
+
+      // Actualizar el balance del afiliado
+      const { error: profileError } = await supabase
+        .from("affiliate_profiles")
+        .update({
+          pending_balance_mxn: availableBalance - requestAmount,
+          total_paid_mxn: (profile.total_paid_mxn || 0) + requestAmount,
+          last_payout_at: now,
+        })
+        .eq("id", profile.id);
+
+      if (profileError) throw profileError;
 
       toast({
-        title: "¡Solicitud enviada!",
-        description: "Tu solicitud de pago está siendo procesada",
+        title: "¡Pago procesado exitosamente!",
+        description: `Se ha procesado tu retiro de $${requestAmount.toFixed(2)} MXN. El pago será transferido a tu método de pago seleccionado.`,
       });
 
       setAmount("");
@@ -83,10 +100,10 @@ export function AffiliatePayoutRequest({ profile, onSuccess }: AffiliatePayoutRe
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <DollarSign className="h-5 w-5" />
-          Solicitar Pago
+          Retirar Saldo
         </CardTitle>
         <CardDescription>
-          Disponible: ${availableBalance.toFixed(2)} MXN
+          Disponible: ${availableBalance.toFixed(2)} MXN • Pago automático instantáneo
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -128,10 +145,10 @@ export function AffiliatePayoutRequest({ profile, onSuccess }: AffiliatePayoutRe
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Procesando...
+                Procesando pago...
               </>
             ) : (
-              "Solicitar Pago"
+              "Retirar ahora"
             )}
           </Button>
 
