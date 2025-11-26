@@ -97,7 +97,8 @@ const Pricing = () => {
       if (error) throw error;
 
       if (data.url) {
-        window.open(data.url, "_blank");
+        // En móvil, redirigir en la misma ventana para mejor UX
+        window.location.href = data.url;
       }
     } catch (error) {
       console.error("Error creating checkout:", error);
