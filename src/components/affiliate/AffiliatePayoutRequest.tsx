@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DollarSign, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface AffiliatePayoutRequestProps {
   profile: any;
@@ -15,6 +16,7 @@ interface AffiliatePayoutRequestProps {
 
 export function AffiliatePayoutRequest({ profile, onSuccess }: AffiliatePayoutRequestProps) {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [amount, setAmount] = useState("");
   const [payoutMethod, setPayoutMethod] = useState(profile.payout_method || "paypal");
@@ -29,8 +31,8 @@ export function AffiliatePayoutRequest({ profile, onSuccess }: AffiliatePayoutRe
     
     if (requestAmount < minPayout) {
       toast({
-        title: "Monto insuficiente",
-        description: `El monto mínimo de retiro es $${minPayout} MXN`,
+        title: t("affiliatePayoutRequest.insufficientAmount"),
+        description: `${t("affiliatePayoutRequest.insufficientAmountDesc")}${minPayout} MXN`,
         variant: "destructive",
       });
       return;
@@ -38,8 +40,8 @@ export function AffiliatePayoutRequest({ profile, onSuccess }: AffiliatePayoutRe
 
     if (requestAmount > availableBalance) {
       toast({
-        title: "Saldo insuficiente",
-        description: "No tienes suficiente saldo disponible",
+        title: t("affiliatePayoutRequest.insufficientBalance"),
+        description: t("affiliatePayoutRequest.insufficientBalanceDesc"),
         variant: "destructive",
       });
       return;
@@ -60,17 +62,17 @@ export function AffiliatePayoutRequest({ profile, onSuccess }: AffiliatePayoutRe
       if (error) throw error;
 
       toast({
-        title: "¡Solicitud enviada!",
-        description: `Tu solicitud de retiro por $${requestAmount.toFixed(2)} MXN ha sido enviada. Nuestro equipo la procesará en 1-3 días hábiles.`,
+        title: t("affiliatePayoutRequest.success"),
+        description: t("affiliatePayoutRequest.successDesc").replace("{{amount}}", requestAmount.toFixed(2)),
       });
 
       setAmount("");
       onSuccess();
     } catch (error: any) {
       console.error("Error requesting payout:", error);
-      const errorMsg = error?.message || "No se pudo procesar la solicitud";
+      const errorMsg = error?.message || t("affiliatePayoutRequest.error");
       toast({
-        title: "Error",
+        title: t("affiliatePayoutRequest.error"),
         description: errorMsg,
         variant: "destructive",
       });
@@ -84,16 +86,16 @@ export function AffiliatePayoutRequest({ profile, onSuccess }: AffiliatePayoutRe
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <DollarSign className="h-5 w-5" />
-          Retirar Saldo
+          {t("affiliatePayoutRequest.title")}
         </CardTitle>
         <CardDescription>
-          Disponible: ${availableBalance.toFixed(2)} MXN • Procesado en 1-3 días hábiles
+          {t("affiliatePayoutRequest.available")}: ${availableBalance.toFixed(2)} MXN • {t("affiliatePayoutRequest.processTime")}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="amount">Monto a Retirar (MXN)</Label>
+            <Label htmlFor="amount">{t("affiliatePayoutRequest.amount")}</Label>
             <Input
               id="amount"
               type="number"
@@ -102,21 +104,21 @@ export function AffiliatePayoutRequest({ profile, onSuccess }: AffiliatePayoutRe
               step="0.01"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              placeholder={`Mínimo $${minPayout}`}
+              placeholder={`${t("affiliatePayoutRequest.amountPlaceholder")}${minPayout}`}
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="method">Método de Pago</Label>
+            <Label htmlFor="method">{t("affiliatePayoutRequest.method")}</Label>
             <Select value={payoutMethod} onValueChange={setPayoutMethod}>
               <SelectTrigger id="method">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="paypal">PayPal</SelectItem>
-                <SelectItem value="bank_transfer">Transferencia Bancaria</SelectItem>
-                <SelectItem value="spei">SPEI</SelectItem>
+                <SelectItem value="paypal">{t("affiliatePayoutRequest.methodPaypal")}</SelectItem>
+                <SelectItem value="bank_transfer">{t("affiliatePayoutRequest.methodBank")}</SelectItem>
+                <SelectItem value="spei">{t("affiliatePayoutRequest.methodSpei")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -129,16 +131,16 @@ export function AffiliatePayoutRequest({ profile, onSuccess }: AffiliatePayoutRe
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Enviando solicitud...
+                {t("affiliatePayoutRequest.submitting")}
               </>
             ) : (
-              "Solicitar retiro"
+              t("affiliatePayoutRequest.submit")
             )}
           </Button>
 
           {availableBalance < minPayout && (
             <p className="text-xs text-muted-foreground text-center">
-              Necesitas al menos ${minPayout} MXN para solicitar un pago
+              {t("affiliatePayoutRequest.minRequired")} ${minPayout} MXN {t("affiliatePayoutRequest.minRequiredEnd")}
             </p>
           )}
         </form>
