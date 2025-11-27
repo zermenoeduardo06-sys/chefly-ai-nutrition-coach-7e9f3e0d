@@ -1,12 +1,15 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { CreditCard, CheckCircle2, AlertCircle } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface PayoutMethodSetupProps {
   profile: any;
 }
 
 export function PayoutMethodSetup({ profile }: PayoutMethodSetupProps) {
+  const { t } = useLanguage();
+  
   const hasPayoutMethod = profile.payout_method && (
     (profile.payout_method === "paypal" && profile.paypal_email) ||
     (profile.payout_method === "bank_transfer" && profile.bank_account && profile.bank_name) ||
@@ -16,7 +19,7 @@ export function PayoutMethodSetup({ profile }: PayoutMethodSetupProps) {
   const getMethodLabel = (method: string) => {
     switch (method) {
       case "paypal": return "PayPal";
-      case "bank_transfer": return "Transferencia Bancaria";
+      case "bank_transfer": return t("affiliatePayoutRequest.methodBank");
       case "spei": return "SPEI";
       default: return method;
     }
@@ -28,7 +31,7 @@ export function PayoutMethodSetup({ profile }: PayoutMethodSetupProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-primary">
             <CheckCircle2 className="h-5 w-5" />
-            Método de Pago Configurado
+            {t("affiliatePayoutMethod.configured")}
           </CardTitle>
           <CardDescription>
             {getMethodLabel(profile.payout_method)}
@@ -37,10 +40,9 @@ export function PayoutMethodSetup({ profile }: PayoutMethodSetupProps) {
         <CardContent>
           <Alert className="border-primary/20 bg-primary/10">
             <CheckCircle2 className="h-4 w-4 text-primary" />
-            <AlertTitle className="text-primary">¡Todo listo!</AlertTitle>
+            <AlertTitle className="text-primary">{t("affiliatePayoutMethod.allSet")}</AlertTitle>
             <AlertDescription>
-              Puedes solicitar retiros cuando tengas al menos $200 MXN disponibles.
-              Los pagos se procesarán manualmente por nuestro equipo dentro de 1-3 días hábiles.
+              {t("affiliatePayoutMethod.allSetDesc")}
             </AlertDescription>
           </Alert>
         </CardContent>
@@ -53,28 +55,27 @@ export function PayoutMethodSetup({ profile }: PayoutMethodSetupProps) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <CreditCard className="h-5 w-5" />
-          Configurar Método de Pago
+          {t("affiliatePayoutMethod.setup")}
         </CardTitle>
         <CardDescription>
-          Configura tu método de pago preferido para recibir comisiones
+          {t("affiliatePayoutMethod.setupDesc")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <Alert>
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Configuración requerida</AlertTitle>
+          <AlertTitle>{t("affiliatePayoutMethod.configRequired")}</AlertTitle>
           <AlertDescription>
-            Agrega tu información de pago al realizar tu primera solicitud de retiro.
-            Puedes elegir entre PayPal, transferencia bancaria o SPEI.
+            {t("affiliatePayoutMethod.configRequiredDesc")}
           </AlertDescription>
         </Alert>
         
         <div className="space-y-2">
-          <h4 className="font-medium">Métodos disponibles:</h4>
+          <h4 className="font-medium">{t("affiliatePayoutMethod.available")}</h4>
           <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-            <li>PayPal - Retiros rápidos</li>
-            <li>Transferencia Bancaria - A tu cuenta bancaria</li>
-            <li>SPEI - Transferencia instantánea en México</li>
+            <li>{t("affiliatePayoutMethod.paypal")}</li>
+            <li>{t("affiliatePayoutMethod.bankTransfer")}</li>
+            <li>{t("affiliatePayoutMethod.spei")}</li>
           </ul>
         </div>
       </CardContent>
