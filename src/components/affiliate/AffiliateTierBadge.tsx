@@ -1,5 +1,6 @@
 import { Award, Medal, Crown, Star, Gem } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const TIER_ICONS = {
   bronce: Award,
@@ -17,14 +18,6 @@ const TIER_COLORS = {
   diamante: "#B9F2FF",
 };
 
-const TIER_NAMES = {
-  bronce: "Bronce",
-  plata: "Plata",
-  oro: "Oro",
-  platino: "Platino",
-  diamante: "Diamante",
-};
-
 interface AffiliateTierBadgeProps {
   tier: keyof typeof TIER_ICONS;
   showIcon?: boolean;
@@ -32,9 +25,10 @@ interface AffiliateTierBadgeProps {
 }
 
 export function AffiliateTierBadge({ tier, showIcon = true, size = "md" }: AffiliateTierBadgeProps) {
+  const { t } = useLanguage();
   const Icon = TIER_ICONS[tier];
   const color = TIER_COLORS[tier];
-  const name = TIER_NAMES[tier];
+  const name = t(`affiliateTier.${tier}`);
 
   const sizeClasses = {
     sm: "text-xs px-2 py-0.5",
