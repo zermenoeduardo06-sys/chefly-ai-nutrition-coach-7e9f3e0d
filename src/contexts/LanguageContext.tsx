@@ -488,6 +488,13 @@ export const translations = {
     "affiliatePayoutRequest.success": "¡Solicitud enviada!",
     "affiliatePayoutRequest.successDesc": "Tu solicitud de retiro por ${{amount}} MXN ha sido enviada. Nuestro equipo la procesará en 1-3 días hábiles.",
     "affiliatePayoutRequest.error": "Error",
+
+    // Affiliate Tier Names
+    "affiliateTier.bronce": "Bronce",
+    "affiliateTier.plata": "Plata",
+    "affiliateTier.oro": "Oro",
+    "affiliateTier.platino": "Platino",
+    "affiliateTier.diamante": "Diamante",
   },
   en: {
     // Navigation
@@ -965,6 +972,13 @@ export const translations = {
     "affiliatePayoutRequest.success": "Request sent!",
     "affiliatePayoutRequest.successDesc": "Your withdrawal request for ${{amount}} MXN has been sent. Our team will process it within 1-3 business days.",
     "affiliatePayoutRequest.error": "Error",
+
+    // Affiliate Tier Names
+    "affiliateTier.bronce": "Bronze",
+    "affiliateTier.plata": "Silver",
+    "affiliateTier.oro": "Gold",
+    "affiliateTier.platino": "Platinum",
+    "affiliateTier.diamante": "Diamond",
   },
 };
 
