@@ -10,12 +10,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, X } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { motion } from "framer-motion";
 
 const Onboarding = () => {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   // Basic info
   const [goal, setGoal] = useState("");
@@ -41,48 +44,63 @@ const Onboarding = () => {
   const [additionalNotes, setAdditionalNotes] = useState("");
 
   const goals = [
-    { value: "lose_fat", label: "Bajar grasa" },
-    { value: "gain_muscle", label: "Ganar músculo" },
-    { value: "eat_healthy", label: "Comer saludable" },
-    { value: "save_money", label: "Comer barato" },
+    { value: "lose_fat", labelKey: "onboarding.goal.loseFat" },
+    { value: "gain_muscle", labelKey: "onboarding.goal.gainMuscle" },
+    { value: "eat_healthy", labelKey: "onboarding.goal.eatHealthy" },
+    { value: "save_money", labelKey: "onboarding.goal.saveMoney" },
   ];
 
   const diets = [
-    { value: "omnivore", label: "Omnívora" },
-    { value: "vegetarian", label: "Vegetariana" },
-    { value: "vegan", label: "Vegana" },
-    { value: "keto", label: "Keto" },
-    { value: "paleo", label: "Paleo" },
+    { value: "omnivore", labelKey: "onboarding.diet.omnivore" },
+    { value: "vegetarian", labelKey: "onboarding.diet.vegetarian" },
+    { value: "vegan", labelKey: "onboarding.diet.vegan" },
+    { value: "keto", labelKey: "onboarding.diet.keto" },
+    { value: "paleo", labelKey: "onboarding.diet.paleo" },
   ];
 
   const cookingSkills = [
-    { value: "beginner", label: "Principiante - Recetas simples" },
-    { value: "intermediate", label: "Intermedio - Puedo seguir la mayoría de recetas" },
-    { value: "advanced", label: "Avanzado - Me gusta cocinar platos complejos" },
+    { value: "beginner", labelKey: "onboarding.cooking.beginner" },
+    { value: "intermediate", labelKey: "onboarding.cooking.intermediate" },
+    { value: "advanced", labelKey: "onboarding.cooking.advanced" },
   ];
 
   const budgets = [
-    { value: "low", label: "Bajo - Ingredientes económicos" },
-    { value: "medium", label: "Medio - Balance entre precio y calidad" },
-    { value: "high", label: "Alto - Ingredientes premium" },
+    { value: "low", labelKey: "onboarding.budget.low" },
+    { value: "medium", labelKey: "onboarding.budget.medium" },
+    { value: "high", labelKey: "onboarding.budget.high" },
   ];
 
   const activityLevels = [
-    { value: "sedentary", label: "Sedentario - Poco o ningún ejercicio" },
-    { value: "light", label: "Ligero - Ejercicio 1-2 días/semana" },
-    { value: "moderate", label: "Moderado - Ejercicio 3-5 días/semana" },
-    { value: "active", label: "Activo - Ejercicio 6-7 días/semana" },
-    { value: "very_active", label: "Muy activo - Ejercicio intenso diario" },
+    { value: "sedentary", labelKey: "onboarding.activity.sedentary" },
+    { value: "light", labelKey: "onboarding.activity.light" },
+    { value: "moderate", labelKey: "onboarding.activity.moderate" },
+    { value: "active", labelKey: "onboarding.activity.active" },
+    { value: "very_active", labelKey: "onboarding.activity.veryActive" },
   ];
 
-  const flavors = ["Dulce", "Salado", "Picante", "Ácido", "Umami", "Amargo"];
+  const flavors = [
+    { value: "Dulce", labelKey: "onboarding.flavor.sweet" },
+    { value: "Salado", labelKey: "onboarding.flavor.salty" },
+    { value: "Picante", labelKey: "onboarding.flavor.spicy" },
+    { value: "Ácido", labelKey: "onboarding.flavor.sour" },
+    { value: "Umami", labelKey: "onboarding.flavor.umami" },
+    { value: "Amargo", labelKey: "onboarding.flavor.bitter" },
+  ];
   
-  const cuisines = ["Mexicana", "Italiana", "Asiática", "Mediterránea", "Americana", "Vegetariana", "Saludable"];
+  const cuisines = [
+    { value: "Mexicana", labelKey: "onboarding.cuisine.mexican" },
+    { value: "Italiana", labelKey: "onboarding.cuisine.italian" },
+    { value: "Asiática", labelKey: "onboarding.cuisine.asian" },
+    { value: "Mediterránea", labelKey: "onboarding.cuisine.mediterranean" },
+    { value: "Americana", labelKey: "onboarding.cuisine.american" },
+    { value: "Vegetariana", labelKey: "onboarding.cuisine.vegetarian" },
+    { value: "Saludable", labelKey: "onboarding.cuisine.healthy" },
+  ];
 
   const complexities = [
-    { value: "simple", label: "Simple - Pocos pasos y ingredientes" },
-    { value: "moderate", label: "Moderado - Recetas estándar" },
-    { value: "complex", label: "Complejo - Recetas elaboradas" },
+    { value: "simple", labelKey: "onboarding.complexitySimple" },
+    { value: "moderate", labelKey: "onboarding.complexityModerate" },
+    { value: "complex", labelKey: "onboarding.complexityComplex" },
   ];
 
   const addAllergy = () => {
@@ -93,8 +111,8 @@ const Onboarding = () => {
     if (trimmedInput.length > 100) {
       toast({
         variant: "destructive",
-        title: "Entrada muy larga",
-        description: "La alergia no puede tener más de 100 caracteres",
+        title: t("onboarding.allergies.tooLong"),
+        description: t("onboarding.allergies.tooLongDesc"),
       });
       return;
     }
@@ -103,8 +121,8 @@ const Onboarding = () => {
     if (!allergyRegex.test(trimmedInput)) {
       toast({
         variant: "destructive",
-        title: "Entrada inválida",
-        description: "Solo se permiten letras y espacios",
+        title: t("onboarding.allergies.invalid"),
+        description: t("onboarding.allergies.invalidDesc"),
       });
       return;
     }
@@ -126,8 +144,8 @@ const Onboarding = () => {
     if (trimmedInput.length > 100) {
       toast({
         variant: "destructive",
-        title: "Entrada muy larga",
-        description: "El ingrediente no puede tener más de 100 caracteres",
+        title: t("onboarding.allergies.tooLong"),
+        description: t("onboarding.allergies.tooLongDesc"),
       });
       return;
     }
@@ -136,8 +154,8 @@ const Onboarding = () => {
     if (!regex.test(trimmedInput)) {
       toast({
         variant: "destructive",
-        title: "Entrada inválida",
-        description: "Solo se permiten letras y espacios",
+        title: t("onboarding.allergies.invalid"),
+        description: t("onboarding.allergies.invalidDesc"),
       });
       return;
     }
@@ -152,19 +170,19 @@ const Onboarding = () => {
     setDislikes(dislikes.filter((d) => d !== dislike));
   };
 
-  const toggleFlavor = (flavor: string) => {
-    if (flavorPreferences.includes(flavor)) {
-      setFlavorPreferences(flavorPreferences.filter(f => f !== flavor));
+  const toggleFlavor = (value: string) => {
+    if (flavorPreferences.includes(value)) {
+      setFlavorPreferences(flavorPreferences.filter(f => f !== value));
     } else {
-      setFlavorPreferences([...flavorPreferences, flavor]);
+      setFlavorPreferences([...flavorPreferences, value]);
     }
   };
 
-  const toggleCuisine = (cuisine: string) => {
-    if (preferredCuisines.includes(cuisine)) {
-      setPreferredCuisines(preferredCuisines.filter(c => c !== cuisine));
+  const toggleCuisine = (value: string) => {
+    if (preferredCuisines.includes(value)) {
+      setPreferredCuisines(preferredCuisines.filter(c => c !== value));
     } else {
-      setPreferredCuisines([...preferredCuisines, cuisine]);
+      setPreferredCuisines([...preferredCuisines, value]);
     }
   };
 
@@ -172,8 +190,8 @@ const Onboarding = () => {
     if (!goal || !dietType) {
       toast({
         variant: "destructive",
-        title: "Campos requeridos",
-        description: "Por favor completa todos los campos obligatorios",
+        title: t("onboarding.toast.requiredFields"),
+        description: t("onboarding.toast.requiredFieldsDesc"),
       });
       return;
     }
@@ -231,8 +249,8 @@ const Onboarding = () => {
       }
 
       toast({
-        title: "¡Perfecto!",
-        description: "Generando tu primer menú semanal personalizado...",
+        title: t("onboarding.toast.perfect"),
+        description: t("onboarding.toast.generating"),
       });
 
       // Generate the first meal plan automatically
@@ -244,13 +262,13 @@ const Onboarding = () => {
         console.error("Error generating meal plan:", functionError);
         toast({
           variant: "destructive",
-          title: "Error al generar el menú",
-          description: "Podrás generarlo manualmente desde el dashboard",
+          title: t("onboarding.toast.errorGenerating"),
+          description: t("onboarding.toast.errorGeneratingDesc"),
         });
       } else {
         toast({
-          title: "¡Menú creado!",
-          description: "Tu plan semanal personalizado está listo",
+          title: t("onboarding.toast.created"),
+          description: t("onboarding.toast.createdDesc"),
         });
       }
 
@@ -259,7 +277,7 @@ const Onboarding = () => {
       console.error("Onboarding error:", error);
       toast({
         variant: "destructive",
-        title: "Error",
+        title: t("onboarding.toast.error"),
         description: error.message,
       });
     } finally {
@@ -270,90 +288,145 @@ const Onboarding = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
-        <div className="text-center mb-8">
+        <motion.div 
+          className="text-center mb-8"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
           <h1 className="text-4xl font-bold mb-2">
             <span className="bg-gradient-to-r from-primary to-primary-hover bg-clip-text text-transparent">
-              Personaliza tu experiencia
+              {t("onboarding.title")}
             </span>
           </h1>
           <p className="text-muted-foreground">
-            Cuéntanos sobre ti para crear tu plan perfecto
+            {t("onboarding.subtitle")}
           </p>
-        </div>
+        </motion.div>
 
-        <Card className="shadow-xl border-border/50">
-          <CardHeader>
-            <CardTitle>Paso {step} de 10</CardTitle>
-            <CardDescription>
-              Esta información nos ayudará a personalizar tus menús
-            </CardDescription>
-          </CardHeader>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <Card className="shadow-xl border-border/50">
+            <CardHeader>
+              <CardTitle>{t("onboarding.step", { current: step, total: 10 })}</CardTitle>
+              <CardDescription>
+                {t("onboarding.description")}
+              </CardDescription>
+            </CardHeader>
           <CardContent className="space-y-6">
             {/* Step 1: Goal */}
             {step === 1 && (
-              <div className="space-y-4">
-                <Label className="text-lg font-semibold">¿Cuál es tu objetivo principal?</Label>
+              <motion.div 
+                className="space-y-4"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Label className="text-lg font-semibold">{t("onboarding.goal.title")}</Label>
                 <RadioGroup value={goal} onValueChange={setGoal}>
                   {goals.map((g) => (
-                    <div key={g.value} className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors">
+                    <motion.div 
+                      key={g.value} 
+                      className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-all"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      animate={goal === g.value ? { scale: 1.02, borderColor: "hsl(var(--primary))" } : {}}
+                      transition={{ duration: 0.2 }}
+                    >
                       <RadioGroupItem value={g.value} id={g.value} />
                       <Label htmlFor={g.value} className="cursor-pointer flex-1 text-base">
-                        {g.label}
+                        {t(g.labelKey)}
                       </Label>
-                    </div>
+                    </motion.div>
                   ))}
                 </RadioGroup>
-              </div>
+              </motion.div>
             )}
 
             {/* Step 2: Diet Type */}
             {step === 2 && (
-              <div className="space-y-4">
-                <Label className="text-lg font-semibold">¿Qué tipo de dieta prefieres?</Label>
+              <motion.div 
+                className="space-y-4"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Label className="text-lg font-semibold">{t("onboarding.diet.title")}</Label>
                 <RadioGroup value={dietType} onValueChange={setDietType}>
                   {diets.map((d) => (
-                    <div key={d.value} className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors">
+                    <motion.div 
+                      key={d.value} 
+                      className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-all"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      animate={dietType === d.value ? { scale: 1.02, borderColor: "hsl(var(--primary))" } : {}}
+                      transition={{ duration: 0.2 }}
+                    >
                       <RadioGroupItem value={d.value} id={d.value} />
                       <Label htmlFor={d.value} className="cursor-pointer flex-1 text-base">
-                        {d.label}
+                        {t(d.labelKey)}
                       </Label>
-                    </div>
+                    </motion.div>
                   ))}
                 </RadioGroup>
-              </div>
+              </motion.div>
             )}
 
             {/* Step 3: Activity Level */}
             {step === 3 && (
-              <div className="space-y-4">
-                <Label className="text-lg font-semibold">¿Cuál es tu nivel de actividad física?</Label>
-                <p className="text-sm text-muted-foreground">Esto nos ayuda a calcular mejor tus necesidades calóricas</p>
+              <motion.div 
+                className="space-y-4"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Label className="text-lg font-semibold">{t("onboarding.activity.title")}</Label>
+                <p className="text-sm text-muted-foreground">{t("onboarding.activity.description")}</p>
                 <RadioGroup value={activityLevel} onValueChange={setActivityLevel}>
                   {activityLevels.map((level) => (
-                    <div key={level.value} className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors">
+                    <motion.div 
+                      key={level.value} 
+                      className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-all"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      animate={activityLevel === level.value ? { scale: 1.02, borderColor: "hsl(var(--primary))" } : {}}
+                      transition={{ duration: 0.2 }}
+                    >
                       <RadioGroupItem value={level.value} id={level.value} />
                       <Label htmlFor={level.value} className="cursor-pointer flex-1 text-base">
-                        {level.label}
+                        {t(level.labelKey)}
                       </Label>
-                    </div>
+                    </motion.div>
                   ))}
                 </RadioGroup>
-              </div>
+              </motion.div>
             )}
 
             {/* Step 4: Personal Info (Optional) */}
             {step === 4 && (
-              <div className="space-y-4">
-                <Label className="text-lg font-semibold">Información personal (opcional)</Label>
-                <p className="text-sm text-muted-foreground">Esto nos ayuda a calcular mejor tus necesidades nutricionales</p>
+              <motion.div 
+                className="space-y-4"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Label className="text-lg font-semibold">{t("onboarding.personal.title")}</Label>
+                <p className="text-sm text-muted-foreground">{t("onboarding.personal.description")}</p>
                 
                 <div className="space-y-3">
                   <div>
-                    <Label htmlFor="age">Edad</Label>
+                    <Label htmlFor="age">{t("onboarding.personal.age")}</Label>
                     <Input
                       id="age"
                       type="number"
-                      placeholder="Ej: 25"
+                      placeholder={t("onboarding.personal.agePlaceholder")}
                       value={age}
                       onChange={(e) => setAge(e.target.value)}
                       min="10"
@@ -362,11 +435,11 @@ const Onboarding = () => {
                   </div>
                   
                   <div>
-                    <Label htmlFor="weight">Peso (kg)</Label>
+                    <Label htmlFor="weight">{t("onboarding.personal.weight")}</Label>
                     <Input
                       id="weight"
                       type="number"
-                      placeholder="Ej: 70"
+                      placeholder={t("onboarding.personal.weightPlaceholder")}
                       value={weight}
                       onChange={(e) => setWeight(e.target.value)}
                       min="30"
@@ -375,220 +448,339 @@ const Onboarding = () => {
                   </div>
                   
                   <div>
-                    <Label className="text-base">Género</Label>
+                    <Label className="text-base">{t("onboarding.personal.gender")}</Label>
                     <RadioGroup value={gender} onValueChange={setGender}>
-                      <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors">
+                      <motion.div 
+                        className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-all"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        animate={gender === "male" ? { scale: 1.02 } : {}}
+                      >
                         <RadioGroupItem value="male" id="male" />
-                        <Label htmlFor="male" className="cursor-pointer flex-1">Masculino</Label>
-                      </div>
-                      <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors">
+                        <Label htmlFor="male" className="cursor-pointer flex-1">{t("onboarding.personal.male")}</Label>
+                      </motion.div>
+                      <motion.div 
+                        className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-all"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        animate={gender === "female" ? { scale: 1.02 } : {}}
+                      >
                         <RadioGroupItem value="female" id="female" />
-                        <Label htmlFor="female" className="cursor-pointer flex-1">Femenino</Label>
-                      </div>
-                      <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors">
+                        <Label htmlFor="female" className="cursor-pointer flex-1">{t("onboarding.personal.female")}</Label>
+                      </motion.div>
+                      <motion.div 
+                        className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-all"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        animate={gender === "other" ? { scale: 1.02 } : {}}
+                      >
                         <RadioGroupItem value="other" id="other" />
-                        <Label htmlFor="other" className="cursor-pointer flex-1">Otro</Label>
-                      </div>
+                        <Label htmlFor="other" className="cursor-pointer flex-1">{t("onboarding.personal.other")}</Label>
+                      </motion.div>
                     </RadioGroup>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             )}
 
             {/* Step 5: Cooking Skill */}
             {step === 5 && (
-              <div className="space-y-4">
-                <Label className="text-lg font-semibold">¿Cuál es tu nivel de experiencia cocinando?</Label>
+              <motion.div 
+                className="space-y-4"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Label className="text-lg font-semibold">{t("onboarding.cooking.title")}</Label>
                 <RadioGroup value={cookingSkill} onValueChange={setCookingSkill}>
                   {cookingSkills.map((skill) => (
-                    <div key={skill.value} className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors">
+                    <motion.div 
+                      key={skill.value} 
+                      className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-all"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      animate={cookingSkill === skill.value ? { scale: 1.02, borderColor: "hsl(var(--primary))" } : {}}
+                      transition={{ duration: 0.2 }}
+                    >
                       <RadioGroupItem value={skill.value} id={skill.value} />
                       <Label htmlFor={skill.value} className="cursor-pointer flex-1 text-base">
-                        {skill.label}
+                        {t(skill.labelKey)}
                       </Label>
-                    </div>
+                    </motion.div>
                   ))}
                 </RadioGroup>
-              </div>
+              </motion.div>
             )}
 
             {/* Step 6: Budget & Time */}
             {step === 6 && (
-              <div className="space-y-6">
+              <motion.div 
+                className="space-y-6"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
                 <div className="space-y-4">
-                  <Label className="text-lg font-semibold">¿Cuál es tu presupuesto para comida?</Label>
+                  <Label className="text-lg font-semibold">{t("onboarding.budget.title")}</Label>
                   <RadioGroup value={budget} onValueChange={setBudget}>
                     {budgets.map((b) => (
-                      <div key={b.value} className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors">
+                      <motion.div 
+                        key={b.value} 
+                        className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-all"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        animate={budget === b.value ? { scale: 1.02, borderColor: "hsl(var(--primary))" } : {}}
+                        transition={{ duration: 0.2 }}
+                      >
                         <RadioGroupItem value={b.value} id={b.value} />
                         <Label htmlFor={b.value} className="cursor-pointer flex-1 text-base">
-                          {b.label}
+                          {t(b.labelKey)}
                         </Label>
-                      </div>
+                      </motion.div>
                     ))}
                   </RadioGroup>
                 </div>
 
                 <div className="space-y-4">
-                  <Label className="text-base font-semibold">¿Cuánto tiempo puedes cocinar por comida? (minutos)</Label>
+                  <Label className="text-base font-semibold">{t("onboarding.time.title")}</Label>
                   <RadioGroup value={cookingTime} onValueChange={setCookingTime}>
                     {["15", "30", "45", "60"].map((time) => (
-                      <div key={time} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors">
+                      <motion.div 
+                        key={time} 
+                        className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-all"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        animate={cookingTime === time ? { scale: 1.02 } : {}}
+                      >
                         <RadioGroupItem value={time} id={`time-${time}`} />
                         <Label htmlFor={`time-${time}`} className="cursor-pointer flex-1">
-                          {time} minutos
+                          {t("onboarding.time.minutes", { time })}
                         </Label>
-                      </div>
+                      </motion.div>
                     ))}
                   </RadioGroup>
                 </div>
-              </div>
+              </motion.div>
             )}
 
             {/* Step 7: Meals & Servings */}
             {step === 7 && (
-              <div className="space-y-6">
+              <motion.div 
+                className="space-y-6"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
                 <div className="space-y-4">
-                  <Label className="text-lg font-semibold">¿Cuántas comidas haces al día?</Label>
+                  <Label className="text-lg font-semibold">{t("onboarding.meals.title")}</Label>
                   <RadioGroup value={mealsPerDay} onValueChange={setMealsPerDay}>
                     {["2", "3", "4", "5"].map((num) => (
-                      <div key={num} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors">
+                      <motion.div 
+                        key={num} 
+                        className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-all"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        animate={mealsPerDay === num ? { scale: 1.02 } : {}}
+                      >
                         <RadioGroupItem value={num} id={`meals-${num}`} />
                         <Label htmlFor={`meals-${num}`} className="cursor-pointer flex-1">
-                          {num} comidas
+                          {t("onboarding.meals.count", { count: num })}
                         </Label>
-                      </div>
+                      </motion.div>
                     ))}
                   </RadioGroup>
                 </div>
 
                 <div className="space-y-4">
-                  <Label className="text-base font-semibold">¿Para cuántas personas cocinas?</Label>
+                  <Label className="text-base font-semibold">{t("onboarding.servings.title")}</Label>
                   <RadioGroup value={servings} onValueChange={setServings}>
                     {["1", "2", "3", "4", "5+"].map((num) => (
-                      <div key={num} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors">
+                      <motion.div 
+                        key={num} 
+                        className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-all"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        animate={servings === (num === "5+" ? "5" : num) ? { scale: 1.02 } : {}}
+                      >
                         <RadioGroupItem value={num === "5+" ? "5" : num} id={`servings-${num}`} />
                         <Label htmlFor={`servings-${num}`} className="cursor-pointer flex-1">
-                          {num} {num === "1" ? "persona" : "personas"}
+                          {num === "1" ? t("onboarding.servings.person", { count: num }) : t("onboarding.servings.people", { count: num })}
                         </Label>
-                      </div>
+                      </motion.div>
                     ))}
                   </RadioGroup>
                 </div>
 
                 <div className="space-y-4">
-                  <Label className="text-base font-semibold">Complejidad de las recetas</Label>
+                  <Label className="text-base font-semibold">{t("onboarding.complexityTitle")}</Label>
                   <RadioGroup value={mealComplexity} onValueChange={setMealComplexity}>
                     {complexities.map((c) => (
-                      <div key={c.value} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors">
+                      <motion.div 
+                        key={c.value} 
+                        className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-all"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        animate={mealComplexity === c.value ? { scale: 1.02 } : {}}
+                      >
                         <RadioGroupItem value={c.value} id={c.value} />
                         <Label htmlFor={c.value} className="cursor-pointer flex-1">
-                          {c.label}
+                          {t(c.labelKey)}
                         </Label>
-                      </div>
+                      </motion.div>
                     ))}
                   </RadioGroup>
                 </div>
-              </div>
+              </motion.div>
             )}
 
             {/* Step 8: Flavor Preferences */}
             {step === 8 && (
-              <div className="space-y-4">
-                <Label className="text-lg font-semibold">¿Qué sabores te gustan?</Label>
-                <p className="text-sm text-muted-foreground">Selecciona todos los que apliquen</p>
+              <motion.div 
+                className="space-y-4"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Label className="text-lg font-semibold">{t("onboarding.flavors.title")}</Label>
+                <p className="text-sm text-muted-foreground">{t("onboarding.flavors.description")}</p>
                 <div className="grid grid-cols-2 gap-3">
                   {flavors.map((flavor) => (
-                    <Badge
-                      key={flavor}
-                      variant={flavorPreferences.includes(flavor) ? "default" : "outline"}
-                      className="px-4 py-3 text-sm cursor-pointer justify-center hover:opacity-80 transition-opacity"
-                      onClick={() => toggleFlavor(flavor)}
+                    <motion.div
+                      key={flavor.value}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      animate={flavorPreferences.includes(flavor.value) ? { scale: 1.05 } : { scale: 1 }}
+                      transition={{ duration: 0.2 }}
                     >
-                      {flavor}
-                    </Badge>
+                      <Badge
+                        variant={flavorPreferences.includes(flavor.value) ? "default" : "outline"}
+                        className="px-4 py-3 text-sm cursor-pointer justify-center w-full transition-colors"
+                        onClick={() => toggleFlavor(flavor.value)}
+                      >
+                        {t(flavor.labelKey)}
+                      </Badge>
+                    </motion.div>
                   ))}
                 </div>
-              </div>
+              </motion.div>
             )}
 
             {/* Step 9: Cuisine Preferences */}
             {step === 9 && (
-              <div className="space-y-4">
-                <Label className="text-lg font-semibold">¿Qué tipos de cocina prefieres?</Label>
-                <p className="text-sm text-muted-foreground">Selecciona todos los que te gusten</p>
+              <motion.div 
+                className="space-y-4"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Label className="text-lg font-semibold">{t("onboarding.cuisines.title")}</Label>
+                <p className="text-sm text-muted-foreground">{t("onboarding.cuisines.description")}</p>
                 <div className="grid grid-cols-2 gap-3">
                   {cuisines.map((cuisine) => (
-                    <Badge
-                      key={cuisine}
-                      variant={preferredCuisines.includes(cuisine) ? "default" : "outline"}
-                      className="px-4 py-3 text-sm cursor-pointer justify-center hover:opacity-80 transition-opacity"
-                      onClick={() => toggleCuisine(cuisine)}
+                    <motion.div
+                      key={cuisine.value}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      animate={preferredCuisines.includes(cuisine.value) ? { scale: 1.05 } : { scale: 1 }}
+                      transition={{ duration: 0.2 }}
                     >
-                      {cuisine}
-                    </Badge>
+                      <Badge
+                        variant={preferredCuisines.includes(cuisine.value) ? "default" : "outline"}
+                        className="px-4 py-3 text-sm cursor-pointer justify-center w-full transition-colors"
+                        onClick={() => toggleCuisine(cuisine.value)}
+                      >
+                        {t(cuisine.labelKey)}
+                      </Badge>
+                    </motion.div>
                   ))}
                 </div>
-              </div>
+              </motion.div>
             )}
 
             {/* Step 10: Allergies & Dislikes */}
             {step === 10 && (
-              <div className="space-y-6">
+              <motion.div 
+                className="space-y-6"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
                 <div className="space-y-4">
-                  <Label className="text-lg font-semibold">¿Tienes alergias?</Label>
-                  <p className="text-sm text-muted-foreground">Nos ayuda a evitar estos ingredientes</p>
+                  <Label className="text-lg font-semibold">{t("onboarding.allergies.title")}</Label>
+                  <p className="text-sm text-muted-foreground">{t("onboarding.allergies.description")}</p>
                   <div className="flex gap-2">
                     <Input
-                      placeholder="Ej: Lactosa, gluten, nueces..."
+                      placeholder={t("onboarding.allergies.placeholder")}
                       value={allergyInput}
                       onChange={(e) => setAllergyInput(e.target.value)}
                       onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addAllergy())}
                     />
-                    <Button type="button" onClick={addAllergy} variant="outline">Agregar</Button>
+                    <Button type="button" onClick={addAllergy} variant="outline">{t("onboarding.allergies.add")}</Button>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {allergies.map((allergy) => (
-                      <Badge key={allergy} variant="secondary" className="px-3 py-1 text-sm">
-                        {allergy}
-                        <X
-                          className="ml-2 h-3 w-3 cursor-pointer"
-                          onClick={() => removeAllergy(allergy)}
-                        />
-                      </Badge>
+                      <motion.div
+                        key={allergy}
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        exit={{ scale: 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <Badge variant="secondary" className="px-3 py-1 text-sm">
+                          {allergy}
+                          <X
+                            className="ml-2 h-3 w-3 cursor-pointer"
+                            onClick={() => removeAllergy(allergy)}
+                          />
+                        </Badge>
+                      </motion.div>
                     ))}
                   </div>
                 </div>
 
                 <div className="space-y-4">
-                  <Label className="text-base font-semibold">¿Hay ingredientes que no te gusten?</Label>
-                  <p className="text-sm text-muted-foreground">Opcional - Nos ayuda a personalizar mejor</p>
+                  <Label className="text-base font-semibold">{t("onboarding.dislikes.title")}</Label>
+                  <p className="text-sm text-muted-foreground">{t("onboarding.dislikes.description")}</p>
                   <div className="flex gap-2">
                     <Input
-                      placeholder="Ej: Brócoli, cilantro, champiñones..."
+                      placeholder={t("onboarding.dislikes.placeholder")}
                       value={dislikeInput}
                       onChange={(e) => setDislikeInput(e.target.value)}
                       onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addDislike())}
                     />
-                    <Button type="button" onClick={addDislike} variant="outline">Agregar</Button>
+                    <Button type="button" onClick={addDislike} variant="outline">{t("onboarding.allergies.add")}</Button>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {dislikes.map((dislike) => (
-                      <Badge key={dislike} variant="secondary" className="px-3 py-1 text-sm">
-                        {dislike}
-                        <X
-                          className="ml-2 h-3 w-3 cursor-pointer"
-                          onClick={() => removeDislike(dislike)}
-                        />
-                      </Badge>
+                      <motion.div
+                        key={dislike}
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        exit={{ scale: 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <Badge variant="secondary" className="px-3 py-1 text-sm">
+                          {dislike}
+                          <X
+                            className="ml-2 h-3 w-3 cursor-pointer"
+                            onClick={() => removeDislike(dislike)}
+                          />
+                        </Badge>
+                      </motion.div>
                     ))}
                   </div>
                 </div>
 
                 <div className="space-y-4">
-                  <Label className="text-base font-semibold">Comentarios adicionales (opcional)</Label>
+                  <Label className="text-base font-semibold">{t("onboarding.notes.title")}</Label>
                   <Textarea
-                    placeholder="¿Algo más que debamos saber? Ej: Horarios preferidos, alimentos favoritos, etc."
+                    placeholder={t("onboarding.notes.placeholder")}
                     value={additionalNotes}
                     onChange={(e) => setAdditionalNotes(e.target.value)}
                     maxLength={500}
@@ -596,7 +788,7 @@ const Onboarding = () => {
                   />
                   <p className="text-xs text-muted-foreground text-right">{additionalNotes.length}/500</p>
                 </div>
-              </div>
+              </motion.div>
             )}
 
             <div className="flex gap-3 pt-6">
@@ -607,7 +799,7 @@ const Onboarding = () => {
                   disabled={loading}
                   className="flex-1"
                 >
-                  Atrás
+                  {t("onboarding.buttons.back")}
                 </Button>
               )}
               {step < 10 ? (
@@ -617,7 +809,7 @@ const Onboarding = () => {
                   className="flex-1"
                   variant="hero"
                 >
-                  Siguiente
+                  {t("onboarding.buttons.next")}
                 </Button>
               ) : (
                 <Button
@@ -629,16 +821,17 @@ const Onboarding = () => {
                   {loading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Guardando...
+                      {t("onboarding.buttons.creating")}
                     </>
                   ) : (
-                    "Crear mi plan personalizado"
+                    t("onboarding.buttons.create")
                   )}
                 </Button>
               )}
             </div>
           </CardContent>
         </Card>
+        </motion.div>
       </div>
     </div>
   );
