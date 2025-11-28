@@ -5,7 +5,7 @@ type Language = "es" | "en";
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
   getArray: (key: string) => string[];
 }
 
@@ -195,15 +195,8 @@ export const translations = {
     "dashboard.limitReachedDesc": "Has alcanzado el límite de {{limit}} planes mensuales. Actualiza al plan Intermedio para planes ilimitados.",
     "dashboard.upgradePlan": "Actualizar Plan",
     
-    // Onboarding
-    "onboarding.step": "Paso {{current}} de {{total}}",
     "onboarding.basicInfo": "Información Básica",
-    "onboarding.goal": "¿Cuál es tu objetivo principal?",
     "onboarding.goalDesc": "Esto nos ayudará a personalizar tu plan",
-    "onboarding.goals.lose_fat": "Bajar grasa",
-    "onboarding.goals.gain_muscle": "Ganar músculo",
-    "onboarding.goals.eat_healthy": "Comer saludable",
-    "onboarding.goals.save_money": "Comer barato",
     "onboarding.dietType": "¿Qué tipo de dieta sigues?",
     "onboarding.diets.omnivore": "Omnívora",
     "onboarding.diets.vegetarian": "Vegetariana",
@@ -495,6 +488,115 @@ export const translations = {
     "affiliateTier.oro": "Oro",
     "affiliateTier.platino": "Platino",
     "affiliateTier.diamante": "Diamante",
+
+    // Onboarding
+    "onboarding.title": "Personaliza tu experiencia",
+    "onboarding.subtitle": "Cuéntanos sobre ti para crear tu plan perfecto",
+    "onboarding.step": "Paso {{current}} de {{total}}",
+    "onboarding.description": "Esta información nos ayudará a personalizar tus menús",
+    
+    "onboarding.goal.title": "¿Cuál es tu objetivo principal?",
+    "onboarding.goal.loseFat": "Bajar grasa",
+    "onboarding.goal.gainMuscle": "Ganar músculo",
+    "onboarding.goal.eatHealthy": "Comer saludable",
+    "onboarding.goal.saveMoney": "Comer barato",
+    
+    "onboarding.diet.title": "¿Qué tipo de dieta prefieres?",
+    "onboarding.diet.omnivore": "Omnívora",
+    "onboarding.diet.vegetarian": "Vegetariana",
+    "onboarding.diet.vegan": "Vegana",
+    "onboarding.diet.keto": "Keto",
+    "onboarding.diet.paleo": "Paleo",
+    
+    "onboarding.activity.title": "¿Cuál es tu nivel de actividad física?",
+    "onboarding.activity.description": "Esto nos ayuda a calcular mejor tus necesidades calóricas",
+    "onboarding.activity.sedentary": "Sedentario - Poco o ningún ejercicio",
+    "onboarding.activity.light": "Ligero - Ejercicio 1-2 días/semana",
+    "onboarding.activity.moderate": "Moderado - Ejercicio 3-5 días/semana",
+    "onboarding.activity.active": "Activo - Ejercicio 6-7 días/semana",
+    "onboarding.activity.veryActive": "Muy activo - Ejercicio intenso diario",
+    
+    "onboarding.personal.title": "Información personal (opcional)",
+    "onboarding.personal.description": "Esto nos ayuda a calcular mejor tus necesidades nutricionales",
+    "onboarding.personal.age": "Edad",
+    "onboarding.personal.agePlaceholder": "Ej: 25",
+    "onboarding.personal.weight": "Peso (kg)",
+    "onboarding.personal.weightPlaceholder": "Ej: 70",
+    "onboarding.personal.gender": "Género",
+    "onboarding.personal.male": "Masculino",
+    "onboarding.personal.female": "Femenino",
+    "onboarding.personal.other": "Otro",
+    
+    "onboarding.cooking.title": "¿Cuál es tu nivel de experiencia cocinando?",
+    "onboarding.cooking.beginner": "Principiante - Recetas simples",
+    "onboarding.cooking.intermediate": "Intermedio - Puedo seguir la mayoría de recetas",
+    "onboarding.cooking.advanced": "Avanzado - Me gusta cocinar platos complejos",
+    
+    "onboarding.budget.title": "¿Cuál es tu presupuesto para comida?",
+    "onboarding.budget.low": "Bajo - Ingredientes económicos",
+    "onboarding.budget.medium": "Medio - Balance entre precio y calidad",
+    "onboarding.budget.high": "Alto - Ingredientes premium",
+    "onboarding.time.title": "¿Cuánto tiempo puedes cocinar por comida? (minutos)",
+    "onboarding.time.minutes": "{{time}} minutos",
+    
+    "onboarding.meals.title": "¿Cuántas comidas haces al día?",
+    "onboarding.meals.count": "{{count}} comidas",
+    "onboarding.servings.title": "¿Para cuántas personas cocinas?",
+    "onboarding.servings.person": "{{count}} persona",
+    "onboarding.servings.people": "{{count}} personas",
+    "onboarding.complexityTitle": "Complejidad de las recetas",
+    "onboarding.complexitySimple": "Simple - Pocos pasos y ingredientes",
+    "onboarding.complexityModerate": "Moderado - Recetas estándar",
+    "onboarding.complexityComplex": "Complejo - Recetas elaboradas",
+    
+    "onboarding.flavors.title": "¿Qué sabores te gustan?",
+    "onboarding.flavors.description": "Selecciona todos los que apliquen",
+    "onboarding.flavor.sweet": "Dulce",
+    "onboarding.flavor.salty": "Salado",
+    "onboarding.flavor.spicy": "Picante",
+    "onboarding.flavor.sour": "Ácido",
+    "onboarding.flavor.umami": "Umami",
+    "onboarding.flavor.bitter": "Amargo",
+    
+    "onboarding.cuisines.title": "¿Qué tipos de cocina prefieres?",
+    "onboarding.cuisines.description": "Selecciona todos los que te gusten",
+    "onboarding.cuisine.mexican": "Mexicana",
+    "onboarding.cuisine.italian": "Italiana",
+    "onboarding.cuisine.asian": "Asiática",
+    "onboarding.cuisine.mediterranean": "Mediterránea",
+    "onboarding.cuisine.american": "Americana",
+    "onboarding.cuisine.vegetarian": "Vegetariana",
+    "onboarding.cuisine.healthy": "Saludable",
+    
+    "onboarding.allergies.title": "¿Tienes alergias?",
+    "onboarding.allergies.description": "Nos ayuda a evitar estos ingredientes",
+    "onboarding.allergies.placeholder": "Ej: Lactosa, gluten, nueces...",
+    "onboarding.allergies.add": "Agregar",
+    "onboarding.allergies.tooLong": "Entrada muy larga",
+    "onboarding.allergies.tooLongDesc": "La alergia no puede tener más de 100 caracteres",
+    "onboarding.allergies.invalid": "Entrada inválida",
+    "onboarding.allergies.invalidDesc": "Solo se permiten letras y espacios",
+    
+    "onboarding.dislikes.title": "¿Hay ingredientes que no te gusten?",
+    "onboarding.dislikes.description": "Opcional - Nos ayuda a personalizar mejor",
+    "onboarding.dislikes.placeholder": "Ej: Brócoli, cilantro, champiñones...",
+    "onboarding.notes.title": "Comentarios adicionales (opcional)",
+    "onboarding.notes.placeholder": "¿Algo más que debamos saber? Ej: Horarios preferidos, alimentos favoritos, etc.",
+    
+    "onboarding.buttons.back": "Atrás",
+    "onboarding.buttons.next": "Siguiente",
+    "onboarding.buttons.creating": "Guardando...",
+    "onboarding.buttons.create": "Crear mi plan personalizado",
+    
+    "onboarding.toast.requiredFields": "Campos requeridos",
+    "onboarding.toast.requiredFieldsDesc": "Por favor completa todos los campos obligatorios",
+    "onboarding.toast.perfect": "¡Perfecto!",
+    "onboarding.toast.generating": "Generando tu primer menú semanal personalizado...",
+    "onboarding.toast.errorGenerating": "Error al generar el menú",
+    "onboarding.toast.errorGeneratingDesc": "Podrás generarlo manualmente desde el dashboard",
+    "onboarding.toast.created": "¡Menú creado!",
+    "onboarding.toast.createdDesc": "Tu plan semanal personalizado está listo",
+    "onboarding.toast.error": "Error",
   },
   en: {
     // Navigation
@@ -679,15 +781,8 @@ export const translations = {
     "dashboard.limitReachedDesc": "You've reached the limit of {{limit}} monthly plans. Upgrade to Intermediate plan for unlimited plans.",
     "dashboard.upgradePlan": "Upgrade Plan",
     
-    // Onboarding
-    "onboarding.step": "Step {{current}} of {{total}}",
     "onboarding.basicInfo": "Basic Information",
-    "onboarding.goal": "What is your main goal?",
     "onboarding.goalDesc": "This will help us personalize your plan",
-    "onboarding.goals.lose_fat": "Lose fat",
-    "onboarding.goals.gain_muscle": "Gain muscle",
-    "onboarding.goals.eat_healthy": "Eat healthy",
-    "onboarding.goals.save_money": "Save money",
     "onboarding.dietType": "What type of diet do you follow?",
     "onboarding.diets.omnivore": "Omnivore",
     "onboarding.diets.vegetarian": "Vegetarian",
@@ -979,6 +1074,115 @@ export const translations = {
     "affiliateTier.oro": "Gold",
     "affiliateTier.platino": "Platinum",
     "affiliateTier.diamante": "Diamond",
+
+    // Onboarding
+    "onboarding.title": "Customize your experience",
+    "onboarding.subtitle": "Tell us about yourself to create your perfect plan",
+    "onboarding.step": "Step {{current}} of {{total}}",
+    "onboarding.description": "This information will help us personalize your menus",
+    
+    "onboarding.goal.title": "What is your main goal?",
+    "onboarding.goal.loseFat": "Lose fat",
+    "onboarding.goal.gainMuscle": "Gain muscle",
+    "onboarding.goal.eatHealthy": "Eat healthy",
+    "onboarding.goal.saveMoney": "Save money",
+    
+    "onboarding.diet.title": "What type of diet do you prefer?",
+    "onboarding.diet.omnivore": "Omnivore",
+    "onboarding.diet.vegetarian": "Vegetarian",
+    "onboarding.diet.vegan": "Vegan",
+    "onboarding.diet.keto": "Keto",
+    "onboarding.diet.paleo": "Paleo",
+    
+    "onboarding.activity.title": "What is your physical activity level?",
+    "onboarding.activity.description": "This helps us better calculate your caloric needs",
+    "onboarding.activity.sedentary": "Sedentary - Little to no exercise",
+    "onboarding.activity.light": "Light - Exercise 1-2 days/week",
+    "onboarding.activity.moderate": "Moderate - Exercise 3-5 days/week",
+    "onboarding.activity.active": "Active - Exercise 6-7 days/week",
+    "onboarding.activity.veryActive": "Very active - Intense daily exercise",
+    
+    "onboarding.personal.title": "Personal information (optional)",
+    "onboarding.personal.description": "This helps us better calculate your nutritional needs",
+    "onboarding.personal.age": "Age",
+    "onboarding.personal.agePlaceholder": "Ex: 25",
+    "onboarding.personal.weight": "Weight (kg)",
+    "onboarding.personal.weightPlaceholder": "Ex: 70",
+    "onboarding.personal.gender": "Gender",
+    "onboarding.personal.male": "Male",
+    "onboarding.personal.female": "Female",
+    "onboarding.personal.other": "Other",
+    
+    "onboarding.cooking.title": "What is your cooking experience level?",
+    "onboarding.cooking.beginner": "Beginner - Simple recipes",
+    "onboarding.cooking.intermediate": "Intermediate - I can follow most recipes",
+    "onboarding.cooking.advanced": "Advanced - I enjoy cooking complex dishes",
+    
+    "onboarding.budget.title": "What is your food budget?",
+    "onboarding.budget.low": "Low - Budget ingredients",
+    "onboarding.budget.medium": "Medium - Balance between price and quality",
+    "onboarding.budget.high": "High - Premium ingredients",
+    "onboarding.time.title": "How much time can you cook per meal? (minutes)",
+    "onboarding.time.minutes": "{{time}} minutes",
+    
+    "onboarding.meals.title": "How many meals do you eat per day?",
+    "onboarding.meals.count": "{{count}} meals",
+    "onboarding.servings.title": "How many people do you cook for?",
+    "onboarding.servings.person": "{{count}} person",
+    "onboarding.servings.people": "{{count}} people",
+    "onboarding.complexityTitle": "Recipe complexity",
+    "onboarding.complexitySimple": "Simple - Few steps and ingredients",
+    "onboarding.complexityModerate": "Moderate - Standard recipes",
+    "onboarding.complexityComplex": "Complex - Elaborate recipes",
+    
+    "onboarding.flavors.title": "What flavors do you like?",
+    "onboarding.flavors.description": "Select all that apply",
+    "onboarding.flavor.sweet": "Sweet",
+    "onboarding.flavor.salty": "Salty",
+    "onboarding.flavor.spicy": "Spicy",
+    "onboarding.flavor.sour": "Sour",
+    "onboarding.flavor.umami": "Umami",
+    "onboarding.flavor.bitter": "Bitter",
+    
+    "onboarding.cuisines.title": "What types of cuisine do you prefer?",
+    "onboarding.cuisines.description": "Select all you like",
+    "onboarding.cuisine.mexican": "Mexican",
+    "onboarding.cuisine.italian": "Italian",
+    "onboarding.cuisine.asian": "Asian",
+    "onboarding.cuisine.mediterranean": "Mediterranean",
+    "onboarding.cuisine.american": "American",
+    "onboarding.cuisine.vegetarian": "Vegetarian",
+    "onboarding.cuisine.healthy": "Healthy",
+    
+    "onboarding.allergies.title": "Do you have any allergies?",
+    "onboarding.allergies.description": "Helps us avoid these ingredients",
+    "onboarding.allergies.placeholder": "Ex: Lactose, gluten, nuts...",
+    "onboarding.allergies.add": "Add",
+    "onboarding.allergies.tooLong": "Entry too long",
+    "onboarding.allergies.tooLongDesc": "Allergy cannot be more than 100 characters",
+    "onboarding.allergies.invalid": "Invalid entry",
+    "onboarding.allergies.invalidDesc": "Only letters and spaces are allowed",
+    
+    "onboarding.dislikes.title": "Are there any ingredients you don't like?",
+    "onboarding.dislikes.description": "Optional - Helps us personalize better",
+    "onboarding.dislikes.placeholder": "Ex: Broccoli, cilantro, mushrooms...",
+    "onboarding.notes.title": "Additional comments (optional)",
+    "onboarding.notes.placeholder": "Anything else we should know? Ex: Preferred schedules, favorite foods, etc.",
+    
+    "onboarding.buttons.back": "Back",
+    "onboarding.buttons.next": "Next",
+    "onboarding.buttons.creating": "Saving...",
+    "onboarding.buttons.create": "Create my personalized plan",
+    
+    "onboarding.toast.requiredFields": "Required fields",
+    "onboarding.toast.requiredFieldsDesc": "Please complete all required fields",
+    "onboarding.toast.perfect": "Perfect!",
+    "onboarding.toast.generating": "Generating your first personalized weekly menu...",
+    "onboarding.toast.errorGenerating": "Error generating menu",
+    "onboarding.toast.errorGeneratingDesc": "You can generate it manually from the dashboard",
+    "onboarding.toast.created": "Menu created!",
+    "onboarding.toast.createdDesc": "Your personalized weekly plan is ready",
+    "onboarding.toast.error": "Error",
   },
 };
 
@@ -997,9 +1201,17 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     setLanguageState(lang);
   };
 
-  const t = (key: string): string => {
+  const t = (key: string, params?: Record<string, string | number>): string => {
     const value = translations[language][key as keyof typeof translations.es];
-    return Array.isArray(value) ? key : (value || key);
+    let translation = Array.isArray(value) ? key : (value || key);
+    
+    if (params && typeof translation === 'string') {
+      Object.keys(params).forEach(param => {
+        translation = translation.replace(`{{${param}}}`, String(params[param]));
+      });
+    }
+    
+    return translation;
   };
 
   const getArray = (key: string): string[] => {
