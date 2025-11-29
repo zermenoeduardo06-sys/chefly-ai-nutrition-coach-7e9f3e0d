@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Download, Copy, Check } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface AffiliateMarketingMaterialsProps {
   affiliateCode: string;
@@ -10,6 +11,7 @@ interface AffiliateMarketingMaterialsProps {
 
 export function AffiliateMarketingMaterials({ affiliateCode }: AffiliateMarketingMaterialsProps) {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
   const bannerUrl = `${window.location.origin}/programa-afiliados?ref=${affiliateCode}`;

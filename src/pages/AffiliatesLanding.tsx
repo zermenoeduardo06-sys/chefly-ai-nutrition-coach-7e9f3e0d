@@ -5,9 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { DollarSign, TrendingUp, Users, Zap, CheckCircle2, Link2, Award, Medal, Crown, Star, Gem, Home, LogIn, Shield, Clock, BarChart3, Lock, MessageCircle } from "lucide-react";
 import cheflyLogo from "@/assets/chefly-logo.png";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function AffiliatesLanding() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const stats = [
     {
@@ -231,14 +233,14 @@ export default function AffiliatesLanding() {
               onClick={() => navigate("/")}
             >
               <Home className="h-4 w-4 mr-2" />
-              Inicio
+              {t("affiliatesLanding.nav.home")}
             </Button>
             <Button
               variant="default"
               onClick={() => navigate("/affiliates/login")}
             >
               <LogIn className="h-4 w-4 mr-2" />
-              Acceder
+              {t("affiliatesLanding.nav.login")}
             </Button>
           </div>
         </nav>
