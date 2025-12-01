@@ -49,7 +49,7 @@ export const DailySummaryDialog = ({
           <div className="text-center space-y-2">
             <div className="text-6xl">🎉</div>
             <p className="text-lg font-semibold">
-              ¡Excelente trabajo completando todas tus comidas del día!
+              {t('dailySummary.congrats')}
             </p>
           </div>
 
@@ -63,12 +63,12 @@ export const DailySummaryDialog = ({
                   <Flame className="w-6 h-6 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Calorías Totales</p>
+                  <p className="text-sm text-muted-foreground">{t('dailySummary.totalCalories')}</p>
                   <p className="text-3xl font-bold">{totalCalories}</p>
                 </div>
               </div>
               <Badge variant="secondary" className="text-base px-4 py-2">
-                kcal
+                {t('dailySummary.kcal')}
               </Badge>
             </div>
           </div>
@@ -82,7 +82,7 @@ export const DailySummaryDialog = ({
               </div>
               <div>
                 <p className="text-2xl font-bold">{totalProtein}g</p>
-                <p className="text-xs text-muted-foreground">Proteínas</p>
+                <p className="text-xs text-muted-foreground">{t('dailySummary.proteins')}</p>
               </div>
             </div>
 
@@ -93,7 +93,7 @@ export const DailySummaryDialog = ({
               </div>
               <div>
                 <p className="text-2xl font-bold">{totalCarbs}g</p>
-                <p className="text-xs text-muted-foreground">Carbohidratos</p>
+                <p className="text-xs text-muted-foreground">{t('dailySummary.carbohydrates')}</p>
               </div>
             </div>
 
@@ -104,7 +104,7 @@ export const DailySummaryDialog = ({
               </div>
               <div>
                 <p className="text-2xl font-bold">{totalFats}g</p>
-                <p className="text-xs text-muted-foreground">Grasas</p>
+                <p className="text-xs text-muted-foreground">{t('dailySummary.fats')}</p>
               </div>
             </div>
           </div>
@@ -114,7 +114,7 @@ export const DailySummaryDialog = ({
           {/* Motivational Message */}
           <div className="text-center space-y-2 p-4 bg-muted/50 rounded-lg">
             <p className="text-sm text-muted-foreground">
-              Mantén este ritmo para alcanzar tus objetivos de salud 💪
+              {t('dailySummary.motivational')}
             </p>
           </div>
         </div>

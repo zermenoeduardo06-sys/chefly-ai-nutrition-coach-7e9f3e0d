@@ -333,6 +333,9 @@ export const translations = {
     "dailySummary.fats": "Grasas",
     "dailySummary.motivational": "Mantén este ritmo para alcanzar tus objetivos de salud 💪",
     
+    // Celebration Messages
+    "dashboard.celebrationMessages": ["¡Excelente! 🎉", "¡Sigue así! 💪", "¡Increíble! ⭐", "¡Eres el mejor! 🏆", "¡Qué pro! 🔥"],
+    
     // Subscription Banner
     "subscription.activePlan": "Plan",
     "subscription.active": "Activo",
@@ -1017,6 +1020,9 @@ export const translations = {
     "dailySummary.carbohydrates": "Carbohydrates",
     "dailySummary.fats": "Fats",
     "dailySummary.motivational": "Keep up this pace to reach your health goals 💪",
+    
+    // Celebration Messages
+    "dashboard.celebrationMessages": ["Excellent! 🎉", "Keep it up! 💪", "Amazing! ⭐", "You're the best! 🏆", "What a pro! 🔥"],
     
     // Subscription Banner
     "subscription.activePlan": "Plan",
