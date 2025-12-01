@@ -12,14 +12,14 @@ serve(async (req) => {
   }
 
   try {
-    const { userId, forceNew = false } = await req.json();
+    const { userId, forceNew = false, language = 'es' } = await req.json();
     
     // Validate userId
     if (!userId || typeof userId !== 'string') {
       throw new Error('Invalid userId');
     }
     
-    console.log('Force new meal plan:', forceNew);
+    console.log('Force new meal plan:', forceNew, 'Language:', language);
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -60,7 +60,9 @@ serve(async (req) => {
     
     // Add random variation seed to ensure unique results
     const variationSeed = Math.floor(Math.random() * 10000);
-    const seasonalVariations = [
+    
+    // Language-specific variations
+    const seasonalVariationsES = [
       'ingredientes de temporada y frescos',
       'sabores tradicionales auténticos',
       'recetas innovadoras y modernas',
@@ -68,6 +70,17 @@ serve(async (req) => {
       'fusión de sabores internacionales',
       'cocina ligera y refrescante'
     ];
+    
+    const seasonalVariationsEN = [
+      'fresh seasonal ingredients',
+      'authentic traditional flavors',
+      'innovative modern recipes',
+      'comforting homemade dishes',
+      'international flavor fusion',
+      'light and refreshing cuisine'
+    ];
+    
+    const seasonalVariations = language === 'en' ? seasonalVariationsEN : seasonalVariationsES;
     const randomVariation = seasonalVariations[Math.floor(Math.random() * seasonalVariations.length)];
     
     console.log(`Applying variation seed: ${variationSeed} with theme: ${randomVariation}`);
@@ -80,24 +93,9 @@ serve(async (req) => {
     };
 
     const mealTypes = mealTypeMap[preferences.meals_per_day] || ['breakfast', 'lunch', 'dinner'];
-    const mealTypesES = {
-      breakfast: 'desayuno',
-      lunch: 'almuerzo',
-      dinner: 'cena'
-    };
 
-    // Generate meal plan with Lovable AI
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${Deno.env.get('LOVABLE_API_KEY')}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [{
-          role: 'user',
-          content: `Eres un chef nutricionista experto. Crea un plan de comidas COMPLETAMENTE ÚNICO Y ORIGINAL para la semana (7 días) con ${preferences.meals_per_day} comidas por día.
+    // Generate language-specific prompt
+    const promptES = `Eres un chef nutricionista experto. Crea un plan de comidas COMPLETAMENTE ÚNICO Y ORIGINAL para la semana (7 días) con ${preferences.meals_per_day} comidas por día.
 
 CRÍTICO: Este es el plan de menú #${variationSeed}. Debe ser TOTALMENTE DIFERENTE a cualquier plan anterior. Prioriza ${randomVariation} en este plan para garantizar variedad máxima.
 
@@ -128,13 +126,11 @@ IMPORTANTE:
 - Enfoque especial en: ${randomVariation}
 - Mezcla diferentes técnicas de cocción cada día
 - Varía los ingredientes principales entre comidas
-- Respeta el nivel de habilidad (recetas más simples para principiantes, más elaboradas para avanzados)
-- Ajusta el presupuesto (ingredientes económicos para presupuesto bajo, premium para alto)
+- Respeta el nivel de habilidad
+- Ajusta el presupuesto
 - Las recetas NO deben exceder el tiempo de cocina preferido
 - Ajusta las porciones según el número de personas
-- Incluye variedad de las cocinas y sabores preferidos
 - Evita completamente los alérgenos y los ingredientes que no le gustan
-- Ajusta las calorías según el nivel de actividad y objetivos
 
 Responde SOLO con JSON válido (sin markdown, sin texto adicional):
 {
@@ -156,7 +152,81 @@ Responde SOLO con JSON válido (sin markdown, sin texto adicional):
   "shopping_list": ["avena", "plátano", "fresas", "almendras", "leche"]
 }
 
-Genera ${7 * preferences.meals_per_day} recetas variadas y específicas. Cada receta DEBE tener nombre único, ingredientes reales, pasos de preparación y valores nutricionales ajustados al perfil del usuario.`
+Genera ${7 * preferences.meals_per_day} recetas variadas y específicas. Cada receta DEBE tener nombre único, ingredientes reales, pasos de preparación y valores nutricionales.`;
+
+    const promptEN = `You are an expert nutritionist chef. Create a COMPLETELY UNIQUE AND ORIGINAL meal plan for the week (7 days) with ${preferences.meals_per_day} meals per day.
+
+CRITICAL: This is menu plan #${variationSeed}. It must be TOTALLY DIFFERENT from any previous plan. Prioritize ${randomVariation} in this plan to ensure maximum variety.
+
+USER PROFILE:
+- Goal: ${preferences.goal}
+- Diet: ${preferences.diet_type}
+- Activity level: ${preferences.activity_level || 'moderate'}
+- Allergies: ${preferences.allergies?.join(', ') || 'None'}
+- Dislikes: ${preferences.dislikes?.join(', ') || 'Nothing in particular'}
+
+COOKING PREFERENCES:
+- Skill level: ${preferences.cooking_skill || 'beginner'}
+- Budget: ${preferences.budget || 'medium'}
+- Available time: ${preferences.cooking_time || 30} minutes per meal
+- Cooking for: ${preferences.servings || 1} person(s)
+- Preferred complexity: ${preferences.meal_complexity || 'simple'}
+
+TASTES AND PREFERENCES:
+- Preferred flavors: ${preferences.flavor_preferences?.join(', ') || 'All'}
+- Preferred cuisines: ${preferences.preferred_cuisines?.join(', ') || 'Varied'}
+${preferences.age ? `- Age: ${preferences.age} years` : ''}
+${preferences.weight ? `- Weight: ${preferences.weight} kg` : ''}
+${preferences.gender ? `- Gender: ${preferences.gender}` : ''}
+${preferences.additional_notes ? `\nADDITIONAL NOTES: ${preferences.additional_notes}` : ''}
+
+IMPORTANT: 
+- Use extreme creativity - NEVER repeat exact recipes
+- Special focus on: ${randomVariation}
+- Mix different cooking techniques each day
+- Vary main ingredients between meals
+- Respect skill level
+- Adjust for budget
+- Recipes should NOT exceed preferred cooking time
+- Adjust portions according to number of people
+- Completely avoid allergens and disliked ingredients
+
+Respond ONLY with valid JSON (no markdown, no additional text):
+{
+  "meals": [
+    {
+      "day_of_week": 0,
+      "meal_type": "breakfast",
+      "name": "Oatmeal with Fruits and Almonds",
+      "description": "Cooked oatmeal with banana, strawberries and toasted almonds",
+      "ingredients": ["1 cup oats", "1 banana", "5 strawberries", "30g almonds", "1 cup milk"],
+      "steps": ["Cook oatmeal with milk", "Cut the fruits", "Add toasted almonds"],
+      "calories": 420,
+      "protein": 18,
+      "carbs": 65,
+      "fats": 12,
+      "benefits": "High in fiber, protein and healthy fats. Ideal for morning energy."
+    }
+  ],
+  "shopping_list": ["oats", "banana", "strawberries", "almonds", "milk"]
+}
+
+Generate ${7 * preferences.meals_per_day} varied and specific recipes. Each recipe MUST have a unique name, real ingredients, preparation steps and nutritional values.`;
+
+    const aiPrompt = language === 'en' ? promptEN : promptES;
+
+    // Generate meal plan with Lovable AI
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${Deno.env.get('LOVABLE_API_KEY')}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [{
+          role: 'user',
+          content: aiPrompt
         }]
       }),
     });
