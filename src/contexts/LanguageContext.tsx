@@ -271,6 +271,9 @@ export const translations = {
     "mealDetail.steps": "Pasos a seguir",
     "mealDetail.swapMeal": "Intercambiar comida",
     "mealDetail.lockedMessage": "Necesitas estar suscrito para intercambiar comidas",
+    "mealDetail.breakfast": "Desayuno",
+    "mealDetail.lunch": "Almuerzo",
+    "mealDetail.dinner": "Cena",
     
     // Swap Meal
     "swapMeal.title": "Intercambiar comida",
@@ -959,6 +962,9 @@ export const translations = {
     "mealDetail.steps": "Cooking Steps",
     "mealDetail.swapMeal": "Swap meal",
     "mealDetail.lockedMessage": "You need to be subscribed to swap meals",
+    "mealDetail.breakfast": "Breakfast",
+    "mealDetail.lunch": "Lunch",
+    "mealDetail.dinner": "Dinner",
     
     // Swap Meal
     "swapMeal.title": "Swap meal",

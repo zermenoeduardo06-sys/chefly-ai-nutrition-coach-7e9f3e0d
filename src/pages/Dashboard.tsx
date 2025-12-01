@@ -88,7 +88,7 @@ const Dashboard = () => {
   const subscription = useSubscription(userId);
   const { isBlocked, isLoading: trialLoading } = useTrialGuard();
   const [searchParams] = useSearchParams();
-  const { t, getArray } = useLanguage();
+  const { t, getArray, language } = useLanguage();
 
   const dayNames = getArray("dashboard.days");
   const mealTypes: { [key: string]: string } = {
@@ -592,10 +592,10 @@ const Dashboard = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No se encontró usuario autenticado");
 
-      console.log("Generating meal plan...", { userId: user.id, forceNew, retryCount });
+      console.log("Generating meal plan...", { userId: user.id, forceNew, retryCount, language });
 
       const { data, error } = await supabase.functions.invoke("generate-meal-plan", {
-        body: { userId: user.id, forceNew },
+        body: { userId: user.id, forceNew, language },
       });
 
       if (error) {
