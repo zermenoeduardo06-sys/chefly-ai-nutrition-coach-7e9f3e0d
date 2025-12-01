@@ -394,13 +394,7 @@ const Dashboard = () => {
   };
 
   const triggerCelebration = () => {
-    const messages = [
-      "¡Excelente! 🎉",
-      "¡Sigue así! 💪",
-      "¡Increíble! ⭐",
-      "¡Eres el mejor! 🏆",
-      "¡Qué pro! 🔥",
-    ];
+    const messages = getArray("dashboard.celebrationMessages");
     
     const randomMessage = messages[Math.floor(Math.random() * messages.length)];
     setMascotMessage(randomMessage);
