@@ -18,6 +18,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useTrialGuard } from "@/hooks/useTrialGuard";
+import { useLanguage } from "@/contexts/LanguageContext";
 import confetti from "canvas-confetti";
 
 interface Meal {
@@ -87,12 +88,13 @@ const Dashboard = () => {
   const subscription = useSubscription(userId);
   const { isBlocked, isLoading: trialLoading } = useTrialGuard();
   const [searchParams] = useSearchParams();
+  const { t, getArray } = useLanguage();
 
-  const dayNames = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+  const dayNames = getArray("dashboard.days");
   const mealTypes: { [key: string]: string } = {
-    breakfast: "Desayuno",
-    lunch: "Almuerzo",
-    dinner: "Cena",
+    breakfast: t("dashboard.meals.breakfast"),
+    lunch: t("dashboard.meals.lunch"),
+    dinner: t("dashboard.meals.dinner"),
   };
 
   useEffect(() => {
@@ -104,13 +106,13 @@ const Dashboard = () => {
     const subscriptionStatus = searchParams.get('subscription');
     if (subscriptionStatus === 'success' && userId) {
       toast({
-        title: "¡Suscripción exitosa!",
-        description: "Tu suscripción ha sido activada. Refrescando estado...",
+        title: t("dashboard.subscriptionSuccess"),
+        description: t("dashboard.subscriptionSuccessDesc"),
       });
       subscription.checkSubscription();
       refreshLimits();
     }
-  }, [searchParams, userId]);
+  }, [searchParams, userId, t]);
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -175,8 +177,8 @@ const Dashboard = () => {
     // Check if already completed
     if (completedMeals.has(mealId)) {
       toast({
-        title: "¡Ya completaste esta comida!",
-        description: "Sigue así, vas muy bien 💪",
+        title: t("dashboard.mealCompleted"),
+        description: t("dashboard.keepStreak"),
       });
       return;
     }
@@ -193,8 +195,8 @@ const Dashboard = () => {
     if (error) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "No se pudo marcar la comida como completada",
+        title: t("common.error"),
+        description: t("dashboard.errorComplete"),
       });
       return;
     }
@@ -520,8 +522,8 @@ const Dashboard = () => {
       console.error("Error loading meal plan:", error);
       toast({
         variant: "destructive",
-        title: "Error al cargar el plan",
-        description: "Hubo un problema cargando tu plan de comidas. Por favor, intenta generar uno nuevo.",
+        title: t("dashboard.errorGenerate"),
+        description: t("dashboard.tryAgain"),
       });
     } finally {
       setLoading(false);
@@ -553,8 +555,8 @@ const Dashboard = () => {
         const hoursRemaining = Math.ceil(24 - hoursSinceLastPlan);
         toast({
           variant: "destructive",
-          title: "Demasiado pronto",
-          description: `Debes esperar ${hoursRemaining} hora${hoursRemaining !== 1 ? 's' : ''} más antes de generar un nuevo plan.`,
+          title: t("dashboard.tooSoon"),
+          description: t("dashboard.waitHours", { hours: hoursRemaining.toString(), plural: hoursRemaining !== 1 ? 's' : '' }),
         });
         return false;
       }
@@ -571,8 +573,8 @@ const Dashboard = () => {
     if (!limits.canGeneratePlans) {
       toast({
         variant: "destructive",
-        title: "Función no disponible",
-        description: "Necesitas el plan Intermedio para generar nuevos planes. ¡Actualiza tu plan!",
+        title: t("dashboard.featureUnavailable"),
+        description: t("dashboard.needIntermediate"),
       });
       navigate("/pricing");
       return;
@@ -615,10 +617,10 @@ const Dashboard = () => {
       const isCached = data?.cached === true;
       
       toast({
-        title: isCached ? "¡Menú listo!" : "¡Menú generado!",
+        title: isCached ? t("dashboard.planCached") : t("dashboard.planGenerated"),
         description: isCached 
-          ? "Se reutilizó un menú existente con tus preferencias" 
-          : "Tu nuevo plan semanal fue creado con IA",
+          ? t("dashboard.planCachedDesc") 
+          : t("dashboard.planReady"),
       });
 
       // Reload meal plan to get fresh data
@@ -631,8 +633,8 @@ const Dashboard = () => {
       if (retryCount < maxRetries) {
         console.log(`Retrying meal plan generation... (attempt ${retryCount + 1}/${maxRetries})`);
         toast({
-          title: "Reintentando...",
-          description: `Intento ${retryCount + 1} de ${maxRetries + 1}`,
+          title: t("dashboard.retrying"),
+          description: t("dashboard.attempt", { current: (retryCount + 1).toString(), total: (maxRetries + 1).toString() }),
         });
         setTimeout(() => generateMealPlan(forceNew, retryCount + 1), 2000);
         return;
@@ -641,8 +643,8 @@ const Dashboard = () => {
       // Final error after all retries
       toast({
         variant: "destructive",
-        title: "Error al generar el plan",
-        description: error.message || "No se pudo generar el plan de comidas. Por favor, intenta de nuevo más tarde.",
+        title: t("dashboard.errorGenerate"),
+        description: error.message || t("dashboard.tryAgain"),
       });
       
       // Set meal plan to null so the UI shows the generate button
@@ -657,8 +659,8 @@ const Dashboard = () => {
     if (!limits.canSwapMeals) {
       toast({
         variant: "destructive",
-        title: "Función no disponible",
-        description: "Necesitas el plan Intermedio para intercambiar comidas. ¡Actualiza tu plan!",
+        title: t("dashboard.featureUnavailable"),
+        description: t("dashboard.needIntermediateSwap"),
       });
       navigate("/pricing");
       return;
@@ -687,8 +689,8 @@ const Dashboard = () => {
         .eq("id", targetMeal.id);
 
       toast({
-        title: "¡Comidas intercambiadas!",
-        description: "Las comidas se han movido exitosamente",
+        title: t("dashboard.swapped"),
+        description: t("dashboard.swappedDesc"),
       });
 
       const { data: { user } } = await supabase.auth.getUser();
@@ -722,8 +724,8 @@ const Dashboard = () => {
       console.error("Error opening customer portal:", error);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "No se pudo abrir el portal de gestión. Intenta de nuevo.",
+        title: t("common.error"),
+        description: t("dashboard.portalError"),
       });
     } finally {
       setPortalLoading(false);
@@ -735,7 +737,7 @@ const Dashboard = () => {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-muted/30">
         <div className="text-center space-y-4">
           <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
-          <p className="text-muted-foreground">Cargando tu panel de nutrición...</p>
+          <p className="text-muted-foreground">{t("dashboard.loading")}</p>
         </div>
       </div>
     );
@@ -772,28 +774,28 @@ const Dashboard = () => {
                   message={mascotMessage}
                 />
                 <div className="text-center md:text-left">
-                  <h3 className="text-2xl font-bold">¡Hola! Soy tu compañero</h3>
+                  <h3 className="text-2xl font-bold">{t("dashboard.mascotGreeting")}</h3>
                   <p className="text-muted-foreground mb-4">
-                    Te ayudaré a lograr tus metas de nutrición 🎯
+                    {t("dashboard.mascotHelp")}
                   </p>
                   <div className="flex flex-wrap gap-3 justify-center md:justify-start">
                     <Badge variant="secondary" className="text-base px-4 py-2">
-                      Nivel {userStats.level}
+                      {t("dashboard.level")} {userStats.level}
                     </Badge>
                     <Badge variant="outline" className="text-base px-4 py-2">
-                      {userStats.meals_completed} comidas completadas
+                      {userStats.meals_completed} {t("dashboard.mealsCompleted").toLowerCase()}
                     </Badge>
                     <Badge variant="outline" className="text-base px-4 py-2">
-                      Racha más larga: {userStats.longest_streak} días 🔥
+                      {t("dashboard.longestStreak")}: {userStats.longest_streak} {t("dashboard.days_other")} 🔥
                     </Badge>
                   </div>
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-sm text-muted-foreground mb-2">Progreso al siguiente nivel</div>
+                <div className="text-sm text-muted-foreground mb-2">{t("dashboard.progressToLevel")}</div>
                 <Progress value={(userStats.total_points % 100)} className="w-48 h-3 mb-2" />
                 <div className="text-xs text-muted-foreground">
-                  {userStats.total_points % 100}/100 puntos
+                  {userStats.total_points % 100}/100 {t("dashboard.points")}
                 </div>
               </div>
             </div>
@@ -809,7 +811,7 @@ const Dashboard = () => {
                   <Utensils className="w-6 h-6 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Comidas esta semana</p>
+                  <p className="text-sm text-muted-foreground">{t("dashboard.mealsThisWeek")}</p>
                   <p className="text-2xl font-bold">{mealPlan?.meals.length || 0}</p>
                 </div>
               </div>
@@ -823,7 +825,7 @@ const Dashboard = () => {
                   <TrendingUp className="w-6 h-6 text-secondary" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Planes generados</p>
+                  <p className="text-sm text-muted-foreground">{t("dashboard.plansGenerated")}</p>
                   <p className="text-2xl font-bold">1</p>
                 </div>
               </div>
@@ -837,9 +839,9 @@ const Dashboard = () => {
                   <Clock className="w-6 h-6 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Última actualización</p>
+                  <p className="text-sm text-muted-foreground">{t("dashboard.lastUpdate")}</p>
                   <p className="text-sm font-semibold">
-                    {mealPlan ? new Date(mealPlan.week_start_date).toLocaleDateString('es-ES') : 'N/A'}
+                    {mealPlan ? new Date(mealPlan.week_start_date).toLocaleDateString() : 'N/A'}
                   </p>
                 </div>
               </div>
@@ -850,7 +852,7 @@ const Dashboard = () => {
         {/* Quick Actions */}
         <Card className="border-border/50 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-lg">Acciones Rápidas</CardTitle>
+            <CardTitle className="text-lg">{t("dashboard.quickActions")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -860,7 +862,7 @@ const Dashboard = () => {
                 className="h-auto py-4 flex-col gap-2 relative"
               >
                 <MessageCircle className="h-5 w-5" />
-                <span className="text-sm">Hablar con coach</span>
+                <span className="text-sm">{t("dashboard.chatCoach")}</span>
                 {limits.isBasicPlan && (
                   <Badge variant="secondary" className="absolute -top-2 -right-2 text-xs">
                     {limits.chatMessagesUsed}/{limits.dailyChatLimit}
@@ -874,7 +876,7 @@ const Dashboard = () => {
                 className="h-auto py-4 flex-col gap-2"
               >
                 <Settings className="h-5 w-5" />
-                <span className="text-sm">Ajustar preferencias</span>
+                <span className="text-sm">{t("dashboard.editPreferences")}</span>
               </Button>
 
               {subscription.subscribed && (
@@ -887,12 +889,12 @@ const Dashboard = () => {
                   {portalLoading ? (
                     <>
                       <Loader2 className="h-5 w-5 animate-spin" />
-                      <span className="text-sm">Abriendo...</span>
+                      <span className="text-sm">{t("dashboard.opening")}</span>
                     </>
                   ) : (
                     <>
                       <CreditCard className="h-5 w-5" />
-                      <span className="text-sm">Gestionar suscripción</span>
+                      <span className="text-sm">{t("dashboard.manageSubscription")}</span>
                     </>
                   )}
                 </Button>
@@ -911,16 +913,16 @@ const Dashboard = () => {
                 {generating ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    <span className="text-xs">Generando nuevo plan...</span>
+                    <span className="text-xs">{t("dashboard.generating")}</span>
                   </>
                 ) : (
                   <>
                     {!limits.canGeneratePlans && <Lock className="h-3 w-3 mr-2" />}
                     <RefreshCw className="h-4 w-4 mr-2" />
-                    <span className="text-xs">Generar nuevo plan semanal</span>
+                    <span className="text-xs">{t("dashboard.generateNewPlan")}</span>
                     {!limits.canGeneratePlans && (
                       <Badge variant="outline" className="ml-2 text-xs">
-                        Plan Intermedio
+                        {t("dashboard.intermediatePlan")}
                       </Badge>
                     )}
                   </>
@@ -936,22 +938,22 @@ const Dashboard = () => {
                     <Sparkles className="h-5 w-5 text-primary" />
                   </div>
                   <div className="flex-1">
-                    <h4 className="text-sm font-semibold mb-1">Desbloquea todas las funciones</h4>
+                    <h4 className="text-sm font-semibold mb-1">{t("dashboard.unlockFeatures")}</h4>
                     <p className="text-xs text-muted-foreground mb-3">
-                      Con el plan Intermedio puedes:
+                      {t("dashboard.withIntermediate")}
                     </p>
                     <ul className="space-y-1 text-xs text-muted-foreground mb-3">
                       <li className="flex items-center gap-2">
                         <Check className="h-3 w-3 text-primary" />
-                        <span>Generar planes de comida ilimitados</span>
+                        <span>{t("dashboard.unlimitedPlans")}</span>
                       </li>
                       <li className="flex items-center gap-2">
                         <Check className="h-3 w-3 text-primary" />
-                        <span>Intercambiar comidas entre días</span>
+                        <span>{t("dashboard.swapMeals")}</span>
                       </li>
                       <li className="flex items-center gap-2">
                         <Check className="h-3 w-3 text-primary" />
-                        <span>Chat ilimitado con tu coach</span>
+                        <span>{t("dashboard.unlimitedChat")}</span>
                       </li>
                     </ul>
                     <Button 
@@ -960,7 +962,7 @@ const Dashboard = () => {
                       className="w-full"
                       variant="default"
                     >
-                      Ver planes
+                      {t("dashboard.viewPlans")}
                     </Button>
                   </div>
                 </div>
@@ -976,11 +978,11 @@ const Dashboard = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Calendar className="h-5 w-5 text-primary" />
-              <h2 className="text-2xl font-bold">Menú Semanal</h2>
+              <h2 className="text-2xl font-bold">{t("dashboard.weeklyPlan")}</h2>
             </div>
             {mealPlan && (
               <Badge variant="secondary">
-                Semana del {new Date(mealPlan.week_start_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}
+                {t("dashboard.weekOf")} {new Date(mealPlan.week_start_date).toLocaleDateString(undefined, { day: 'numeric', month: 'long' })}
               </Badge>
             )}
           </div>
@@ -1000,7 +1002,7 @@ const Dashboard = () => {
                         </div>
                         <span className="text-xl">{dayNames[day]}</span>
                       </CardTitle>
-                      <Badge variant="outline">{meals.length} comidas</Badge>
+                      <Badge variant="outline">{meals.length} {t("dashboard.meals")}</Badge>
                     </div>
                   </CardHeader>
                   <CardContent className="p-6">
@@ -1075,7 +1077,7 @@ const Dashboard = () => {
                                 {isCompleted ? (
                                   <>
                                     <Check className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
-                                    <p className="text-xs text-green-600 font-medium leading-relaxed">¡Completada! +10 pts</p>
+                                    <p className="text-xs text-green-600 font-medium leading-relaxed">{t("dashboard.completed")} {t("dashboard.pointsEarned")}</p>
                                   </>
                                 ) : (
                                   <>
@@ -1099,17 +1101,17 @@ const Dashboard = () => {
                 <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center mb-6">
                   <Utensils className="w-10 h-10 text-primary" />
                 </div>
-                <h3 className="text-2xl font-bold mb-3">No hay plan de comidas</h3>
+                <h3 className="text-2xl font-bold mb-3">{t("dashboard.noMealPlan")}</h3>
                 <p className="text-muted-foreground text-center mb-8 max-w-md">
                   {generating 
-                    ? "Estamos creando tu plan personalizado con IA. Esto puede tomar hasta 30 segundos..."
-                    : "Genera tu primer plan semanal personalizado basado en tus preferencias nutricionales"
+                    ? t("dashboard.waitMessage")
+                    : t("dashboard.createFirst")
                   }
                 </p>
                 {generating ? (
                   <div className="flex flex-col items-center gap-4">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <p className="text-sm text-muted-foreground">Generando menú único con IA...</p>
+                    <p className="text-sm text-muted-foreground">{t("dashboard.generatingAI")}</p>
                   </div>
                 ) : (
                   <div className="flex flex-col sm:flex-row gap-3">
@@ -1120,7 +1122,7 @@ const Dashboard = () => {
                       className="min-w-[200px]"
                     >
                       <Sparkles className="mr-2 h-5 w-5" />
-                      Generar plan ahora
+                      {t("dashboard.generatePlan")}
                     </Button>
                     <Button 
                       onClick={() => navigate("/onboarding")}
@@ -1128,7 +1130,7 @@ const Dashboard = () => {
                       size="lg"
                     >
                       <Settings className="mr-2 h-4 w-4" />
-                      Ajustar preferencias
+                      {t("dashboard.setupPreferences")}
                     </Button>
                   </div>
                 )}
