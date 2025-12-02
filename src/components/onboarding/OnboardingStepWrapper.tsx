@@ -1,5 +1,4 @@
-import { motion } from "framer-motion";
-import { ReactNode, useEffect, useState, useRef } from "react";
+import { ReactNode, useEffect, useRef } from "react";
 import confetti from "canvas-confetti";
 
 interface OnboardingStepWrapperProps {
@@ -33,37 +32,29 @@ const OnboardingStepWrapper = ({
     if (onSelectionMade && !hasAnimatedRef.current) {
       hasAnimatedRef.current = true;
       
-      // Use requestAnimationFrame to ensure DOM is stable
-      requestAnimationFrame(() => {
+      // Small delay to ensure DOM is stable
+      const timer = setTimeout(() => {
         try {
           confetti({
-            particleCount: 30,
-            spread: 60,
+            particleCount: 25,
+            spread: 50,
             origin: { y: 0.7, x: 0.5 },
             colors: ['#f97316', '#22c55e', '#f59e0b'],
-            ticks: 100,
+            ticks: 80,
             gravity: 1.2,
-            scalar: 0.8,
-            shapes: ['circle', 'square'],
+            scalar: 0.7,
           });
         } catch (e) {
-          console.warn('Confetti error:', e);
+          // Silently ignore confetti errors
         }
-      });
+      }, 50);
+      
+      return () => clearTimeout(timer);
     }
   }, [onSelectionMade]);
 
   return (
-    <motion.div
-      key={`step-${step}`}
-      initial={{ opacity: 0, x: 30 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ 
-        duration: 0.3,
-        ease: "easeOut"
-      }}
-      className="space-y-6"
-    >
+    <div className="space-y-6 animate-fade-in">
       {/* Step header */}
       <div>
         <h2 className="text-xl font-bold text-foreground">
@@ -80,7 +71,7 @@ const OnboardingStepWrapper = ({
       <div>
         {children}
       </div>
-    </motion.div>
+    </div>
   );
 };
 
