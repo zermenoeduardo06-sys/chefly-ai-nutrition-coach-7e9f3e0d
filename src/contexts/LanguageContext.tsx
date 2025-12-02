@@ -165,8 +165,12 @@ export const translations = {
     "sidebar.leaderboard": "Clasificación",
     "sidebar.coach": "Coach IA",
     "sidebar.subscription": "Mi Suscripción",
+    "sidebar.affiliates": "Afiliados",
+    "sidebar.admin": "Administración",
     "sidebar.logout": "Cerrar sesión",
     "sidebar.menu": "Menú Principal",
+    "sidebar.logoutSuccess": "Sesión cerrada",
+    "sidebar.logoutSuccessDesc": "Has cerrado sesión exitosamente",
     
     // Dashboard
     "dashboard.days": ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"],
@@ -881,8 +885,12 @@ export const translations = {
     "sidebar.leaderboard": "Leaderboard",
     "sidebar.coach": "AI Coach",
     "sidebar.subscription": "My Subscription",
+    "sidebar.affiliates": "Affiliates",
+    "sidebar.admin": "Administration",
     "sidebar.logout": "Log out",
     "sidebar.menu": "Main Menu",
+    "sidebar.logoutSuccess": "Logged out",
+    "sidebar.logoutSuccessDesc": "You have successfully logged out",
     
     // Dashboard
     "dashboard.days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],

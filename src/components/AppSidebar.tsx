@@ -34,7 +34,7 @@ export function AppSidebar() {
     { title: t("sidebar.leaderboard"), url: "/dashboard/leaderboard", icon: Users },
     { title: t("sidebar.coach"), url: "/chat", icon: MessageCircle },
     { title: t("sidebar.subscription"), url: "/subscription", icon: CreditCard },
-    { title: "Afiliados", url: "/affiliates", icon: DollarSign },
+    { title: t("sidebar.affiliates"), url: "/affiliates", icon: DollarSign },
   ];
 
   const handleLogout = async () => {
@@ -43,15 +43,15 @@ export function AppSidebar() {
       if (error) throw error;
       
       toast({
-        title: "Sesión cerrada",
-        description: "Has cerrado sesión exitosamente",
+        title: t("sidebar.logoutSuccess"),
+        description: t("sidebar.logoutSuccessDesc"),
       });
       
       navigate("/auth");
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Error",
+        title: t("common.error"),
         description: error.message,
       });
     }
@@ -83,7 +83,7 @@ export function AppSidebar() {
                   <SidebarMenuButton asChild>
                     <NavLink to="/admin/affiliates">
                       <Settings className="h-5 w-5" />
-                      {!collapsed && <span>Administración</span>}
+                      {!collapsed && <span>{t("sidebar.admin")}</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
