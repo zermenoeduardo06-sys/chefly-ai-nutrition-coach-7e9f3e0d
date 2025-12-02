@@ -5,13 +5,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, X } from "lucide-react";
+import { Loader2, X, Target, Salad, Activity, User, ChefHat, Wallet, Utensils, Heart, Globe, AlertCircle, Sparkles } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import OnboardingOption from "@/components/onboarding/OnboardingOption";
+import OnboardingProgress from "@/components/onboarding/OnboardingProgress";
+import OnboardingStepWrapper from "@/components/onboarding/OnboardingStepWrapper";
+import OnboardingBadgeSelector from "@/components/onboarding/OnboardingBadgeSelector";
+import OnboardingCelebration from "@/components/onboarding/OnboardingCelebration";
+import { Badge } from "@/components/ui/badge";
+import cheflyLogo from "@/assets/chefly-logo.png";
 
 const Onboarding = () => {
   const [step, setStep] = useState(1);
@@ -285,127 +291,161 @@ const Onboarding = () => {
     }
   };
 
+  const [showCelebration, setShowCelebration] = useState(false);
+
+  // Icons for goals
+  const goalIcons: Record<string, any> = {
+    lose_fat: Target,
+    gain_muscle: Activity,
+    eat_healthy: Heart,
+    save_money: Wallet,
+  };
+
+  // Icons for diets
+  const dietIcons: Record<string, any> = {
+    omnivore: Utensils,
+    vegetarian: Salad,
+    vegan: Salad,
+    keto: Target,
+    paleo: Globe,
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background decorations */}
+      <div className="absolute top-20 left-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary/5 rounded-full blur-3xl" />
+      
+      {/* Celebration overlay */}
+      <OnboardingCelebration 
+        show={showCelebration} 
+        message={t("onboarding.toast.perfect")}
+        onComplete={() => setShowCelebration(false)}
+      />
+      
+      <div className="w-full max-w-2xl relative z-10">
+        {/* Header with logo */}
         <motion.div 
-          className="text-center mb-8"
-          initial={{ opacity: 0, y: -20 }}
+          className="text-center mb-6"
+          initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.6, type: "spring" }}
         >
-          <h1 className="text-4xl font-bold mb-2">
-            <span className="bg-gradient-to-r from-primary to-primary-hover bg-clip-text text-transparent">
-              {t("onboarding.title")}
-            </span>
-          </h1>
-          <p className="text-muted-foreground">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+            className="flex items-center justify-center gap-3 mb-4"
+          >
+            <img src={cheflyLogo} alt="Chefly.AI" className="h-10 w-10" />
+            <h1 className="text-3xl font-bold">
+              <span className="bg-gradient-to-r from-primary to-primary-hover bg-clip-text text-transparent">
+                {t("onboarding.title")}
+              </span>
+            </h1>
+          </motion.div>
+          <motion.p 
+            className="text-muted-foreground"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+          >
             {t("onboarding.subtitle")}
-          </p>
+          </motion.p>
         </motion.div>
 
+        {/* Progress indicator */}
+        <OnboardingProgress currentStep={step} totalSteps={10} />
+
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
         >
-          <Card className="shadow-xl border-border/50">
-            <CardHeader>
-              <CardTitle>{t("onboarding.step", { current: step, total: 10 })}</CardTitle>
-              <CardDescription>
-                {t("onboarding.description")}
-              </CardDescription>
+          <Card className="shadow-2xl border-border/50 backdrop-blur-sm overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-primary/5 to-secondary/5 border-b border-border/50">
+              <div className="flex items-center gap-3">
+                <motion.div
+                  animate={{ rotate: [0, 10, -10, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                  className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center"
+                >
+                  <Sparkles className="w-5 h-5 text-primary" />
+                </motion.div>
+                <div>
+                  <CardTitle className="text-lg">{t("onboarding.step", { current: step, total: 10 })}</CardTitle>
+                  <CardDescription>{t("onboarding.description")}</CardDescription>
+                </div>
+              </div>
             </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 pt-6">
             {/* Step 1: Goal */}
             {step === 1 && (
-              <motion.div 
-                className="space-y-4"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
+              <OnboardingStepWrapper
+                step={1}
+                title={t("onboarding.goal.title")}
+                onSelectionMade={!!goal}
               >
-                <Label className="text-lg font-semibold">{t("onboarding.goal.title")}</Label>
-                <RadioGroup value={goal} onValueChange={setGoal}>
-                  {goals.map((g) => (
-                    <motion.div 
-                      key={g.value} 
-                      className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-all"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      animate={goal === g.value ? { scale: 1.02, borderColor: "hsl(var(--primary))" } : {}}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <RadioGroupItem value={g.value} id={g.value} />
-                      <Label htmlFor={g.value} className="cursor-pointer flex-1 text-base">
-                        {t(g.labelKey)}
-                      </Label>
-                    </motion.div>
+                <div className="space-y-3">
+                  {goals.map((g, index) => (
+                    <OnboardingOption
+                      key={g.value}
+                      value={g.value}
+                      label={t(g.labelKey)}
+                      isSelected={goal === g.value}
+                      onSelect={setGoal}
+                      icon={goalIcons[g.value]}
+                      index={index}
+                    />
                   ))}
-                </RadioGroup>
-              </motion.div>
+                </div>
+              </OnboardingStepWrapper>
             )}
 
             {/* Step 2: Diet Type */}
             {step === 2 && (
-              <motion.div 
-                className="space-y-4"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
+              <OnboardingStepWrapper
+                step={2}
+                title={t("onboarding.diet.title")}
+                onSelectionMade={!!dietType}
               >
-                <Label className="text-lg font-semibold">{t("onboarding.diet.title")}</Label>
-                <RadioGroup value={dietType} onValueChange={setDietType}>
-                  {diets.map((d) => (
-                    <motion.div 
-                      key={d.value} 
-                      className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-all"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      animate={dietType === d.value ? { scale: 1.02, borderColor: "hsl(var(--primary))" } : {}}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <RadioGroupItem value={d.value} id={d.value} />
-                      <Label htmlFor={d.value} className="cursor-pointer flex-1 text-base">
-                        {t(d.labelKey)}
-                      </Label>
-                    </motion.div>
+                <div className="space-y-3">
+                  {diets.map((d, index) => (
+                    <OnboardingOption
+                      key={d.value}
+                      value={d.value}
+                      label={t(d.labelKey)}
+                      isSelected={dietType === d.value}
+                      onSelect={setDietType}
+                      icon={dietIcons[d.value]}
+                      index={index}
+                    />
                   ))}
-                </RadioGroup>
-              </motion.div>
+                </div>
+              </OnboardingStepWrapper>
             )}
 
             {/* Step 3: Activity Level */}
             {step === 3 && (
-              <motion.div 
-                className="space-y-4"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
+              <OnboardingStepWrapper
+                step={3}
+                title={t("onboarding.activity.title")}
+                description={t("onboarding.activity.description")}
+                onSelectionMade={!!activityLevel}
               >
-                <Label className="text-lg font-semibold">{t("onboarding.activity.title")}</Label>
-                <p className="text-sm text-muted-foreground">{t("onboarding.activity.description")}</p>
-                <RadioGroup value={activityLevel} onValueChange={setActivityLevel}>
-                  {activityLevels.map((level) => (
-                    <motion.div 
-                      key={level.value} 
-                      className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-all"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      animate={activityLevel === level.value ? { scale: 1.02, borderColor: "hsl(var(--primary))" } : {}}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <RadioGroupItem value={level.value} id={level.value} />
-                      <Label htmlFor={level.value} className="cursor-pointer flex-1 text-base">
-                        {t(level.labelKey)}
-                      </Label>
-                    </motion.div>
+                <div className="space-y-3">
+                  {activityLevels.map((level, index) => (
+                    <OnboardingOption
+                      key={level.value}
+                      value={level.value}
+                      label={t(level.labelKey)}
+                      isSelected={activityLevel === level.value}
+                      onSelect={setActivityLevel}
+                      index={index}
+                    />
                   ))}
-                </RadioGroup>
-              </motion.div>
+                </div>
+              </OnboardingStepWrapper>
             )}
 
             {/* Step 4: Personal Info (Optional) */}
@@ -638,68 +678,34 @@ const Onboarding = () => {
 
             {/* Step 8: Flavor Preferences */}
             {step === 8 && (
-              <motion.div 
-                className="space-y-4"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
+              <OnboardingStepWrapper
+                step={8}
+                title={t("onboarding.flavors.title")}
+                description={t("onboarding.flavors.description")}
+                onSelectionMade={flavorPreferences.length > 0}
               >
-                <Label className="text-lg font-semibold">{t("onboarding.flavors.title")}</Label>
-                <p className="text-sm text-muted-foreground">{t("onboarding.flavors.description")}</p>
-                <div className="grid grid-cols-2 gap-3">
-                  {flavors.map((flavor) => (
-                    <motion.div
-                      key={flavor.value}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      animate={flavorPreferences.includes(flavor.value) ? { scale: 1.05 } : { scale: 1 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <Badge
-                        variant={flavorPreferences.includes(flavor.value) ? "default" : "outline"}
-                        className="px-4 py-3 text-sm cursor-pointer justify-center w-full transition-colors"
-                        onClick={() => toggleFlavor(flavor.value)}
-                      >
-                        {t(flavor.labelKey)}
-                      </Badge>
-                    </motion.div>
-                  ))}
-                </div>
-              </motion.div>
+                <OnboardingBadgeSelector
+                  options={flavors.map(f => ({ value: f.value, label: t(f.labelKey) }))}
+                  selected={flavorPreferences}
+                  onToggle={toggleFlavor}
+                />
+              </OnboardingStepWrapper>
             )}
 
             {/* Step 9: Cuisine Preferences */}
             {step === 9 && (
-              <motion.div 
-                className="space-y-4"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
+              <OnboardingStepWrapper
+                step={9}
+                title={t("onboarding.cuisines.title")}
+                description={t("onboarding.cuisines.description")}
+                onSelectionMade={preferredCuisines.length > 0}
               >
-                <Label className="text-lg font-semibold">{t("onboarding.cuisines.title")}</Label>
-                <p className="text-sm text-muted-foreground">{t("onboarding.cuisines.description")}</p>
-                <div className="grid grid-cols-2 gap-3">
-                  {cuisines.map((cuisine) => (
-                    <motion.div
-                      key={cuisine.value}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      animate={preferredCuisines.includes(cuisine.value) ? { scale: 1.05 } : { scale: 1 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <Badge
-                        variant={preferredCuisines.includes(cuisine.value) ? "default" : "outline"}
-                        className="px-4 py-3 text-sm cursor-pointer justify-center w-full transition-colors"
-                        onClick={() => toggleCuisine(cuisine.value)}
-                      >
-                        {t(cuisine.labelKey)}
-                      </Badge>
-                    </motion.div>
-                  ))}
-                </div>
-              </motion.div>
+                <OnboardingBadgeSelector
+                  options={cuisines.map(c => ({ value: c.value, label: t(c.labelKey) }))}
+                  selected={preferredCuisines}
+                  onToggle={toggleCuisine}
+                />
+              </OnboardingStepWrapper>
             )}
 
             {/* Step 10: Allergies & Dislikes */}
@@ -791,44 +797,84 @@ const Onboarding = () => {
               </motion.div>
             )}
 
-            <div className="flex gap-3 pt-6">
+            <motion.div 
+              className="flex gap-3 pt-6 border-t border-border/50 mt-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
               {step > 1 && (
-                <Button
-                  variant="outline"
-                  onClick={() => setStep(step - 1)}
-                  disabled={loading}
+                <motion.div 
                   className="flex-1"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  {t("onboarding.buttons.back")}
-                </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setStep(step - 1)}
+                    disabled={loading}
+                    className="w-full h-12"
+                  >
+                    {t("onboarding.buttons.back")}
+                  </Button>
+                </motion.div>
               )}
               {step < 10 ? (
-                <Button
-                  onClick={() => setStep(step + 1)}
-                  disabled={loading || (step === 1 && !goal) || (step === 2 && !dietType)}
+                <motion.div 
                   className="flex-1"
-                  variant="hero"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  {t("onboarding.buttons.next")}
-                </Button>
+                  <Button
+                    onClick={() => setStep(step + 1)}
+                    disabled={loading || (step === 1 && !goal) || (step === 2 && !dietType)}
+                    className="w-full h-12 text-base font-semibold"
+                    variant="hero"
+                  >
+                    <span className="flex items-center gap-2">
+                      {t("onboarding.buttons.next")}
+                      <motion.span
+                        animate={{ x: [0, 4, 0] }}
+                        transition={{ duration: 1, repeat: Infinity }}
+                      >
+                        →
+                      </motion.span>
+                    </span>
+                  </Button>
+                </motion.div>
               ) : (
-                <Button
-                  onClick={handleSubmit}
-                  disabled={loading}
+                <motion.div 
                   className="flex-1"
-                  variant="hero"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  {loading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {t("onboarding.buttons.creating")}
-                    </>
-                  ) : (
-                    t("onboarding.buttons.create")
-                  )}
-                </Button>
+                  <Button
+                    onClick={() => {
+                      setShowCelebration(true);
+                      setTimeout(() => {
+                        setShowCelebration(false);
+                        handleSubmit();
+                      }, 2500);
+                    }}
+                    disabled={loading}
+                    className="w-full h-12 text-base font-semibold"
+                    variant="hero"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        {t("onboarding.buttons.creating")}
+                      </>
+                    ) : (
+                      <span className="flex items-center gap-2">
+                        <Sparkles className="w-5 h-5" />
+                        {t("onboarding.buttons.create")}
+                      </span>
+                    )}
+                  </Button>
+                </motion.div>
               )}
-            </div>
+            </motion.div>
           </CardContent>
         </Card>
         </motion.div>
