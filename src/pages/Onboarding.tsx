@@ -17,6 +17,7 @@ import OnboardingStepWrapper from "@/components/onboarding/OnboardingStepWrapper
 import OnboardingBadgeSelector from "@/components/onboarding/OnboardingBadgeSelector";
 import OnboardingCelebration from "@/components/onboarding/OnboardingCelebration";
 import { Badge } from "@/components/ui/badge";
+import { LanguageToggle } from "@/components/LanguageToggle";
 import cheflyLogo from "@/assets/chefly-logo.png";
 
 const Onboarding = () => {
@@ -324,6 +325,11 @@ const Onboarding = () => {
       />
       
       <div className="w-full max-w-2xl relative z-10">
+        {/* Language Toggle - Top Right */}
+        <div className="flex justify-end mb-4">
+          <LanguageToggle />
+        </div>
+
         {/* Header with logo */}
         <motion.div 
           className="text-center mb-6"
