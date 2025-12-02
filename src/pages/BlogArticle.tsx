@@ -190,8 +190,8 @@ const BlogArticle = () => {
             </h3>
             <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
               {language === "es" 
-                ? "Únete a miles de usuarios que ya están alcanzando sus metas de salud con Chefly.AI. Comienza hoy con 7 días gratis." 
-                : "Join thousands of users who are already achieving their health goals with Chefly.AI. Start today with 7 days free."}
+                ? "Únete a miles de usuarios que ya están alcanzando sus metas de salud con Chefly.AI. Comienza hoy con 4 días gratis." 
+                : "Join thousands of users who are already achieving their health goals with Chefly.AI. Start today with 4 days free."}
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
               <Button 

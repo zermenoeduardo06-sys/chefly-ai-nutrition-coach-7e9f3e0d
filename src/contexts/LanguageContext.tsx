@@ -24,7 +24,7 @@ export const translations = {
     "hero.title": "Tu Coach Nutricional con IA",
     "hero.subtitle": "Menús personalizados, recetas deliciosas y una IA que te guía hacia tus objetivos de salud",
     "hero.cta": "Comienza Gratis",
-    "hero.trial": "Prueba 7 días gratis",
+    "hero.trial": "Prueba 4 días gratis",
     
     // Stats
     "stats.users": "Usuarios activos",
@@ -54,7 +54,7 @@ export const translations = {
     
     // Pricing
     "pricing.title": "Elige tu plan perfecto",
-    "pricing.subtitle": "Comienza con 7 días gratis. Cancela cuando quieras.",
+    "pricing.subtitle": "Comienza con 4 días gratis. Cancela cuando quieras.",
     "pricing.month": "mes",
     "pricing.cta": "Comenzar ahora",
     "pricing.comingSoon": "Próximamente",
@@ -715,7 +715,7 @@ export const translations = {
     "hero.title": "Your AI Nutrition Coach",
     "hero.subtitle": "Personalized menus, delicious recipes, and an AI that guides you to your health goals",
     "hero.cta": "Start Free",
-    "hero.trial": "7-day free trial",
+    "hero.trial": "4-day free trial",
     
     // Stats
     "stats.users": "Active users",
@@ -745,7 +745,7 @@ export const translations = {
     
     // Pricing
     "pricing.title": "Choose your perfect plan",
-    "pricing.subtitle": "Start with a 7-day free trial. Cancel anytime.",
+    "pricing.subtitle": "Start with a 4-day free trial. Cancel anytime.",
     "pricing.month": "month",
     "pricing.cta": "Start now",
     "pricing.comingSoon": "Coming Soon",
