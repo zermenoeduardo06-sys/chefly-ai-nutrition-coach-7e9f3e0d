@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,13 +7,16 @@ import { Badge } from "@/components/ui/badge";
 import { Check, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { SUBSCRIPTION_TIERS } from "@/hooks/useSubscription";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface SubscriptionPlan {
   id: string;
   name: string;
+  nameEn: string;
   price_mxn: number;
   billing_period: string;
   features: string[];
+  featuresEn: string[];
   display_order: number;
   coming_soon?: boolean;
   is_active: boolean;
@@ -23,7 +26,7 @@ interface SubscriptionPlan {
 const Pricing = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
+  const { t, language } = useLanguage();
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
 
   // Planes directamente desde la configuración de Stripe
@@ -31,6 +34,7 @@ const Pricing = () => {
     {
       id: "basic",
       name: "Básico",
+      nameEn: "Basic",
       price_mxn: SUBSCRIPTION_TIERS.BASIC.price,
       billing_period: "monthly",
       features: [
@@ -39,6 +43,12 @@ const Pricing = () => {
         "Acceso a recetas básicas",
         "Chat con IA (5 mensajes/día)",
       ],
+      featuresEn: [
+        "Personalized weekly meal plan",
+        "Calorie and macro tracking",
+        "Access to basic recipes",
+        "AI Chat (5 messages/day)",
+      ],
       display_order: 1,
       is_active: true,
       stripe_price_id: SUBSCRIPTION_TIERS.BASIC.price_id,
@@ -46,6 +56,7 @@ const Pricing = () => {
     {
       id: "intermediate",
       name: "Intermedio",
+      nameEn: "Intermediate",
       price_mxn: SUBSCRIPTION_TIERS.INTERMEDIATE.price,
       billing_period: "monthly",
       features: [
@@ -57,6 +68,15 @@ const Pricing = () => {
         "Seguimiento de progreso avanzado",
         "Desafíos diarios ilimitados",
       ],
+      featuresEn: [
+        "Everything in Basic plan",
+        "Unlimited daily meal plans",
+        "Premium and varied recipes",
+        "Unlimited AI Chat",
+        "Automatic shopping list",
+        "Advanced progress tracking",
+        "Unlimited daily challenges",
+      ],
       display_order: 2,
       is_active: true,
       stripe_price_id: SUBSCRIPTION_TIERS.INTERMEDIATE.price_id,
@@ -67,8 +87,8 @@ const Pricing = () => {
     if (!plan.stripe_price_id) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Este plan no está disponible por el momento",
+        title: t("common.error"),
+        description: language === "es" ? "Este plan no está disponible por el momento" : "This plan is not available at the moment",
       });
       return;
     }
@@ -104,8 +124,8 @@ const Pricing = () => {
       console.error("Error creating checkout:", error);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "No se pudo iniciar el proceso de pago. Intenta de nuevo.",
+        title: t("common.error"),
+        description: language === "es" ? "No se pudo iniciar el proceso de pago. Intenta de nuevo." : "Could not start payment process. Please try again.",
       });
     } finally {
       setCheckoutLoading(null);
@@ -117,10 +137,10 @@ const Pricing = () => {
       <div className="container mx-auto max-w-6xl">
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Elige tu plan de nutrición
+            {t("pricing.pageTitle")}
           </h1>
           <p className="text-xl text-muted-foreground">
-            Comienza tu viaje hacia una mejor alimentación
+            {t("pricing.pageSubtitle")}
           </p>
         </div>
 
@@ -134,23 +154,23 @@ const Pricing = () => {
             >
               {index === 1 && (
                 <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  Más Popular
+                  {t("pricing.mostPopular")}
                 </Badge>
               )}
               
               <CardHeader>
-                <CardTitle className="text-2xl">{plan.name}</CardTitle>
+                <CardTitle className="text-2xl">{language === "es" ? plan.name : plan.nameEn}</CardTitle>
                 <CardDescription>
                   <span className="text-4xl font-bold text-foreground">
                     ${Math.round(plan.price_mxn / 20)}
                   </span>
-                  <span className="text-muted-foreground"> USD/mes</span>
+                  <span className="text-muted-foreground"> USD/{t("pricing.month")}</span>
                 </CardDescription>
               </CardHeader>
 
               <CardContent className="flex-1">
                 <ul className="space-y-3">
-                  {plan.features.map((feature, idx) => (
+                  {(language === "es" ? plan.features : plan.featuresEn).map((feature, idx) => (
                     <li key={idx} className="flex items-start gap-2">
                       <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                       <span className="text-sm">{feature}</span>
@@ -169,10 +189,10 @@ const Pricing = () => {
                   {checkoutLoading === plan.id ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Procesando...
+                      {t("pricing.processing")}
                     </>
                   ) : (
-                    "Seleccionar Plan"
+                    t("pricing.selectPlan")
                   )}
                 </Button>
               </CardFooter>
@@ -181,8 +201,8 @@ const Pricing = () => {
         </div>
 
         <div className="mt-12 text-center text-sm text-muted-foreground">
-          <p>Todos los planes incluyen acceso completo a la plataforma</p>
-          <p className="mt-2">Puedes cancelar en cualquier momento</p>
+          <p>{t("pricing.allPlansInclude")}</p>
+          <p className="mt-2">{t("pricing.cancelAnytime")}</p>
         </div>
       </div>
     </div>
@@ -190,4 +210,3 @@ const Pricing = () => {
 };
 
 export default Pricing;
-

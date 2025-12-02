@@ -232,15 +232,15 @@ const Index = () => {
               <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-secondary" />
-                  <span>Sin tarjeta requerida</span>
+                  <span>{t("hero.noCardRequired")}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-secondary" />
-                  <span>4 días de prueba</span>
+                  <span>{t("hero.trialDays")}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-secondary" />
-                  <span>Cancela cuando quieras</span>
+                  <span>{t("hero.cancelAnytime")}</span>
                 </div>
               </div>
             </div>
@@ -361,7 +361,7 @@ const Index = () => {
                   </Badge>
                 ) : index === 1 && (
                   <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-secondary">
-                    Más Popular
+                    {t("pricing.mostPopular")}
                   </Badge>
                 )}
                 
@@ -401,8 +401,8 @@ const Index = () => {
           </div>
 
           <div className="mt-12 text-center text-sm text-muted-foreground space-y-2">
-            <p>🎉 4 días de prueba gratis en todos los planes</p>
-            <p>✨ Cancela en cualquier momento sin compromiso</p>
+            <p>🎉 {t("pricing.trialAllPlans")}</p>
+            <p>✨ {t("pricing.cancelNoCommitment")}</p>
           </div>
         </div>
       </section>

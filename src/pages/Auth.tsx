@@ -128,14 +128,14 @@ const Auth = () => {
               Chefly.AI
             </span>
           </h1>
-          <p className="text-muted-foreground">Tu entrenador alimenticio personal</p>
+          <p className="text-muted-foreground">{t("auth.tagline")}</p>
         </div>
 
         <Card className="shadow-xl border-border/50">
           <CardHeader>
-            <CardTitle>Accede a tu cuenta</CardTitle>
+            <CardTitle>{t("auth.accessAccount")}</CardTitle>
             <CardDescription>
-              Prueba gratis por 4 días sin tarjeta requerida
+              {t("auth.trialInfo")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -152,7 +152,7 @@ const Auth = () => {
                     <Input
                       id="signup-email"
                       type="email"
-                      placeholder="tu@email.com"
+                      placeholder={t("auth.emailPlaceholder")}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
@@ -164,7 +164,7 @@ const Auth = () => {
                     <Input
                       id="signup-password"
                       type="password"
-                      placeholder="Mínimo 8 caracteres"
+                      placeholder={t("auth.passwordPlaceholder")}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
@@ -198,7 +198,7 @@ const Auth = () => {
                     <Input
                       id="signin-email"
                       type="email"
-                      placeholder="tu@email.com"
+                      placeholder={t("auth.emailPlaceholder")}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
@@ -235,22 +235,22 @@ const Auth = () => {
             </Tabs>
 
             <div className="mt-6 text-center text-sm text-muted-foreground space-y-2">
-              <p>✨ Prueba gratuita de 4 días</p>
-              <p>🚫 Sin tarjeta de crédito requerida</p>
+              <p>✨ {t("auth.freeTrial")}</p>
+              <p>🚫 {t("auth.noCreditCard")}</p>
               <p className="text-xs mt-4">
-                Al registrarte, aceptas nuestros{" "}
+                {t("auth.termsAgree")}{" "}
                 <button 
                   onClick={() => navigate("/terms")} 
                   className="text-primary hover:underline"
                 >
-                  Términos y Condiciones
+                  {t("auth.termsLink")}
                 </button>
-                {" "}y{" "}
+                {" "}{t("auth.and")}{" "}
                 <button 
                   onClick={() => navigate("/privacy")} 
                   className="text-primary hover:underline"
                 >
-                  Política de Privacidad
+                  {t("auth.privacyLink")}
                 </button>
               </p>
             </div>
