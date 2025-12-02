@@ -255,7 +255,9 @@ Generate ${7 * preferences.meals_per_day} varied and specific recipes. Each reci
     const mealsWithImages = await Promise.all(
       mealData.meals.map(async (meal: any) => {
         try {
-          const imagePrompt = `Foto profesional apetitosa de alta calidad de ${meal.name}, plato de comida ${preferences.diet_type}, presentación elegante, iluminación natural, estilo gastronómico`;
+          const imagePrompt = language === 'en' 
+            ? `Professional appetizing high quality photo of ${meal.name}, ${preferences.diet_type} food dish, elegant presentation, natural lighting, gastronomic style`
+            : `Foto profesional apetitosa de alta calidad de ${meal.name}, plato de comida ${preferences.diet_type}, presentación elegante, iluminación natural, estilo gastronómico`;
           
           const imageResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
             method: 'POST',
@@ -366,22 +368,48 @@ Generate ${7 * preferences.meals_per_day} varied and specific recipes. Each reci
   } catch (error: any) {
     console.error('Error in generate-meal-plan function:', error);
     
-    // Handle specific error types
-    let errorMessage = 'Error al generar el plan de comidas';
+    // Get language from request for error messages
+    let errorLanguage = 'es';
+    try {
+      const body = await req.clone().json();
+      errorLanguage = body.language || 'es';
+    } catch {}
+    
+    // Handle specific error types with bilingual messages
+    const errorMessages: Record<string, { es: string; en: string }> = {
+      rate_limit: {
+        es: 'Demasiadas solicitudes. Por favor, espera un momento e intenta de nuevo.',
+        en: 'Too many requests. Please wait a moment and try again.'
+      },
+      invalid_user: {
+        es: 'Usuario inválido',
+        en: 'Invalid user'
+      },
+      no_preferences: {
+        es: 'No se encontraron preferencias. Por favor, completa el onboarding primero.',
+        en: 'No preferences found. Please complete onboarding first.'
+      },
+      default: {
+        es: 'Error al generar el plan de comidas',
+        en: 'Error generating meal plan'
+      }
+    };
+    
+    let errorKey = 'default';
     let statusCode = 500;
     
     if (error.message?.includes('Rate limit') || error.message?.includes('429')) {
-      errorMessage = 'Demasiadas solicitudes. Por favor, espera un momento e intenta de nuevo.';
+      errorKey = 'rate_limit';
       statusCode = 429;
     } else if (error.message?.includes('Invalid userId')) {
-      errorMessage = 'Usuario inválido';
+      errorKey = 'invalid_user';
       statusCode = 400;
     } else if (error.message?.includes('No preferences found')) {
-      errorMessage = 'No se encontraron preferencias. Por favor, completa el onboarding primero.';
+      errorKey = 'no_preferences';
       statusCode = 400;
-    } else if (error.message) {
-      errorMessage = error.message;
     }
+    
+    const errorMessage = errorMessages[errorKey][errorLanguage as 'es' | 'en'] || error.message;
     
     return new Response(
       JSON.stringify({ 
