@@ -7,8 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Sparkles, Shield, Clock, Utensils, ChefHat } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { motion } from "framer-motion";
+import cheflyLogo from "@/assets/chefly-logo.png";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -16,10 +18,9 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   useEffect(() => {
-    // Check if user is already logged in
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
@@ -28,7 +29,6 @@ const Auth = () => {
     };
     checkSession();
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
         navigate("/dashboard");
@@ -43,13 +43,11 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      // Validate email format
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!email || !emailRegex.test(email) || email.length > 255) {
         throw new Error(t("auth.invalidEmail"));
       }
       
-      // Validate password
       if (!password || password.length < 8 || password.length > 128) {
         throw new Error(t("auth.passwordLength"));
       }
@@ -86,13 +84,11 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      // Validate email format
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!email || !emailRegex.test(email)) {
         throw new Error(t("auth.invalidEmail"));
       }
       
-      // Validate password exists
       if (!password || password.length < 6) {
         throw new Error(t("auth.invalidPassword"));
       }
@@ -119,125 +115,233 @@ const Auth = () => {
     }
   };
 
+  const benefits = [
+    {
+      icon: Utensils,
+      title: language === 'es' ? "Menús 100% personalizados" : "100% personalized menus",
+      description: language === 'es' ? "Adaptados a tus gustos, alergias y objetivos" : "Adapted to your tastes, allergies and goals"
+    },
+    {
+      icon: ChefHat,
+      title: language === 'es' ? "Recetas fáciles de preparar" : "Easy-to-make recipes",
+      description: language === 'es' ? "Con ingredientes accesibles y pasos claros" : "With accessible ingredients and clear steps"
+    },
+    {
+      icon: Clock,
+      title: language === 'es' ? "Ahorra tiempo y dinero" : "Save time and money",
+      description: language === 'es' ? "Lista de compras automática y sin desperdicios" : "Automatic shopping list with no waste"
+    },
+    {
+      icon: Shield,
+      title: language === 'es' ? "Prueba gratis 4 días" : "Free 4-day trial",
+      description: language === 'es' ? "Sin compromiso ni tarjeta de crédito" : "No commitment or credit card required"
+    }
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2">
-            <span className="bg-gradient-to-r from-primary to-primary-hover bg-clip-text text-transparent">
-              Chefly.AI
-            </span>
-          </h1>
-          <p className="text-muted-foreground">{t("auth.tagline")}</p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background flex">
+      {/* Left side - Benefits */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-12 flex-col justify-center relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary/10 rounded-full blur-3xl" />
+        
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="relative z-10 max-w-lg"
+        >
+          <div className="flex items-center gap-3 mb-8">
+            <img src={cheflyLogo} alt="Chefly.AI" className="h-12 w-12" />
+            <h1 className="text-3xl font-bold">
+              <span className="bg-gradient-to-r from-primary to-primary-hover bg-clip-text text-transparent">
+                Chefly.AI
+              </span>
+            </h1>
+          </div>
+          
+          <h2 className="text-4xl font-bold text-foreground mb-4">
+            {language === 'es' ? 'Tu nutrición, simplificada' : 'Your nutrition, simplified'}
+          </h2>
+          <p className="text-lg text-muted-foreground mb-10">
+            {language === 'es' 
+              ? 'Únete a miles de personas que ya transformaron su alimentación con inteligencia artificial'
+              : 'Join thousands of people who have already transformed their nutrition with artificial intelligence'}
+          </p>
 
-        <Card className="shadow-xl border-border/50">
-          <CardHeader>
-            <CardTitle>{t("auth.accessAccount")}</CardTitle>
-            <CardDescription>
-              {t("auth.trialInfo")}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="signup" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="signup">{t("auth.signup")}</TabsTrigger>
-                <TabsTrigger value="signin">{t("auth.login")}</TabsTrigger>
-              </TabsList>
+          <div className="space-y-6">
+            {benefits.map((benefit, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 + index * 0.1 }}
+                className="flex items-start gap-4"
+              >
+                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <benefit.icon className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">{benefit.title}</h3>
+                  <p className="text-sm text-muted-foreground">{benefit.description}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      </div>
 
-              <TabsContent value="signup">
-                <form onSubmit={handleSignUp} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">{t("auth.email")}</Label>
-                    <Input
-                      id="signup-email"
-                      type="email"
-                      placeholder={t("auth.emailPlaceholder")}
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      disabled={loading}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">{t("auth.password")}</Label>
-                    <Input
-                      id="signup-password"
-                      type="password"
-                      placeholder={t("auth.passwordPlaceholder")}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      minLength={8}
-                      maxLength={128}
-                      disabled={loading}
-                    />
-                  </div>
-                  <Button 
-                    type="submit" 
-                    className="w-full" 
-                    variant="hero"
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        {t("common.loading")}
-                      </>
-                    ) : (
-                      t("auth.signup")
-                    )}
-                  </Button>
-                </form>
-              </TabsContent>
+      {/* Right side - Auth form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 lg:p-12">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          className="w-full max-w-md"
+        >
+          {/* Mobile logo */}
+          <div className="lg:hidden text-center mb-8">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <img src={cheflyLogo} alt="Chefly.AI" className="h-10 w-10" />
+              <h1 className="text-3xl font-bold">
+                <span className="bg-gradient-to-r from-primary to-primary-hover bg-clip-text text-transparent">
+                  Chefly.AI
+                </span>
+              </h1>
+            </div>
+            <p className="text-muted-foreground">{t("auth.tagline")}</p>
+          </div>
 
-              <TabsContent value="signin">
-                <form onSubmit={handleSignIn} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signin-email">{t("auth.email")}</Label>
-                    <Input
-                      id="signin-email"
-                      type="email"
-                      placeholder={t("auth.emailPlaceholder")}
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      disabled={loading}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signin-password">{t("auth.password")}</Label>
-                    <Input
-                      id="signin-password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      disabled={loading}
-                    />
-                  </div>
-                  <Button 
-                    type="submit" 
-                    className="w-full"
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        {t("common.loading")}
-                      </>
-                    ) : (
-                      t("auth.login")
-                    )}
-                  </Button>
-                </form>
-              </TabsContent>
-            </Tabs>
+          <Card className="shadow-2xl border-border/50 backdrop-blur-sm">
+            <CardHeader className="text-center pb-2">
+              <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                <Sparkles className="w-6 h-6 text-primary" />
+              </div>
+              <CardTitle className="text-2xl">{t("auth.accessAccount")}</CardTitle>
+              <CardDescription className="text-base">
+                {t("auth.trialInfo")}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <Tabs defaultValue="signup" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-6 h-12">
+                  <TabsTrigger value="signup" className="text-base">{t("auth.signup")}</TabsTrigger>
+                  <TabsTrigger value="signin" className="text-base">{t("auth.login")}</TabsTrigger>
+                </TabsList>
 
-            <div className="mt-6 text-center text-sm text-muted-foreground space-y-2">
-              <p>✨ {t("auth.freeTrial")}</p>
-              <p>🚫 {t("auth.noCreditCard")}</p>
-              <p className="text-xs mt-4">
+                <TabsContent value="signup">
+                  <form onSubmit={handleSignUp} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-email">{t("auth.email")}</Label>
+                      <Input
+                        id="signup-email"
+                        type="email"
+                        placeholder={t("auth.emailPlaceholder")}
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        disabled={loading}
+                        className="h-12"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-password">{t("auth.password")}</Label>
+                      <Input
+                        id="signup-password"
+                        type="password"
+                        placeholder={t("auth.passwordPlaceholder")}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        minLength={8}
+                        maxLength={128}
+                        disabled={loading}
+                        className="h-12"
+                      />
+                    </div>
+                    <Button 
+                      type="submit" 
+                      className="w-full h-12 text-base font-semibold" 
+                      variant="hero"
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                          {t("common.loading")}
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="mr-2 h-5 w-5" />
+                          {t("auth.signup")}
+                        </>
+                      )}
+                    </Button>
+                  </form>
+                </TabsContent>
+
+                <TabsContent value="signin">
+                  <form onSubmit={handleSignIn} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="signin-email">{t("auth.email")}</Label>
+                      <Input
+                        id="signin-email"
+                        type="email"
+                        placeholder={t("auth.emailPlaceholder")}
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        disabled={loading}
+                        className="h-12"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signin-password">{t("auth.password")}</Label>
+                      <Input
+                        id="signin-password"
+                        type="password"
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        disabled={loading}
+                        className="h-12"
+                      />
+                    </div>
+                    <Button 
+                      type="submit" 
+                      className="w-full h-12 text-base font-semibold"
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                          {t("common.loading")}
+                        </>
+                      ) : (
+                        t("auth.login")
+                      )}
+                    </Button>
+                  </form>
+                </TabsContent>
+              </Tabs>
+
+              {/* Trust indicators */}
+              <div className="mt-8 pt-6 border-t border-border/50">
+                <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-primary" />
+                    <span>{t("auth.freeTrial")}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-secondary" />
+                    <span>{t("auth.noCreditCard")}</span>
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-xs text-center text-muted-foreground mt-6">
                 {t("auth.termsAgree")}{" "}
                 <button 
                   onClick={() => navigate("/terms")} 
@@ -253,9 +357,25 @@ const Auth = () => {
                   {t("auth.privacyLink")}
                 </button>
               </p>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+
+          {/* Mobile benefits - collapsed */}
+          <div className="lg:hidden mt-8 grid grid-cols-2 gap-3">
+            {benefits.slice(0, 4).map((benefit, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.5 + index * 0.1 }}
+                className="flex items-center gap-2 p-3 rounded-lg bg-muted/50"
+              >
+                <benefit.icon className="w-4 h-4 text-primary flex-shrink-0" />
+                <span className="text-xs text-muted-foreground">{benefit.title}</span>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
       </div>
     </div>
   );
