@@ -58,6 +58,20 @@ export const translations = {
     "pricing.month": "mes",
     "pricing.cta": "Comenzar ahora",
     "pricing.comingSoon": "Próximamente",
+    "pricing.mostPopular": "Más Popular",
+    "pricing.selectPlan": "Seleccionar Plan",
+    "pricing.processing": "Procesando...",
+    "pricing.pageTitle": "Elige tu plan de nutrición",
+    "pricing.pageSubtitle": "Comienza tu viaje hacia una mejor alimentación",
+    "pricing.allPlansInclude": "Todos los planes incluyen acceso completo a la plataforma",
+    "pricing.cancelAnytime": "Puedes cancelar en cualquier momento",
+    "pricing.trialAllPlans": "4 días de prueba gratis en todos los planes",
+    "pricing.cancelNoCommitment": "Cancela en cualquier momento sin compromiso",
+    
+    // Hero extras
+    "hero.noCardRequired": "Sin tarjeta requerida",
+    "hero.trialDays": "4 días de prueba",
+    "hero.cancelAnytime": "Cancela cuando quieras",
     
     // Testimonials
     "testimonials.title": "Lo que dicen nuestros usuarios",
@@ -112,6 +126,17 @@ export const translations = {
     "auth.invalidPassword": "Contraseña inválida",
     "auth.passwordLength": "La contraseña debe tener entre 8 y 128 caracteres",
     "auth.backToHome": "Volver al inicio",
+    "auth.tagline": "Tu entrenador alimenticio personal",
+    "auth.accessAccount": "Accede a tu cuenta",
+    "auth.trialInfo": "Prueba gratis por 4 días sin tarjeta requerida",
+    "auth.emailPlaceholder": "tu@email.com",
+    "auth.passwordPlaceholder": "Mínimo 8 caracteres",
+    "auth.freeTrial": "Prueba gratuita de 4 días",
+    "auth.noCreditCard": "Sin tarjeta de crédito requerida",
+    "auth.termsAgree": "Al registrarte, aceptas nuestros",
+    "auth.termsLink": "Términos y Condiciones",
+    "auth.and": "y",
+    "auth.privacyLink": "Política de Privacidad",
     
     // FAQ
     "faq.title": "Preguntas Frecuentes",
@@ -749,6 +774,20 @@ export const translations = {
     "pricing.month": "month",
     "pricing.cta": "Start now",
     "pricing.comingSoon": "Coming Soon",
+    "pricing.mostPopular": "Most Popular",
+    "pricing.selectPlan": "Select Plan",
+    "pricing.processing": "Processing...",
+    "pricing.pageTitle": "Choose your nutrition plan",
+    "pricing.pageSubtitle": "Start your journey to better nutrition",
+    "pricing.allPlansInclude": "All plans include full platform access",
+    "pricing.cancelAnytime": "Cancel anytime",
+    "pricing.trialAllPlans": "4-day free trial on all plans",
+    "pricing.cancelNoCommitment": "Cancel anytime, no commitment",
+    
+    // Hero extras
+    "hero.noCardRequired": "No card required",
+    "hero.trialDays": "4-day trial",
+    "hero.cancelAnytime": "Cancel anytime",
     
     // Testimonials
     "testimonials.title": "What our users say",
@@ -803,6 +842,17 @@ export const translations = {
     "auth.invalidPassword": "Invalid password",
     "auth.passwordLength": "Password must be between 8 and 128 characters",
     "auth.backToHome": "Back to home",
+    "auth.tagline": "Your personal nutrition coach",
+    "auth.accessAccount": "Access your account",
+    "auth.trialInfo": "4-day free trial, no credit card required",
+    "auth.emailPlaceholder": "your@email.com",
+    "auth.passwordPlaceholder": "Minimum 8 characters",
+    "auth.freeTrial": "4-day free trial",
+    "auth.noCreditCard": "No credit card required",
+    "auth.termsAgree": "By signing up, you agree to our",
+    "auth.termsLink": "Terms and Conditions",
+    "auth.and": "and",
+    "auth.privacyLink": "Privacy Policy",
     
     // FAQ
     "faq.title": "Frequently Asked Questions",
