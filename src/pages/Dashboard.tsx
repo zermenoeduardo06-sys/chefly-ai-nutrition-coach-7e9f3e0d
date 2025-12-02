@@ -88,7 +88,7 @@ const Dashboard = () => {
   const subscription = useSubscription(userId);
   const { isBlocked, isLoading: trialLoading } = useTrialGuard();
   const [searchParams] = useSearchParams();
-  const { t, getArray, language } = useLanguage();
+  const { t, getArray, language, setLanguage } = useLanguage();
 
   const dayNames = getArray("dashboard.days");
   const mealTypes: { [key: string]: string } = {
@@ -923,11 +923,29 @@ const Dashboard = () => {
                 )}
               </Button>
               
-              {/* Language note */}
-              <p className="text-xs text-muted-foreground text-center mt-2 flex items-center justify-center gap-1">
-                <Languages className="h-3 w-3" />
-                {t("dashboard.languageNote")}
-              </p>
+              {/* Language selector for generation */}
+              <div className="flex items-center justify-center gap-2 mt-3 p-2 rounded-lg bg-muted/30 border border-border/30">
+                <Languages className="h-4 w-4 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">{t("dashboard.planLanguage")}:</span>
+                <div className="flex gap-1">
+                  <Button
+                    variant={language === "es" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setLanguage("es")}
+                    className="h-6 px-2 text-xs"
+                  >
+                    ES
+                  </Button>
+                  <Button
+                    variant={language === "en" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setLanguage("en")}
+                    className="h-6 px-2 text-xs"
+                  >
+                    EN
+                  </Button>
+                </div>
+              </div>
             </div>
 
             {/* Plan limitations info for basic users */}
