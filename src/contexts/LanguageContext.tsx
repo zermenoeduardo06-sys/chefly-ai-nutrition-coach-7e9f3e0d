@@ -259,6 +259,7 @@ export const translations = {
     "dashboard.progressToLevel": "Progreso al siguiente nivel",
     "dashboard.points": "puntos",
     "dashboard.intermediatePlan": "Plan Intermedio",
+    "dashboard.languageNote": "El idioma del plan depende del idioma seleccionado al generarlo",
     
     // Chat
     "chat.title": "Coach Nutricional IA",
@@ -979,6 +980,7 @@ export const translations = {
     "dashboard.progressToLevel": "Progress to next level",
     "dashboard.points": "points",
     "dashboard.intermediatePlan": "Intermediate Plan",
+    "dashboard.languageNote": "The plan language depends on the language selected when generating it",
     
     // Chat
     "chat.title": "AI Nutrition Coach",

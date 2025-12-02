@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, RefreshCw, MessageCircle, Calendar, Settings, TrendingUp, Utensils, Clock, Sparkles, Check, Lock, CreditCard } from "lucide-react";
+import { Loader2, RefreshCw, MessageCircle, Calendar, Settings, TrendingUp, Utensils, Clock, Sparkles, Check, Lock, CreditCard, Languages } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { MealDetailDialog } from "@/components/MealDetailDialog";
@@ -922,6 +922,12 @@ const Dashboard = () => {
                   </>
                 )}
               </Button>
+              
+              {/* Language note */}
+              <p className="text-xs text-muted-foreground text-center mt-2 flex items-center justify-center gap-1">
+                <Languages className="h-3 w-3" />
+                {t("dashboard.languageNote")}
+              </p>
             </div>
 
             {/* Plan limitations info for basic users */}
