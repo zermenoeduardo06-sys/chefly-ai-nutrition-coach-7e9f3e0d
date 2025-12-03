@@ -243,6 +243,23 @@ const Index = () => {
                   <span>{t("hero.cancelAnytime")}</span>
                 </div>
               </div>
+
+              {/* Product Hunt Badge */}
+              <div className="pt-4">
+                <a 
+                  href="https://www.producthunt.com/products/chefly-ai?embed=true&utm_source=badge-featured&utm_medium=badge&utm_source=badge-chefly-ai" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <img 
+                    src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1045239&theme=light&t=1764774216974" 
+                    alt="Chefly.AI - AI nutrition coach with personalized meal plans | Product Hunt" 
+                    width="250" 
+                    height="54"
+                    className="hover:opacity-90 transition-opacity"
+                  />
+                </a>
+              </div>
             </div>
 
             <div className="relative flex items-center justify-center order-2">
