@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Cookie } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Link } from "react-router-dom";
 
 const CookieConsent = () => {
   const [showBanner, setShowBanner] = useState(false);
@@ -55,7 +56,10 @@ const CookieConsent = () => {
         <div className="flex items-center gap-3">
           <Cookie className="h-6 w-6 text-primary flex-shrink-0" />
           <p className="text-sm text-muted-foreground">
-            {t("cookies.message")}
+            {t("cookies.message")}{" "}
+            <Link to="/privacy" className="text-primary hover:underline">
+              {t("cookies.learnMore")}
+            </Link>
           </p>
         </div>
         <div className="flex gap-2 flex-shrink-0">

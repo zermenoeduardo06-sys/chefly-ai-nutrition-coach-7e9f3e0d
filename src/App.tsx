@@ -54,36 +54,36 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <CookieConsent />
         <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/onboarding" element={<Onboarding />} />
-          <Route path="/dashboard" element={<DashboardLayout><Dashboard /></DashboardLayout>} />
-          <Route path="/dashboard/progress" element={<DashboardLayout><Progress /></DashboardLayout>} />
-          <Route path="/dashboard/achievements" element={<DashboardLayout><Achievements /></DashboardLayout>} />
-          <Route path="/dashboard/challenges" element={<DashboardLayout><Challenges /></DashboardLayout>} />
-          <Route path="/dashboard/leaderboard" element={<DashboardLayout><Leaderboard /></DashboardLayout>} />
-          <Route path="/chat" element={<Chat />} />
-          <Route path="/pricing" element={<Pricing />} />
-          <Route path="/subscription" element={<DashboardLayout><Subscription /></DashboardLayout>} />
-          <Route path="/welcome" element={<Welcome />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/faq" element={<FAQ />} />
-          <Route path="/blog" element={<Blog />} />
-          <Route path="/blog/:articleId" element={<BlogArticle />} />
-          <Route path="/affiliates" element={<AffiliatesDashboard />} />
-          <Route path="/affiliates/login" element={<AffiliatesLogin />} />
-          <Route path="/affiliates/register" element={<AffiliatesRegister />} />
-          <Route path="/affiliates/test" element={<AffiliateTest />} />
-          <Route path="/programa-afiliados" element={<AffiliatesLanding />} />
-          <Route path="/admin/affiliates" element={<DashboardLayout><AdminAffiliatesDashboard /></DashboardLayout>} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+          <CookieConsent />
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/onboarding" element={<Onboarding />} />
+            <Route path="/dashboard" element={<DashboardLayout><Dashboard /></DashboardLayout>} />
+            <Route path="/dashboard/progress" element={<DashboardLayout><Progress /></DashboardLayout>} />
+            <Route path="/dashboard/achievements" element={<DashboardLayout><Achievements /></DashboardLayout>} />
+            <Route path="/dashboard/challenges" element={<DashboardLayout><Challenges /></DashboardLayout>} />
+            <Route path="/dashboard/leaderboard" element={<DashboardLayout><Leaderboard /></DashboardLayout>} />
+            <Route path="/chat" element={<Chat />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/subscription" element={<DashboardLayout><Subscription /></DashboardLayout>} />
+            <Route path="/welcome" element={<Welcome />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:articleId" element={<BlogArticle />} />
+            <Route path="/affiliates" element={<AffiliatesDashboard />} />
+            <Route path="/affiliates/login" element={<AffiliatesLogin />} />
+            <Route path="/affiliates/register" element={<AffiliatesRegister />} />
+            <Route path="/affiliates/test" element={<AffiliateTest />} />
+            <Route path="/programa-afiliados" element={<AffiliatesLanding />} />
+            <Route path="/admin/affiliates" element={<DashboardLayout><AdminAffiliatesDashboard /></DashboardLayout>} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
     </TooltipProvider>
     </LanguageProvider>
   </QueryClientProvider>

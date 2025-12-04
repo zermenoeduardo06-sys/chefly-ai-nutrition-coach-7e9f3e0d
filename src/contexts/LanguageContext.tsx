@@ -735,9 +735,10 @@ export const translations = {
     "onboarding.toast.error": "Error",
     
     // Cookies
-    "cookies.message": "Usamos cookies para analizar el tráfico y mejorar tu experiencia. Al continuar, aceptas nuestro uso de cookies.",
+    "cookies.message": "Usamos cookies para analizar el tráfico y mejorar tu experiencia.",
     "cookies.accept": "Aceptar",
     "cookies.decline": "Rechazar",
+    "cookies.learnMore": "Más información",
   },
   en: {
     // Navigation
@@ -1462,9 +1463,10 @@ export const translations = {
     "onboarding.toast.error": "Error",
     
     // Cookies
-    "cookies.message": "We use cookies to analyze traffic and improve your experience. By continuing, you accept our use of cookies.",
+    "cookies.message": "We use cookies to analyze traffic and improve your experience.",
     "cookies.accept": "Accept",
     "cookies.decline": "Decline",
+    "cookies.learnMore": "Learn more",
   },
 };
 
