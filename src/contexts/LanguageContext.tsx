@@ -733,6 +733,11 @@ export const translations = {
     "onboarding.toast.created": "¡Menú creado!",
     "onboarding.toast.createdDesc": "Tu plan semanal personalizado está listo",
     "onboarding.toast.error": "Error",
+    
+    // Cookies
+    "cookies.message": "Usamos cookies para analizar el tráfico y mejorar tu experiencia. Al continuar, aceptas nuestro uso de cookies.",
+    "cookies.accept": "Aceptar",
+    "cookies.decline": "Rechazar",
   },
   en: {
     // Navigation
@@ -1455,6 +1460,11 @@ export const translations = {
     "onboarding.toast.created": "Menu created!",
     "onboarding.toast.createdDesc": "Your personalized weekly plan is ready",
     "onboarding.toast.error": "Error",
+    
+    // Cookies
+    "cookies.message": "We use cookies to analyze traffic and improve your experience. By continuing, you accept our use of cookies.",
+    "cookies.accept": "Accept",
+    "cookies.decline": "Decline",
   },
 };
 
