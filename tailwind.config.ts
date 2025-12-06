@@ -60,7 +60,7 @@ export default {
         },
       },
       fontFamily: {
-        brand: ["Pacifico", "cursive"],
+        brand: ["Montserrat", "sans-serif"],
       },
       borderRadius: {
         lg: "var(--radius)",

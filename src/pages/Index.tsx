@@ -154,7 +154,7 @@ const Index = () => {
       <header>
         <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50" role="navigation" aria-label="Main navigation">
           <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-            <span className="text-3xl font-brand bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            <span className="text-3xl font-brand font-black bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent tracking-tight">
               Chefly.AI
             </span>
             <div className="flex items-center gap-4">
@@ -206,7 +206,7 @@ const Index = () => {
               </div>
               
               <h1 id="hero-heading" className="text-5xl lg:text-7xl leading-tight">
-                <span className="font-brand bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                <span className="font-brand font-black bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent tracking-tight">
                   Chefly.AI
                 </span>
               </h1>
