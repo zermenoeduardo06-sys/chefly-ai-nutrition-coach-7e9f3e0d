@@ -52,8 +52,16 @@ export const ContactForm = () => {
     setIsSubmitting(true);
     
     try {
-      // Simulate sending (backend integration pending)
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { data: response, error } = await supabase.functions.invoke('send-contact-email', {
+        body: {
+          name: data.name,
+          email: data.email,
+          subject: data.subject,
+          message: data.message
+        }
+      });
+
+      if (error) throw error;
 
       setIsSuccess(true);
       toast.success(t("contact.form.success"), {
@@ -62,9 +70,9 @@ export const ContactForm = () => {
       
       form.reset();
       
-      // Reset success state after 5 seconds
       setTimeout(() => setIsSuccess(false), 5000);
     } catch (error) {
+      console.error("Error sending contact form:", error);
       toast.error(t("contact.form.error"), {
         description: t("contact.form.errorDesc")
       });
