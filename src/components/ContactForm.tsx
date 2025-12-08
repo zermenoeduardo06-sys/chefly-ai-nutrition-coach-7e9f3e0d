@@ -15,7 +15,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 export const ContactForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const contactSchema = z.object({
     name: z.string()
@@ -57,7 +57,8 @@ export const ContactForm = () => {
           name: data.name,
           email: data.email,
           subject: data.subject,
-          message: data.message
+          message: data.message,
+          language
         }
       });
 
@@ -111,11 +112,11 @@ export const ContactForm = () => {
                   control={form.control}
                   name="name"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nombre completo</FormLabel>
+                <FormItem>
+                      <FormLabel>{t("contact.form.name")}</FormLabel>
                       <FormControl>
                         <Input 
-                          placeholder="Tu nombre" 
+                          placeholder={t("contact.form.namePlaceholder")}
                           {...field}
                           maxLength={100}
                           disabled={isSubmitting}
@@ -130,12 +131,12 @@ export const ContactForm = () => {
                   control={form.control}
                   name="email"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
+                <FormItem>
+                      <FormLabel>{t("contact.form.email")}</FormLabel>
                       <FormControl>
                         <Input 
                           type="email"
-                          placeholder="tu@email.com" 
+                          placeholder={t("contact.form.emailPlaceholder")}
                           {...field}
                           maxLength={255}
                           disabled={isSubmitting}
@@ -152,10 +153,10 @@ export const ContactForm = () => {
                 name="subject"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Asunto</FormLabel>
+                    <FormLabel>{t("contact.form.subject")}</FormLabel>
                     <FormControl>
                       <Input 
-                        placeholder="¿De qué se trata tu mensaje?" 
+                        placeholder={t("contact.form.subjectPlaceholder")}
                         {...field}
                         maxLength={200}
                         disabled={isSubmitting}
@@ -171,10 +172,10 @@ export const ContactForm = () => {
                 name="message"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Mensaje</FormLabel>
+                    <FormLabel>{t("contact.form.message")}</FormLabel>
                     <FormControl>
                       <Textarea 
-                        placeholder="Escribe tu mensaje aquí..."
+                        placeholder={t("contact.form.messagePlaceholder")}
                         className="min-h-[150px] resize-none"
                         {...field}
                         maxLength={2000}
@@ -200,12 +201,12 @@ export const ContactForm = () => {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Enviando...
+                    {t("contact.form.sending")}
                   </>
                 ) : (
                   <>
                     <Send className="w-4 h-4" />
-                    Enviar mensaje
+                    {t("contact.form.submit")}
                   </>
                 )}
               </Button>
