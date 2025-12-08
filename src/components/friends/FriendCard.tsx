@@ -16,14 +16,14 @@ interface FriendCardProps {
 export function FriendCard({ friend, onAccept, onReject, onRemove, isPending }: FriendCardProps) {
   const { t } = useLanguage();
   
-  const getInitials = (email: string, displayName?: string | null) => {
+  const getInitials = (displayName?: string | null) => {
     if (displayName) {
-      return displayName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+      return displayName.slice(0, 2).toUpperCase();
     }
-    return email.slice(0, 2).toUpperCase();
+    return "??";
   };
 
-  const displayName = friend.displayName || friend.email.split("@")[0];
+  const displayName = friend.displayName || t("friends.anonymous");
 
   return (
     <Card className="bg-card/50 border-border/50 hover:border-primary/30 transition-colors">
@@ -33,12 +33,11 @@ export function FriendCard({ friend, onAccept, onReject, onRemove, isPending }: 
             <Avatar className="h-12 w-12 border-2 border-primary/20">
               <AvatarImage src={friend.avatarUrl || undefined} alt={displayName} />
               <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                {getInitials(friend.email, friend.displayName)}
+                {getInitials(friend.displayName)}
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0">
-              <p className="font-medium text-foreground truncate">{displayName}</p>
-              <p className="text-sm text-muted-foreground truncate">{friend.email}</p>
+              <p className="font-medium text-foreground truncate">@{displayName}</p>
             </div>
           </div>
 

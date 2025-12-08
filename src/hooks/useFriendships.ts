@@ -90,16 +90,16 @@ export function useFriendships() {
     }
   };
 
-  const sendFriendRequest = async (friendEmail: string) => {
+  const sendFriendRequest = async (nickname: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      // Find user by email
+      // Find user by nickname (display_name)
       const { data: profiles, error: profileError } = await supabase
         .from("profiles")
-        .select("id, email")
-        .eq("email", friendEmail.toLowerCase().trim())
+        .select("id, display_name")
+        .eq("display_name", nickname.trim())
         .limit(1);
 
       if (profileError) throw profileError;
