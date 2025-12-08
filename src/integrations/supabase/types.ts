@@ -672,6 +672,42 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          achievement_alerts: boolean
+          created_at: string
+          daily_summary: boolean
+          id: string
+          meal_reminders: boolean
+          reminder_times: Json
+          streak_reminders: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          achievement_alerts?: boolean
+          created_at?: string
+          daily_summary?: boolean
+          id?: string
+          meal_reminders?: boolean
+          reminder_times?: Json
+          streak_reminders?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          achievement_alerts?: boolean
+          created_at?: string
+          daily_summary?: boolean
+          id?: string
+          meal_reminders?: boolean
+          reminder_times?: Json
+          streak_reminders?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -699,6 +735,36 @@ export type Database = {
           trial_expires_at?: string | null
           trial_start_date?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          auth_key: string
+          created_at: string
+          endpoint: string
+          id: string
+          p256dh_key: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auth_key: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          p256dh_key: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auth_key?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          p256dh_key?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
