@@ -19,12 +19,12 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-// Import demo images
-import demoDashboard from "@/assets/demo-dashboard.jpg";
-import demoRecipe from "@/assets/demo-recipe.jpg";
-import demoChat from "@/assets/demo-chat.jpg";
-import demoProgress from "@/assets/demo-progress.jpg";
-import demoAchievements from "@/assets/demo-achievements.jpg";
+// Import demo images (real screenshots)
+import demoDashboard from "@/assets/demo-dashboard.png";
+import demoRecipe from "@/assets/demo-recipe.png";
+import demoChat from "@/assets/demo-chat.png";
+import demoProgress from "@/assets/demo-progress.png";
+import demoAchievements from "@/assets/demo-achievements.png";
 
 interface DemoScreen {
   id: string;
