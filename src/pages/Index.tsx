@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ProductDemoTour } from "@/components/ProductDemoTour";
+import { InteractiveDemoSection } from "@/components/InteractiveDemoSection";
 import { ContactForm } from "@/components/ContactForm";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageToggle } from "@/components/LanguageToggle";
@@ -325,8 +325,8 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Product Demo Tour */}
-      <ProductDemoTour />
+      {/* Interactive Demo Section */}
+      <InteractiveDemoSection />
 
       {/* Features Section */}
       <section className="py-20 bg-card/50">
