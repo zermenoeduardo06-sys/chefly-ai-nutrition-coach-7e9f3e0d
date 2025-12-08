@@ -9,7 +9,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { FriendCard } from "@/components/friends/FriendCard";
 import { AddFriendDialog } from "@/components/friends/AddFriendDialog";
-import { ProfileSettings } from "@/components/profile/ProfileSettings";
 import { Users, UserPlus, Loader2 } from "lucide-react";
 
 const Friends = () => {
@@ -71,9 +70,6 @@ const Friends = () => {
           </div>
           <AddFriendDialog onSendRequest={sendFriendRequest} />
         </div>
-
-        {/* Profile Settings */}
-        <ProfileSettings />
 
         {/* Pending Requests */}
         {pendingRequests.length > 0 && (
