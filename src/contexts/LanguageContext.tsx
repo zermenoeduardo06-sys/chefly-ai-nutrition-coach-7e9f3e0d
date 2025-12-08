@@ -164,6 +164,7 @@ export const translations = {
     
     // Sidebar
     "sidebar.dashboard": "Dashboard",
+    "sidebar.profile": "Tu Perfil",
     "sidebar.progress": "Progreso Nutricional",
     "sidebar.achievements": "Logros y Medallas",
     "sidebar.challenges": "Desafíos Diarios",
@@ -950,6 +951,7 @@ export const translations = {
     
     // Sidebar
     "sidebar.dashboard": "Dashboard",
+    "sidebar.profile": "Your Profile",
     "sidebar.progress": "Nutrition Progress",
     "sidebar.achievements": "Achievements & Badges",
     "sidebar.challenges": "Daily Challenges",
