@@ -43,7 +43,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`Processing contact form from: ${email}, subject: ${subject}`);
 
     const adminEmailResponse = await resend.emails.send({
-      from: "Chefly.AI <onboarding@resend.dev>",
+      from: "Chefly.AI <contacto@cheflyai.com>",
       to: ["chefly.ai.mx@gmail.com"],
       subject: `[Contacto Chefly] ${subject}`,
       html: `
@@ -68,7 +68,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Admin email sent:", adminEmailResponse);
 
     const userEmailResponse = await resend.emails.send({
-      from: "Chefly.AI <onboarding@resend.dev>",
+      from: "Chefly.AI <contacto@cheflyai.com>",
       to: [email],
       subject: "¡Recibimos tu mensaje! - Chefly.AI",
       html: `
