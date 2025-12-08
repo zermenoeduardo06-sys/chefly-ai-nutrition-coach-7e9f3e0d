@@ -1,4 +1,4 @@
-import { Home, TrendingUp, Trophy, Target, MessageCircle, Users, CreditCard, LogOut, DollarSign, Settings } from "lucide-react";
+import { Home, TrendingUp, Trophy, Target, MessageCircle, Users, CreditCard, LogOut, DollarSign, Settings, UserPlus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -32,6 +32,7 @@ export function AppSidebar() {
     { title: t("sidebar.achievements"), url: "/dashboard/achievements", icon: Trophy },
     { title: t("sidebar.challenges"), url: "/dashboard/challenges", icon: Target },
     { title: t("sidebar.leaderboard"), url: "/dashboard/leaderboard", icon: Users },
+    { title: t("sidebar.friends"), url: "/dashboard/friends", icon: UserPlus },
     { title: t("sidebar.coach"), url: "/chat", icon: MessageCircle },
     { title: t("sidebar.subscription"), url: "/subscription", icon: CreditCard },
     { title: t("sidebar.affiliates"), url: "/affiliates", icon: DollarSign },

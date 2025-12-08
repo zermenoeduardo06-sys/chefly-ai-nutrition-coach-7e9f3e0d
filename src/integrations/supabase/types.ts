@@ -548,6 +548,33 @@ export type Database = {
         }
         Relationships: []
       }
+      friendships: {
+        Row: {
+          created_at: string
+          friend_id: string
+          id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          friend_id: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          friend_id?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       meal_completions: {
         Row: {
           completed_at: string
@@ -710,7 +737,9 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           created_at: string | null
+          display_name: string | null
           email: string
           id: string
           is_subscribed: boolean | null
@@ -719,7 +748,9 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string | null
+          display_name?: string | null
           email: string
           id: string
           is_subscribed?: boolean | null
@@ -728,7 +759,9 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string | null
+          display_name?: string | null
           email?: string
           id?: string
           is_subscribed?: boolean | null
