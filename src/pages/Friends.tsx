@@ -136,6 +136,7 @@ const Friends = () => {
                 <FriendCard
                   key={friend.id}
                   friend={friend}
+                  currentUserId={userId || undefined}
                   onRemove={() => removeFriend(friend.id)}
                 />
               ))

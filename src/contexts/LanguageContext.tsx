@@ -211,6 +211,15 @@ export const translations = {
     "friends.cannotAddSelf": "No puedes agregarte a ti mismo",
     "friends.alreadyExists": "Ya existe una solicitud o amistad con este usuario",
     "friends.anonymous": "Anónimo",
+    "friends.compare": "Comparar",
+    "friends.statsComparison": "Comparación de Estadísticas",
+    "friends.noStatsAvailable": "Estadísticas no disponibles",
+    "friends.you": "Tú",
+    "friends.stats.points": "Puntos Totales",
+    "friends.stats.level": "Nivel",
+    "friends.stats.streak": "Racha Actual",
+    "friends.stats.longestStreak": "Mejor Racha",
+    "friends.stats.mealsCompleted": "Comidas Completadas",
     
     // Profile
     "profile.title": "Mi Perfil",
@@ -997,6 +1006,15 @@ export const translations = {
     "friends.userNotFound": "User not found",
     "friends.cannotAddSelf": "You cannot add yourself",
     "friends.anonymous": "Anonymous",
+    "friends.compare": "Compare",
+    "friends.statsComparison": "Stats Comparison",
+    "friends.noStatsAvailable": "Stats not available",
+    "friends.you": "You",
+    "friends.stats.points": "Total Points",
+    "friends.stats.level": "Level",
+    "friends.stats.streak": "Current Streak",
+    "friends.stats.longestStreak": "Best Streak",
+    "friends.stats.mealsCompleted": "Meals Completed",
     
     // Profile
     "profile.title": "My Profile",
