@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Medal, Crown, Award, Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -10,7 +10,8 @@ import { useTrialGuard } from "@/hooks/useTrialGuard";
 
 interface LeaderboardEntry {
   user_id: string;
-  email: string;
+  display_name: string | null;
+  avatar_url: string | null;
   total_points: number;
   level: number;
   current_streak: number;
@@ -60,7 +61,7 @@ const Leaderboard = () => {
       const userIds = stats.map(s => s.user_id);
       const { data: profiles } = await supabase
         .from("profiles")
-        .select("id, email")
+        .select("id, display_name, avatar_url")
         .in("id", userIds);
 
       // Get achievement counts for each user
@@ -80,7 +81,8 @@ const Leaderboard = () => {
         const profile = profiles?.find(p => p.id === stat.user_id);
         return {
           user_id: stat.user_id,
-          email: profile?.email || "Usuario Anónimo",
+          display_name: profile?.display_name || null,
+          avatar_url: profile?.avatar_url || null,
           total_points: stat.total_points,
           level: stat.level,
           current_streak: stat.current_streak,
@@ -109,8 +111,15 @@ const Leaderboard = () => {
     }
   };
 
-  const getInitials = (email: string) => {
-    return email.substring(0, 2).toUpperCase();
+  const getInitials = (displayName: string | null) => {
+    if (displayName) {
+      return displayName.substring(0, 2).toUpperCase();
+    }
+    return "??";
+  };
+
+  const getDisplayName = (entry: LeaderboardEntry) => {
+    return entry.display_name ? `@${entry.display_name}` : "Usuario Anónimo";
   };
 
   if (loading || trialLoading) {
@@ -175,8 +184,9 @@ const Leaderboard = () => {
 
                           {/* Avatar */}
                           <Avatar className="h-12 w-12">
+                            <AvatarImage src={entry.avatar_url || undefined} alt={getDisplayName(entry)} />
                             <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                              {getInitials(entry.email)}
+                              {getInitials(entry.display_name)}
                             </AvatarFallback>
                           </Avatar>
 
@@ -184,7 +194,7 @@ const Leaderboard = () => {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
                               <p className={`font-semibold truncate ${isCurrentUser ? "text-primary" : ""}`}>
-                                {entry.email}
+                                {getDisplayName(entry)}
                               </p>
                               {isCurrentUser && (
                                 <Badge variant="default" className="text-xs">Tú</Badge>

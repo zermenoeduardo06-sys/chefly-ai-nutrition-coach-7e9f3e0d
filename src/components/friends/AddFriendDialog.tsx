@@ -15,25 +15,25 @@ import { UserPlus, Loader2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface AddFriendDialogProps {
-  onSendRequest: (email: string) => Promise<boolean>;
+  onSendRequest: (nickname: string) => Promise<boolean>;
 }
 
 export function AddFriendDialog({ onSendRequest }: AddFriendDialogProps) {
   const [open, setOpen] = useState(false);
-  const [email, setEmail] = useState("");
+  const [nickname, setNickname] = useState("");
   const [loading, setLoading] = useState(false);
   const { t } = useLanguage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim()) return;
+    if (!nickname.trim()) return;
 
     setLoading(true);
-    const success = await onSendRequest(email);
+    const success = await onSendRequest(nickname);
     setLoading(false);
 
     if (success) {
-      setEmail("");
+      setNickname("");
       setOpen(false);
     }
   };
@@ -51,18 +51,18 @@ export function AddFriendDialog({ onSendRequest }: AddFriendDialogProps) {
           <DialogHeader>
             <DialogTitle>{t("friends.addFriend")}</DialogTitle>
             <DialogDescription>
-              {t("friends.addFriendDesc")}
+              {t("friends.addFriendDescNickname")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="email">{t("friends.friendEmail")}</Label>
+              <Label htmlFor="nickname">{t("friends.friendNickname")}</Label>
               <Input
-                id="email"
-                type="email"
-                placeholder={t("friends.emailPlaceholder")}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="nickname"
+                type="text"
+                placeholder={t("friends.nicknamePlaceholder")}
+                value={nickname}
+                onChange={(e) => setNickname(e.target.value)}
                 disabled={loading}
               />
             </div>
@@ -71,7 +71,7 @@ export function AddFriendDialog({ onSendRequest }: AddFriendDialogProps) {
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               {t("common.cancel")}
             </Button>
-            <Button type="submit" disabled={loading || !email.trim()}>
+            <Button type="submit" disabled={loading || !nickname.trim()}>
               {loading ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
