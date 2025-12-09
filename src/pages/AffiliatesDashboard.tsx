@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Loader2, ArrowLeft, Home, TrendingUp } from "lucide-react";
+import { Loader2, ArrowLeft, Home, TrendingUp, MessageCircle, HelpCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import cheflyLogo from "@/assets/chefly-logo.png";
 import { AffiliateStats } from "@/components/affiliate/AffiliateStats";
@@ -18,6 +18,7 @@ import { AffiliateTierBadge } from "@/components/affiliate/AffiliateTierBadge";
 import { AffiliateQuickGuide } from "@/components/affiliate/AffiliateQuickGuide";
 import { AffiliateResourcesHub } from "@/components/affiliate/AffiliateResourcesHub";
 import { PayoutMethodSetup } from "@/components/affiliate/PayoutMethodSetup";
+import { ContactForm } from "@/components/ContactForm";
 
 const AffiliateHeader = () => {
   const navigate = useNavigate();
@@ -307,6 +308,22 @@ export default function AffiliatesDashboard() {
             <AffiliateResourcesHub />
           </TabsContent>
         </Tabs>
+
+        {/* Contact/Help Section */}
+        <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+          <CardHeader className="text-center pb-2">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <HelpCircle className="h-6 w-6 text-primary" />
+              <CardTitle className="text-xl">¿Necesitas ayuda o ocurrió un error?</CardTitle>
+            </div>
+            <CardDescription>
+              Si tienes problemas con tu enlace, pagos, comisiones o cualquier otra consulta, contáctanos
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ContactForm />
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
