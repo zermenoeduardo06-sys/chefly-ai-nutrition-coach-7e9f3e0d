@@ -82,7 +82,7 @@ export const InteractiveDemoSection = () => {
   };
 
   return (
-    <section className="py-20 bg-gradient-to-b from-muted/30 to-background relative overflow-hidden">
+    <section className="hidden md:block py-20 bg-gradient-to-b from-muted/30 to-background relative overflow-hidden">
       {/* Decorative elements */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-20 right-10 w-64 h-64 rounded-full bg-gradient-to-br from-primary/10 to-secondary/10 blur-3xl"></div>
