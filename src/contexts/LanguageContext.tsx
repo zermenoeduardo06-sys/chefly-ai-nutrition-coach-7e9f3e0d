@@ -331,6 +331,15 @@ export const translations = {
     "dashboard.intermediatePlan": "Plan Intermedio",
     "dashboard.languageNote": "El idioma del plan depende del idioma seleccionado al generarlo",
     "dashboard.planLanguage": "Idioma del plan",
+    "dashboard.finishMeal": "Terminé esta comida",
+    "dashboard.alreadyCompleted": "Ya completada",
+    "dashboard.gamificationTitle": "Tu Progreso y Logros",
+    "dashboard.gamificationDesc": "Completa comidas para ganar puntos, subir de nivel y desbloquear logros",
+    "dashboard.weeklyStats": "Estadísticas de la Semana",
+    "dashboard.weeklyStatsDesc": "Tu progreso durante los últimos 7 días",
+    "dashboard.currentStreakStat": "Racha actual",
+    "dashboard.quickActionsDesc": "Accede rápido a las funciones principales de la app",
+    "dashboard.weeklyPlanDesc": "Haz clic en una comida para ver los detalles y marca como completada cuando la prepares",
     
     // Chat
     "chat.title": "Coach Nutricional IA",
@@ -1129,6 +1138,15 @@ export const translations = {
     "dashboard.intermediatePlan": "Intermediate Plan",
     "dashboard.languageNote": "The plan language depends on the language selected when generating it",
     "dashboard.planLanguage": "Plan language",
+    "dashboard.finishMeal": "I finished this meal",
+    "dashboard.alreadyCompleted": "Already completed",
+    "dashboard.gamificationTitle": "Your Progress & Achievements",
+    "dashboard.gamificationDesc": "Complete meals to earn points, level up, and unlock achievements",
+    "dashboard.weeklyStats": "Weekly Stats",
+    "dashboard.weeklyStatsDesc": "Your progress over the last 7 days",
+    "dashboard.currentStreakStat": "Current streak",
+    "dashboard.quickActionsDesc": "Quick access to main app features",
+    "dashboard.weeklyPlanDesc": "Click on a meal to see details and mark as completed when you prepare it",
     
     // Chat
     "chat.title": "AI Nutrition Coach",
