@@ -16,6 +16,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { useAffiliateTracking } from "@/hooks/useAffiliateTracking";
 import { AffiliatePromoBanner } from "@/components/AffiliatePromoBanner";
+import { HeroParticles } from "@/components/HeroParticles";
 
 interface SubscriptionPlan {
   id: string;
@@ -172,28 +173,9 @@ const Index = () => {
       
       {/* Hero Section */}
       <main>
-      <section className="relative overflow-hidden" aria-labelledby="hero-heading">
-        {/* Decorative Background Elements */}
-        <div className="absolute inset-0 pointer-events-none">
-          {/* Gradient waves */}
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-secondary/5 to-background"></div>
-          
-          {/* Animated wave shapes */}
-          <div className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-primary/10 to-transparent" 
-               style={{
-                 clipPath: "ellipse(100% 100% at 50% 100%)"
-               }}></div>
-          
-          {/* Decorative circles */}
-          <div className="absolute top-20 left-10 w-32 h-32 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 blur-2xl animate-pulse"></div>
-          <div className="absolute top-40 right-20 w-48 h-48 rounded-full bg-gradient-to-br from-secondary/15 to-primary/15 blur-3xl animate-pulse" style={{ animationDelay: "1s" }}></div>
-          <div className="absolute bottom-20 left-1/4 w-24 h-24 rounded-full bg-gradient-to-br from-primary/10 to-secondary/10 blur-xl animate-pulse" style={{ animationDelay: "2s" }}></div>
-          
-          {/* Small decorative stars/sparkles */}
-          <div className="absolute top-32 right-1/4 w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-          <div className="absolute top-64 right-1/3 w-1.5 h-1.5 bg-secondary rounded-full animate-pulse" style={{ animationDelay: "0.5s" }}></div>
-          <div className="absolute bottom-40 left-1/3 w-2 h-2 bg-primary rounded-full animate-pulse" style={{ animationDelay: "1.5s" }}></div>
-        </div>
+      <section className="relative overflow-hidden min-h-[90vh]" aria-labelledby="hero-heading">
+        {/* Animated Particles Background with Parallax */}
+        <HeroParticles />
         
         <div className="container mx-auto px-4 py-20 lg:py-32 relative z-10">
           <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-center">
