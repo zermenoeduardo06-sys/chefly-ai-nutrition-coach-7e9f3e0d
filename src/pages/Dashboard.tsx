@@ -19,6 +19,7 @@ import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useTrialGuard } from "@/hooks/useTrialGuard";
 import { useLanguage } from "@/contexts/LanguageContext";
+import WeeklyCheckInBanner from "@/components/checkin/WeeklyCheckInBanner";
 import confetti from "canvas-confetti";
 
 interface Meal {
@@ -752,6 +753,14 @@ const Dashboard = () => {
           <SubscriptionBanner 
             userId={profile.id} 
             trialExpiresAt={profile.trial_expires_at}
+          />
+        )}
+
+        {/* Weekly Check-In Banner (Premium feature) */}
+        {userId && (
+          <WeeklyCheckInBanner 
+            userId={userId} 
+            onPlanGenerated={() => loadMealPlan(userId)}
           />
         )}
 

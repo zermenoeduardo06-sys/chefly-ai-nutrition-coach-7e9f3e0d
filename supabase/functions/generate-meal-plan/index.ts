@@ -12,8 +12,10 @@ serve(async (req) => {
   }
 
   try {
-    const { userId, forceNew = false, language = 'es' } = await req.json();
+    const { userId, forceNew = false, language = 'es', weeklyCheckIn } = await req.json();
     
+    console.log('Weekly Check-In data received:', weeklyCheckIn);
+
     // Validate userId
     if (!userId || typeof userId !== 'string') {
       throw new Error('Invalid userId');
@@ -93,6 +95,92 @@ serve(async (req) => {
     };
 
     const mealTypes = mealTypeMap[preferences.meals_per_day] || ['breakfast', 'lunch', 'dinner'];
+    
+    // Build weekly check-in context for AI prompt
+    let checkInContextES = '';
+    let checkInContextEN = '';
+    
+    if (weeklyCheckIn) {
+      const weightMap: Record<string, { es: string; en: string }> = {
+        up: { es: 'subió de peso', en: 'gained weight' },
+        down: { es: 'bajó de peso', en: 'lost weight' },
+        same: { es: 'se mantuvo igual', en: 'stayed the same' },
+      };
+      
+      const energyMap: Record<string, { es: string; en: string }> = {
+        high: { es: 'alta', en: 'high' },
+        normal: { es: 'normal', en: 'normal' },
+        low: { es: 'baja', en: 'low' },
+      };
+      
+      const prefMap: Record<string, { es: string; en: string }> = {
+        healthier: { es: 'más saludables', en: 'healthier' },
+        faster: { es: 'más rápidas', en: 'faster' },
+        cheaper: { es: 'más económicas', en: 'cheaper' },
+        more_protein: { es: 'más proteicas', en: 'more protein' },
+        more_varied: { es: 'más variadas', en: 'more varied' },
+        different: { es: 'algo diferente', en: 'something different' },
+      };
+      
+      const goalMap: Record<string, { es: string; en: string }> = {
+        cheaper: { es: 'más económico', en: 'cheaper' },
+        faster: { es: 'más rápido de cocinar', en: 'faster to cook' },
+        more_protein: { es: 'más contenido proteico', en: 'more protein content' },
+      };
+      
+      const weightChangeES = weeklyCheckIn.weightChange ? weightMap[weeklyCheckIn.weightChange]?.es : '';
+      const weightChangeEN = weeklyCheckIn.weightChange ? weightMap[weeklyCheckIn.weightChange]?.en : '';
+      const energyES = weeklyCheckIn.energyLevel ? energyMap[weeklyCheckIn.energyLevel]?.es : '';
+      const energyEN = weeklyCheckIn.energyLevel ? energyMap[weeklyCheckIn.energyLevel]?.en : '';
+      
+      const recipePrefsES = weeklyCheckIn.recipePreferences?.map((p: string) => prefMap[p]?.es).filter(Boolean).join(', ') || '';
+      const recipePrefsEN = weeklyCheckIn.recipePreferences?.map((p: string) => prefMap[p]?.en).filter(Boolean).join(', ') || '';
+      
+      const goalsES = weeklyCheckIn.weeklyGoals?.map((g: string) => goalMap[g]?.es).filter(Boolean).join(', ') || '';
+      const goalsEN = weeklyCheckIn.weeklyGoals?.map((g: string) => goalMap[g]?.en).filter(Boolean).join(', ') || '';
+      
+      checkInContextES = `
+ADAPTACIÓN SEMANAL (MUY IMPORTANTE):
+El usuario acaba de hacer su check-in semanal con la siguiente información:
+- Esta semana ${weightChangeES}
+- Su nivel de energía fue: ${energyES}
+${recipePrefsES ? `- Quiere recetas: ${recipePrefsES}` : ''}
+${weeklyCheckIn.customRecipePreference ? `- Solicitud especial: ${weeklyCheckIn.customRecipePreference}` : ''}
+${weeklyCheckIn.availableIngredients ? `- Ingredientes disponibles en casa: ${weeklyCheckIn.availableIngredients}` : ''}
+${goalsES ? `- Prioridades esta semana: ${goalsES}` : ''}
+
+AJUSTES OBLIGATORIOS:
+${weeklyCheckIn.weightChange === 'up' ? '- REDUCE calorías y carbohidratos. Enfócate en proteínas magras y vegetales.' : ''}
+${weeklyCheckIn.weightChange === 'down' ? '- Mantén el buen trabajo. Puedes incluir más variedad manteniendo el balance calórico.' : ''}
+${weeklyCheckIn.energyLevel === 'low' ? '- AUMENTA carbohidratos complejos y asegura suficiente hierro y B12.' : ''}
+${weeklyCheckIn.energyLevel === 'high' ? '- Mantén el equilibrio actual, el usuario está funcionando bien.' : ''}
+${weeklyCheckIn.weeklyGoals?.includes('cheaper') ? '- USA ingredientes económicos y recetas de bajo costo.' : ''}
+${weeklyCheckIn.weeklyGoals?.includes('faster') ? '- PRIORIZA recetas rápidas de menos de 20 minutos.' : ''}
+${weeklyCheckIn.weeklyGoals?.includes('more_protein') ? '- AUMENTA el contenido de proteína en cada comida.' : ''}
+${weeklyCheckIn.availableIngredients ? `- INCLUYE estos ingredientes que el usuario ya tiene: ${weeklyCheckIn.availableIngredients}` : ''}
+`;
+      
+      checkInContextEN = `
+WEEKLY ADAPTATION (VERY IMPORTANT):
+The user just completed their weekly check-in with the following information:
+- This week they ${weightChangeEN}
+- Their energy level was: ${energyEN}
+${recipePrefsEN ? `- They want recipes that are: ${recipePrefsEN}` : ''}
+${weeklyCheckIn.customRecipePreference ? `- Special request: ${weeklyCheckIn.customRecipePreference}` : ''}
+${weeklyCheckIn.availableIngredients ? `- Ingredients available at home: ${weeklyCheckIn.availableIngredients}` : ''}
+${goalsEN ? `- Priorities this week: ${goalsEN}` : ''}
+
+MANDATORY ADJUSTMENTS:
+${weeklyCheckIn.weightChange === 'up' ? '- REDUCE calories and carbohydrates. Focus on lean proteins and vegetables.' : ''}
+${weeklyCheckIn.weightChange === 'down' ? '- Keep up the good work. You can include more variety while maintaining caloric balance.' : ''}
+${weeklyCheckIn.energyLevel === 'low' ? '- INCREASE complex carbohydrates and ensure adequate iron and B12.' : ''}
+${weeklyCheckIn.energyLevel === 'high' ? '- Maintain current balance, the user is doing well.' : ''}
+${weeklyCheckIn.weeklyGoals?.includes('cheaper') ? '- USE budget-friendly ingredients and low-cost recipes.' : ''}
+${weeklyCheckIn.weeklyGoals?.includes('faster') ? '- PRIORITIZE quick recipes under 20 minutes.' : ''}
+${weeklyCheckIn.weeklyGoals?.includes('more_protein') ? '- INCREASE protein content in every meal.' : ''}
+${weeklyCheckIn.availableIngredients ? `- INCLUDE these ingredients the user already has: ${weeklyCheckIn.availableIngredients}` : ''}
+`;
+    }
 
     // Generate language-specific prompt
     const promptES = `Eres un chef nutricionista experto. Crea un plan de comidas COMPLETAMENTE ÚNICO Y ORIGINAL para la semana (7 días) con ${preferences.meals_per_day} comidas por día.
@@ -120,6 +208,7 @@ ${preferences.age ? `- Edad: ${preferences.age} años` : ''}
 ${preferences.weight ? `- Peso: ${preferences.weight} kg` : ''}
 ${preferences.gender ? `- Género: ${preferences.gender}` : ''}
 ${preferences.additional_notes ? `\nNOTAS ADICIONALES: ${preferences.additional_notes}` : ''}
+${checkInContextES}
 
 IMPORTANTE: 
 - Usa creatividad extrema - NUNCA repitas recetas exactas
@@ -179,6 +268,7 @@ ${preferences.age ? `- Age: ${preferences.age} years` : ''}
 ${preferences.weight ? `- Weight: ${preferences.weight} kg` : ''}
 ${preferences.gender ? `- Gender: ${preferences.gender}` : ''}
 ${preferences.additional_notes ? `\nADDITIONAL NOTES: ${preferences.additional_notes}` : ''}
+${checkInContextEN}
 
 IMPORTANT: 
 - Use extreme creativity - NEVER repeat exact recipes
