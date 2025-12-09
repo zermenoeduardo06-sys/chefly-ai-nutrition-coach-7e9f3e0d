@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, RefreshCw, MessageCircle, Calendar, Settings, TrendingUp, Utensils, Clock, Sparkles, Check, Lock, CreditCard, Languages, HelpCircle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { MealDetailDialog } from "@/components/MealDetailDialog";
 import { SwapMealDialog } from "@/components/SwapMealDialog";
 import { MascotCompanion } from "@/components/MascotCompanion";
@@ -760,6 +761,7 @@ const Dashboard = () => {
   const trialProgress = profile ? ((4 - daysRemaining) / 4) * 100 : 0;
 
   return (
+    <TooltipProvider delayDuration={300}>
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 overflow-x-hidden">
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6 max-w-full overflow-hidden">
         {/* Subscription Banner */}
@@ -803,25 +805,53 @@ const Dashboard = () => {
                     {t("dashboard.mascotHelp")}
                   </p>
                   <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                    <Badge variant="secondary" className="text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2">
-                      {t("dashboard.level")} {userStats.level}
-                    </Badge>
-                    <Badge variant="outline" className="text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2">
-                      {userStats.meals_completed} {t("dashboard.mealsCompleted").toLowerCase()}
-                    </Badge>
-                    <Badge variant="outline" className="text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2 whitespace-nowrap">
-                      {t("dashboard.longestStreak")}: {userStats.longest_streak} 🔥
-                    </Badge>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Badge variant="secondary" className="text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2 cursor-help">
+                          {t("dashboard.level")} {userStats.level}
+                        </Badge>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="text-xs max-w-[200px]">{t("tooltip.level")}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Badge variant="outline" className="text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2 cursor-help">
+                          {userStats.meals_completed} {t("dashboard.mealsCompleted").toLowerCase()}
+                        </Badge>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="text-xs max-w-[200px]">{t("tooltip.mealsCompleted")}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Badge variant="outline" className="text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2 whitespace-nowrap cursor-help">
+                          {t("dashboard.longestStreak")}: {userStats.longest_streak} 🔥
+                        </Badge>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="text-xs max-w-[200px]">{t("tooltip.longestStreak")}</p>
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
                 </div>
               </div>
-              <div className="text-center w-full md:w-auto flex-shrink-0">
-                <div className="text-xs sm:text-sm text-muted-foreground mb-2">{t("dashboard.progressToLevel")}</div>
-                <Progress value={(userStats.total_points % 100)} className="w-full max-w-[12rem] mx-auto h-2 sm:h-3 mb-2" />
-                <div className="text-xs text-muted-foreground">
-                  {userStats.total_points % 100}/100 {t("dashboard.points")}
-                </div>
-              </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="text-center w-full md:w-auto flex-shrink-0 cursor-help">
+                    <div className="text-xs sm:text-sm text-muted-foreground mb-2">{t("dashboard.progressToLevel")}</div>
+                    <Progress value={(userStats.total_points % 100)} className="w-full max-w-[12rem] mx-auto h-2 sm:h-3 mb-2" />
+                    <div className="text-xs text-muted-foreground">
+                      {userStats.total_points % 100}/100 {t("dashboard.points")}
+                    </div>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs max-w-[200px]">{t("tooltip.progressBar")}</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
           </CardContent>
         </Card>
@@ -837,43 +867,64 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
-              <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
-                <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0">
-                    <Utensils className="w-5 h-5 text-primary" />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 cursor-help">
+                    <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0">
+                        <Utensils className="w-5 h-5 text-primary" />
+                      </div>
+                      <div className="text-center sm:text-left min-w-0">
+                        <p className="text-xs text-muted-foreground truncate">{t("dashboard.mealsThisWeek")}</p>
+                        <p className="text-xl font-bold">{mealPlan?.meals.length || 0}</p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-center sm:text-left min-w-0">
-                    <p className="text-xs text-muted-foreground truncate">{t("dashboard.mealsThisWeek")}</p>
-                    <p className="text-xl font-bold">{mealPlan?.meals.length || 0}</p>
-                  </div>
-                </div>
-              </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs max-w-[200px]">{t("tooltip.mealsThisWeek")}</p>
+                </TooltipContent>
+              </Tooltip>
 
-              <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-secondary/10 to-secondary/5 border border-secondary/20">
-                <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-secondary/20 flex items-center justify-center flex-shrink-0">
-                    <TrendingUp className="w-5 h-5 text-secondary" />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-secondary/10 to-secondary/5 border border-secondary/20 cursor-help">
+                    <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-secondary/20 flex items-center justify-center flex-shrink-0">
+                        <TrendingUp className="w-5 h-5 text-secondary" />
+                      </div>
+                      <div className="text-center sm:text-left min-w-0">
+                        <p className="text-xs text-muted-foreground truncate">{t("dashboard.currentStreakStat")}</p>
+                        <p className="text-xl font-bold">{userStats.current_streak} 🔥</p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-center sm:text-left min-w-0">
-                    <p className="text-xs text-muted-foreground truncate">{t("dashboard.currentStreakStat")}</p>
-                    <p className="text-xl font-bold">{userStats.current_streak} 🔥</p>
-                  </div>
-                </div>
-              </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs max-w-[200px]">{t("tooltip.currentStreak")}</p>
+                </TooltipContent>
+              </Tooltip>
 
-              <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-muted/50 to-muted/30 border border-border/50 col-span-2 sm:col-span-1">
-                <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
-                    <Clock className="w-5 h-5 text-muted-foreground" />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-muted/50 to-muted/30 border border-border/50 col-span-2 sm:col-span-1 cursor-help">
+                    <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                        <Clock className="w-5 h-5 text-muted-foreground" />
+                      </div>
+                      <div className="text-center sm:text-left min-w-0">
+                        <p className="text-xs text-muted-foreground truncate">{t("dashboard.lastUpdate")}</p>
+                        <p className="text-sm font-semibold">
+                          {mealPlan ? new Date(mealPlan.week_start_date).toLocaleDateString() : 'N/A'}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-center sm:text-left min-w-0">
-                    <p className="text-xs text-muted-foreground truncate">{t("dashboard.lastUpdate")}</p>
-                    <p className="text-sm font-semibold">
-                      {mealPlan ? new Date(mealPlan.week_start_date).toLocaleDateString() : 'N/A'}
-                    </p>
-                  </div>
-                </div>
-              </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs max-w-[200px]">{t("tooltip.lastUpdate")}</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
           </CardContent>
         </Card>
@@ -889,78 +940,106 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              <Button
-                onClick={() => navigate("/chat")}
-                variant="outline"
-                className="h-auto py-4 flex-col gap-2 relative"
-              >
-                <MessageCircle className="h-5 w-5" />
-                <span className="text-sm">{t("dashboard.chatCoach")}</span>
-                {limits.isBasicPlan && (
-                  <Badge variant="secondary" className="absolute -top-2 -right-2 text-xs">
-                    {limits.chatMessagesUsed}/{limits.dailyChatLimit}
-                  </Badge>
-                )}
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => navigate("/chat")}
+                    variant="outline"
+                    className="h-auto py-4 flex-col gap-2 relative"
+                  >
+                    <MessageCircle className="h-5 w-5" />
+                    <span className="text-sm">{t("dashboard.chatCoach")}</span>
+                    {limits.isBasicPlan && (
+                      <Badge variant="secondary" className="absolute -top-2 -right-2 text-xs">
+                        {limits.chatMessagesUsed}/{limits.dailyChatLimit}
+                      </Badge>
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs max-w-[200px]">{t("tooltip.chatCoach")}</p>
+                </TooltipContent>
+              </Tooltip>
 
-              <Button
-                onClick={() => navigate("/onboarding")}
-                variant="outline"
-                className="h-auto py-4 flex-col gap-2"
-              >
-                <Settings className="h-5 w-5" />
-                <span className="text-sm">{t("dashboard.editPreferences")}</span>
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => navigate("/onboarding")}
+                    variant="outline"
+                    className="h-auto py-4 flex-col gap-2"
+                  >
+                    <Settings className="h-5 w-5" />
+                    <span className="text-sm">{t("dashboard.editPreferences")}</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs max-w-[200px]">{t("tooltip.editPreferences")}</p>
+                </TooltipContent>
+              </Tooltip>
 
               {subscription.subscribed && (
-                <Button
-                  onClick={handleManageSubscription}
-                  disabled={portalLoading}
-                  variant="outline"
-                  className="h-auto py-4 flex-col gap-2"
-                >
-                  {portalLoading ? (
-                    <>
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                      <span className="text-sm">{t("dashboard.opening")}</span>
-                    </>
-                  ) : (
-                    <>
-                      <CreditCard className="h-5 w-5" />
-                      <span className="text-sm">{t("dashboard.manageSubscription")}</span>
-                    </>
-                  )}
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={handleManageSubscription}
+                      disabled={portalLoading}
+                      variant="outline"
+                      className="h-auto py-4 flex-col gap-2"
+                    >
+                      {portalLoading ? (
+                        <>
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                          <span className="text-sm">{t("dashboard.opening")}</span>
+                        </>
+                      ) : (
+                        <>
+                          <CreditCard className="h-5 w-5" />
+                          <span className="text-sm">{t("dashboard.manageSubscription")}</span>
+                        </>
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs max-w-[200px]">{t("tooltip.manageSubscription")}</p>
+                  </TooltipContent>
+                </Tooltip>
               )}
             </div>
             
             {/* Generate new plan button */}
             <div className="mt-4 pt-4 border-t border-border/30">
-              <Button
-                onClick={initiateGenerateMealPlan}
-                disabled={generating || !limits.canGeneratePlans}
-                variant="ghost"
-                size="sm"
-                className="w-full text-muted-foreground hover:text-foreground relative"
-              >
-                {generating ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    <span className="text-xs">{t("dashboard.generating")}</span>
-                  </>
-                ) : (
-                  <>
-                    {!limits.canGeneratePlans && <Lock className="h-3 w-3 mr-2" />}
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    <span className="text-xs">{t("dashboard.generateNewPlan")}</span>
-                    {!limits.canGeneratePlans && (
-                      <Badge variant="outline" className="ml-2 text-xs">
-                        {t("dashboard.intermediatePlan")}
-                      </Badge>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={initiateGenerateMealPlan}
+                    disabled={generating || !limits.canGeneratePlans}
+                    variant="ghost"
+                    size="sm"
+                    className="w-full text-muted-foreground hover:text-foreground relative"
+                  >
+                    {generating ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        <span className="text-xs">{t("dashboard.generating")}</span>
+                      </>
+                    ) : (
+                      <>
+                        {!limits.canGeneratePlans && <Lock className="h-3 w-3 mr-2" />}
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        <span className="text-xs">{t("dashboard.generateNewPlan")}</span>
+                        {!limits.canGeneratePlans && (
+                          <Badge variant="outline" className="ml-2 text-xs">
+                            {t("dashboard.intermediatePlan")}
+                          </Badge>
+                        )}
+                      </>
                     )}
-                  </>
-                )}
-              </Button>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs max-w-[200px]">{t("tooltip.generatePlan")}</p>
+                </TooltipContent>
+              </Tooltip>
               
               {/* Language selector for generation */}
               <div className="flex items-center justify-center gap-2 mt-3 p-2 rounded-lg bg-muted/30 border border-border/30">
@@ -1111,17 +1190,24 @@ const Dashboard = () => {
                                   </Badge>
                                 </div>
                                 {/* Complete Meal Button - Image version */}
-                                <Button
-                                  size="icon"
-                                  variant={isCompleted ? "secondary" : "default"}
-                                  className={`absolute top-2 left-2 h-8 w-8 shadow-lg ${isCompleted ? 'bg-green-500/90 hover:bg-green-600/90 text-white' : 'bg-primary/90 hover:bg-primary'}`}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    completeMeal(meal.id);
-                                  }}
-                                >
-                                  <Check className="h-4 w-4" />
-                                </Button>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      size="icon"
+                                      variant={isCompleted ? "secondary" : "default"}
+                                      className={`absolute top-2 left-2 h-8 w-8 shadow-lg ${isCompleted ? 'bg-green-500/90 hover:bg-green-600/90 text-white' : 'bg-primary/90 hover:bg-primary'}`}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        completeMeal(meal.id);
+                                      }}
+                                    >
+                                      <Check className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="right">
+                                    <p className="text-xs max-w-[180px]">{t("tooltip.completeMeal")}</p>
+                                  </TooltipContent>
+                                </Tooltip>
                               </div>
                             )}
                             <CardContent 
@@ -1267,6 +1353,7 @@ const Dashboard = () => {
       />
 
     </div>
+    </TooltipProvider>
   );
 };
 
