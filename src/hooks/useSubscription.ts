@@ -10,7 +10,7 @@ interface SubscriptionStatus {
 
 // Mapeo de product IDs a nombres de planes
 // BASIC = Plan Básico en Stripe (240 MXN / ~$12 USD)
-// INTERMEDIATE = Plan Intermedio en Stripe (600 MXN / ~$30 USD)
+// INTERMEDIATE = Plan Intermedio en Stripe (290 MXN / ~$15 USD)
 export const SUBSCRIPTION_TIERS = {
   BASIC: {
     product_id: "prod_TUMZMM3fEINWI3",
@@ -22,7 +22,7 @@ export const SUBSCRIPTION_TIERS = {
     product_id: "prod_TUMZx1BcskL9rK",
     price_id: "price_1SXNqfRXGCRSzpK7WyaN4yij",
     name: "Intermedio",
-    price: 600, // ~30 USD
+    price: 290, // ~15 USD
   },
 };
 
