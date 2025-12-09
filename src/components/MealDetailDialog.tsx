@@ -42,9 +42,9 @@ export function MealDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-md sm:max-w-lg max-h-[90vh] overflow-y-auto mx-4 sm:mx-0">
         {meal.image_url && (
-          <div className="relative -mt-6 -mx-6 mb-4 h-64 overflow-hidden rounded-t-lg">
+          <div className="relative -mt-6 -mx-6 mb-4 h-48 sm:h-64 overflow-hidden rounded-t-lg">
             <img 
               src={meal.image_url} 
               alt={meal.name}
