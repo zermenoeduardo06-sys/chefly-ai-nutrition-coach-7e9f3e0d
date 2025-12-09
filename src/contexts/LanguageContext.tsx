@@ -19,6 +19,8 @@ export const translations = {
     "nav.pricing": "Precios",
     "nav.login": "Iniciar Sesión",
     "nav.signup": "Registrarse",
+    "nav.howItWorks": "Cómo Funciona",
+    "nav.testimonials": "Testimonios",
     
     // Hero Section
     "hero.title": "Tu Coach Nutricional con IA",
@@ -815,6 +817,8 @@ export const translations = {
     "nav.pricing": "Pricing",
     "nav.login": "Log In",
     "nav.signup": "Sign Up",
+    "nav.howItWorks": "How It Works",
+    "nav.testimonials": "Testimonials",
     
     // Hero Section
     "hero.title": "Your AI Nutrition Coach",

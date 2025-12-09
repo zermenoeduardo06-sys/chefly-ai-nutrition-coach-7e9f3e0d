@@ -13,10 +13,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { InteractiveDemoSection } from "@/components/InteractiveDemoSection";
 import { ContactForm } from "@/components/ContactForm";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { LanguageToggle } from "@/components/LanguageToggle";
 import { useAffiliateTracking } from "@/hooks/useAffiliateTracking";
 import { AffiliatePromoBanner } from "@/components/AffiliatePromoBanner";
 import { HeroParticles } from "@/components/HeroParticles";
+import { LandingNavbar } from "@/components/LandingNavbar";
 
 interface SubscriptionPlan {
   id: string;
@@ -151,25 +151,8 @@ const Index = () => {
     </script>
     
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
-      {/* Navigation Bar */}
-      <header>
-        <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50" role="navigation" aria-label="Main navigation">
-          <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-            <span className="text-3xl font-brand font-black bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent tracking-tight">
-              Chefly.AI
-            </span>
-            <div className="flex items-center gap-4">
-              <Button
-                variant="outline"
-                onClick={() => navigate("/auth")}
-              >
-                {t("nav.login")}
-              </Button>
-              <LanguageToggle />
-            </div>
-          </div>
-        </nav>
-      </header>
+      {/* Premium Navigation Bar */}
+      <LandingNavbar />
       
       {/* Hero Section */}
       <main>
@@ -279,7 +262,7 @@ const Index = () => {
       <AffiliatePromoBanner />
 
       {/* How It Works Section */}
-      <section className="py-20">
+      <section id="how-it-works" className="py-20 scroll-mt-20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16 space-y-4">
             <h2 className="text-4xl lg:text-5xl font-bold">
@@ -311,7 +294,7 @@ const Index = () => {
       <InteractiveDemoSection />
 
       {/* Features Section */}
-      <section className="py-20 bg-card/50">
+      <section id="features" className="py-20 bg-card/50 scroll-mt-20">
         <div className="container mx-auto px-4">
           <h2 className="text-4xl font-bold text-center mb-16">
             {t("features.title")}
@@ -332,7 +315,7 @@ const Index = () => {
       </section>
 
       {/* Pricing Section */}
-      <section className="py-20">
+      <section id="pricing" className="py-20 scroll-mt-20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16 space-y-4">
             <h2 className="text-4xl lg:text-5xl font-bold">
@@ -407,7 +390,7 @@ const Index = () => {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-20">
+      <section id="testimonials" className="py-20 scroll-mt-20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16 space-y-4">
             <h2 className="text-4xl lg:text-5xl font-bold">
