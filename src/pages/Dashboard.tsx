@@ -1077,16 +1077,15 @@ const Dashboard = () => {
                                 </div>
                                 {/* Complete Meal Button - Image version */}
                                 <Button
-                                  size="sm"
+                                  size="icon"
                                   variant={isCompleted ? "secondary" : "default"}
-                                  className={`absolute bottom-2 left-2 right-2 text-xs gap-1.5 shadow-lg ${isCompleted ? 'bg-green-500/90 hover:bg-green-600/90 text-white' : 'bg-primary/90 hover:bg-primary'}`}
+                                  className={`absolute top-2 left-2 h-8 w-8 shadow-lg ${isCompleted ? 'bg-green-500/90 hover:bg-green-600/90 text-white' : 'bg-primary/90 hover:bg-primary'}`}
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     completeMeal(meal.id);
                                   }}
                                 >
-                                  <Check className="h-3.5 w-3.5" />
-                                  {isCompleted ? t("dashboard.alreadyCompleted") : t("dashboard.finishMeal")}
+                                  <Check className="h-4 w-4" />
                                 </Button>
                               </div>
                             )}
