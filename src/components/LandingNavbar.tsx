@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 
 const navSections = [
+  { id: "how-it-works", labelKey: "nav.howItWorks" },
   { id: "features", labelKey: "nav.features" },
   { id: "pricing", labelKey: "nav.pricing" },
   { id: "testimonials", labelKey: "nav.testimonials" },
