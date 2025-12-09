@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, RefreshCw, MessageCircle, Calendar, Settings, TrendingUp, Utensils, Clock, Sparkles, Check, Lock, CreditCard, Languages } from "lucide-react";
+import { Loader2, RefreshCw, MessageCircle, Calendar, Settings, TrendingUp, Utensils, Clock, Sparkles, Check, Lock, CreditCard, Languages, HelpCircle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { MealDetailDialog } from "@/components/MealDetailDialog";
@@ -21,6 +21,7 @@ import { useTrialGuard } from "@/hooks/useTrialGuard";
 import { useLanguage } from "@/contexts/LanguageContext";
 import WeeklyCheckInBanner from "@/components/checkin/WeeklyCheckInBanner";
 import confetti from "canvas-confetti";
+import DashboardTutorial from "@/components/DashboardTutorial";
 
 interface Meal {
   id: string;
@@ -83,6 +84,7 @@ const Dashboard = () => {
   const [unlockedAchievement, setUnlockedAchievement] = useState<any>(null);
   const [userId, setUserId] = useState<string | undefined>(undefined);
   const [portalLoading, setPortalLoading] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { limits, refreshLimits } = useSubscriptionLimits(userId);
@@ -126,6 +128,18 @@ const Dashboard = () => {
     await loadProfile(user.id);
     await loadUserStats(user.id);
     await loadMealPlan(user.id);
+    
+    // Check if user has seen the tutorial
+    const tutorialSeen = localStorage.getItem(`tutorial_seen_${user.id}`);
+    if (!tutorialSeen) {
+      setShowTutorial(true);
+    }
+  };
+  
+  const handleTutorialComplete = () => {
+    if (userId) {
+      localStorage.setItem(`tutorial_seen_${userId}`, 'true');
+    }
   };
 
   const loadUserStats = async (userId: string) => {
@@ -1013,6 +1027,27 @@ const Dashboard = () => {
             )}
           </CardContent>
         </Card>
+        
+        {/* Help Section */}
+        <Card className="border-border/50 shadow-lg bg-gradient-to-br from-muted/30 to-background">
+          <CardHeader className="pb-2">
+            <div className="flex items-center gap-2">
+              <HelpCircle className="h-5 w-5 text-primary" />
+              <CardTitle className="text-lg">{t("dashboard.helpSection")}</CardTitle>
+            </div>
+            <CardDescription>{t("dashboard.helpDesc")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
+              variant="outline"
+              onClick={() => setShowTutorial(true)}
+              className="gap-2"
+            >
+              <Sparkles className="h-4 w-4" />
+              {t("dashboard.viewTutorial")}
+            </Button>
+          </CardContent>
+        </Card>
 
         <Separator />
 
@@ -1223,6 +1258,12 @@ const Dashboard = () => {
         isOpen={showAchievementUnlock}
         achievement={unlockedAchievement}
         onClose={() => setShowAchievementUnlock(false)}
+      />
+
+      <DashboardTutorial
+        open={showTutorial}
+        onOpenChange={setShowTutorial}
+        onComplete={handleTutorialComplete}
       />
 
     </div>

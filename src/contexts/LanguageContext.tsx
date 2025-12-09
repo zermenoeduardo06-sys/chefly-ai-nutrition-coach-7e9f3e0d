@@ -340,6 +340,28 @@ export const translations = {
     "dashboard.currentStreakStat": "Racha actual",
     "dashboard.quickActionsDesc": "Accede rápido a las funciones principales de la app",
     "dashboard.weeklyPlanDesc": "Haz clic en una comida para ver los detalles y marca como completada cuando la prepares",
+    "dashboard.helpSection": "Ayuda",
+    "dashboard.helpDesc": "¿Necesitas ayuda? Vuelve a ver el tutorial",
+    "dashboard.viewTutorial": "Ver tutorial",
+    
+    // Tutorial
+    "tutorial.welcome.title": "¡Bienvenido a Chefly!",
+    "tutorial.welcome.desc": "Este es tu dashboard de nutrición personalizada. Aquí encontrarás tu menú semanal, podrás marcar las comidas que ya preparaste y ganar puntos por tus logros. ¡Vamos a explorarlo juntos!",
+    "tutorial.mealPlan.title": "Tu Menú Semanal",
+    "tutorial.mealPlan.desc": "En la sección principal verás tu menú de 7 días organizado por día. Cada tarjeta es una comida con su nombre, descripción y beneficios. Haz clic en cualquier comida para ver los ingredientes y pasos de preparación.",
+    "tutorial.completeMeal.title": "Marca tus Comidas",
+    "tutorial.completeMeal.desc": "Cuando prepares una comida, presiona el botón con el ícono ✓ en la esquina de la tarjeta. Ganarás 10 puntos por cada comida completada y verás una celebración especial cuando termines todas las comidas del día.",
+    "tutorial.gamification.title": "Puntos y Logros",
+    "tutorial.gamification.desc": "En la parte superior verás tu nivel, puntos y racha actual. Completa comidas consecutivas para mantener tu racha. Al alcanzar ciertos objetivos desbloquearás logros especiales que puedes ver en la sección de Logros.",
+    "tutorial.coach.title": "Tu Coach con IA",
+    "tutorial.coach.desc": "¿Tienes dudas sobre nutrición? Usa el botón 'Hablar con coach' para chatear con tu asistente de IA. Puede responder preguntas sobre ingredientes, sustituciones, porciones y más.",
+    "tutorial.ready.title": "¡Listo para Empezar!",
+    "tutorial.ready.desc": "Ya conoces lo básico. Explora tu menú semanal, marca las comidas que prepares y disfruta de una alimentación más saludable. Si necesitas volver a ver este tutorial, lo encontrarás en la sección de Ayuda.",
+    "tutorial.prev": "Anterior",
+    "tutorial.next": "Siguiente",
+    "tutorial.start": "¡Comenzar!",
+    "tutorial.skip": "Saltar",
+    
     
     // Chat
     "chat.title": "Coach Nutricional IA",
@@ -1147,6 +1169,28 @@ export const translations = {
     "dashboard.currentStreakStat": "Current streak",
     "dashboard.quickActionsDesc": "Quick access to main app features",
     "dashboard.weeklyPlanDesc": "Click on a meal to see details and mark as completed when you prepare it",
+    "dashboard.helpSection": "Help",
+    "dashboard.helpDesc": "Need help? Watch the tutorial again",
+    "dashboard.viewTutorial": "View tutorial",
+    
+    // Tutorial
+    "tutorial.welcome.title": "Welcome to Chefly!",
+    "tutorial.welcome.desc": "This is your personalized nutrition dashboard. Here you'll find your weekly menu, mark meals you've prepared, and earn points for your achievements. Let's explore it together!",
+    "tutorial.mealPlan.title": "Your Weekly Menu",
+    "tutorial.mealPlan.desc": "In the main section you'll see your 7-day menu organized by day. Each card is a meal with its name, description, and benefits. Click on any meal to see ingredients and preparation steps.",
+    "tutorial.completeMeal.title": "Mark Your Meals",
+    "tutorial.completeMeal.desc": "When you prepare a meal, press the button with the ✓ icon in the corner of the card. You'll earn 10 points for each completed meal and see a special celebration when you finish all meals for the day.",
+    "tutorial.gamification.title": "Points & Achievements",
+    "tutorial.gamification.desc": "At the top you'll see your level, points, and current streak. Complete consecutive meals to maintain your streak. When you reach certain goals, you'll unlock special achievements you can see in the Achievements section.",
+    "tutorial.coach.title": "Your AI Coach",
+    "tutorial.coach.desc": "Have nutrition questions? Use the 'Talk to coach' button to chat with your AI assistant. It can answer questions about ingredients, substitutions, portions, and more.",
+    "tutorial.ready.title": "Ready to Start!",
+    "tutorial.ready.desc": "Now you know the basics. Explore your weekly menu, mark the meals you prepare, and enjoy healthier eating. If you need to see this tutorial again, you'll find it in the Help section.",
+    "tutorial.prev": "Previous",
+    "tutorial.next": "Next",
+    "tutorial.start": "Let's go!",
+    "tutorial.skip": "Skip",
+    
     
     // Chat
     "chat.title": "AI Nutrition Coach",
