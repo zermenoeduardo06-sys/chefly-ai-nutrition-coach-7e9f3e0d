@@ -23,8 +23,10 @@ const generateParticles = (count: number): Particle[] => {
   }));
 };
 
-const floatingParticles = generateParticles(30);
-const glowOrbs = generateParticles(8);
+// Reduce particles on mobile for better performance
+const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+const floatingParticles = generateParticles(isMobile ? 12 : 30);
+const glowOrbs = generateParticles(isMobile ? 4 : 8);
 
 export const HeroParticles = () => {
   const containerRef = useRef<HTMLDivElement>(null);
