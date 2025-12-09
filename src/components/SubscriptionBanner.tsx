@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Crown, Sparkles } from "lucide-react";
+import { SUBSCRIPTION_TIERS } from "@/hooks/useSubscription";
 
 interface SubscriptionBannerProps {
   userId: string;
@@ -30,8 +31,14 @@ export const SubscriptionBanner = ({ userId, trialExpiresAt }: SubscriptionBanne
       const { data: stripeData } = await supabase.functions.invoke("check-subscription");
       
       if (stripeData?.subscribed && stripeData?.product_id) {
-        // User has active Stripe subscription
-        setActivePlan("Intermedio"); // Default to Intermedio for paid plans
+        // Determine plan name from product_id
+        let planName = "Intermedio"; // Default fallback
+        if (stripeData.product_id === SUBSCRIPTION_TIERS.BASIC.product_id) {
+          planName = SUBSCRIPTION_TIERS.BASIC.name;
+        } else if (stripeData.product_id === SUBSCRIPTION_TIERS.INTERMEDIATE.product_id) {
+          planName = SUBSCRIPTION_TIERS.INTERMEDIATE.name;
+        }
+        setActivePlan(planName);
         setIsTrialActive(false);
         return;
       }
