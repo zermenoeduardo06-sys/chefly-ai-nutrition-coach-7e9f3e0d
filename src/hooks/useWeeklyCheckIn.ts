@@ -37,11 +37,9 @@ export const useWeeklyCheckIn = (userId: string | undefined): UseWeeklyCheckInRe
 
   const { subscribed, product_id, isLoading: subLoading } = useSubscription(userId);
 
-  // Basic plan ($15 USD) and above can access this feature
-  const canAccessCheckIn = subscribed && (
-    product_id === SUBSCRIPTION_TIERS.BASIC.product_id || 
-    product_id === SUBSCRIPTION_TIERS.INTERMEDIATE.product_id
-  );
+  // Only Intermediate plan (290 MXN) and above can access Weekly Check-In
+  // Basic plan users cannot access this feature
+  const canAccessCheckIn = subscribed && product_id === SUBSCRIPTION_TIERS.INTERMEDIATE.product_id;
 
   useEffect(() => {
     const checkIfDue = async () => {
