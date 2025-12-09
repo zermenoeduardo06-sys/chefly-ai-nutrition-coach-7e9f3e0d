@@ -20,7 +20,7 @@ export const SUBSCRIPTION_TIERS = {
     product_id: "prod_TUMZx1BcskL9rK",
     price_id: "price_1SXNqfRXGCRSzpK7WyaN4yij",
     name: "Intermedio",
-    price: 290,
+    price: 600, // 30 USD
   },
 };
 
