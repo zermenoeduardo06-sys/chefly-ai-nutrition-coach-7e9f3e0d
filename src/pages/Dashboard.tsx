@@ -766,7 +766,14 @@ const Dashboard = () => {
 
         {/* Mascot and Gamification Section */}
         <Card className="border-border/50 shadow-lg bg-gradient-to-br from-card to-muted/20">
-          <CardContent className="p-4 sm:p-6">
+          <CardHeader className="pb-2">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              <CardTitle className="text-lg">{t("dashboard.gamificationTitle")}</CardTitle>
+            </div>
+            <CardDescription>{t("dashboard.gamificationDesc")}</CardDescription>
+          </CardHeader>
+          <CardContent className="p-4 sm:p-6 pt-2">
             <div className="flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6">
               <div className="flex flex-col md:flex-row items-center gap-4 sm:gap-6 w-full md:w-auto">
                 <MascotCompanion
@@ -806,56 +813,65 @@ const Dashboard = () => {
         </Card>
 
         {/* Stats Overview */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
-          <Card className="border-border/50 shadow-lg hover:shadow-xl transition-shadow">
-            <CardContent className="p-3 sm:p-6">
-              <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Utensils className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
-                </div>
-                <div className="text-center sm:text-left min-w-0">
-                  <p className="text-xs sm:text-sm text-muted-foreground truncate">{t("dashboard.mealsThisWeek")}</p>
-                  <p className="text-xl sm:text-2xl font-bold">{mealPlan?.meals.length || 0}</p>
+        <Card className="border-border/50 shadow-lg">
+          <CardHeader className="pb-2">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-primary" />
+              <CardTitle className="text-lg">{t("dashboard.weeklyStats")}</CardTitle>
+            </div>
+            <CardDescription>{t("dashboard.weeklyStatsDesc")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
+              <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+                <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0">
+                    <Utensils className="w-5 h-5 text-primary" />
+                  </div>
+                  <div className="text-center sm:text-left min-w-0">
+                    <p className="text-xs text-muted-foreground truncate">{t("dashboard.mealsThisWeek")}</p>
+                    <p className="text-xl font-bold">{mealPlan?.meals.length || 0}</p>
+                  </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
 
-          <Card className="border-border/50 shadow-lg hover:shadow-xl transition-shadow">
-            <CardContent className="p-3 sm:p-6">
-              <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-secondary/20 to-secondary/10 flex items-center justify-center flex-shrink-0">
-                  <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-secondary" />
-                </div>
-                <div className="text-center sm:text-left min-w-0">
-                  <p className="text-xs sm:text-sm text-muted-foreground truncate">{t("dashboard.plansGenerated")}</p>
-                  <p className="text-xl sm:text-2xl font-bold">1</p>
+              <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-secondary/10 to-secondary/5 border border-secondary/20">
+                <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-secondary/20 flex items-center justify-center flex-shrink-0">
+                    <TrendingUp className="w-5 h-5 text-secondary" />
+                  </div>
+                  <div className="text-center sm:text-left min-w-0">
+                    <p className="text-xs text-muted-foreground truncate">{t("dashboard.currentStreakStat")}</p>
+                    <p className="text-xl font-bold">{userStats.current_streak} 🔥</p>
+                  </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
 
-          <Card className="border-border/50 shadow-lg hover:shadow-xl transition-shadow col-span-2 sm:col-span-1">
-            <CardContent className="p-3 sm:p-6">
-              <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center flex-shrink-0">
-                  <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
-                </div>
-                <div className="text-center sm:text-left min-w-0">
-                  <p className="text-xs sm:text-sm text-muted-foreground truncate">{t("dashboard.lastUpdate")}</p>
-                  <p className="text-xs sm:text-sm font-semibold">
-                    {mealPlan ? new Date(mealPlan.week_start_date).toLocaleDateString() : 'N/A'}
-                  </p>
+              <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-muted/50 to-muted/30 border border-border/50 col-span-2 sm:col-span-1">
+                <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                    <Clock className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                  <div className="text-center sm:text-left min-w-0">
+                    <p className="text-xs text-muted-foreground truncate">{t("dashboard.lastUpdate")}</p>
+                    <p className="text-sm font-semibold">
+                      {mealPlan ? new Date(mealPlan.week_start_date).toLocaleDateString() : 'N/A'}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Quick Actions */}
         <Card className="border-border/50 shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-lg">{t("dashboard.quickActions")}</CardTitle>
+          <CardHeader className="pb-2">
+            <div className="flex items-center gap-2">
+              <Settings className="h-5 w-5 text-primary" />
+              <CardTitle className="text-lg">{t("dashboard.quickActions")}</CardTitle>
+            </div>
+            <CardDescription>{t("dashboard.quickActionsDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -1001,18 +1017,24 @@ const Dashboard = () => {
         <Separator />
 
         {/* Weekly Meal Plan */}
-        <div className="space-y-3 sm:space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-primary flex-shrink-0" />
-              <h2 className="text-lg sm:text-2xl font-bold">{t("dashboard.weeklyPlan")}</h2>
+        <Card className="border-border/50 shadow-lg">
+          <CardHeader className="pb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <Calendar className="h-5 w-5 text-primary flex-shrink-0" />
+                  <CardTitle className="text-lg sm:text-xl">{t("dashboard.weeklyPlan")}</CardTitle>
+                </div>
+                <CardDescription>{t("dashboard.weeklyPlanDesc")}</CardDescription>
+              </div>
+              {mealPlan && (
+                <Badge variant="secondary" className="text-xs sm:text-sm w-fit">
+                  {t("dashboard.weekOf")} {new Date(mealPlan.week_start_date).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
+                </Badge>
+              )}
             </div>
-            {mealPlan && (
-              <Badge variant="secondary" className="text-xs sm:text-sm w-fit">
-                {t("dashboard.weekOf")} {new Date(mealPlan.week_start_date).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
-              </Badge>
-            )}
-          </div>
+          </CardHeader>
+          <CardContent className="space-y-3 sm:space-y-4">
 
           {Object.keys(groupedMeals).length > 0 ? (
             Object.keys(groupedMeals).map((dayIndex) => {
@@ -1053,18 +1075,19 @@ const Dashboard = () => {
                                     {mealTypes[meal.meal_type]}
                                   </Badge>
                                 </div>
-                                <div 
-                                  className="absolute top-2 left-2 bg-background/90 rounded-lg p-1.5 sm:p-2 cursor-pointer hover:scale-110 transition-transform"
+                                {/* Complete Meal Button - Image version */}
+                                <Button
+                                  size="sm"
+                                  variant={isCompleted ? "secondary" : "default"}
+                                  className={`absolute bottom-2 left-2 right-2 text-xs gap-1.5 shadow-lg ${isCompleted ? 'bg-green-500/90 hover:bg-green-600/90 text-white' : 'bg-primary/90 hover:bg-primary'}`}
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     completeMeal(meal.id);
                                   }}
                                 >
-                                  <Checkbox
-                                    checked={isCompleted}
-                                    className="pointer-events-none h-4 w-4"
-                                  />
-                                </div>
+                                  <Check className="h-3.5 w-3.5" />
+                                  {isCompleted ? t("dashboard.alreadyCompleted") : t("dashboard.finishMeal")}
+                                </Button>
                               </div>
                             )}
                             <CardContent 
@@ -1075,22 +1098,10 @@ const Dashboard = () => {
                               }}
                             >
                               {!meal.image_url && (
-                                <div className="flex items-start justify-between gap-2">
+                                <div className="flex items-center justify-between gap-2 mb-2">
                                   <Badge variant="secondary" className="shrink-0 text-xs">
                                     {mealTypes[meal.meal_type]}
                                   </Badge>
-                                  <div 
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      completeMeal(meal.id);
-                                    }}
-                                    className="cursor-pointer hover:scale-110 transition-transform"
-                                  >
-                                    <Checkbox
-                                      checked={isCompleted}
-                                      className="pointer-events-none h-4 w-4"
-                                    />
-                                  </div>
                                 </div>
                               )}
                               <div className="min-w-0">
@@ -1100,7 +1111,7 @@ const Dashboard = () => {
                                 <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">{meal.description}</p>
                               </div>
                               <Separator />
-                              <div className="flex items-start gap-2">
+                              <div className="flex items-start gap-2 mb-3">
                                 {isCompleted ? (
                                   <>
                                     <Check className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 shrink-0 mt-0.5" />
@@ -1113,6 +1124,21 @@ const Dashboard = () => {
                                   </>
                                 )}
                               </div>
+                              {/* Complete Meal Button - No image version */}
+                              {!meal.image_url && (
+                                <Button
+                                  size="sm"
+                                  variant={isCompleted ? "secondary" : "default"}
+                                  className={`w-full text-xs gap-1.5 ${isCompleted ? 'bg-green-500/90 hover:bg-green-600/90 text-white' : ''}`}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    completeMeal(meal.id);
+                                  }}
+                                >
+                                  <Check className="h-3.5 w-3.5" />
+                                  {isCompleted ? t("dashboard.alreadyCompleted") : t("dashboard.finishMeal")}
+                                </Button>
+                              )}
                             </CardContent>
                           </Card>
                         );
@@ -1164,7 +1190,8 @@ const Dashboard = () => {
               </CardContent>
             </Card>
           )}
-        </div>
+          </CardContent>
+        </Card>
       </main>
       
       <MealDetailDialog 
