@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { DollarSign, TrendingUp, Users, Zap, CheckCircle2, Link2, Award, Medal, Crown, Star, Gem, Home, LogIn, Shield, Clock, BarChart3, Lock, MessageCircle } from "lucide-react";
 import cheflyLogo from "@/assets/chefly-logo.png";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { ContactForm } from "@/components/ContactForm";
 
 export default function AffiliatesLanding() {
   const navigate = useNavigate();
@@ -523,6 +524,22 @@ export default function AffiliatesLanding() {
               </AccordionItem>
             ))}
           </Accordion>
+        </div>
+      </section>
+
+      {/* Contact Section */}
+      <section className="py-16 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12 space-y-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground">
+              ¿Tienes Dudas o Problemas?
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Si tienes problemas con tu enlace, pagos o cualquier otra consulta, contáctanos y te ayudaremos lo antes posible
+            </p>
+          </div>
+          
+          <ContactForm />
         </div>
       </section>
 
