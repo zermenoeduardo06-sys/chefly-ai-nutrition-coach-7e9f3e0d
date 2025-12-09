@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Home, TrendingUp, Trophy, Target, MessageCircle, Users, CreditCard, LogOut, DollarSign, Settings, UserPlus, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,8 +26,26 @@ export function AppSidebar() {
   const { toast } = useToast();
   const { t } = useLanguage();
   const { hasRole: isAdmin } = useUserRole("admin");
+  const [isAffiliate, setIsAffiliate] = useState(false);
 
-  const menuItems = [
+  useEffect(() => {
+    const checkAffiliateStatus = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data } = await supabase
+        .from("affiliate_profiles")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      setIsAffiliate(!!data);
+    };
+
+    checkAffiliateStatus();
+  }, []);
+
+  const baseMenuItems = [
     { title: t("sidebar.dashboard"), url: "/dashboard", icon: Home },
     { title: t("sidebar.profile"), url: "/dashboard/profile", icon: User },
     { title: t("sidebar.progress"), url: "/dashboard/progress", icon: TrendingUp },
@@ -36,8 +55,11 @@ export function AppSidebar() {
     { title: t("sidebar.friends"), url: "/dashboard/friends", icon: UserPlus },
     { title: t("sidebar.coach"), url: "/chat", icon: MessageCircle },
     { title: t("sidebar.subscription"), url: "/subscription", icon: CreditCard },
-    { title: t("sidebar.affiliates"), url: "/affiliates", icon: DollarSign },
   ];
+
+  const menuItems = isAffiliate 
+    ? [...baseMenuItems, { title: t("sidebar.affiliates"), url: "/affiliates", icon: DollarSign }]
+    : baseMenuItems;
 
   const handleLogout = async () => {
     try {
