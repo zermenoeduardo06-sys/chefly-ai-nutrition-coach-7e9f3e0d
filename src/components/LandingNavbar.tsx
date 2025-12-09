@@ -123,17 +123,17 @@ export const LandingNavbar = () => {
           </div>
 
           {/* Right side actions */}
-          <div className="flex items-center gap-2 md:gap-4">
+          <div className="flex items-center gap-1.5 sm:gap-2 md:gap-4">
             <div className="hidden sm:block">
               <LanguageToggle />
             </div>
             
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="hidden sm:block">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => navigate("/auth")}
-                className="hidden sm:inline-flex bg-background/50 backdrop-blur-sm border-border/50 hover:bg-background/80"
+                className="bg-background/50 backdrop-blur-sm border-border/50 hover:bg-background/80"
               >
                 {t("nav.login")}
               </Button>
@@ -144,15 +144,16 @@ export const LandingNavbar = () => {
                 variant="default"
                 size="sm"
                 onClick={() => navigate("/auth")}
-                className="bg-gradient-to-r from-primary to-primary-hover shadow-lg shadow-primary/25"
+                className="bg-gradient-to-r from-primary to-primary-hover shadow-lg shadow-primary/25 text-xs sm:text-sm px-3 sm:px-4"
               >
-                {t("hero.cta")}
+                <span className="hidden sm:inline">{t("hero.cta")}</span>
+                <span className="sm:hidden">Empezar</span>
               </Button>
             </motion.div>
 
             {/* Mobile menu button */}
             <motion.button
-              className="md:hidden p-2 text-foreground"
+              className="md:hidden p-1.5 text-foreground"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               whileTap={{ scale: 0.9 }}
             >
