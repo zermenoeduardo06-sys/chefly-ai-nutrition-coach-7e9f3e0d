@@ -1112,6 +1112,45 @@ export type Database = {
           },
         ]
       }
+      weekly_checkins: {
+        Row: {
+          available_ingredients: string | null
+          created_at: string
+          custom_recipe_preference: string | null
+          energy_level: string
+          id: string
+          recipe_preferences: string[] | null
+          user_id: string
+          week_start_date: string
+          weekly_goals: string[] | null
+          weight_change: string
+        }
+        Insert: {
+          available_ingredients?: string | null
+          created_at?: string
+          custom_recipe_preference?: string | null
+          energy_level: string
+          id?: string
+          recipe_preferences?: string[] | null
+          user_id: string
+          week_start_date: string
+          weekly_goals?: string[] | null
+          weight_change: string
+        }
+        Update: {
+          available_ingredients?: string | null
+          created_at?: string
+          custom_recipe_preference?: string | null
+          energy_level?: string
+          id?: string
+          recipe_preferences?: string[] | null
+          user_id?: string
+          week_start_date?: string
+          weekly_goals?: string[] | null
+          weight_change?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
