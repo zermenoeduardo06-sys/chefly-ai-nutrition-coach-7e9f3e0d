@@ -362,6 +362,21 @@ export const translations = {
     "tutorial.start": "¡Comenzar!",
     "tutorial.skip": "Saltar",
     
+    // Tooltips
+    "tooltip.level": "Tu nivel sube cada 100 puntos. ¡Completa comidas para subir más rápido!",
+    "tooltip.mealsCompleted": "Total de comidas que has preparado siguiendo tu plan",
+    "tooltip.longestStreak": "Tu récord de días consecutivos completando comidas",
+    "tooltip.progressBar": "Puntos acumulados para llegar al siguiente nivel",
+    "tooltip.mealsThisWeek": "Número de comidas planificadas para esta semana",
+    "tooltip.currentStreak": "Días seguidos que has completado al menos una comida",
+    "tooltip.lastUpdate": "Fecha en que se generó tu menú actual",
+    "tooltip.chatCoach": "Pregunta cualquier duda sobre nutrición a tu asistente IA",
+    "tooltip.editPreferences": "Cambia tus preferencias alimentarias para personalizar tu menú",
+    "tooltip.manageSubscription": "Administra tu plan, facturación y método de pago",
+    "tooltip.generatePlan": "Crea un nuevo menú semanal basado en tus preferencias",
+    "tooltip.completeMeal": "Presiona para marcar esta comida como preparada y ganar 10 puntos",
+    "tooltip.viewMealDetails": "Haz clic para ver ingredientes, pasos y más detalles",
+    
     
     // Chat
     "chat.title": "Coach Nutricional IA",
@@ -1190,6 +1205,21 @@ export const translations = {
     "tutorial.next": "Next",
     "tutorial.start": "Let's go!",
     "tutorial.skip": "Skip",
+    
+    // Tooltips
+    "tooltip.level": "Your level increases every 100 points. Complete meals to level up faster!",
+    "tooltip.mealsCompleted": "Total meals you've prepared following your plan",
+    "tooltip.longestStreak": "Your record of consecutive days completing meals",
+    "tooltip.progressBar": "Points accumulated to reach the next level",
+    "tooltip.mealsThisWeek": "Number of meals planned for this week",
+    "tooltip.currentStreak": "Consecutive days you've completed at least one meal",
+    "tooltip.lastUpdate": "Date when your current menu was generated",
+    "tooltip.chatCoach": "Ask any nutrition questions to your AI assistant",
+    "tooltip.editPreferences": "Change your food preferences to customize your menu",
+    "tooltip.manageSubscription": "Manage your plan, billing, and payment method",
+    "tooltip.generatePlan": "Create a new weekly menu based on your preferences",
+    "tooltip.completeMeal": "Press to mark this meal as prepared and earn 10 points",
+    "tooltip.viewMealDetails": "Click to see ingredients, steps, and more details",
     
     
     // Chat
