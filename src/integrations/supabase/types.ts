@@ -801,6 +801,75 @@ export type Database = {
         }
         Relationships: []
       }
+      recipe_library: {
+        Row: {
+          allergies: string[] | null
+          benefits: string | null
+          calories: number | null
+          carbs: number | null
+          complexity: string | null
+          cooking_time_minutes: number | null
+          created_at: string
+          description: string
+          diet_type: string | null
+          fats: number | null
+          has_image: boolean | null
+          id: string
+          image_url: string | null
+          ingredients: string[] | null
+          language: string | null
+          meal_type: string
+          name: string
+          protein: number | null
+          steps: string[] | null
+          tags: string[] | null
+        }
+        Insert: {
+          allergies?: string[] | null
+          benefits?: string | null
+          calories?: number | null
+          carbs?: number | null
+          complexity?: string | null
+          cooking_time_minutes?: number | null
+          created_at?: string
+          description: string
+          diet_type?: string | null
+          fats?: number | null
+          has_image?: boolean | null
+          id?: string
+          image_url?: string | null
+          ingredients?: string[] | null
+          language?: string | null
+          meal_type: string
+          name: string
+          protein?: number | null
+          steps?: string[] | null
+          tags?: string[] | null
+        }
+        Update: {
+          allergies?: string[] | null
+          benefits?: string | null
+          calories?: number | null
+          carbs?: number | null
+          complexity?: string | null
+          cooking_time_minutes?: number | null
+          created_at?: string
+          description?: string
+          diet_type?: string | null
+          fats?: number | null
+          has_image?: boolean | null
+          id?: string
+          image_url?: string | null
+          ingredients?: string[] | null
+          language?: string | null
+          meal_type?: string
+          name?: string
+          protein?: number | null
+          steps?: string[] | null
+          tags?: string[] | null
+        }
+        Relationships: []
+      }
       shopping_lists: {
         Row: {
           created_at: string | null
