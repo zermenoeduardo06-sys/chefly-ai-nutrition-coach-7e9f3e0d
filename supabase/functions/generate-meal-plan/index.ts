@@ -337,8 +337,45 @@ Generate ${7 * preferences.meals_per_day} varied and specific recipes. Each reci
     const jsonContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     console.log('Cleaned JSON:', jsonContent);
     
-    const mealData = JSON.parse(jsonContent);
-    console.log('Parsed meal data:', JSON.stringify(mealData, null, 2));
+    let mealData;
+    try {
+      mealData = JSON.parse(jsonContent);
+    } catch (parseError) {
+      console.error('Failed to parse AI response as JSON:', parseError);
+      throw new Error('AI returned invalid JSON format');
+    }
+    
+    // Validate meal data structure BEFORE generating images (to save credits)
+    const validateMealData = (data: any): { valid: boolean; error?: string } => {
+      if (!data || typeof data !== 'object') {
+        return { valid: false, error: 'Response is not an object' };
+      }
+      if (!Array.isArray(data.meals) || data.meals.length === 0) {
+        return { valid: false, error: 'No meals array found or empty' };
+      }
+      if (!Array.isArray(data.shopping_list)) {
+        return { valid: false, error: 'No shopping_list array found' };
+      }
+      
+      const requiredFields = ['day_of_week', 'meal_type', 'name', 'description', 'benefits'];
+      for (let i = 0; i < data.meals.length; i++) {
+        const meal = data.meals[i];
+        for (const field of requiredFields) {
+          if (meal[field] === undefined || meal[field] === null) {
+            return { valid: false, error: `Meal ${i} missing required field: ${field}` };
+          }
+        }
+      }
+      return { valid: true };
+    };
+
+    const validation = validateMealData(mealData);
+    if (!validation.valid) {
+      console.error('AI response validation failed:', validation.error);
+      throw new Error(`Invalid AI response: ${validation.error}`);
+    }
+    
+    console.log('Parsed and validated meal data:', JSON.stringify(mealData, null, 2));
 
     // Generate images for each meal using Lovable AI
     console.log('Generating images for meals...');
