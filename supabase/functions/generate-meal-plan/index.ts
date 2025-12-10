@@ -402,10 +402,26 @@ Generate ${7 * preferences.meals_per_day} varied and specific recipes. Each reci
 
     console.log('Meal plan created with ID:', mealPlan.id);
 
+    // Helper function to convert day name to number
+    const dayNameToNumber = (day: any): number => {
+      if (typeof day === 'number') return day;
+      const dayMap: Record<string, number> = {
+        'monday': 0, 'lunes': 0,
+        'tuesday': 1, 'martes': 1,
+        'wednesday': 2, 'miércoles': 2, 'miercoles': 2,
+        'thursday': 3, 'jueves': 3,
+        'friday': 4, 'viernes': 4,
+        'saturday': 5, 'sábado': 5, 'sabado': 5,
+        'sunday': 6, 'domingo': 6,
+      };
+      const normalized = String(day).toLowerCase().trim();
+      return dayMap[normalized] ?? 0;
+    };
+
     // Insert meals
     const meals = mealData.meals.map((meal: any) => ({
       meal_plan_id: mealPlan.id,
-      day_of_week: meal.day_of_week,
+      day_of_week: dayNameToNumber(meal.day_of_week),
       meal_type: meal.meal_type,
       name: meal.name,
       description: meal.description,
