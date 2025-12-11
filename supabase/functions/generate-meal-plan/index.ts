@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface CachedRecipe {
+interface CachedRecipeBase {
   id: string;
   name: string;
   description: string;
@@ -18,6 +18,9 @@ interface CachedRecipe {
   carbs: number;
   fats: number;
   benefits: string;
+}
+
+interface CachedRecipe extends CachedRecipeBase {
   image_url: string | null;
 }
 
@@ -73,16 +76,18 @@ serve(async (req) => {
     // ============================================
     console.log('Searching recipe library for cached recipes...');
     
-    // Build query for cached recipes
+    // Build query for cached recipes - select without image_url first for performance
     let cacheQuery = supabaseClient
       .from('recipe_library')
-      .select('*')
+      .select('id, name, description, meal_type, ingredients, steps, calories, protein, carbs, fats, benefits')
       .eq('has_image', true)
-      .in('meal_type', mealTypes);
+      .in('meal_type', mealTypes)
+      .limit(100); // Limit to prevent timeout
 
-    // Filter by diet type if specified
-    if (preferences.diet_type && preferences.diet_type !== 'omnivoro') {
-      cacheQuery = cacheQuery.eq('diet_type', preferences.diet_type);
+    // Filter by diet type - omnivore recipes work for everyone
+    const dietType = preferences.diet_type?.toLowerCase();
+    if (dietType && dietType !== 'omnivore' && dietType !== 'omnivoro') {
+      cacheQuery = cacheQuery.eq('diet_type', dietType);
     }
 
     // Filter by language
@@ -100,15 +105,15 @@ serve(async (req) => {
     const userAllergens = preferences.allergies || [];
     const userDislikes = preferences.dislikes || [];
     
-    const filteredCachedRecipes = (cachedRecipes || []).filter((recipe: CachedRecipe) => {
-      const ingredientsLower = recipe.ingredients.map(i => i.toLowerCase());
+    const filteredCachedRecipes = (cachedRecipes || []).filter((recipe: CachedRecipeBase) => {
+      const ingredientsLower = (recipe.ingredients || []).map((i: string) => i.toLowerCase());
       const nameLower = recipe.name.toLowerCase();
       
       // Check for allergens
       for (const allergen of userAllergens) {
         const allergenLower = allergen.toLowerCase();
         if (nameLower.includes(allergenLower) || 
-            ingredientsLower.some(i => i.includes(allergenLower))) {
+            ingredientsLower.some((i: string) => i.includes(allergenLower))) {
           return false;
         }
       }
@@ -117,28 +122,28 @@ serve(async (req) => {
       for (const dislike of userDislikes) {
         const dislikeLower = dislike.toLowerCase();
         if (nameLower.includes(dislikeLower) || 
-            ingredientsLower.some(i => i.includes(dislikeLower))) {
+            ingredientsLower.some((i: string) => i.includes(dislikeLower))) {
           return false;
         }
       }
       
       return true;
-    });
+    }) as CachedRecipeBase[];
 
     console.log(`After filtering allergens/dislikes: ${filteredCachedRecipes.length} recipes available`);
 
     // Group cached recipes by meal type
-    const cachedByMealType: Record<string, CachedRecipe[]> = {};
+    const cachedByMealType: Record<string, CachedRecipeBase[]> = {};
     for (const mealType of mealTypes) {
       cachedByMealType[mealType] = filteredCachedRecipes.filter(
-        (r: CachedRecipe) => r.meal_type === mealType
+        (r: CachedRecipeBase) => r.meal_type === mealType
       );
       // Shuffle for variety
       cachedByMealType[mealType].sort(() => Math.random() - 0.5);
     }
 
     // Determine which meals we can get from cache and which need generation
-    const mealsFromCache: Array<CachedRecipe & { day_of_week: number }> = [];
+    const mealsFromCacheBase: Array<CachedRecipeBase & { day_of_week: number }> = [];
     const slotsNeedingGeneration: MealSlot[] = [];
 
     for (let day = 0; day < 7; day++) {
@@ -146,11 +151,27 @@ serve(async (req) => {
         const availableFromCache = cachedByMealType[mealType];
         if (availableFromCache.length > 0) {
           const recipe = availableFromCache.shift()!;
-          mealsFromCache.push({ ...recipe, day_of_week: day });
+          mealsFromCacheBase.push({ ...recipe, day_of_week: day });
         } else {
           slotsNeedingGeneration.push({ day_of_week: day, meal_type: mealType });
         }
       }
+    }
+
+    // Fetch images only for selected cache recipes (much smaller query)
+    let mealsFromCache: Array<CachedRecipe & { day_of_week: number }> = [];
+    if (mealsFromCacheBase.length > 0) {
+      const recipeIds = mealsFromCacheBase.map(r => r.id);
+      const { data: imagesData } = await supabaseClient
+        .from('recipe_library')
+        .select('id, image_url')
+        .in('id', recipeIds);
+      
+      const imageMap = new Map((imagesData || []).map((r: any) => [r.id, r.image_url]));
+      mealsFromCache = mealsFromCacheBase.map(r => ({
+        ...r,
+        image_url: imageMap.get(r.id) || null
+      }));
     }
 
     console.log(`Using ${mealsFromCache.length} meals from cache`);
