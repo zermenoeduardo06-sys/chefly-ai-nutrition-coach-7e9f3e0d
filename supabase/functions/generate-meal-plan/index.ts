@@ -72,34 +72,12 @@ serve(async (req) => {
     console.log(`Need ${totalMealsNeeded} meals (${mealTypes.length} per day × 7 days)`);
 
     // ============================================
-    // CACHE SYSTEM: Search for matching recipes
+    // CACHE SYSTEM: Temporarily disabled due to timeout
     // ============================================
-    console.log('Searching recipe library for cached recipes...');
+    console.log('Cache temporarily disabled - generating all meals fresh');
     
-    // Build query for cached recipes - select without image_url first for performance
-    let cacheQuery = supabaseClient
-      .from('recipe_library')
-      .select('id, name, description, meal_type, ingredients, steps, calories, protein, carbs, fats, benefits')
-      .eq('has_image', true)
-      .in('meal_type', mealTypes)
-      .limit(100); // Limit to prevent timeout
-
-    // Filter by diet type - omnivore recipes work for everyone
-    const dietType = preferences.diet_type?.toLowerCase();
-    if (dietType && dietType !== 'omnivore' && dietType !== 'omnivoro') {
-      cacheQuery = cacheQuery.eq('diet_type', dietType);
-    }
-
-    // Filter by language
-    cacheQuery = cacheQuery.eq('language', language);
-
-    const { data: cachedRecipes, error: cacheError } = await cacheQuery;
-
-    if (cacheError) {
-      console.error('Error fetching cached recipes:', cacheError);
-    }
-
-    console.log(`Found ${cachedRecipes?.length || 0} cached recipes with images`);
+    const cachedRecipes: CachedRecipeBase[] = [];
+    console.log(`Found ${cachedRecipes.length} cached recipes (cache disabled)`);
 
     // Filter out recipes containing allergens or dislikes
     const userAllergens = preferences.allergies || [];
