@@ -72,12 +72,36 @@ serve(async (req) => {
     console.log(`Need ${totalMealsNeeded} meals (${mealTypes.length} per day × 7 days)`);
 
     // ============================================
-    // CACHE SYSTEM: Temporarily disabled due to timeout
+    // CACHE SYSTEM: Search for matching recipes (optimized - no image_url in initial query)
     // ============================================
-    console.log('Cache temporarily disabled - generating all meals fresh');
+    console.log('Searching recipe library for cached recipes...');
     
-    const cachedRecipes: CachedRecipeBase[] = [];
-    console.log(`Found ${cachedRecipes.length} cached recipes (cache disabled)`);
+    // Build query for cached recipes - select WITHOUT image_url for performance
+    // Images are now stored in Storage as URLs, not base64, so this should be fast
+    let cacheQuery = supabaseClient
+      .from('recipe_library')
+      .select('id, name, description, meal_type, ingredients, steps, calories, protein, carbs, fats, benefits')
+      .eq('has_image', true)
+      .in('meal_type', mealTypes)
+      .not('image_url', 'like', 'data:image%') // Only get migrated recipes (Storage URLs)
+      .limit(100);
+
+    // Filter by diet type - omnivore recipes work for everyone
+    const dietType = preferences.diet_type?.toLowerCase();
+    if (dietType && dietType !== 'omnivore' && dietType !== 'omnivoro') {
+      cacheQuery = cacheQuery.eq('diet_type', dietType);
+    }
+
+    // Filter by language
+    cacheQuery = cacheQuery.eq('language', language);
+
+    const { data: cachedRecipes, error: cacheError } = await cacheQuery;
+
+    if (cacheError) {
+      console.error('Error fetching cached recipes:', cacheError);
+    }
+
+    console.log(`Found ${cachedRecipes?.length || 0} cached recipes with Storage images`);
 
     // Filter out recipes containing allergens or dislikes
     const userAllergens = preferences.allergies || [];
@@ -285,7 +309,7 @@ Genera ${slotsNeedingGeneration.length} recetas ÚNICAS. Responde SOLO con JSON 
 
       shoppingList = mealData.shopping_list || [];
 
-      // Generate images for NEW meals (maintaining quality as user requested)
+      // Generate images for NEW meals and upload to Storage
       console.log(`Generating ${mealData.meals.length} images for new meals...`);
       
       generatedMeals = await Promise.all(
@@ -310,9 +334,51 @@ Genera ${slotsNeedingGeneration.length} recetas ÚNICAS. Responde SOLO con JSON 
 
             if (imageResponse.ok) {
               const imageData = await imageResponse.json();
-              const imageUrl = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+              const base64Url = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+              
+              if (base64Url && base64Url.startsWith('data:image')) {
+                // Upload base64 to Storage instead of storing directly
+                try {
+                  const matches = base64Url.match(/^data:image\/(\w+);base64,(.+)$/);
+                  if (matches) {
+                    const extension = matches[1] === 'jpeg' ? 'jpg' : matches[1];
+                    const base64Content = matches[2];
+                    
+                    // Decode base64 to binary
+                    const binaryString = atob(base64Content);
+                    const bytes = new Uint8Array(binaryString.length);
+                    for (let i = 0; i < binaryString.length; i++) {
+                      bytes[i] = binaryString.charCodeAt(i);
+                    }
+
+                    // Generate unique filename
+                    const fileName = `meal-${Date.now()}-${Math.random().toString(36).substring(7)}.${extension}`;
+                    
+                    // Upload to storage
+                    const { error: uploadError } = await supabaseClient.storage
+                      .from('recipe-images')
+                      .upload(fileName, bytes, {
+                        contentType: `image/${extension}`,
+                        upsert: true
+                      });
+
+                    if (!uploadError) {
+                      // Get public URL
+                      const { data: urlData } = supabaseClient.storage
+                        .from('recipe-images')
+                        .getPublicUrl(fileName);
+                      
+                      console.log(`Uploaded image to Storage for: ${meal.name}`);
+                      return { ...meal, image_url: urlData.publicUrl };
+                    }
+                  }
+                } catch (uploadErr) {
+                  console.error(`Failed to upload image to Storage for ${meal.name}:`, uploadErr);
+                }
+              }
+              
               console.log(`Generated image for: ${meal.name}`);
-              return { ...meal, image_url: imageUrl };
+              return { ...meal, image_url: base64Url };
             } else {
               console.error(`Failed to generate image for ${meal.name}`);
               return { ...meal, image_url: null };
