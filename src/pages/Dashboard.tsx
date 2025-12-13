@@ -789,44 +789,18 @@ const Dashboard = () => {
           />
         )}
 
-        {/* Mascot and Gamification Section - Compact on mobile */}
+        {/* Mascot and Gamification Section */}
         <Card className="border-border/50 shadow-lg bg-gradient-to-br from-card to-muted/20">
-          <CardHeader className="pb-2 p-3 sm:p-6">
+          <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-              <CardTitle className="text-base sm:text-lg">{t("dashboard.gamificationTitle")}</CardTitle>
+              <Sparkles className="h-5 w-5 text-primary" />
+              <CardTitle className="text-lg">{t("dashboard.gamificationTitle")}</CardTitle>
             </div>
-            <CardDescription className="text-xs sm:text-sm hidden sm:block">{t("dashboard.gamificationDesc")}</CardDescription>
+            <CardDescription>{t("dashboard.gamificationDesc")}</CardDescription>
           </CardHeader>
-          <CardContent className="p-3 sm:p-6 pt-0 sm:pt-2">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-6">
-              {/* Mobile: Compact horizontal layout */}
-              <div className="flex items-center gap-3 w-full md:hidden">
-                <MascotCompanion
-                  points={userStats.total_points}
-                  streak={userStats.current_streak}
-                  level={userStats.level}
-                  showCelebration={showCelebration}
-                  message={mascotMessage}
-                />
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-base font-bold truncate">{t("dashboard.mascotGreeting")}</h3>
-                  <div className="flex flex-wrap gap-1.5 mt-2">
-                    <Badge variant="secondary" className="text-xs px-2 py-0.5">
-                      Lv.{userStats.level}
-                    </Badge>
-                    <Badge variant="outline" className="text-xs px-2 py-0.5">
-                      {userStats.current_streak}🔥
-                    </Badge>
-                    <Badge variant="outline" className="text-xs px-2 py-0.5">
-                      {userStats.total_points}pts
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Desktop: Full layout */}
-              <div className="hidden md:flex flex-col md:flex-row items-center gap-4 sm:gap-6 w-full md:w-auto">
+          <CardContent className="p-4 sm:p-6 pt-2">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6">
+              <div className="flex flex-col md:flex-row items-center gap-4 sm:gap-6 w-full md:w-auto">
                 <MascotCompanion
                   points={userStats.total_points}
                   streak={userStats.current_streak}
@@ -875,7 +849,7 @@ const Dashboard = () => {
               </div>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="text-center w-full md:w-auto flex-shrink-0 cursor-help hidden md:block">
+                  <div className="text-center w-full md:w-auto flex-shrink-0 cursor-help">
                     <div className="text-xs sm:text-sm text-muted-foreground mb-2">{t("dashboard.progressToLevel")}</div>
                     <Progress value={(userStats.total_points % 100)} className="w-full max-w-[12rem] mx-auto h-2 sm:h-3 mb-2" />
                     <div className="text-xs text-muted-foreground">
@@ -888,128 +862,93 @@ const Dashboard = () => {
                 </TooltipContent>
               </Tooltip>
             </div>
-            {/* Mobile progress bar */}
-            <div className="mt-3 md:hidden">
-              <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-                <span>{t("dashboard.progressToLevel")}</span>
-                <span>{userStats.total_points % 100}/100</span>
-              </div>
-              <Progress value={(userStats.total_points % 100)} className="h-1.5" />
-            </div>
           </CardContent>
         </Card>
 
-        {/* Stats Overview - Compact on mobile */}
+        {/* Stats Overview */}
         <Card className="border-border/50 shadow-lg">
-          <CardHeader className="pb-2 p-3 sm:p-6">
+          <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-              <CardTitle className="text-base sm:text-lg">{t("dashboard.weeklyStats")}</CardTitle>
+              <TrendingUp className="h-5 w-5 text-primary" />
+              <CardTitle className="text-lg">{t("dashboard.weeklyStats")}</CardTitle>
             </div>
-            <CardDescription className="text-xs sm:text-sm hidden sm:block">{t("dashboard.weeklyStatsDesc")}</CardDescription>
+            <CardDescription>{t("dashboard.weeklyStatsDesc")}</CardDescription>
           </CardHeader>
-          <CardContent className="p-3 sm:p-6 pt-0">
-            <div className="grid grid-cols-3 gap-2 sm:gap-4">
-              <div className="p-2 sm:p-4 rounded-lg sm:rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
-                <div className="flex flex-col items-center gap-1 sm:gap-3">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                    <Utensils className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+          <CardContent>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 cursor-help">
+                    <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0">
+                        <Utensils className="w-5 h-5 text-primary" />
+                      </div>
+                      <div className="text-center sm:text-left min-w-0">
+                        <p className="text-xs text-muted-foreground truncate">{t("dashboard.mealsThisWeek")}</p>
+                        <p className="text-xl font-bold">{mealPlan?.meals.length || 0}</p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-center">
-                    <p className="text-[10px] sm:text-xs text-muted-foreground">{t("dashboard.mealsThisWeek")}</p>
-                    <p className="text-lg sm:text-xl font-bold">{mealPlan?.meals.length || 0}</p>
-                  </div>
-                </div>
-              </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs max-w-[200px]">{t("tooltip.mealsThisWeek")}</p>
+                </TooltipContent>
+              </Tooltip>
 
-              <div className="p-2 sm:p-4 rounded-lg sm:rounded-xl bg-gradient-to-br from-secondary/10 to-secondary/5 border border-secondary/20">
-                <div className="flex flex-col items-center gap-1 sm:gap-3">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-secondary/20 flex items-center justify-center">
-                    <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-secondary" />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-secondary/10 to-secondary/5 border border-secondary/20 cursor-help">
+                    <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-secondary/20 flex items-center justify-center flex-shrink-0">
+                        <TrendingUp className="w-5 h-5 text-secondary" />
+                      </div>
+                      <div className="text-center sm:text-left min-w-0">
+                        <p className="text-xs text-muted-foreground truncate">{t("dashboard.currentStreakStat")}</p>
+                        <p className="text-xl font-bold">{userStats.current_streak} 🔥</p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-center">
-                    <p className="text-[10px] sm:text-xs text-muted-foreground">{t("dashboard.currentStreakStat")}</p>
-                    <p className="text-lg sm:text-xl font-bold">{userStats.current_streak}🔥</p>
-                  </div>
-                </div>
-              </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs max-w-[200px]">{t("tooltip.currentStreak")}</p>
+                </TooltipContent>
+              </Tooltip>
 
-              <div className="p-2 sm:p-4 rounded-lg sm:rounded-xl bg-gradient-to-br from-muted/50 to-muted/30 border border-border/50">
-                <div className="flex flex-col items-center gap-1 sm:gap-3">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-muted flex items-center justify-center">
-                    <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-muted/50 to-muted/30 border border-border/50 col-span-2 sm:col-span-1 cursor-help">
+                    <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                        <Clock className="w-5 h-5 text-muted-foreground" />
+                      </div>
+                      <div className="text-center sm:text-left min-w-0">
+                        <p className="text-xs text-muted-foreground truncate">{t("dashboard.lastUpdate")}</p>
+                        <p className="text-sm font-semibold">
+                          {mealPlan ? new Date(mealPlan.week_start_date).toLocaleDateString() : 'N/A'}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-center">
-                    <p className="text-[10px] sm:text-xs text-muted-foreground">{t("dashboard.lastUpdate")}</p>
-                    <p className="text-xs sm:text-sm font-semibold">
-                      {mealPlan ? new Date(mealPlan.week_start_date).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) : 'N/A'}
-                    </p>
-                  </div>
-                </div>
-              </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs max-w-[200px]">{t("tooltip.lastUpdate")}</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
           </CardContent>
         </Card>
 
         {/* Quick Actions */}
         <Card className="border-border/50 shadow-lg">
-          <CardHeader className="pb-2 p-3 sm:p-6">
+          <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
-              <Settings className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-              <CardTitle className="text-base sm:text-lg">{t("dashboard.quickActions")}</CardTitle>
+              <Settings className="h-5 w-5 text-primary" />
+              <CardTitle className="text-lg">{t("dashboard.quickActions")}</CardTitle>
             </div>
-            <CardDescription className="text-xs sm:text-sm hidden sm:block">{t("dashboard.quickActionsDesc")}</CardDescription>
+            <CardDescription>{t("dashboard.quickActionsDesc")}</CardDescription>
           </CardHeader>
-          <CardContent className="p-3 sm:p-6 pt-0">
-            {/* Mobile: Horizontal scroll buttons */}
-            <div className="flex gap-2 overflow-x-auto pb-2 sm:hidden -mx-1 px-1">
-              <Button
-                onClick={() => navigate("/chat")}
-                variant="outline"
-                size="sm"
-                className="flex-shrink-0 gap-1.5 relative"
-              >
-                <MessageCircle className="h-4 w-4" />
-                <span className="text-xs">{t("dashboard.chatCoach")}</span>
-                {limits.isBasicPlan && (
-                  <Badge variant="secondary" className="ml-1 text-[10px] px-1">
-                    {limits.chatMessagesUsed}/{limits.dailyChatLimit}
-                  </Badge>
-                )}
-              </Button>
-
-              <Button
-                onClick={() => navigate("/onboarding")}
-                variant="outline"
-                size="sm"
-                className="flex-shrink-0 gap-1.5"
-              >
-                <Settings className="h-4 w-4" />
-                <span className="text-xs">{t("dashboard.editPreferences")}</span>
-              </Button>
-
-              {subscription.subscribed && (
-                <Button
-                  onClick={handleManageSubscription}
-                  disabled={portalLoading}
-                  variant="outline"
-                  size="sm"
-                  className="flex-shrink-0 gap-1.5"
-                >
-                  {portalLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <>
-                      <CreditCard className="h-4 w-4" />
-                      <span className="text-xs">{t("dashboard.manageSubscription")}</span>
-                    </>
-                  )}
-                </Button>
-              )}
-            </div>
-
-            {/* Desktop: Grid layout */}
-            <div className="hidden sm:grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <CardContent>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -1177,61 +1116,48 @@ const Dashboard = () => {
           </CardContent>
         </Card>
         
-        {/* Help Section - Hidden on mobile, inline button on small screens */}
-        <div className="hidden sm:block">
-          <Card className="border-border/50 shadow-lg bg-gradient-to-br from-muted/30 to-background">
-            <CardHeader className="pb-2">
-              <div className="flex items-center gap-2">
-                <HelpCircle className="h-5 w-5 text-primary" />
-                <CardTitle className="text-lg">{t("dashboard.helpSection")}</CardTitle>
-              </div>
-              <CardDescription>{t("dashboard.helpDesc")}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button
-                variant="outline"
-                onClick={() => setShowTutorial(true)}
-                className="gap-2"
-              >
-                <Sparkles className="h-4 w-4" />
-                {t("dashboard.viewTutorial")}
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-        
-        {/* Mobile: Compact help button */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setShowTutorial(true)}
-          className="sm:hidden w-full text-muted-foreground gap-2"
-        >
-          <HelpCircle className="h-4 w-4" />
-          {t("dashboard.viewTutorial")}
-        </Button>
+        {/* Help Section */}
+        <Card className="border-border/50 shadow-lg bg-gradient-to-br from-muted/30 to-background">
+          <CardHeader className="pb-2">
+            <div className="flex items-center gap-2">
+              <HelpCircle className="h-5 w-5 text-primary" />
+              <CardTitle className="text-lg">{t("dashboard.helpSection")}</CardTitle>
+            </div>
+            <CardDescription>{t("dashboard.helpDesc")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
+              variant="outline"
+              onClick={() => setShowTutorial(true)}
+              className="gap-2"
+            >
+              <Sparkles className="h-4 w-4" />
+              {t("dashboard.viewTutorial")}
+            </Button>
+          </CardContent>
+        </Card>
 
         <Separator />
 
         {/* Weekly Meal Plan */}
         <Card className="border-border/50 shadow-lg">
-          <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-6">
+          <CardHeader className="pb-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
-                  <CardTitle className="text-base sm:text-xl">{t("dashboard.weeklyPlan")}</CardTitle>
+                  <Calendar className="h-5 w-5 text-primary flex-shrink-0" />
+                  <CardTitle className="text-lg sm:text-xl">{t("dashboard.weeklyPlan")}</CardTitle>
                 </div>
-                <CardDescription className="text-xs sm:text-sm hidden sm:block">{t("dashboard.weeklyPlanDesc")}</CardDescription>
+                <CardDescription>{t("dashboard.weeklyPlanDesc")}</CardDescription>
               </div>
               {mealPlan && (
-                <Badge variant="secondary" className="text-[10px] sm:text-sm w-fit">
+                <Badge variant="secondary" className="text-xs sm:text-sm w-fit">
                   {t("dashboard.weekOf")} {new Date(mealPlan.week_start_date).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
                 </Badge>
               )}
             </div>
           </CardHeader>
-          <CardContent className="space-y-2 sm:space-y-4 p-2 sm:p-6 pt-0">
+          <CardContent className="space-y-3 sm:space-y-4">
 
           {Object.keys(groupedMeals).length > 0 ? (
             Object.keys(groupedMeals).map((dayIndex) => {
@@ -1239,68 +1165,20 @@ const Dashboard = () => {
               const meals = groupedMeals[day];
 
               return (
-                <Card key={day} className="overflow-hidden border-border/50 shadow-md sm:shadow-lg hover:shadow-xl transition-all">
-                  <CardHeader className="bg-gradient-to-r from-primary/5 to-secondary/5 border-b p-2 sm:p-6">
+                <Card key={day} className="overflow-hidden border-border/50 shadow-lg hover:shadow-xl transition-all">
+                  <CardHeader className="bg-gradient-to-r from-primary/5 to-secondary/5 border-b p-3 sm:p-6">
                     <div className="flex items-center justify-between gap-2">
-                      <CardTitle className="flex items-center gap-2 min-w-0">
-                        <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0">
-                          <span className="text-primary-foreground font-bold text-[10px] sm:text-sm">{day + 1}</span>
+                      <CardTitle className="flex items-center gap-2 sm:gap-3 min-w-0">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0">
+                          <span className="text-primary-foreground font-bold text-xs sm:text-sm">{day + 1}</span>
                         </div>
-                        <span className="text-sm sm:text-xl font-semibold truncate">{dayNames[day]}</span>
+                        <span className="text-base sm:text-xl truncate">{dayNames[day]}</span>
                       </CardTitle>
-                      <Badge variant="outline" className="text-[10px] sm:text-xs flex-shrink-0">{meals.length} {t("dashboard.meals")}</Badge>
+                      <Badge variant="outline" className="text-xs flex-shrink-0">{meals.length} {t("dashboard.meals")}</Badge>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-2 sm:p-6">
-                    {/* Mobile: Horizontal scroll for meals */}
-                    <div className="flex gap-2 overflow-x-auto pb-2 sm:hidden -mx-1 px-1 snap-x snap-mandatory">
-                      {meals.map((meal) => {
-                        const isCompleted = completedMeals.has(meal.id);
-                        return (
-                          <div 
-                            key={meal.id}
-                            className={`flex-shrink-0 w-[200px] snap-start rounded-lg border bg-card overflow-hidden ${isCompleted ? 'ring-2 ring-green-500' : 'border-border/50'}`}
-                            onClick={() => {
-                              setSelectedMeal(meal);
-                              setMealDialogOpen(true);
-                            }}
-                          >
-                            {meal.image_url && (
-                              <div className="relative h-24 w-full overflow-hidden">
-                                <img 
-                                  src={meal.image_url} 
-                                  alt={meal.name}
-                                  className={`w-full h-full object-cover ${isCompleted ? 'opacity-60' : ''}`}
-                                />
-                                <Badge variant="secondary" className="absolute top-1.5 right-1.5 text-[10px] backdrop-blur-sm bg-background/80">
-                                  {mealTypes[meal.meal_type]}
-                                </Badge>
-                                <Button
-                                  size="icon"
-                                  variant="default"
-                                  className={`absolute top-1.5 left-1.5 h-6 w-6 ${isCompleted ? 'bg-green-500 hover:bg-green-600' : ''}`}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    completeMeal(meal.id);
-                                  }}
-                                >
-                                  <Check className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            )}
-                            <div className="p-2">
-                              <h4 className={`font-semibold text-xs line-clamp-1 ${isCompleted ? 'line-through opacity-60' : ''}`}>
-                                {meal.name}
-                              </h4>
-                              <p className="text-[10px] text-muted-foreground line-clamp-1 mt-0.5">{meal.description}</p>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    
-                    {/* Desktop: Grid layout */}
-                    <div className="hidden sm:grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                  <CardContent className="p-3 sm:p-6">
+                    <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                       {meals.map((meal) => {
                         const isCompleted = completedMeals.has(meal.id);
                         return (
@@ -1401,38 +1279,37 @@ const Dashboard = () => {
             })
            ) : (
             <Card className="border-dashed border-2">
-              <CardContent className="flex flex-col items-center justify-center py-8 sm:py-16 px-4 sm:px-6">
-                <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center mb-4 sm:mb-6">
-                  <Utensils className="w-7 h-7 sm:w-10 sm:h-10 text-primary" />
+              <CardContent className="flex flex-col items-center justify-center py-16 px-6">
+                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center mb-6">
+                  <Utensils className="w-10 h-10 text-primary" />
                 </div>
-                <h3 className="text-lg sm:text-2xl font-bold mb-2 sm:mb-3 text-center">{t("dashboard.noMealPlan")}</h3>
-                <p className="text-sm sm:text-base text-muted-foreground text-center mb-6 sm:mb-8 max-w-md">
+                <h3 className="text-2xl font-bold mb-3">{t("dashboard.noMealPlan")}</h3>
+                <p className="text-muted-foreground text-center mb-8 max-w-md">
                   {generating 
                     ? t("dashboard.waitMessage")
                     : t("dashboard.createFirst")
                   }
                 </p>
                 {generating ? (
-                  <div className="flex flex-col items-center gap-3 sm:gap-4">
-                    <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-primary" />
-                    <p className="text-xs sm:text-sm text-muted-foreground">{t("dashboard.generatingAI")}</p>
+                  <div className="flex flex-col items-center gap-4">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <p className="text-sm text-muted-foreground">{t("dashboard.generatingAI")}</p>
                   </div>
                 ) : (
-                  <div className="flex flex-col gap-2 sm:gap-3 w-full sm:w-auto">
+                  <div className="flex flex-col sm:flex-row gap-3">
                     <Button 
                       onClick={initiateGenerateMealPlan} 
                       disabled={generating}
-                      size="default"
-                      className="w-full sm:min-w-[200px]"
+                      size="lg"
+                      className="min-w-[200px]"
                     >
-                      <Sparkles className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                      <Sparkles className="mr-2 h-5 w-5" />
                       {t("dashboard.generatePlan")}
                     </Button>
                     <Button 
                       onClick={() => navigate("/onboarding")}
                       variant="outline"
-                      size="default"
-                      className="w-full"
+                      size="lg"
                     >
                       <Settings className="mr-2 h-4 w-4" />
                       {t("dashboard.setupPreferences")}
