@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { ShoppingCart, ExternalLink, AlertCircle } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ShoppingCart, ExternalLink } from "lucide-react";
+import { AMAZON_AFFILIATE_TAG } from "@/config/affiliates";
 
 interface ShoppingItemData {
   ingredient: string;
@@ -16,9 +16,6 @@ interface BuyAllButtonProps {
 
 export function BuyAllButton({ items }: BuyAllButtonProps) {
   const { t, language } = useLanguage();
-  
-  // Get affiliate tag from env
-  const affiliateTag = import.meta.env.VITE_AMAZON_AFFILIATE_TAG || '';
 
   const getAmazonSearchUrl = () => {
     // Create a search query with all ingredients
@@ -27,25 +24,13 @@ export function BuyAllButton({ items }: BuyAllButtonProps) {
     const searchPrefix = language === 'es' ? 'ingredientes cocina' : 'cooking ingredients';
     const params = new URLSearchParams({
       k: `${searchPrefix} ${ingredientNames}`,
-      ...(affiliateTag && { tag: affiliateTag })
+      tag: AMAZON_AFFILIATE_TAG
     });
     return `${baseUrl}?${params.toString()}`;
   };
 
   if (items.length === 0) {
     return null;
-  }
-
-  // Show setup message if no affiliate tag configured
-  if (!affiliateTag) {
-    return (
-      <Alert>
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription className="text-sm">
-          {t("shopping.affiliateNotConfigured")}
-        </AlertDescription>
-      </Alert>
-    );
   }
 
   return (
