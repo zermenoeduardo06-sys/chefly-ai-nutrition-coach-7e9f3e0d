@@ -1,5 +1,4 @@
 import { ShoppingCategory } from "./ShoppingCategory";
-import { BuyAllButton } from "./BuyAllButton";
 import { ExportPDFButton } from "./ExportPDFButton";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
@@ -121,9 +120,6 @@ export function ShoppingListView({
           </div>
         </CardContent>
       </Card>
-
-      {/* Buy All Button */}
-      <BuyAllButton items={unpurchasedItems} />
 
       {/* Categories */}
       <div className="grid gap-4">
