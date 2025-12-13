@@ -33,6 +33,7 @@ import AffiliatesLanding from "./pages/AffiliatesLanding";
 import AffiliatesLogin from "./pages/AffiliatesLogin";
 import AffiliateTest from "./pages/AffiliateTest";
 import AdminAffiliatesDashboard from "./pages/AdminAffiliatesDashboard";
+import ShoppingList from "./pages/ShoppingList";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +70,7 @@ const App = () => (
             <Route path="/dashboard/leaderboard" element={<DashboardLayout><Leaderboard /></DashboardLayout>} />
             <Route path="/dashboard/friends" element={<DashboardLayout><Friends /></DashboardLayout>} />
             <Route path="/dashboard/profile" element={<DashboardLayout><Profile /></DashboardLayout>} />
+            <Route path="/dashboard/shopping" element={<DashboardLayout><ShoppingList /></DashboardLayout>} />
             <Route path="/chat" element={<Chat />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/subscription" element={<DashboardLayout><Subscription /></DashboardLayout>} />

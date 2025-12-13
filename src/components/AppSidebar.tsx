@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Home, TrendingUp, Trophy, Target, MessageCircle, Users, CreditCard, LogOut, DollarSign, Settings, UserPlus, User } from "lucide-react";
+import { Home, TrendingUp, Trophy, Target, MessageCircle, Users, CreditCard, LogOut, DollarSign, Settings, UserPlus, User, ShoppingCart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -48,6 +48,7 @@ export function AppSidebar() {
   const baseMenuItems = [
     { title: t("sidebar.dashboard"), url: "/dashboard", icon: Home },
     { title: t("sidebar.profile"), url: "/dashboard/profile", icon: User },
+    { title: t("sidebar.shopping"), url: "/dashboard/shopping", icon: ShoppingCart },
     { title: t("sidebar.progress"), url: "/dashboard/progress", icon: TrendingUp },
     { title: t("sidebar.achievements"), url: "/dashboard/achievements", icon: Trophy },
     { title: t("sidebar.challenges"), url: "/dashboard/challenges", icon: Target },
