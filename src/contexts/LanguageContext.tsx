@@ -885,7 +885,6 @@ export const translations = {
     "shopping.exportSuccess": "¡PDF exportado!",
     "shopping.exportSuccessDesc": "Tu lista de compras ha sido descargada",
     "shopping.exportError": "Error al exportar el PDF",
-    "shopping.shareWhatsApp": "Compartir",
   },
   en: {
     // Navigation
@@ -1760,7 +1759,6 @@ export const translations = {
     "shopping.exportSuccess": "PDF exported!",
     "shopping.exportSuccessDesc": "Your shopping list has been downloaded",
     "shopping.exportError": "Error exporting PDF",
-    "shopping.shareWhatsApp": "Share",
   },
 };
 
