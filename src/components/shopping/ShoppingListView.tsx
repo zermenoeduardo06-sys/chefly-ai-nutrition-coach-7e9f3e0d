@@ -1,5 +1,6 @@
 import { ShoppingCategory } from "./ShoppingCategory";
 import { ExportPDFButton } from "./ExportPDFButton";
+import { ShareWhatsAppButton } from "./ShareWhatsAppButton";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -98,6 +99,7 @@ export function ShoppingListView({
             </div>
             
             <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+              <ShareWhatsAppButton items={items} weekDate={formattedDate} />
               <ExportPDFButton items={items} weekDate={formattedDate} />
               
               <Badge variant="secondary" className="gap-1">
