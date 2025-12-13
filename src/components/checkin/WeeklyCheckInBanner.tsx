@@ -9,6 +9,7 @@ import { useWeeklyCheckIn, WeeklyCheckInData } from "@/hooks/useWeeklyCheckIn";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { clearAllShoppingListCaches } from "@/utils/shoppingListCache";
 
 interface WeeklyCheckInBannerProps {
   userId: string;
@@ -76,6 +77,8 @@ const WeeklyCheckInBanner = ({ userId, onPlanGenerated }: WeeklyCheckInBannerPro
           console.error("Error generating plan:", error);
           toast.error(language === "es" ? "Error al generar el plan" : "Error generating plan");
         } else {
+          // Clear shopping list cache for the new plan
+          clearAllShoppingListCaches();
           onPlanGenerated?.();
         }
       } catch (err) {
