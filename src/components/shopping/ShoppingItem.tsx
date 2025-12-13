@@ -2,6 +2,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AMAZON_AFFILIATE_TAG } from "@/config/affiliates";
 
 interface ShoppingItemProps {
   ingredient: string;
@@ -10,14 +11,12 @@ interface ShoppingItemProps {
 }
 
 export function ShoppingItem({ ingredient, isPurchased, onToggle }: ShoppingItemProps) {
-  // Get affiliate tag from env or use placeholder
-  const affiliateTag = import.meta.env.VITE_AMAZON_AFFILIATE_TAG || '';
   
   const getAmazonSearchUrl = (item: string) => {
     const baseUrl = 'https://www.amazon.com.mx/s';
     const params = new URLSearchParams({
       k: item,
-      ...(affiliateTag && { tag: affiliateTag })
+      tag: AMAZON_AFFILIATE_TAG
     });
     return `${baseUrl}?${params.toString()}`;
   };
@@ -45,7 +44,7 @@ export function ShoppingItem({ ingredient, isPurchased, onToggle }: ShoppingItem
         </label>
       </div>
       
-      {affiliateTag && !isPurchased && (
+      {!isPurchased && (
         <Button
           variant="ghost"
           size="sm"
