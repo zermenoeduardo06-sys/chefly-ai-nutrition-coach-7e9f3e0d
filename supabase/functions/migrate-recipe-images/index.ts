@@ -12,28 +12,45 @@ serve(async (req) => {
   }
 
   try {
+    // Parse batch parameters from POST body
+    let limit = 5;
+    let offset = 0;
+    
+    if (req.method === 'POST') {
+      try {
+        const body = await req.json();
+        limit = body.limit || 5;
+        offset = body.offset || 0;
+      } catch {
+        // Use defaults if no body or invalid JSON
+      }
+    }
+
+    console.log(`Processing batch: limit=${limit}, offset=${offset}`);
+
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Get recipes with base64 images (they start with 'data:image')
-    const { data: recipes, error: fetchError } = await supabaseClient
+    // First get just the IDs of recipes with base64 images (lighter query)
+    const { data: recipeIds, error: idError } = await supabaseClient
       .from('recipe_library')
-      .select('id, name, image_url')
+      .select('id')
       .like('image_url', 'data:image%')
-      .limit(10); // Process 10 at a time to avoid timeout
+      .range(offset, offset + limit - 1);
 
-    if (fetchError) {
-      throw new Error(`Error fetching recipes: ${fetchError.message}`);
+    if (idError) {
+      throw new Error(`Error fetching recipe IDs: ${idError.message}`);
     }
 
-    console.log(`Found ${recipes?.length || 0} recipes with base64 images to migrate`);
+    console.log(`Found ${recipeIds?.length || 0} recipe IDs in this batch`);
 
-    if (!recipes || recipes.length === 0) {
+    if (!recipeIds || recipeIds.length === 0) {
       return new Response(JSON.stringify({ 
-        message: 'No more recipes to migrate',
+        message: 'No more recipes to migrate in this batch',
         migrated: 0,
+        batch: { limit, offset },
         remaining: 0
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -43,8 +60,24 @@ serve(async (req) => {
     let migrated = 0;
     const errors: string[] = [];
 
-    for (const recipe of recipes) {
+    // Process each recipe individually to avoid loading all base64 data at once
+    for (const { id } of recipeIds) {
       try {
+        console.log(`Processing recipe ${id}...`);
+        
+        // Fetch single recipe with its image
+        const { data: recipe, error: fetchError } = await supabaseClient
+          .from('recipe_library')
+          .select('id, name, image_url')
+          .eq('id', id)
+          .single();
+
+        if (fetchError || !recipe) {
+          console.error(`Failed to fetch recipe ${id}:`, fetchError);
+          errors.push(`${id}: Failed to fetch`);
+          continue;
+        }
+
         const base64Data = recipe.image_url;
         
         // Extract the base64 content and mime type
@@ -103,21 +136,29 @@ serve(async (req) => {
         migrated++;
       } catch (err: unknown) {
         const errorMsg = err instanceof Error ? err.message : String(err);
-        console.error(`Error processing recipe ${recipe.id}:`, err);
-        errors.push(`${recipe.id}: ${errorMsg}`);
+        console.error(`Error processing recipe ${id}:`, err);
+        errors.push(`${id}: ${errorMsg}`);
       }
     }
 
-    // Count remaining
-    const { count } = await supabaseClient
-      .from('recipe_library')
-      .select('id', { count: 'exact', head: true })
-      .like('image_url', 'data:image%');
+    // Count remaining (skip if having connection issues)
+    let remaining = 0;
+    try {
+      const { count } = await supabaseClient
+        .from('recipe_library')
+        .select('id', { count: 'exact', head: true })
+        .like('image_url', 'data:image%');
+      remaining = count || 0;
+    } catch (countError) {
+      console.error('Failed to count remaining:', countError);
+      remaining = -1; // Unknown
+    }
 
     return new Response(JSON.stringify({ 
       message: `Migrated ${migrated} recipes`,
       migrated,
-      remaining: count || 0,
+      batch: { limit, offset, nextOffset: offset + limit },
+      remaining,
       errors: errors.length > 0 ? errors : undefined
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
