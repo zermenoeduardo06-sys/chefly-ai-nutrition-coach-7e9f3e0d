@@ -62,14 +62,14 @@ Respond ONLY with a JSON array of objects with this structure:
       ? `Convierte estos ingredientes de recetas a cantidades de supermercado:\n\n${ingredients.join('\n')}`
       : `Convert these recipe ingredients to grocery store quantities:\n\n${ingredients.join('\n')}`;
 
-    const response = await fetch('https://api.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
