@@ -7,6 +7,7 @@ import { ShoppingListView } from "@/components/shopping/ShoppingListView";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, RefreshCw } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface ShoppingItem {
   ingredient: string;
@@ -21,12 +22,14 @@ interface MealPlanInfo {
 
 export default function ShoppingList() {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const { toast } = useToast();
   const { isLoading: trialLoading, isBlocked } = useTrialGuard();
   
   const [items, setItems] = useState<ShoppingItem[]>([]);
   const [mealPlan, setMealPlan] = useState<MealPlanInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [purchasedItems, setPurchasedItems] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -79,8 +82,7 @@ export default function ShoppingList() {
 
       setMealPlan(mealPlanData);
 
-      // For now, always build the shopping list directly from meal ingredients
-      // so that quantities like "1 taza" or "150g" are preserved.
+      // Get all ingredients from meals
       const { data: meals, error: mealsError } = await supabase
         .from("meals")
         .select("ingredients")
@@ -89,9 +91,72 @@ export default function ShoppingList() {
       if (mealsError) throw mealsError;
 
       const allIngredients = meals?.flatMap(m => m.ingredients || []) || [];
-      const uniqueIngredients = [...new Set(allIngredients)];
-      const categorized = categorizeIngredients(uniqueIngredients);
-      setItems(categorized);
+      
+      if (allIngredients.length === 0) {
+        setItems([]);
+        setIsLoading(false);
+        return;
+      }
+
+      // Check localStorage cache for this meal plan
+      const cacheKey = `chefly_shopping_${mealPlanData.id}`;
+      const cached = localStorage.getItem(cacheKey);
+      
+      if (cached) {
+        try {
+          const parsedCache = JSON.parse(cached);
+          const categorized = parsedCache.map((item: { item: string; category: string }) => ({
+            ingredient: item.item,
+            category: item.category,
+            isPurchased: purchasedItems.has(item.item)
+          }));
+          setItems(categorized);
+          setIsLoading(false);
+          return;
+        } catch {
+          // Invalid cache, continue to process
+        }
+      }
+
+      // Process ingredients with AI to get purchasable quantities
+      setIsProcessing(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('process-shopping-list', {
+          body: { ingredients: allIngredients, language }
+        });
+
+        if (error) throw error;
+
+        if (data?.items && Array.isArray(data.items)) {
+          // Cache the processed items
+          localStorage.setItem(cacheKey, JSON.stringify(data.items));
+          
+          const categorized = data.items.map((item: { item: string; category: string }) => ({
+            ingredient: item.item,
+            category: item.category,
+            isPurchased: purchasedItems.has(item.item)
+          }));
+          setItems(categorized);
+        } else {
+          // Fallback to basic categorization
+          const categorized = categorizeIngredients(allIngredients);
+          setItems(categorized);
+        }
+      } catch (processError) {
+        console.error("Error processing shopping list:", processError);
+        // Fallback to basic categorization
+        const categorized = categorizeIngredients(allIngredients);
+        setItems(categorized);
+        toast({
+          variant: "destructive",
+          title: t("common.error"),
+          description: language === 'es' 
+            ? "No se pudieron procesar las cantidades. Mostrando ingredientes originales."
+            : "Could not process quantities. Showing original ingredients."
+        });
+      } finally {
+        setIsProcessing(false);
+      }
     } catch (error) {
       console.error("Error loading shopping list:", error);
     } finally {
@@ -151,11 +216,18 @@ export default function ShoppingList() {
     setItems(prev => prev.map(item => ({ ...item, isPurchased: false })));
   };
 
-  if (trialLoading || isLoading) {
+  if (trialLoading || isLoading || isProcessing) {
     return (
       <div className="p-4 md:p-8 space-y-6">
         <Skeleton className="h-10 w-64" />
         <Skeleton className="h-6 w-96" />
+        {isProcessing && (
+          <p className="text-sm text-muted-foreground animate-pulse">
+            {language === 'es' 
+              ? "Calculando cantidades de supermercado..." 
+              : "Calculating grocery quantities..."}
+          </p>
+        )}
         <div className="grid gap-4">
           {[1, 2, 3].map(i => (
             <Skeleton key={i} className="h-32 w-full" />
