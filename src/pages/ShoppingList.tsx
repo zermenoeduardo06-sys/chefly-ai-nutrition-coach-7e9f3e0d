@@ -79,33 +79,19 @@ export default function ShoppingList() {
 
       setMealPlan(mealPlanData);
 
-      // Get shopping list for this meal plan
-      const { data: shoppingData, error: slError } = await supabase
-        .from("shopping_lists")
-        .select("items")
-        .eq("meal_plan_id", mealPlanData.id)
-        .maybeSingle();
+      // For now, always build the shopping list directly from meal ingredients
+      // so that quantities like "1 taza" or "150g" are preserved.
+      const { data: meals, error: mealsError } = await supabase
+        .from("meals")
+        .select("ingredients")
+        .eq("meal_plan_id", mealPlanData.id);
 
-      if (slError) throw slError;
+      if (mealsError) throw mealsError;
 
-      if (shoppingData?.items) {
-        // Categorize ingredients
-        const categorized = categorizeIngredients(shoppingData.items);
-        setItems(categorized);
-      } else {
-        // Generate from meals if no shopping list exists
-        const { data: meals, error: mealsError } = await supabase
-          .from("meals")
-          .select("ingredients")
-          .eq("meal_plan_id", mealPlanData.id);
-
-        if (mealsError) throw mealsError;
-
-        const allIngredients = meals?.flatMap(m => m.ingredients || []) || [];
-        const uniqueIngredients = [...new Set(allIngredients)];
-        const categorized = categorizeIngredients(uniqueIngredients);
-        setItems(categorized);
-      }
+      const allIngredients = meals?.flatMap(m => m.ingredients || []) || [];
+      const uniqueIngredients = [...new Set(allIngredients)];
+      const categorized = categorizeIngredients(uniqueIngredients);
+      setItems(categorized);
     } catch (error) {
       console.error("Error loading shopping list:", error);
     } finally {
