@@ -1,5 +1,6 @@
 import { ShoppingCategory } from "./ShoppingCategory";
 import { BuyAllButton } from "./BuyAllButton";
+import { ExportPDFButton } from "./ExportPDFButton";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -97,7 +98,9 @@ export function ShoppingListView({
               </span>
             </div>
             
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+              <ExportPDFButton items={items} weekDate={formattedDate} />
+              
               <Badge variant="secondary" className="gap-1">
                 <CheckCircle2 className="h-3 w-3" />
                 {purchasedCount}/{totalCount} {t("shopping.purchased")}
