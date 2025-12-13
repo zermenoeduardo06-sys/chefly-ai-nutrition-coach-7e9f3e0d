@@ -19,6 +19,7 @@ import OnboardingCelebration from "@/components/onboarding/OnboardingCelebration
 import { Badge } from "@/components/ui/badge";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import cheflyLogo from "@/assets/chefly-logo.png";
+import { clearAllShoppingListCaches } from "@/utils/shoppingListCache";
 
 const Onboarding = () => {
   const [step, setStep] = useState(1);
@@ -273,6 +274,9 @@ const Onboarding = () => {
           description: t("onboarding.toast.errorGeneratingDesc"),
         });
       } else {
+        // Clear shopping list cache for the new plan
+        clearAllShoppingListCaches();
+        
         toast({
           title: t("onboarding.toast.created"),
           description: t("onboarding.toast.createdDesc"),

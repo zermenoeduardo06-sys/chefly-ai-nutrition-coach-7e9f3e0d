@@ -23,6 +23,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import WeeklyCheckInBanner from "@/components/checkin/WeeklyCheckInBanner";
 import confetti from "canvas-confetti";
 import DashboardTutorial from "@/components/DashboardTutorial";
+import { clearAllShoppingListCaches } from "@/utils/shoppingListCache";
 
 interface Meal {
   id: string;
@@ -626,6 +627,9 @@ const Dashboard = () => {
 
       const isCached = data?.cached === true;
       
+      // Clear shopping list cache when new plan is generated
+      clearAllShoppingListCaches();
+      
       toast({
         title: isCached ? t("dashboard.planCached") : t("dashboard.planGenerated"),
         description: isCached 
@@ -702,6 +706,11 @@ const Dashboard = () => {
         title: t("dashboard.swapped"),
         description: t("dashboard.swappedDesc"),
       });
+
+      // Clear shopping list cache since meals changed
+      if (mealPlan?.id) {
+        clearAllShoppingListCaches();
+      }
 
       const { data: { user } } = await supabase.auth.getUser();
       if (user) await loadMealPlan(user.id);
