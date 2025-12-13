@@ -1,24 +1,32 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { TrendingUp, Calendar } from "lucide-react";
-import { startOfWeek, startOfMonth, format, eachDayOfInterval, endOfWeek, endOfMonth, subWeeks, subMonths } from "date-fns";
+import { TrendingUp, Calendar, Utensils, Target, Flame } from "lucide-react";
+import { startOfWeek, format, eachDayOfInterval, endOfWeek, subWeeks, subMonths, startOfMonth, endOfMonth, isSameWeek } from "date-fns";
 import { es } from "date-fns/locale";
 
-interface NutritionData {
-  date: string;
+interface WeekSummary {
+  week: string;
   calories: number;
   protein: number;
   carbs: number;
   fats: number;
   mealsCompleted: number;
+  daysActive: number;
+}
+
+interface DaySummary {
+  day: string;
+  shortDay: string;
+  mealsCompleted: number;
+  calories: number;
 }
 
 export const NutritionProgressCharts = () => {
-  const [weeklyData, setWeeklyData] = useState<NutritionData[]>([]);
-  const [monthlyData, setMonthlyData] = useState<NutritionData[]>([]);
+  const [weeklyData, setWeeklyData] = useState<DaySummary[]>([]);
+  const [monthlyData, setMonthlyData] = useState<WeekSummary[]>([]);
+  const [totals, setTotals] = useState({ calories: 0, protein: 0, carbs: 0, fats: 0, meals: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,7 +41,7 @@ export const NutritionProgressCharts = () => {
     try {
       // Get data for the last 4 weeks
       const fourWeeksAgo = subWeeks(new Date(), 4);
-      const { data: weeklyCompletions } = await supabase
+      const { data: completions } = await supabase
         .from("meal_completions")
         .select(`
           completed_at,
@@ -48,7 +56,48 @@ export const NutritionProgressCharts = () => {
         .gte("completed_at", fourWeeksAgo.toISOString())
         .order("completed_at", { ascending: true });
 
-      // Get data for the last 3 months
+      // Process weekly data (current week by day)
+      const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
+      const weekEnd = endOfWeek(new Date(), { weekStartsOn: 1 });
+      const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
+      const dayNames = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+      
+      const dailyMap = new Map<string, DaySummary>();
+      weekDays.forEach((day, index) => {
+        const dateKey = format(day, "yyyy-MM-dd");
+        dailyMap.set(dateKey, {
+          day: format(day, "EEEE", { locale: es }),
+          shortDay: dayNames[index],
+          mealsCompleted: 0,
+          calories: 0,
+        });
+      });
+
+      let totalCalories = 0, totalProtein = 0, totalCarbs = 0, totalFats = 0, totalMeals = 0;
+
+      completions?.forEach((completion: any) => {
+        const dateKey = completion.completed_at.split('T')[0];
+        const existing = dailyMap.get(dateKey);
+        if (existing && completion.meals) {
+          existing.mealsCompleted += 1;
+          existing.calories += completion.meals.calories || 0;
+        }
+        
+        // Calculate totals for current week
+        const completionDate = new Date(completion.completed_at);
+        if (isSameWeek(completionDate, new Date(), { weekStartsOn: 1 })) {
+          totalCalories += completion.meals?.calories || 0;
+          totalProtein += completion.meals?.protein || 0;
+          totalCarbs += completion.meals?.carbs || 0;
+          totalFats += completion.meals?.fats || 0;
+          totalMeals += 1;
+        }
+      });
+
+      setWeeklyData(Array.from(dailyMap.values()));
+      setTotals({ calories: totalCalories, protein: totalProtein, carbs: totalCarbs, fats: totalFats, meals: totalMeals });
+
+      // Process monthly data (group by week)
       const threeMonthsAgo = subMonths(new Date(), 3);
       const { data: monthlyCompletions } = await supabase
         .from("meal_completions")
@@ -65,95 +114,58 @@ export const NutritionProgressCharts = () => {
         .gte("completed_at", threeMonthsAgo.toISOString())
         .order("completed_at", { ascending: true });
 
-      // Process weekly data (last 28 days)
-      const weekStart = startOfWeek(fourWeeksAgo, { weekStartsOn: 1 });
-      const weekEnd = endOfWeek(new Date(), { weekStartsOn: 1 });
-      const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
+      const weeklyMap = new Map<string, WeekSummary>();
+      let currentWeekStart = startOfWeek(startOfMonth(threeMonthsAgo), { weekStartsOn: 1 });
       
-      const weeklyMap = new Map<string, NutritionData>();
-      weekDays.forEach(day => {
-        const dateKey = format(day, "yyyy-MM-dd");
-        weeklyMap.set(dateKey, {
-          date: format(day, "EEE dd", { locale: es }),
-          calories: 0,
-          protein: 0,
-          carbs: 0,
-          fats: 0,
-          mealsCompleted: 0,
-        });
-      });
-
-      weeklyCompletions?.forEach((completion: any) => {
-        const dateKey = completion.completed_at.split('T')[0];
-        const existing = weeklyMap.get(dateKey);
-        if (existing && completion.meals) {
-          existing.calories += completion.meals.calories || 0;
-          existing.protein += completion.meals.protein || 0;
-          existing.carbs += completion.meals.carbs || 0;
-          existing.fats += completion.meals.fats || 0;
-          existing.mealsCompleted += 1;
-        }
-      });
-
-      setWeeklyData(Array.from(weeklyMap.values()));
-
-      // Process monthly data (group by week)
-      const monthStart = startOfMonth(threeMonthsAgo);
-      const monthEnd = endOfMonth(new Date());
-      
-      const monthlyMap = new Map<string, NutritionData>();
-      
-      let currentWeekStart = startOfWeek(monthStart, { weekStartsOn: 1 });
-      while (currentWeekStart <= monthEnd) {
+      while (currentWeekStart <= new Date()) {
         const weekKey = format(currentWeekStart, "yyyy-MM-dd");
-        monthlyMap.set(weekKey, {
-          date: format(currentWeekStart, "dd MMM", { locale: es }),
+        weeklyMap.set(weekKey, {
+          week: format(currentWeekStart, "dd MMM", { locale: es }),
           calories: 0,
           protein: 0,
           carbs: 0,
           fats: 0,
           mealsCompleted: 0,
+          daysActive: 0,
         });
         currentWeekStart = new Date(currentWeekStart.setDate(currentWeekStart.getDate() + 7));
       }
 
+      const daysPerWeek = new Map<string, Set<string>>();
       monthlyCompletions?.forEach((completion: any) => {
         const completionDate = new Date(completion.completed_at);
-        const weekStart = startOfWeek(completionDate, { weekStartsOn: 1 });
-        const weekKey = format(weekStart, "yyyy-MM-dd");
-        const existing = monthlyMap.get(weekKey);
+        const weekStartDate = startOfWeek(completionDate, { weekStartsOn: 1 });
+        const weekKey = format(weekStartDate, "yyyy-MM-dd");
+        const dayKey = completion.completed_at.split('T')[0];
+        
+        const existing = weeklyMap.get(weekKey);
         if (existing && completion.meals) {
           existing.calories += completion.meals.calories || 0;
           existing.protein += completion.meals.protein || 0;
           existing.carbs += completion.meals.carbs || 0;
           existing.fats += completion.meals.fats || 0;
           existing.mealsCompleted += 1;
+          
+          if (!daysPerWeek.has(weekKey)) {
+            daysPerWeek.set(weekKey, new Set());
+          }
+          daysPerWeek.get(weekKey)?.add(dayKey);
         }
       });
 
-      setMonthlyData(Array.from(monthlyMap.values()));
+      daysPerWeek.forEach((days, weekKey) => {
+        const existing = weeklyMap.get(weekKey);
+        if (existing) {
+          existing.daysActive = days.size;
+        }
+      });
+
+      setMonthlyData(Array.from(weeklyMap.values()).slice(-12)); // Last 12 weeks
     } catch (error) {
       console.error("Error loading progress data:", error);
     } finally {
       setLoading(false);
     }
-  };
-
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-background border border-border rounded-lg shadow-lg p-4">
-          <p className="font-semibold mb-2">{label}</p>
-          {payload.map((entry: any, index: number) => (
-            <p key={index} className="text-sm" style={{ color: entry.color }}>
-              {entry.name}: {entry.value.toFixed(0)}
-              {entry.name === "Comidas" ? "" : "g"}
-            </p>
-          ))}
-        </div>
-      );
-    }
-    return null;
   };
 
   if (loading) {
@@ -162,195 +174,139 @@ export const NutritionProgressCharts = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
-            Progreso Nutricional
+            Resumen Nutricional
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-[300px] flex items-center justify-center">
-            <p className="text-muted-foreground">Cargando datos...</p>
+          <div className="h-[200px] flex items-center justify-center">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
           </div>
         </CardContent>
       </Card>
     );
   }
 
+  const maxMeals = Math.max(...weeklyData.map(d => d.mealsCompleted), 1);
+  const maxWeeklyMeals = Math.max(...monthlyData.map(d => d.mealsCompleted), 1);
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <TrendingUp className="h-5 w-5" />
-          Progreso Nutricional
+          <TrendingUp className="h-5 w-5 text-primary" />
+          Resumen Nutricional
         </CardTitle>
-        <CardDescription>
-          Visualiza tu avance semanal y mensual
-        </CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="weekly" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="weekly">Semanal</TabsTrigger>
-            <TabsTrigger value="monthly">Mensual</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="weekly">Esta Semana</TabsTrigger>
+            <TabsTrigger value="monthly">Últimos 3 Meses</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="weekly" className="space-y-4">
-            <div className="text-sm text-muted-foreground flex items-center gap-2 mb-2">
-              <Calendar className="h-4 w-4" />
-              Últimos 28 días
+          <TabsContent value="weekly" className="space-y-6">
+            {/* Week totals cards */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/20 rounded-xl p-4 text-center">
+                <Flame className="h-6 w-6 text-orange-500 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">{totals.calories.toLocaleString()}</p>
+                <p className="text-xs text-muted-foreground">Calorías</p>
+              </div>
+              <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/20 rounded-xl p-4 text-center">
+                <Utensils className="h-6 w-6 text-green-500 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-green-600 dark:text-green-400">{totals.meals}</p>
+                <p className="text-xs text-muted-foreground">Comidas</p>
+              </div>
             </div>
 
-            {/* Calories and Macros Line Chart */}
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium">Calorías y Macronutrientes</h4>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={weeklyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis 
-                    dataKey="date" 
-                    stroke="hsl(var(--muted-foreground))"
-                    fontSize={12}
-                  />
-                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="calories" 
-                    name="Calorías" 
-                    stroke="hsl(var(--primary))" 
-                    strokeWidth={2}
-                    dot={{ fill: "hsl(var(--primary))", r: 4 }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="protein" 
-                    name="Proteína (g)" 
-                    stroke="hsl(var(--chart-1))" 
-                    strokeWidth={2}
-                    dot={{ fill: "hsl(var(--chart-1))", r: 4 }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="carbs" 
-                    name="Carbohidratos (g)" 
-                    stroke="hsl(var(--chart-2))" 
-                    strokeWidth={2}
-                    dot={{ fill: "hsl(var(--chart-2))", r: 4 }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="fats" 
-                    name="Grasas (g)" 
-                    stroke="hsl(var(--chart-3))" 
-                    strokeWidth={2}
-                    dot={{ fill: "hsl(var(--chart-3))", r: 4 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+            {/* Macros row */}
+            <div className="grid grid-cols-3 gap-2">
+              <div className="bg-amber-50 dark:bg-amber-950/20 rounded-lg p-3 text-center">
+                <p className="text-lg font-bold text-amber-600 dark:text-amber-400">{totals.protein}g</p>
+                <p className="text-xs text-muted-foreground">Proteína</p>
+              </div>
+              <div className="bg-green-50 dark:bg-green-950/20 rounded-lg p-3 text-center">
+                <p className="text-lg font-bold text-green-600 dark:text-green-400">{totals.carbs}g</p>
+                <p className="text-xs text-muted-foreground">Carbos</p>
+              </div>
+              <div className="bg-blue-50 dark:bg-blue-950/20 rounded-lg p-3 text-center">
+                <p className="text-lg font-bold text-blue-600 dark:text-blue-400">{totals.fats}g</p>
+                <p className="text-xs text-muted-foreground">Grasas</p>
+              </div>
             </div>
 
-            {/* Meals Completed Bar Chart */}
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium">Comidas Completadas</h4>
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={weeklyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis 
-                    dataKey="date" 
-                    stroke="hsl(var(--muted-foreground))"
-                    fontSize={12}
-                  />
-                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend />
-                  <Bar 
-                    dataKey="mealsCompleted" 
-                    name="Comidas" 
-                    fill="hsl(var(--chart-4))" 
-                    radius={[8, 8, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
+            {/* Daily meals visualization */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Calendar className="h-4 w-4" />
+                Comidas por día
+              </div>
+              <div className="flex justify-between items-end gap-2 h-32 px-1">
+                {weeklyData.map((day, index) => (
+                  <div key={index} className="flex-1 flex flex-col items-center gap-2">
+                    <div className="w-full flex flex-col items-center justify-end h-20">
+                      <div 
+                        className="w-full max-w-[32px] bg-gradient-to-t from-primary to-primary/60 rounded-t-lg transition-all duration-300"
+                        style={{ 
+                          height: `${Math.max((day.mealsCompleted / maxMeals) * 100, 8)}%`,
+                          minHeight: day.mealsCompleted > 0 ? '16px' : '4px',
+                          opacity: day.mealsCompleted > 0 ? 1 : 0.3
+                        }}
+                      />
+                    </div>
+                    <span className="text-[10px] font-medium text-muted-foreground">{day.shortDay}</span>
+                    {day.mealsCompleted > 0 && (
+                      <span className="text-xs font-bold text-primary">{day.mealsCompleted}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </TabsContent>
 
-          <TabsContent value="monthly" className="space-y-4">
-            <div className="text-sm text-muted-foreground flex items-center gap-2 mb-2">
+          <TabsContent value="monthly" className="space-y-6">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
               <Calendar className="h-4 w-4" />
-              Últimos 3 meses (agrupado por semana)
+              Comidas completadas por semana
             </div>
 
-            {/* Calories and Macros Line Chart */}
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium">Calorías y Macronutrientes</h4>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis 
-                    dataKey="date" 
-                    stroke="hsl(var(--muted-foreground))"
-                    fontSize={12}
-                  />
-                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="calories" 
-                    name="Calorías" 
-                    stroke="hsl(var(--primary))" 
-                    strokeWidth={2}
-                    dot={{ fill: "hsl(var(--primary))", r: 4 }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="protein" 
-                    name="Proteína (g)" 
-                    stroke="hsl(var(--chart-1))" 
-                    strokeWidth={2}
-                    dot={{ fill: "hsl(var(--chart-1))", r: 4 }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="carbs" 
-                    name="Carbohidratos (g)" 
-                    stroke="hsl(var(--chart-2))" 
-                    strokeWidth={2}
-                    dot={{ fill: "hsl(var(--chart-2))", r: 4 }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="fats" 
-                    name="Grasas (g)" 
-                    stroke="hsl(var(--chart-3))" 
-                    strokeWidth={2}
-                    dot={{ fill: "hsl(var(--chart-3))", r: 4 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+            {/* Weekly bars */}
+            <div className="space-y-3">
+              {monthlyData.slice(-8).map((week, index) => (
+                <div key={index} className="flex items-center gap-3">
+                  <span className="text-xs text-muted-foreground w-16 shrink-0">{week.week}</span>
+                  <div className="flex-1 h-8 bg-muted/50 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-primary to-primary/70 rounded-full flex items-center justify-end px-3 transition-all duration-500"
+                      style={{ width: `${Math.max((week.mealsCompleted / maxWeeklyMeals) * 100, 5)}%` }}
+                    >
+                      {week.mealsCompleted > 0 && (
+                        <span className="text-xs font-bold text-primary-foreground">{week.mealsCompleted}</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 w-16 shrink-0">
+                    <Target className="h-3 w-3 text-green-500" />
+                    <span className="text-xs text-muted-foreground">{week.daysActive}d</span>
+                  </div>
+                </div>
+              ))}
             </div>
 
-            {/* Meals Completed Bar Chart */}
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium">Comidas Completadas por Semana</h4>
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis 
-                    dataKey="date" 
-                    stroke="hsl(var(--muted-foreground))"
-                    fontSize={12}
-                  />
-                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend />
-                  <Bar 
-                    dataKey="mealsCompleted" 
-                    name="Comidas" 
-                    fill="hsl(var(--chart-4))" 
-                    radius={[8, 8, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
+            {/* Monthly summary */}
+            <div className="grid grid-cols-2 gap-3 pt-4 border-t">
+              <div className="text-center p-3 bg-muted/30 rounded-lg">
+                <p className="text-xl font-bold text-primary">
+                  {monthlyData.reduce((sum, w) => sum + w.mealsCompleted, 0)}
+                </p>
+                <p className="text-xs text-muted-foreground">Total comidas</p>
+              </div>
+              <div className="text-center p-3 bg-muted/30 rounded-lg">
+                <p className="text-xl font-bold text-primary">
+                  {Math.round(monthlyData.reduce((sum, w) => sum + w.calories, 0) / 1000)}k
+                </p>
+                <p className="text-xs text-muted-foreground">Calorías totales</p>
+              </div>
             </div>
           </TabsContent>
         </Tabs>
