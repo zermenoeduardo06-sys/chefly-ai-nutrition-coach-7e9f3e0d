@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { CaloriesProgressArc } from "@/components/CaloriesProgressArc";
 import { NutritionProgressCharts } from "@/components/NutritionProgressCharts";
 import { BodyMeasurementForm } from "@/components/BodyMeasurementForm";
 import { BodyMeasurementCharts } from "@/components/BodyMeasurementCharts";
@@ -52,7 +53,8 @@ const Progress = () => {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="nutrition" className="mt-6">
+          <TabsContent value="nutrition" className="mt-6 space-y-6">
+            <CaloriesProgressArc />
             <NutritionProgressCharts />
           </TabsContent>
 
