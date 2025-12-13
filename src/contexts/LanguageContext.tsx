@@ -881,6 +881,10 @@ export const translations = {
     "shopping.category.grains": "Granos y Cereales",
     "shopping.category.condiments": "Condimentos y Especias",
     "shopping.category.other": "Otros",
+    "shopping.exportPDF": "Exportar PDF",
+    "shopping.exportSuccess": "¡PDF exportado!",
+    "shopping.exportSuccessDesc": "Tu lista de compras ha sido descargada",
+    "shopping.exportError": "Error al exportar el PDF",
   },
   en: {
     // Navigation
@@ -1751,6 +1755,10 @@ export const translations = {
     "shopping.category.grains": "Grains & Cereals",
     "shopping.category.condiments": "Condiments & Spices",
     "shopping.category.other": "Other",
+    "shopping.exportPDF": "Export PDF",
+    "shopping.exportSuccess": "PDF exported!",
+    "shopping.exportSuccessDesc": "Your shopping list has been downloaded",
+    "shopping.exportError": "Error exporting PDF",
   },
 };
 
