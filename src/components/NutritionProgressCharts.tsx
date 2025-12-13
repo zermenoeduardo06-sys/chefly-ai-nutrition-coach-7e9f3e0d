@@ -246,17 +246,19 @@ export const NutritionProgressCharts = () => {
                   <div key={index} className="flex-1 flex flex-col items-center gap-2">
                     <div className="w-full flex flex-col items-center justify-end h-20">
                       <div 
-                        className="w-full max-w-[32px] bg-gradient-to-t from-primary to-primary/60 rounded-t-lg transition-all duration-300"
+                        className="w-full max-w-[32px] bg-gradient-to-t from-primary to-primary/60 rounded-t-lg animate-[grow-up_0.6s_ease-out_forwards]"
                         style={{ 
                           height: `${Math.max((day.mealsCompleted / maxMeals) * 100, 8)}%`,
                           minHeight: day.mealsCompleted > 0 ? '16px' : '4px',
-                          opacity: day.mealsCompleted > 0 ? 1 : 0.3
+                          opacity: day.mealsCompleted > 0 ? 1 : 0.3,
+                          animationDelay: `${index * 0.1}s`,
+                          transformOrigin: 'bottom'
                         }}
                       />
                     </div>
                     <span className="text-[10px] font-medium text-muted-foreground">{day.shortDay}</span>
                     {day.mealsCompleted > 0 && (
-                      <span className="text-xs font-bold text-primary">{day.mealsCompleted}</span>
+                      <span className="text-xs font-bold text-primary animate-fade-in" style={{ animationDelay: `${index * 0.1 + 0.3}s` }}>{day.mealsCompleted}</span>
                     )}
                   </div>
                 ))}
@@ -273,12 +275,15 @@ export const NutritionProgressCharts = () => {
             {/* Weekly bars */}
             <div className="space-y-3">
               {monthlyData.slice(-8).map((week, index) => (
-                <div key={index} className="flex items-center gap-3">
+                <div key={index} className="flex items-center gap-3 animate-fade-in" style={{ animationDelay: `${index * 0.08}s` }}>
                   <span className="text-xs text-muted-foreground w-16 shrink-0">{week.week}</span>
                   <div className="flex-1 h-8 bg-muted/50 rounded-full overflow-hidden">
                     <div 
-                      className="h-full bg-gradient-to-r from-primary to-primary/70 rounded-full flex items-center justify-end px-3 transition-all duration-500"
-                      style={{ width: `${Math.max((week.mealsCompleted / maxWeeklyMeals) * 100, 5)}%` }}
+                      className="h-full bg-gradient-to-r from-primary to-primary/70 rounded-full flex items-center justify-end px-3 animate-[grow-right_0.8s_ease-out_forwards]"
+                      style={{ 
+                        width: `${Math.max((week.mealsCompleted / maxWeeklyMeals) * 100, 5)}%`,
+                        animationDelay: `${index * 0.1}s`
+                      }}
                     >
                       {week.mealsCompleted > 0 && (
                         <span className="text-xs font-bold text-primary-foreground">{week.mealsCompleted}</span>
