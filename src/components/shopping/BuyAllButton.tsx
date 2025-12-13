@@ -15,7 +15,7 @@ interface BuyAllButtonProps {
 }
 
 export function BuyAllButton({ items }: BuyAllButtonProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   
   // Get affiliate tag from env
   const affiliateTag = import.meta.env.VITE_AMAZON_AFFILIATE_TAG || '';
@@ -24,8 +24,9 @@ export function BuyAllButton({ items }: BuyAllButtonProps) {
     // Create a search query with all ingredients
     const ingredientNames = items.slice(0, 10).map(i => i.ingredient).join(' ');
     const baseUrl = 'https://www.amazon.com.mx/s';
+    const searchPrefix = language === 'es' ? 'ingredientes cocina' : 'cooking ingredients';
     const params = new URLSearchParams({
-      k: `ingredientes cocina ${ingredientNames}`,
+      k: `${searchPrefix} ${ingredientNames}`,
       ...(affiliateTag && { tag: affiliateTag })
     });
     return `${baseUrl}?${params.toString()}`;

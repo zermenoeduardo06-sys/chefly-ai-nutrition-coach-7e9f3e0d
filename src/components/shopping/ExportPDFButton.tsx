@@ -119,7 +119,8 @@ export function ExportPDFButton({ items, weekDate }: ExportPDFButtonProps) {
       // Footer
       doc.setFontSize(8);
       doc.setTextColor(128);
-      doc.text("Chefly.AI - Tu coach nutricional con IA", pageWidth / 2, 290, { align: "center" });
+      const footerText = language === 'es' ? "Chefly.AI - Tu coach nutricional con IA" : "Chefly.AI - Your AI nutrition coach";
+      doc.text(footerText, pageWidth / 2, 290, { align: "center" });
 
       // Save the PDF
       const fileName = `lista-compras-${weekDate.replace(/\s/g, "-")}.pdf`;
