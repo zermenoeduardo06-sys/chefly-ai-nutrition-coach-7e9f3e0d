@@ -855,6 +855,32 @@ export const translations = {
     "cookies.accept": "Aceptar",
     "cookies.decline": "Rechazar",
     "cookies.learnMore": "Más información",
+    
+    // Sidebar
+    "sidebar.shopping": "Lista de Compras",
+    
+    // Shopping List
+    "shopping.title": "Lista de Compras",
+    "shopping.subtitle": "Ingredientes para tu menú semanal",
+    "shopping.noMealPlan": "No tienes un plan de comidas",
+    "shopping.noMealPlanDesc": "Genera un plan semanal para ver tu lista de compras",
+    "shopping.generatePlan": "Generar Plan",
+    "shopping.noItems": "Sin ingredientes",
+    "shopping.noItemsDesc": "Tu lista de compras está vacía",
+    "shopping.weekOf": "Semana del",
+    "shopping.purchased": "comprados",
+    "shopping.clearPurchased": "Limpiar",
+    "shopping.buyAllTitle": "Compra todo en Amazon",
+    "shopping.buyAllDesc": "{{count}} ingredientes pendientes por comprar",
+    "shopping.buyOnAmazon": "Comprar en Amazon",
+    "shopping.affiliateNotConfigured": "Configura tu tag de afiliado de Amazon en los secretos para habilitar las compras",
+    "shopping.category.proteins": "Proteínas",
+    "shopping.category.dairy": "Lácteos",
+    "shopping.category.vegetables": "Vegetales",
+    "shopping.category.fruits": "Frutas",
+    "shopping.category.grains": "Granos y Cereales",
+    "shopping.category.condiments": "Condimentos y Especias",
+    "shopping.category.other": "Otros",
   },
   en: {
     // Navigation
@@ -1699,6 +1725,32 @@ export const translations = {
     "cookies.accept": "Accept",
     "cookies.decline": "Decline",
     "cookies.learnMore": "Learn more",
+    
+    // Sidebar
+    "sidebar.shopping": "Shopping List",
+    
+    // Shopping List
+    "shopping.title": "Shopping List",
+    "shopping.subtitle": "Ingredients for your weekly menu",
+    "shopping.noMealPlan": "You don't have a meal plan",
+    "shopping.noMealPlanDesc": "Generate a weekly plan to see your shopping list",
+    "shopping.generatePlan": "Generate Plan",
+    "shopping.noItems": "No ingredients",
+    "shopping.noItemsDesc": "Your shopping list is empty",
+    "shopping.weekOf": "Week of",
+    "shopping.purchased": "purchased",
+    "shopping.clearPurchased": "Clear",
+    "shopping.buyAllTitle": "Buy everything on Amazon",
+    "shopping.buyAllDesc": "{{count}} ingredients left to buy",
+    "shopping.buyOnAmazon": "Buy on Amazon",
+    "shopping.affiliateNotConfigured": "Set up your Amazon affiliate tag in secrets to enable purchases",
+    "shopping.category.proteins": "Proteins",
+    "shopping.category.dairy": "Dairy",
+    "shopping.category.vegetables": "Vegetables",
+    "shopping.category.fruits": "Fruits",
+    "shopping.category.grains": "Grains & Cereals",
+    "shopping.category.condiments": "Condiments & Spices",
+    "shopping.category.other": "Other",
   },
 };
 
