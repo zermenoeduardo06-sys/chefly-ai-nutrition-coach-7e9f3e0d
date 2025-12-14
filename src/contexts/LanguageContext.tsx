@@ -884,6 +884,21 @@ export const translations = {
     // Sidebar
     "sidebar.shopping": "Lista de Compras",
     
+    // Leaderboard
+    "leaderboard.title": "Tabla de Clasificación",
+    "leaderboard.subtitle": "Compara tu progreso con otros usuarios de Chefly",
+    "leaderboard.top100": "Top 100 Usuarios",
+    "leaderboard.rankingDesc": "Clasificación basada en puntos totales",
+    "leaderboard.anonymousUser": "Usuario Anónimo",
+    "leaderboard.you": "Tú",
+    "leaderboard.level": "Nivel",
+    "leaderboard.achievements": "logros",
+    "leaderboard.streakDays": "días de racha",
+    "leaderboard.points": "puntos",
+
+    // Weekly Check-In
+    "weeklyCheckIn.stepOf": "Paso {{current}} de {{total}}",
+
     // Shopping List
     "shopping.title": "Lista de Compras",
     "shopping.subtitle": "Ingredientes para tu menú semanal",
@@ -1782,6 +1797,21 @@ export const translations = {
     
     // Sidebar
     "sidebar.shopping": "Shopping List",
+
+    // Leaderboard
+    "leaderboard.title": "Leaderboard",
+    "leaderboard.subtitle": "Compare your progress with other Chefly users",
+    "leaderboard.top100": "Top 100 Users",
+    "leaderboard.rankingDesc": "Ranking based on total points",
+    "leaderboard.anonymousUser": "Anonymous User",
+    "leaderboard.you": "You",
+    "leaderboard.level": "Level",
+    "leaderboard.achievements": "achievements",
+    "leaderboard.streakDays": "day streak",
+    "leaderboard.points": "points",
+
+    // Weekly Check-In
+    "weeklyCheckIn.stepOf": "Step {{current}} of {{total}}",
     
     // Shopping List
     "shopping.title": "Shopping List",

@@ -34,7 +34,7 @@ const WeeklyCheckInDialog = ({
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const { language } = useLanguage();
+  const { language, t: translate } = useLanguage();
 
   const t = {
     es: {
@@ -248,7 +248,7 @@ const WeeklyCheckInDialog = ({
         {/* Progress */}
         <div className="space-y-2">
           <div className="flex justify-between text-xs text-muted-foreground">
-            <span>Paso {step} de {TOTAL_STEPS}</span>
+            <span>{translate('weeklyCheckIn.stepOf', { current: step, total: TOTAL_STEPS })}</span>
             <span>{Math.round((step / TOTAL_STEPS) * 100)}%</span>
           </div>
           <Progress value={(step / TOTAL_STEPS) * 100} className="h-2" />
