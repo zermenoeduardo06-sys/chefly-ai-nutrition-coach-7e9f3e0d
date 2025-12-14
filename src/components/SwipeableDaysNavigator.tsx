@@ -3,6 +3,7 @@ import { motion, AnimatePresence, PanInfo, useMotionValue, animate } from "frame
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useHaptics } from "@/hooks/useHaptics";
 
 interface SwipeableDaysNavigatorProps {
   currentDay: number;
@@ -20,6 +21,7 @@ export const SwipeableDaysNavigator = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
   const [containerWidth, setContainerWidth] = useState(0);
+  const { selectionChanged } = useHaptics();
 
   useEffect(() => {
     if (containerRef.current) {
@@ -37,11 +39,13 @@ export const SwipeableDaysNavigator = ({
     if (offset < -SWIPE_THRESHOLD || velocity < -500) {
       // Swipe left -> next day
       if (currentDay < totalDays - 1) {
+        selectionChanged();
         onDayChange(currentDay + 1);
       }
     } else if (offset > SWIPE_THRESHOLD || velocity > 500) {
       // Swipe right -> previous day
       if (currentDay > 0) {
+        selectionChanged();
         onDayChange(currentDay - 1);
       }
     }
@@ -52,12 +56,14 @@ export const SwipeableDaysNavigator = ({
 
   const goToPreviousDay = () => {
     if (currentDay > 0) {
+      selectionChanged();
       onDayChange(currentDay - 1);
     }
   };
 
   const goToNextDay = () => {
     if (currentDay < totalDays - 1) {
+      selectionChanged();
       onDayChange(currentDay + 1);
     }
   };

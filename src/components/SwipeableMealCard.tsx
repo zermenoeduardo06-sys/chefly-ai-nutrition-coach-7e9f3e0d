@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { MealImageWithSkeleton } from "@/components/MealImageWithSkeleton";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
+import { useHaptics } from "@/hooks/useHaptics";
 
 interface Meal {
   id: string;
@@ -45,6 +46,7 @@ export const SwipeableMealCard = ({
   isFirstMeal = false,
 }: SwipeableMealCardProps) => {
   const { t } = useLanguage();
+  const { mediumImpact } = useHaptics();
   const [isSwipedComplete, setIsSwipedComplete] = useState(false);
   const x = useMotionValue(0);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -57,6 +59,8 @@ export const SwipeableMealCard = ({
     const offset = info.offset.x;
     
     if (offset > SWIPE_THRESHOLD && !isCompleted) {
+      // Haptic feedback when swipe completes
+      mediumImpact();
       // Swipe right to complete
       animate(x, 200, { 
         type: "spring", 

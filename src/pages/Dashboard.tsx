@@ -31,6 +31,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { SwipeableDaysNavigator } from "@/components/SwipeableDaysNavigator";
 import { SwipeableMealCard } from "@/components/SwipeableMealCard";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useHaptics } from "@/hooks/useHaptics";
 
 interface Meal {
   id: string;
@@ -105,6 +106,7 @@ const Dashboard = () => {
   const [searchParams] = useSearchParams();
   const { t, getArray, language, setLanguage } = useLanguage();
   const { scheduleMealReminders, scheduleStreakRiskAlert, permissionGranted, isNative } = useNotifications();
+  const { successNotification, celebrationPattern, errorNotification, selectionChanged } = useHaptics();
 
   const dayNames = getArray("dashboard.days");
   const mealTypes: { [key: string]: string } = {
@@ -251,6 +253,9 @@ const Dashboard = () => {
     // Update local state
     setCompletedMeals(prev => new Set([...prev, mealId]));
 
+    // Haptic feedback for meal completion
+    successNotification();
+
     // Update stats
     await updateUserStats(user.id);
 
@@ -386,6 +391,9 @@ const Dashboard = () => {
             // Show unlock animation
             setUnlockedAchievement(achievement);
             setShowAchievementUnlock(true);
+            
+            // Haptic celebration for achievement unlock
+            celebrationPattern();
 
             // Only show one achievement at a time
             break;
