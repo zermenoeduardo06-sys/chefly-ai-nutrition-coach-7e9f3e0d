@@ -1,13 +1,14 @@
-import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getAvatarColor, getInitials } from "@/lib/avatarColors";
-import { ArrowLeft, Loader2, Camera } from "lucide-react";
+import { getInitials } from "@/lib/avatarColors";
+import { getAvatarColorById } from "@/components/profile/AvatarEditor";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 
@@ -15,13 +16,12 @@ const ProfileEdit = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { toast } = useToast();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarBgColor, setAvatarBgColor] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -37,13 +37,14 @@ const ProfileEdit = () => {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("display_name, avatar_url")
+        .select("display_name, avatar_url, avatar_background_color")
         .eq("id", user.id)
         .maybeSingle();
 
       if (profile) {
         setDisplayName(profile.display_name || "");
         setAvatarUrl(profile.avatar_url);
+        setAvatarBgColor(profile.avatar_background_color);
       }
       setLoading(false);
     };
@@ -117,75 +118,7 @@ const ProfileEdit = () => {
     }
   };
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      toast({
-        variant: "destructive",
-        title: t("profile.error"),
-        description: t("profile.invalidFileType"),
-      });
-      return;
-    }
-
-    if (file.size > 2 * 1024 * 1024) {
-      toast({
-        variant: "destructive",
-        title: t("profile.error"),
-        description: t("profile.fileTooLarge"),
-      });
-      return;
-    }
-
-    setUploading(true);
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
-      const fileExt = file.name.split(".").pop();
-      const filePath = `${user.id}/avatar.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("avatars")
-        .upload(filePath, file, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from("avatars")
-        .getPublicUrl(filePath);
-
-      const avatarUrlWithCacheBust = `${publicUrl}?t=${Date.now()}`;
-
-      const { error: updateError } = await supabase
-        .from("profiles")
-        .update({ avatar_url: avatarUrlWithCacheBust })
-        .eq("id", user.id);
-
-      if (updateError) throw updateError;
-
-      setAvatarUrl(avatarUrlWithCacheBust);
-
-      toast({
-        title: t("profile.avatarUploaded"),
-        description: t("profile.avatarUploadedDesc"),
-      });
-    } catch (err: any) {
-      console.error("Error uploading avatar:", err);
-      toast({
-        variant: "destructive",
-        title: t("profile.error"),
-        description: err.message,
-      });
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const avatarColor = getAvatarColor(displayName || "user");
+  const avatarColorClass = getAvatarColorById(avatarBgColor);
 
   if (loading) {
     return (
@@ -214,39 +147,31 @@ const ProfileEdit = () => {
 
       {/* Content */}
       <div className="px-4 py-8 space-y-8 pb-24">
-        {/* Avatar Section */}
+        {/* Avatar Section - Links to Avatar Editor */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col items-center"
         >
-          <div className="relative mb-4">
-            <Avatar className="h-28 w-28 border-4 border-primary/30">
+          <Link to="/dashboard/settings/avatar" className="relative mb-4 group">
+            <Avatar className="h-28 w-28 border-4 border-primary/30 transition-transform group-hover:scale-105">
               <AvatarImage src={avatarUrl || undefined} alt={displayName} />
-              <AvatarFallback className={`${avatarColor} text-white text-3xl font-bold`}>
+              <AvatarFallback className={`${avatarColorClass} text-white text-3xl font-bold`}>
                 {getInitials(displayName)}
               </AvatarFallback>
             </Avatar>
-            {uploading && (
-              <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-white" />
-              </div>
-            )}
-          </div>
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 rounded-full transition-colors flex items-center justify-center">
+              <span className="text-white opacity-0 group-hover:opacity-100 font-semibold text-sm">
+                {t("common.edit")}
+              </span>
+            </div>
+          </Link>
+          <Link
+            to="/dashboard/settings/avatar"
             className="text-primary font-semibold text-sm uppercase tracking-wide"
           >
             {t("profile.changeAvatar")}
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleAvatarUpload}
-            className="hidden"
-          />
+          </Link>
         </motion.div>
 
         {/* Form Fields */}

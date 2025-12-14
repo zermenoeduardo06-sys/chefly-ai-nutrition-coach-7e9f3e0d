@@ -36,6 +36,7 @@ import AdminAffiliatesDashboard from "./pages/AdminAffiliatesDashboard";
 import ShoppingList from "./pages/ShoppingList";
 import Settings from "./pages/Settings";
 import ProfileEdit from "./pages/ProfileEdit";
+import AvatarEdit from "./pages/AvatarEdit";
 
 const queryClient = new QueryClient();
 
@@ -83,6 +84,7 @@ const App = () => (
             <Route path="/dashboard/profile" element={<DashboardLayout><Profile /></DashboardLayout>} />
             <Route path="/dashboard/settings" element={<DashboardLayout><Settings /></DashboardLayout>} />
             <Route path="/dashboard/settings/profile" element={<DashboardLayout><ProfileEdit /></DashboardLayout>} />
+            <Route path="/dashboard/settings/avatar" element={<DashboardLayout><AvatarEdit /></DashboardLayout>} />
             <Route path="/dashboard/shopping" element={<DashboardLayout><ShoppingList /></DashboardLayout>} />
             <Route path="/chat" element={<Chat />} />
             <Route path="/pricing" element={<Pricing />} />

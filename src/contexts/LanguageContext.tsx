@@ -281,6 +281,14 @@ export const translations = {
     "settings.terms": "Términos",
     "settings.privacyPolicy": "Política de Privacidad",
     
+    // Avatar Editor
+    "avatar.editTitle": "Editar Avatar",
+    "avatar.uploadPhoto": "Subir Foto",
+    "avatar.orChooseColor": "o elige un color",
+    "avatar.backgroundColor": "Color de Fondo",
+    "avatar.previewHint": "Tu avatar se mostrará en tu perfil, leaderboard y cuando interactúes con amigos",
+    "avatar.saved": "Avatar guardado",
+    "avatar.savedDesc": "Tu avatar ha sido actualizado",
     
     // Dashboard
     "dashboard.days": ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"],
@@ -1265,6 +1273,15 @@ export const translations = {
     "settings.logout": "Log Out",
     "settings.terms": "Terms",
     "settings.privacyPolicy": "Privacy Policy",
+    
+    // Avatar Editor
+    "avatar.editTitle": "Edit Avatar",
+    "avatar.uploadPhoto": "Upload Photo",
+    "avatar.orChooseColor": "or choose a color",
+    "avatar.backgroundColor": "Background Color",
+    "avatar.previewHint": "Your avatar will be shown on your profile, leaderboard, and when interacting with friends",
+    "avatar.saved": "Avatar saved",
+    "avatar.savedDesc": "Your avatar has been updated",
     "friends.alreadyExists": "A request or friendship already exists with this user",
     
     // Dashboard

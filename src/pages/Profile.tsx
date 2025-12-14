@@ -5,7 +5,8 @@ import { useTrialGuard } from "@/hooks/useTrialGuard";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { getAvatarColor, getInitials } from "@/lib/avatarColors";
+import { getInitials } from "@/lib/avatarColors";
+import { getAvatarColorById } from "@/components/profile/AvatarEditor";
 import { Loader2, Settings, UserPlus, Flame, Star, Trophy, Zap, Calendar, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
@@ -21,6 +22,7 @@ interface UserStats {
 interface ProfileData {
   display_name: string | null;
   avatar_url: string | null;
+  avatar_background_color: string | null;
   created_at: string | null;
 }
 
@@ -43,7 +45,7 @@ const Profile = () => {
       const [profileRes, statsRes] = await Promise.all([
         supabase
           .from("profiles")
-          .select("display_name, avatar_url, created_at")
+          .select("display_name, avatar_url, avatar_background_color, created_at")
           .eq("id", user.id)
           .maybeSingle(),
         supabase
@@ -78,7 +80,7 @@ const Profile = () => {
   }
 
   const displayName = profile?.display_name || "User";
-  const avatarColor = getAvatarColor(displayName);
+  const avatarColor = getAvatarColorById(profile?.avatar_background_color || null);
   const joinDate = profile?.created_at 
     ? format(new Date(profile.created_at), "yyyy", { locale: language === 'es' ? es : enUS })
     : new Date().getFullYear().toString();
