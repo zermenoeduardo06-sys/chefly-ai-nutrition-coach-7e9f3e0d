@@ -3,13 +3,11 @@ import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useTrialGuard } from "@/hooks/useTrialGuard";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { getInitials } from "@/lib/avatarColors";
 import ModularAvatar from "@/components/avatar/ModularAvatar";
 import { AvatarConfig, defaultAvatarConfig } from "@/components/avatar/AvatarParts";
 import { ProfileMenuLinks } from "@/components/profile/ProfileMenuLinks";
-import { Loader2, Settings, UserPlus, Flame, Zap, Pencil } from "lucide-react";
+import { Loader2, Settings, UserPlus, Pencil, Crown } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { es, enUS } from "date-fns/locale";
@@ -23,7 +21,6 @@ interface UserStats {
 
 interface ProfileData {
   display_name: string | null;
-  avatar_url: string | null;
   avatar_config: AvatarConfig | null;
   created_at: string | null;
 }
@@ -48,7 +45,7 @@ const Profile = () => {
       const [profileRes, statsRes, friendsRes] = await Promise.all([
         supabase
           .from("profiles")
-          .select("display_name, avatar_url, avatar_config, created_at")
+          .select("display_name, avatar_config, created_at")
           .eq("id", user.id)
           .maybeSingle(),
         supabase
@@ -79,7 +76,6 @@ const Profile = () => {
         }
         setProfile({
           display_name: data.display_name,
-          avatar_url: data.avatar_url,
           avatar_config: avatarConfig,
           created_at: data.created_at,
         });
@@ -107,7 +103,6 @@ const Profile = () => {
   }
 
   const displayName = profile?.display_name || "User";
-  const hasPhoto = !!profile?.avatar_url;
   const avatarConfig = profile?.avatar_config || defaultAvatarConfig;
   const joinDate = profile?.created_at 
     ? format(new Date(profile.created_at), "MMMM yyyy", { locale: language === 'es' ? es : enUS })
@@ -130,20 +125,11 @@ const Profile = () => {
         animate={{ opacity: 1, y: 0 }}
         className="flex flex-col items-center px-6 pb-6"
       >
-        {/* Large Avatar */}
+        {/* Large Avatar - Only Modular Avatar */}
         <div className="relative mb-4">
-          {hasPhoto ? (
-            <Avatar className="h-28 w-28 border-4 border-primary/20 shadow-lg">
-              <AvatarImage src={profile?.avatar_url || undefined} alt={displayName} />
-              <AvatarFallback className="bg-primary text-primary-foreground text-3xl font-bold">
-                {getInitials(displayName)}
-              </AvatarFallback>
-            </Avatar>
-          ) : (
-            <div className="bg-card rounded-full p-1 border-4 border-primary/20 shadow-lg">
-              <ModularAvatar config={avatarConfig} size={104} />
-            </div>
-          )}
+          <div className="bg-card rounded-full p-1 border-4 border-primary/20 shadow-lg">
+            <ModularAvatar config={avatarConfig} size={104} />
+          </div>
           <Link 
             to="/dashboard/settings/avatar" 
             className="absolute -bottom-1 -right-1 bg-primary rounded-full p-2 shadow-md hover:bg-primary/90 transition-colors"
@@ -160,16 +146,12 @@ const Profile = () => {
           {t("profile.joinedIn")} {joinDate}
         </p>
 
-        {/* Stats Pills - Duolingo Style */}
-        <div className="flex items-center gap-2 mb-5">
-          <div className="flex items-center gap-1.5 bg-primary/10 px-3 py-1.5 rounded-full">
-            <Flame className="h-4 w-4 text-primary" />
-            <span className="text-sm font-bold text-primary">{stats?.current_streak || 0}</span>
-          </div>
-          <div className="flex items-center gap-1.5 bg-yellow-500/10 px-3 py-1.5 rounded-full">
-            <Zap className="h-4 w-4 text-yellow-500" />
-            <span className="text-sm font-bold text-yellow-600">{stats?.total_points || 0} XP</span>
-          </div>
+        {/* Level Badge - Duolingo Style */}
+        <div className="flex items-center gap-2 bg-amber-500/10 px-4 py-2 rounded-full mb-5">
+          <Crown className="h-5 w-5 text-amber-500" />
+          <span className="text-base font-bold text-amber-600">
+            {t("dashboard.level")} {stats?.level || 1}
+          </span>
         </div>
 
         {/* Action Buttons */}
@@ -195,43 +177,11 @@ const Profile = () => {
         </div>
       </motion.div>
 
-      {/* Stats Section */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="px-4 mb-4"
-      >
-        <div className="bg-card rounded-2xl border-2 border-border p-4">
-          <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
-            {t("profile.statistics")}
-          </h3>
-          <div className="grid grid-cols-4 gap-2 text-center">
-            <div>
-              <p className="text-lg font-bold text-foreground">{stats?.current_streak || 0}</p>
-              <p className="text-[10px] text-muted-foreground uppercase">{t("dashboard.streak")}</p>
-            </div>
-            <div>
-              <p className="text-lg font-bold text-foreground">{stats?.total_points || 0}</p>
-              <p className="text-[10px] text-muted-foreground uppercase">XP</p>
-            </div>
-            <div>
-              <p className="text-lg font-bold text-foreground">{stats?.level || 1}</p>
-              <p className="text-[10px] text-muted-foreground uppercase">{t("dashboard.level")}</p>
-            </div>
-            <div>
-              <p className="text-lg font-bold text-foreground">{friendsCount}</p>
-              <p className="text-[10px] text-muted-foreground uppercase">{t("profile.friends")}</p>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-
       {/* Menu Links */}
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
+        transition={{ delay: 0.1 }}
         className="px-4"
       >
         <ProfileMenuLinks />
