@@ -227,14 +227,14 @@ export const DailyChallenges = () => {
 
   return (
     <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
+      <CardHeader className="p-4 md:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
               <Target className="h-5 w-5" />
               Desafíos Diarios
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-sm">
               Completa desafíos para ganar puntos extra
             </CardDescription>
           </div>
@@ -243,6 +243,7 @@ export const DailyChallenges = () => {
             size="sm"
             onClick={generateChallenges}
             disabled={generating || challenges.length > 0}
+            className="w-full sm:w-auto touch-target"
           >
             {generating ? (
               <>
@@ -258,14 +259,14 @@ export const DailyChallenges = () => {
           </Button>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-3 md:p-6 pt-0">
         {challenges.length === 0 ? (
           <div className="text-center py-8">
-            <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground mb-4">
+            <Target className="h-10 w-10 md:h-12 md:w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-sm text-muted-foreground mb-4">
               No hay desafíos activos
             </p>
-            <Button onClick={generateChallenges} disabled={generating}>
+            <Button onClick={generateChallenges} disabled={generating} className="touch-target">
               {generating ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -277,7 +278,7 @@ export const DailyChallenges = () => {
             </Button>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3 md:space-y-4">
             {challenges.map((challenge) => {
               const IconComponent = challengeIcons[challenge.challenge_type] || Zap;
               const challengeProgress = progress.get(challenge.id);
@@ -290,32 +291,32 @@ export const DailyChallenges = () => {
                   key={challenge.id} 
                   className={`border-border/50 ${isCompleted ? 'bg-green-500/5 border-green-500/30' : ''}`}
                 >
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-4">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                  <CardContent className="p-3 md:p-4">
+                    <div className="flex items-start gap-3">
+                      <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
                         isCompleted 
                           ? 'bg-green-500/20' 
                           : 'bg-gradient-to-br from-primary/20 to-secondary/20'
                       }`}>
                         {isCompleted ? (
-                          <Trophy className="w-6 h-6 text-green-600" />
+                          <Trophy className="w-5 h-5 md:w-6 md:h-6 text-green-600" />
                         ) : (
-                          <IconComponent className="w-6 h-6 text-primary" />
+                          <IconComponent className="w-5 h-5 md:w-6 md:h-6 text-primary" />
                         )}
                       </div>
                       
-                      <div className="flex-1 space-y-2">
+                      <div className="flex-1 min-w-0 space-y-2">
                         <div className="flex items-start justify-between gap-2">
-                          <div>
-                            <h4 className={`font-semibold ${isCompleted ? 'line-through opacity-60' : ''}`}>
+                          <div className="min-w-0">
+                            <h4 className={`font-semibold text-sm md:text-base ${isCompleted ? 'line-through opacity-60' : ''}`}>
                               {challenge.title}
                             </h4>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-xs md:text-sm text-muted-foreground line-clamp-2">
                               {challenge.description}
                             </p>
                           </div>
-                          <Badge variant={isCompleted ? "default" : "secondary"} className="shrink-0">
-                            +{challenge.points_reward} pts
+                          <Badge variant={isCompleted ? "default" : "secondary"} className="shrink-0 text-xs">
+                            +{challenge.points_reward}
                           </Badge>
                         </div>
 
@@ -326,17 +327,18 @@ export const DailyChallenges = () => {
                                 <span>Progreso</span>
                                 <span>{currentProgress}/{challenge.target_value}</span>
                               </div>
-                              <Progress value={progressPercent} className="h-2" />
+                              <Progress value={progressPercent} className="h-1.5 md:h-2" />
                             </div>
 
-                            <div className="flex items-center justify-between">
-                              <p className="text-xs text-primary">
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="text-[10px] md:text-xs text-primary truncate">
                                 💎 {challenge.bonus_description}
                               </p>
                               <Button 
                                 size="sm" 
                                 onClick={() => completeChallenge(challenge)}
                                 disabled={isCompleted}
+                                className="text-xs h-8 px-3 touch-target"
                               >
                                 Completar
                               </Button>
@@ -345,8 +347,8 @@ export const DailyChallenges = () => {
                         )}
 
                         {isCompleted && (
-                          <div className="flex items-center gap-2 text-sm text-green-600">
-                            <Trophy className="h-4 w-4" />
+                          <div className="flex items-center gap-2 text-xs md:text-sm text-green-600">
+                            <Trophy className="h-3.5 w-3.5 md:h-4 md:w-4" />
                             <span>¡Desafío completado!</span>
                           </div>
                         )}
@@ -357,7 +359,7 @@ export const DailyChallenges = () => {
               );
             })}
 
-            <div className="text-xs text-muted-foreground text-center pt-2">
+            <div className="text-[10px] md:text-xs text-muted-foreground text-center pt-2">
               Los desafíos se renuevan cada día a las 12:00 AM
             </div>
           </div>

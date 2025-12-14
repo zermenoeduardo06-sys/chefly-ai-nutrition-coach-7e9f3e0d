@@ -244,18 +244,18 @@ export default function ShoppingList() {
 
   return (
     <div className="p-4 md:p-8 max-w-4xl mx-auto">
-      <div className="flex items-center gap-4 mb-6">
+      <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
         <Button 
           variant="ghost" 
           size="icon"
           onClick={() => navigate("/dashboard")}
-          className="shrink-0"
+          className="shrink-0 touch-target hidden md:flex"
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <div className="flex-1">
-          <h1 className="text-2xl md:text-3xl font-bold">{t("shopping.title")}</h1>
-          <p className="text-muted-foreground text-sm md:text-base">
+        <div className="flex-1 min-w-0">
+          <h1 className="text-xl md:text-3xl font-bold truncate">{t("shopping.title")}</h1>
+          <p className="text-muted-foreground text-xs md:text-base truncate">
             {t("shopping.subtitle")}
           </p>
         </div>
@@ -263,7 +263,7 @@ export default function ShoppingList() {
           variant="outline" 
           size="icon"
           onClick={loadShoppingList}
-          className="shrink-0"
+          className="shrink-0 touch-target"
         >
           <RefreshCw className="h-4 w-4" />
         </Button>
