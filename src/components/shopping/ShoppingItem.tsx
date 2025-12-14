@@ -23,32 +23,30 @@ export function ShoppingItem({ ingredient, isPurchased, onToggle }: ShoppingItem
 
   return (
     <div className={cn(
-      "flex items-center justify-between py-2 px-3 rounded-md transition-colors",
-      isPurchased ? "bg-muted/50" : "hover:bg-accent/30"
+      "flex items-center gap-2 py-2 px-2 md:px-3 rounded-md transition-colors min-w-0",
+      isPurchased ? "bg-muted/50" : "hover:bg-accent/30 active:bg-accent/50"
     )}>
-      <div className="flex items-center gap-3 flex-1 min-w-0">
-        <Checkbox
-          id={`item-${ingredient}`}
-          checked={isPurchased}
-          onCheckedChange={onToggle}
-          className="shrink-0"
-        />
-        <label 
-          htmlFor={`item-${ingredient}`}
-          className={cn(
-            "text-sm cursor-pointer truncate flex-1",
-            isPurchased && "line-through text-muted-foreground"
-          )}
-        >
-          {ingredient}
-        </label>
-      </div>
+      <Checkbox
+        id={`item-${ingredient}`}
+        checked={isPurchased}
+        onCheckedChange={onToggle}
+        className="shrink-0"
+      />
+      <label 
+        htmlFor={`item-${ingredient}`}
+        className={cn(
+          "text-xs md:text-sm cursor-pointer flex-1 min-w-0 break-words",
+          isPurchased && "line-through text-muted-foreground"
+        )}
+      >
+        {ingredient}
+      </label>
       
       {!isPurchased && (
         <Button
           variant="ghost"
-          size="sm"
-          className="shrink-0 h-7 px-2 text-xs text-muted-foreground hover:text-primary"
+          size="icon"
+          className="shrink-0 h-8 w-8 text-muted-foreground hover:text-primary"
           asChild
         >
           <a 
@@ -56,7 +54,7 @@ export function ShoppingItem({ ingredient, isPurchased, onToggle }: ShoppingItem
             target="_blank" 
             rel="noopener noreferrer"
           >
-            <ExternalLink className="h-3 w-3" />
+            <ExternalLink className="h-3.5 w-3.5" />
           </a>
         </Button>
       )}

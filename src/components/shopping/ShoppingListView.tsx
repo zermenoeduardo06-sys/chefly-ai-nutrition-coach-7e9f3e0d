@@ -85,44 +85,48 @@ export function ShoppingListView({
   });
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 overflow-x-hidden">
       {/* Header stats */}
       <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <Calendar className="h-5 w-5 text-muted-foreground" />
-              <span className="text-sm">
+        <CardContent className="p-3 md:p-4">
+          <div className="flex flex-col gap-3">
+            {/* Date row */}
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
+              <span className="text-xs md:text-sm truncate">
                 {t("shopping.weekOf")} {formattedDate}
               </span>
             </div>
             
-            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-              <ExportPDFButton items={items} weekDate={formattedDate} />
-              
-              <Badge variant="secondary" className="gap-1">
+            {/* Actions row */}
+            <div className="flex items-center justify-between gap-2">
+              <Badge variant="secondary" className="gap-1 shrink-0 text-xs">
                 <CheckCircle2 className="h-3 w-3" />
-                {purchasedCount}/{totalCount} {t("shopping.purchased")}
+                {purchasedCount}/{totalCount}
               </Badge>
               
-              {purchasedCount > 0 && (
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={onClearPurchased}
-                  className="text-muted-foreground hover:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4 mr-1" />
-                  {t("shopping.clearPurchased")}
-                </Button>
-              )}
+              <div className="flex items-center gap-1">
+                <ExportPDFButton items={items} weekDate={formattedDate} />
+                
+                {purchasedCount > 0 && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={onClearPurchased}
+                    className="text-muted-foreground hover:text-destructive h-8 px-2"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span className="hidden sm:inline ml-1">{t("shopping.clearPurchased")}</span>
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Categories */}
-      <div className="grid gap-4">
+      <div className="grid gap-3 md:gap-4">
         {sortedCategories.map(category => (
           <ShoppingCategory
             key={category}
