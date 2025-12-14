@@ -4,8 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import { es, enUS } from "date-fns/locale";
 import { Loader2 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Measurement {
   measurement_date: string;
@@ -26,6 +27,8 @@ interface BodyMeasurementChartsProps {
 export const BodyMeasurementCharts = ({ userId, refreshTrigger }: BodyMeasurementChartsProps) => {
   const [measurements, setMeasurements] = useState<Measurement[]>([]);
   const [loading, setLoading] = useState(true);
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'es' ? es : enUS;
 
   useEffect(() => {
     loadMeasurements();
@@ -64,9 +67,9 @@ export const BodyMeasurementCharts = ({ userId, refreshTrigger }: BodyMeasuremen
     return (
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-8 text-center">
-          <p className="text-muted-foreground mb-2">No hay medidas registradas aún</p>
+          <p className="text-muted-foreground mb-2">{t('progress.noMeasurements')}</p>
           <p className="text-sm text-muted-foreground">
-            Comienza a registrar tus medidas para ver tu progreso
+            {t('progress.startRecording')}
           </p>
         </CardContent>
       </Card>
@@ -74,18 +77,18 @@ export const BodyMeasurementCharts = ({ userId, refreshTrigger }: BodyMeasuremen
   }
 
   const weightData = measurements.filter(m => m.weight !== null).map(m => ({
-    date: format(new Date(m.measurement_date), "dd/MM", { locale: es }),
-    peso: m.weight,
+    date: format(new Date(m.measurement_date), "dd/MM", { locale: dateLocale }),
+    [t('progress.tabWeight')]: m.weight,
   }));
 
   const bodyMeasurementsData = measurements.map(m => ({
-    date: format(new Date(m.measurement_date), "dd/MM", { locale: es }),
-    cuello: m.neck,
-    pecho: m.chest,
-    cintura: m.waist,
-    cadera: m.hips,
-    brazos: m.arms,
-    muslos: m.thighs,
+    date: format(new Date(m.measurement_date), "dd/MM", { locale: dateLocale }),
+    [t('bodyMeasurements.neck')]: m.neck,
+    [t('bodyMeasurements.chest')]: m.chest,
+    [t('bodyMeasurements.waist')]: m.waist,
+    [t('bodyMeasurements.hips')]: m.hips,
+    [t('bodyMeasurements.arms')]: m.arms,
+    [t('bodyMeasurements.thighs')]: m.thighs,
   }));
 
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -113,9 +116,9 @@ export const BodyMeasurementCharts = ({ userId, refreshTrigger }: BodyMeasuremen
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Progreso Corporal</CardTitle>
+        <CardTitle>{t('progress.bodyProgress')}</CardTitle>
         <CardDescription>
-          Seguimiento de tu peso y medidas corporales
+          {t('progress.bodyProgressDesc')}
           {weightChange && (
             <span className={`ml-2 font-semibold ${parseFloat(weightChange) >= 0 ? 'text-orange-500' : 'text-green-500'}`}>
               ({parseFloat(weightChange) >= 0 ? '+' : ''}{weightChange} kg)
@@ -126,8 +129,8 @@ export const BodyMeasurementCharts = ({ userId, refreshTrigger }: BodyMeasuremen
       <CardContent>
         <Tabs defaultValue="weight" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="weight">Peso</TabsTrigger>
-            <TabsTrigger value="measurements">Medidas</TabsTrigger>
+            <TabsTrigger value="weight">{t('progress.tabWeight')}</TabsTrigger>
+            <TabsTrigger value="measurements">{t('progress.tabMeasurements')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="weight" className="mt-6">
@@ -141,17 +144,17 @@ export const BodyMeasurementCharts = ({ userId, refreshTrigger }: BodyMeasuremen
                   <Legend />
                   <Line
                     type="monotone"
-                    dataKey="peso"
+                    dataKey={t('progress.tabWeight')}
                     stroke="hsl(var(--primary))"
                     strokeWidth={2}
                     dot={{ fill: "hsl(var(--primary))", r: 4 }}
-                    name="Peso (kg)"
+                    name={`${t('progress.tabWeight')} (kg)`}
                   />
                 </LineChart>
               </ResponsiveContainer>
             ) : (
               <div className="text-center py-8 text-muted-foreground">
-                No hay datos de peso registrados
+                {t('progress.noWeightData')}
               </div>
             )}
           </TabsContent>
@@ -164,12 +167,12 @@ export const BodyMeasurementCharts = ({ userId, refreshTrigger }: BodyMeasuremen
                 <YAxis className="text-xs" />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
-                <Line type="monotone" dataKey="cuello" stroke="#8884d8" strokeWidth={2} name="Cuello (cm)" />
-                <Line type="monotone" dataKey="pecho" stroke="#82ca9d" strokeWidth={2} name="Pecho (cm)" />
-                <Line type="monotone" dataKey="cintura" stroke="#ffc658" strokeWidth={2} name="Cintura (cm)" />
-                <Line type="monotone" dataKey="cadera" stroke="#ff8042" strokeWidth={2} name="Cadera (cm)" />
-                <Line type="monotone" dataKey="brazos" stroke="#a4de6c" strokeWidth={2} name="Brazos (cm)" />
-                <Line type="monotone" dataKey="muslos" stroke="#d0ed57" strokeWidth={2} name="Muslos (cm)" />
+                <Line type="monotone" dataKey={t('bodyMeasurements.neck')} stroke="#8884d8" strokeWidth={2} />
+                <Line type="monotone" dataKey={t('bodyMeasurements.chest')} stroke="#82ca9d" strokeWidth={2} />
+                <Line type="monotone" dataKey={t('bodyMeasurements.waist')} stroke="#ffc658" strokeWidth={2} />
+                <Line type="monotone" dataKey={t('bodyMeasurements.hips')} stroke="#ff8042" strokeWidth={2} />
+                <Line type="monotone" dataKey={t('bodyMeasurements.arms')} stroke="#a4de6c" strokeWidth={2} />
+                <Line type="monotone" dataKey={t('bodyMeasurements.thighs')} stroke="#d0ed57" strokeWidth={2} />
               </LineChart>
             </ResponsiveContainer>
           </TabsContent>

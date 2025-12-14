@@ -474,6 +474,36 @@ export const translations = {
     "achievements.subtitle": "Desbloquea medallas completando retos",
     "achievements.unlocked": "Desbloqueado",
     "achievements.points": "pts",
+    "achievements.loading": "Cargando logros...",
+    
+    // Progress Page
+    "progress.title": "Tu Progreso",
+    "progress.tabNutrition": "Nutrición",
+    "progress.tabBody": "Medidas Corporales",
+    "progress.recordMeasurements": "Registrar Medidas",
+    "progress.recordMeasurementsDesc": "Registra tu peso y medidas corporales para hacer seguimiento de tu progreso",
+    "progress.noMeasurements": "No hay medidas registradas aún",
+    "progress.startRecording": "Comienza a registrar tus medidas para ver tu progreso",
+    "progress.bodyProgress": "Progreso Corporal",
+    "progress.bodyProgressDesc": "Seguimiento de tu peso y medidas corporales",
+    "progress.tabWeight": "Peso",
+    "progress.tabMeasurements": "Medidas",
+    "progress.noWeightData": "No hay datos de peso registrados",
+    
+    // Body Measurements Form
+    "bodyMeasurements.date": "Fecha",
+    "bodyMeasurements.weight": "Peso (kg)",
+    "bodyMeasurements.neck": "Cuello (cm)",
+    "bodyMeasurements.chest": "Pecho (cm)",
+    "bodyMeasurements.waist": "Cintura (cm)",
+    "bodyMeasurements.hips": "Cadera (cm)",
+    "bodyMeasurements.arms": "Brazos (cm)",
+    "bodyMeasurements.thighs": "Muslos (cm)",
+    "bodyMeasurements.notes": "Notas (opcional)",
+    "bodyMeasurements.notesPlaceholder": "Ej: Me siento con más energía hoy",
+    "bodyMeasurements.save": "Guardar Medidas",
+    "bodyMeasurements.saveSuccess": "Medidas guardadas correctamente",
+    "bodyMeasurements.saveError": "Error al guardar las medidas",
     
     // Nutrition Charts
     "nutritionCharts.title": "Progreso Nutricional",
@@ -1388,6 +1418,36 @@ export const translations = {
     "achievements.subtitle": "Unlock badges by completing challenges",
     "achievements.unlocked": "Unlocked",
     "achievements.points": "pts",
+    "achievements.loading": "Loading achievements...",
+    
+    // Progress Page
+    "progress.title": "Your Progress",
+    "progress.tabNutrition": "Nutrition",
+    "progress.tabBody": "Body Measurements",
+    "progress.recordMeasurements": "Record Measurements",
+    "progress.recordMeasurementsDesc": "Record your weight and body measurements to track your progress",
+    "progress.noMeasurements": "No measurements recorded yet",
+    "progress.startRecording": "Start recording your measurements to see your progress",
+    "progress.bodyProgress": "Body Progress",
+    "progress.bodyProgressDesc": "Track your weight and body measurements",
+    "progress.tabWeight": "Weight",
+    "progress.tabMeasurements": "Measurements",
+    "progress.noWeightData": "No weight data recorded",
+    
+    // Body Measurements Form
+    "bodyMeasurements.date": "Date",
+    "bodyMeasurements.weight": "Weight (kg)",
+    "bodyMeasurements.neck": "Neck (cm)",
+    "bodyMeasurements.chest": "Chest (cm)",
+    "bodyMeasurements.waist": "Waist (cm)",
+    "bodyMeasurements.hips": "Hips (cm)",
+    "bodyMeasurements.arms": "Arms (cm)",
+    "bodyMeasurements.thighs": "Thighs (cm)",
+    "bodyMeasurements.notes": "Notes (optional)",
+    "bodyMeasurements.notesPlaceholder": "E.g: I feel more energetic today",
+    "bodyMeasurements.save": "Save Measurements",
+    "bodyMeasurements.saveSuccess": "Measurements saved successfully",
+    "bodyMeasurements.saveError": "Error saving measurements",
     
     // Nutrition Charts
     "nutritionCharts.title": "Nutritional Progress",
