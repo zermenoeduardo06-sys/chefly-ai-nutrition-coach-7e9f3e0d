@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Json } from "@/integrations/supabase/types";
 
 export interface Friend {
   id: string;
@@ -9,6 +10,7 @@ export interface Friend {
   email: string;
   displayName: string | null;
   avatarUrl: string | null;
+  avatarConfig: Json | null;
   status: "pending" | "accepted" | "rejected" | "blocked";
   isRequester: boolean;
 }
@@ -49,7 +51,7 @@ export function useFriendships() {
       // Fetch profiles
       const { data: profiles } = await supabase
         .from("profiles")
-        .select("id, email, display_name, avatar_url")
+        .select("id, email, display_name, avatar_url, avatar_config")
         .in("id", Array.from(userIds));
 
       const profileMap = new Map(profiles?.map((p) => [p.id, p]) || []);
@@ -68,6 +70,7 @@ export function useFriendships() {
           email: profile?.email || "",
           displayName: profile?.display_name,
           avatarUrl: profile?.avatar_url,
+          avatarConfig: profile?.avatar_config || null,
           status: f.status as Friend["status"],
           isRequester,
         };
