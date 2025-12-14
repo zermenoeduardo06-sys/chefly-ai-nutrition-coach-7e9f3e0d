@@ -112,36 +112,29 @@ const Subscription = () => {
         {/* Sparkle decorations */}
         <div className="absolute inset-0 pointer-events-none">
           <motion.div 
-            className="absolute top-8 left-8"
+            className="absolute top-12 left-8"
             animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
             <Sparkles className="h-5 w-5 text-white/60" />
           </motion.div>
           <motion.div 
-            className="absolute top-12 right-12"
+            className="absolute top-16 right-12"
             animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.8, 0.3] }}
             transition={{ duration: 2.5, repeat: Infinity, delay: 0.5 }}
           >
             <Star className="h-4 w-4 text-white/50" />
           </motion.div>
           <motion.div 
-            className="absolute bottom-16 left-1/4"
+            className="absolute bottom-20 left-1/4"
             animate={{ scale: [1, 1.2, 1], opacity: [0.4, 0.9, 0.4] }}
             transition={{ duration: 1.8, repeat: Infinity, delay: 1 }}
           >
             <Sparkles className="h-3 w-3 text-white/40" />
           </motion.div>
-          <motion.div 
-            className="absolute top-20 right-1/3"
-            animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0.7, 0.3] }}
-            transition={{ duration: 2.2, repeat: Infinity, delay: 0.3 }}
-          >
-            <Star className="h-3 w-3 text-white/30" />
-          </motion.div>
         </div>
 
-        <div className="relative px-4 pt-4 pb-8">
+        <div className="relative px-4 pt-6 pb-10">
           {/* Back button */}
           <Button 
             variant="ghost" 
@@ -171,7 +164,7 @@ const Subscription = () => {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2, type: "spring" }}
-            className="flex justify-center mt-4"
+            className="flex justify-center mt-6"
           >
             <div className="relative">
               <div className="absolute -inset-4 bg-white/20 rounded-3xl blur-xl" />
@@ -179,7 +172,7 @@ const Subscription = () => {
                 <img 
                   src={mascotFlexing} 
                   alt="Chefly mascot" 
-                  className="h-28 w-28 object-contain"
+                  className="h-24 w-24 object-contain"
                 />
               </div>
             </div>
@@ -188,7 +181,7 @@ const Subscription = () => {
       </div>
 
       {/* Plans */}
-      <div className="px-4 -mt-4 space-y-4 max-w-lg mx-auto">
+      <div className="px-4 pt-6 space-y-4 max-w-lg mx-auto">
         {plans.map((plan, index) => (
           <motion.div
             key={plan.id}
@@ -226,17 +219,17 @@ const Subscription = () => {
                     <p className="text-muted-foreground text-sm mb-4">{plan.subtitle}</p>
 
                     {/* Features */}
-                    <ul className="space-y-2.5">
+                    <ul className="space-y-2">
                       {plan.features.map((feature, i) => (
                         <motion.li 
                           key={i}
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.4 + i * 0.05 }}
-                          className="flex items-center gap-2.5"
+                          className="flex items-center gap-2"
                         >
                           <div className={`p-0.5 rounded-full bg-gradient-to-r ${plan.gradient}`}>
-                            <Check className="h-3.5 w-3.5 text-white" />
+                            <Check className="h-3 w-3 text-white" />
                           </div>
                           <span className="text-sm text-foreground">{feature}</span>
                         </motion.li>
@@ -253,14 +246,14 @@ const Subscription = () => {
                     <img 
                       src={plan.mascot} 
                       alt={plan.name} 
-                      className="h-24 w-24 object-contain"
+                      className="h-20 w-20 object-contain"
                     />
                   </motion.div>
                 </div>
 
                 {/* CTA Button */}
                 <motion.div 
-                  className="mt-5"
+                  className="mt-4"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -269,16 +262,16 @@ const Subscription = () => {
                       onClick={handleManageSubscription}
                       disabled={portalLoading}
                       variant="duolingoOutline"
-                      className="w-full h-12 text-base font-bold"
+                      className="w-full h-11 text-sm font-bold"
                     >
                       {portalLoading ? (
                         <>
-                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           {language === "es" ? "Abriendo..." : "Opening..."}
                         </>
                       ) : (
                         <>
-                          <ExternalLink className="mr-2 h-5 w-5" />
+                          <ExternalLink className="mr-2 h-4 w-4" />
                           {language === "es" ? "GESTIONAR PLAN" : "MANAGE PLAN"}
                         </>
                       )}
@@ -288,16 +281,16 @@ const Subscription = () => {
                       onClick={handleManageSubscription}
                       disabled={portalLoading}
                       variant="duolingoOutline"
-                      className="w-full h-12 text-base font-bold"
+                      className="w-full h-11 text-sm font-bold"
                     >
                       {portalLoading ? (
                         <>
-                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           {language === "es" ? "Abriendo..." : "Opening..."}
                         </>
                       ) : (
                         <>
-                          <Zap className="mr-2 h-5 w-5" />
+                          <Zap className="mr-2 h-4 w-4" />
                           {language === "es" ? "CAMBIAR PLAN" : "SWITCH PLAN"}
                         </>
                       )}
@@ -306,7 +299,7 @@ const Subscription = () => {
                     <Button
                       onClick={() => navigate("/pricing")}
                       variant={plan.recommended ? "duolingo" : "duolingoOutline"}
-                      className="w-full h-12 text-base font-bold"
+                      className="w-full h-11 text-sm font-bold"
                     >
                       {language === "es" ? `OBTENER POR ${plan.price}` : `GET FOR ${plan.price}`}
                     </Button>
