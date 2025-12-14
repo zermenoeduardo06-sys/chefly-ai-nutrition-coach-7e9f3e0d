@@ -171,6 +171,11 @@ All colors MUST be HSL.
     padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
   }
 
+  /* Safe area bottom for inputs */
+  .pb-safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
   /* Hide on mobile, show on desktop */
   .desktop-only {
     @apply hidden md:block;
@@ -190,5 +195,63 @@ All colors MUST be HSL.
   .active-scale:active {
     transform: scale(0.97);
     transition: transform 0.1s ease-out;
+  }
+
+  /* Reduced motion for better mobile performance */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* Mobile-optimized animations */
+  @media (max-width: 768px) {
+    .animate-fade-in {
+      animation-duration: 0.15s;
+    }
+    
+    .animate-scale-in {
+      animation-duration: 0.1s;
+    }
+  }
+
+  /* Keyboard-aware layout for mobile */
+  .keyboard-aware {
+    @apply transition-all duration-200;
+  }
+
+  /* Prevent text selection on interactive elements */
+  .no-select {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  /* Ripple effect base for touch feedback */
+  .touch-ripple {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .touch-ripple::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle, hsl(var(--primary) / 0.15) 10%, transparent 10%);
+    background-repeat: no-repeat;
+    background-position: center;
+    transform: scale(10);
+    opacity: 0;
+    transition: transform 0.5s, opacity 0.3s;
+  }
+
+  .touch-ripple:active::after {
+    transform: scale(0);
+    opacity: 1;
+    transition: 0s;
   }
 }

@@ -417,6 +417,8 @@ export const translations = {
     "chat.welcome": "¡Hola! Soy tu coach nutricional con IA. ¿En qué puedo ayudarte hoy?",
     "chat.errorSending": "Error al enviar mensaje",
     "chat.errorSendingDesc": "Por favor, inténtalo de nuevo",
+    "chat.subtitle": "Tu coach nutricional personal",
+    "chat.welcomeMessage": "Pregúntame cualquier cosa sobre tu plan de comidas, nutrición o cambios en tu dieta",
     
     // Privacy & Terms
     "privacy.title": "Política de Privacidad",
@@ -1361,6 +1363,8 @@ export const translations = {
     "chat.welcome": "Hello! I'm your AI nutrition coach. How can I help you today?",
     "chat.errorSending": "Error sending message",
     "chat.errorSendingDesc": "Please try again",
+    "chat.subtitle": "Your personal nutrition coach",
+    "chat.welcomeMessage": "Ask me anything about your meal plan, nutrition or diet changes",
     
     // Privacy & Terms
     "privacy.title": "Privacy Policy",
