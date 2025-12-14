@@ -270,6 +270,8 @@ export const translations = {
     "profile.username": "Usuario",
     "profile.email": "Correo",
     "profile.deleteAccount": "Eliminar Cuenta",
+    "profile.statistics": "Estadísticas",
+    "profile.friends": "Amigos",
     
     // Settings
     "settings.title": "Configuración",
@@ -1292,6 +1294,8 @@ export const translations = {
     "profile.username": "Username",
     "profile.email": "Email",
     "profile.deleteAccount": "Delete Account",
+    "profile.statistics": "Statistics",
+    "profile.friends": "Friends",
     
     // Settings
     "settings.title": "Settings",

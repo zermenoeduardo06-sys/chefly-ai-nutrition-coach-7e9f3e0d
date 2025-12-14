@@ -9,7 +9,7 @@ import { getInitials } from "@/lib/avatarColors";
 import ModularAvatar from "@/components/avatar/ModularAvatar";
 import { AvatarConfig, defaultAvatarConfig } from "@/components/avatar/AvatarParts";
 import { ProfileMenuLinks } from "@/components/profile/ProfileMenuLinks";
-import { Loader2, Settings, UserPlus, Flame, Star, Trophy, Zap, Calendar, Sparkles, Pencil } from "lucide-react";
+import { Loader2, Settings, UserPlus, Flame, Zap, Pencil } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { es, enUS } from "date-fns/locale";
@@ -109,256 +109,133 @@ const Profile = () => {
   const displayName = profile?.display_name || "User";
   const hasPhoto = !!profile?.avatar_url;
   const avatarConfig = profile?.avatar_config || defaultAvatarConfig;
-  const joinYear = profile?.created_at 
-    ? format(new Date(profile.created_at), "yyyy", { locale: language === 'es' ? es : enUS })
-    : new Date().getFullYear().toString();
+  const joinDate = profile?.created_at 
+    ? format(new Date(profile.created_at), "MMMM yyyy", { locale: language === 'es' ? es : enUS })
+    : "";
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      {/* Header Section - Duolingo Style */}
+      {/* Header with Settings */}
+      <div className="flex items-center justify-end px-4 py-3 pt-safe-top">
+        <Link to="/dashboard/settings">
+          <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full">
+            <Settings className="h-6 w-6 text-muted-foreground" />
+          </Button>
+        </Link>
+      </div>
+
+      {/* Avatar Hero Section */}
       <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="bg-gradient-to-b from-muted/50 to-background"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col items-center px-6 pb-6"
       >
-        {/* Top Bar with Name and Settings */}
-        <div className="flex items-center justify-between px-4 py-4 pt-safe-top">
-          <h1 className="text-2xl font-bold text-foreground">{displayName}</h1>
-          <Link to="/dashboard/settings">
-            <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full hover:bg-muted">
-              <Settings className="h-6 w-6 text-muted-foreground" />
-            </Button>
+        {/* Large Avatar */}
+        <div className="relative mb-4">
+          {hasPhoto ? (
+            <Avatar className="h-28 w-28 border-4 border-primary/20 shadow-lg">
+              <AvatarImage src={profile?.avatar_url || undefined} alt={displayName} />
+              <AvatarFallback className="bg-primary text-primary-foreground text-3xl font-bold">
+                {getInitials(displayName)}
+              </AvatarFallback>
+            </Avatar>
+          ) : (
+            <div className="bg-card rounded-full p-1 border-4 border-primary/20 shadow-lg">
+              <ModularAvatar config={avatarConfig} size={104} />
+            </div>
+          )}
+          <Link 
+            to="/dashboard/settings/avatar" 
+            className="absolute -bottom-1 -right-1 bg-primary rounded-full p-2 shadow-md hover:bg-primary/90 transition-colors"
+          >
+            <Pencil className="h-4 w-4 text-primary-foreground" />
           </Link>
         </div>
 
-        {/* Large Avatar - Duolingo Style */}
-        <div className="flex flex-col items-center pb-4">
-          <motion.div 
-            className="relative"
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
-          >
-            {/* Avatar Glow Effect */}
-            <div className="absolute -inset-4 bg-gradient-radial from-primary/20 via-secondary/10 to-transparent rounded-full blur-2xl" />
-            
-            {hasPhoto ? (
-              <div className="relative">
-                <Avatar className="h-36 w-36 border-4 border-card shadow-xl">
-                  <AvatarImage src={profile?.avatar_url || undefined} alt={displayName} />
-                  <AvatarFallback className="bg-primary text-white text-4xl font-bold">
-                    {getInitials(displayName)}
-                  </AvatarFallback>
-                </Avatar>
-                <Link 
-                  to="/dashboard/settings/avatar" 
-                  className="absolute -bottom-1 -right-1 bg-card rounded-full p-2 border-2 border-border shadow-md hover:bg-muted transition-colors"
-                >
-                  <Pencil className="h-4 w-4 text-muted-foreground" />
-                </Link>
-              </div>
-            ) : (
-              <div className="relative">
-                <div className="bg-card rounded-full p-1 border-2 border-border shadow-xl">
-                  <ModularAvatar config={avatarConfig} size={140} />
-                </div>
-                <Link 
-                  to="/dashboard/settings/avatar" 
-                  className="absolute -bottom-1 -right-1 bg-card rounded-full p-2 border-2 border-border shadow-md hover:bg-muted transition-colors"
-                >
-                  <Pencil className="h-4 w-4 text-muted-foreground" />
-                </Link>
-              </div>
-            )}
-          </motion.div>
+        {/* Name */}
+        <h1 className="text-2xl font-bold text-foreground mb-1">{displayName}</h1>
+        
+        {/* Join Date */}
+        <p className="text-sm text-muted-foreground mb-4">
+          {t("profile.joinedIn")} {joinDate}
+        </p>
+
+        {/* Stats Pills - Duolingo Style */}
+        <div className="flex items-center gap-2 mb-5">
+          <div className="flex items-center gap-1.5 bg-primary/10 px-3 py-1.5 rounded-full">
+            <Flame className="h-4 w-4 text-primary" />
+            <span className="text-sm font-bold text-primary">{stats?.current_streak || 0}</span>
+          </div>
+          <div className="flex items-center gap-1.5 bg-yellow-500/10 px-3 py-1.5 rounded-full">
+            <Zap className="h-4 w-4 text-yellow-500" />
+            <span className="text-sm font-bold text-yellow-600">{stats?.total_points || 0} XP</span>
+          </div>
         </div>
 
-        {/* Username and Join Date */}
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="text-center pb-4"
-        >
-          <p className="text-muted-foreground text-sm font-medium uppercase tracking-wide">
-            @{displayName.toUpperCase()} · {t("profile.joinedIn").toUpperCase()} {joinYear}
-          </p>
-        </motion.div>
-
-        {/* Quick Stats Row - Duolingo Style */}
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
-          className="flex justify-center gap-6 pb-5 px-4"
-        >
-          <div className="text-center">
-            <p className="text-2xl font-bold text-foreground">{stats?.meals_completed || 0}</p>
-            <p className="text-xs text-muted-foreground">{t("profile.mealsCompleted")}</p>
-          </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold text-foreground">{friendsCount}</p>
-            <p className="text-xs text-muted-foreground">{t("profile.following")}</p>
-          </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold text-foreground">{friendsCount}</p>
-            <p className="text-xs text-muted-foreground">{t("profile.followers")}</p>
-          </div>
-        </motion.div>
-      </motion.div>
-
-      {/* Main Content */}
-      <div className="px-4 space-y-4">
-        {/* Add Friends Button - Duolingo Style */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="flex gap-3"
-        >
+        {/* Action Buttons */}
+        <div className="flex gap-3 w-full max-w-xs">
           <Link to="/dashboard/friends" className="flex-1">
             <Button 
               variant="outline" 
-              className="w-full h-14 rounded-2xl border-2 border-border text-base font-bold gap-2 uppercase tracking-wide hover:bg-muted/50"
+              className="w-full h-11 rounded-xl border-2 font-semibold gap-2"
             >
-              <UserPlus className="h-5 w-5" />
+              <UserPlus className="h-4 w-4" />
               {t("profile.addFriends")}
             </Button>
           </Link>
-        </motion.div>
+          <Link to="/dashboard/settings/profile">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="h-11 w-11 rounded-xl border-2 border-border"
+            >
+              <Settings className="h-5 w-5" />
+            </Button>
+          </Link>
+        </div>
+      </motion.div>
 
-        {/* Complete Profile Card - Show if no display name */}
-        {!profile?.display_name && (
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.35 }}
-            className="bg-card rounded-2xl border-2 border-primary/30 p-5 relative overflow-hidden"
-          >
-            <div className="absolute top-2 right-2 opacity-20">
-              <Sparkles className="h-16 w-16 text-primary" />
-            </div>
-            <h3 className="text-lg font-bold text-foreground mb-1">
-              {t("profile.completeProfile")}
-            </h3>
-            <p className="text-sm text-primary font-semibold uppercase mb-4">
-              {t("profile.stepsRemaining")}
-            </p>
-            <Link to="/dashboard/settings/profile">
-              <Button variant="duolingo" className="w-full h-12 font-bold uppercase text-base">
-                {t("profile.completeNow")}
-              </Button>
-            </Link>
-          </motion.div>
-        )}
-
-        {/* Stats Grid - Duolingo Style */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="grid grid-cols-2 gap-3"
-        >
-          {/* Streak */}
-          <div className="bg-card rounded-2xl p-4 border-2 border-border">
-            <div className="flex items-center gap-3">
-              <div className="bg-primary/10 p-3 rounded-xl">
-                <Flame className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-foreground">{stats?.current_streak || 0}</p>
-                <p className="text-xs text-muted-foreground">{t("dashboard.streak")}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* XP */}
-          <div className="bg-card rounded-2xl p-4 border-2 border-border">
-            <div className="flex items-center gap-3">
-              <div className="bg-yellow-500/10 p-3 rounded-xl">
-                <Star className="h-6 w-6 text-yellow-500" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-foreground">{stats?.total_points || 0}</p>
-                <p className="text-xs text-muted-foreground">XP</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Level */}
-          <div className="bg-card rounded-2xl p-4 border-2 border-border">
-            <div className="flex items-center gap-3">
-              <div className="bg-amber-600/10 p-3 rounded-xl">
-                <Trophy className="h-6 w-6 text-amber-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-foreground">{stats?.level || 1}</p>
-                <p className="text-xs text-muted-foreground">{t("dashboard.level")}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Meals */}
-          <div className="bg-card rounded-2xl p-4 border-2 border-border">
-            <div className="flex items-center gap-3">
-              <div className="bg-green-500/10 p-3 rounded-xl">
-                <Zap className="h-6 w-6 text-green-500" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-foreground">{stats?.meals_completed || 0}</p>
-                <p className="text-xs text-muted-foreground">{t("dashboard.mealsCompleted")}</p>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Summary Card - Duolingo Style */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.45 }}
-          className="bg-card rounded-2xl border-2 border-border p-5"
-        >
-          <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wide mb-4">
-            {t("profile.summary")}
+      {/* Stats Section */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="px-4 mb-4"
+      >
+        <div className="bg-card rounded-2xl border-2 border-border p-4">
+          <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
+            {t("profile.statistics")}
           </h3>
-          <div className="grid grid-cols-2 gap-y-4">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">🔥</span>
-              <div>
-                <p className="text-base font-bold text-foreground">{stats?.current_streak || 0} {t("profile.days")}</p>
-              </div>
+          <div className="grid grid-cols-4 gap-2 text-center">
+            <div>
+              <p className="text-lg font-bold text-foreground">{stats?.current_streak || 0}</p>
+              <p className="text-[10px] text-muted-foreground uppercase">{t("dashboard.streak")}</p>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">⚡</span>
-              <div>
-                <p className="text-base font-bold text-foreground">{stats?.total_points || 0} XP</p>
-              </div>
+            <div>
+              <p className="text-lg font-bold text-foreground">{stats?.total_points || 0}</p>
+              <p className="text-[10px] text-muted-foreground uppercase">XP</p>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">🥉</span>
-              <div>
-                <p className="text-base font-bold text-foreground">{t("profile.bronze")}</p>
-              </div>
+            <div>
+              <p className="text-lg font-bold text-foreground">{stats?.level || 1}</p>
+              <p className="text-[10px] text-muted-foreground uppercase">{t("dashboard.level")}</p>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">🏆</span>
-              <div>
-                <p className="text-base font-bold text-foreground">0 {t("profile.timesTop3")}</p>
-              </div>
+            <div>
+              <p className="text-lg font-bold text-foreground">{friendsCount}</p>
+              <p className="text-[10px] text-muted-foreground uppercase">{t("profile.friends")}</p>
             </div>
           </div>
-        </motion.div>
+        </div>
+      </motion.div>
 
-        {/* Profile Menu Links */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          <ProfileMenuLinks />
-        </motion.div>
-      </div>
+      {/* Menu Links */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="px-4"
+      >
+        <ProfileMenuLinks />
+      </motion.div>
     </div>
   );
 };
