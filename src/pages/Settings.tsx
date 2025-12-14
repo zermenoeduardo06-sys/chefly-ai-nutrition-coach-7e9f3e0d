@@ -154,7 +154,7 @@ const Settings = () => {
         className="sticky top-0 z-50 bg-background border-b border-border pt-safe-top"
       >
         <div className="flex items-center justify-between px-4 py-4">
-          <button onClick={() => navigate(-1)} className="p-2 -ml-2">
+          <button onClick={() => navigate("/dashboard/profile")} className="p-2 -ml-2">
             <X className="h-6 w-6 text-muted-foreground" />
           </button>
           <h1 className="text-lg font-bold text-foreground">{t("settings.title")}</h1>
