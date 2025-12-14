@@ -6,8 +6,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { ProfileSettings } from "@/components/profile/ProfileSettings";
 import { ProfileMenuLinks } from "@/components/profile/ProfileMenuLinks";
 import { LanguageToggle } from "@/components/LanguageToggle";
-import { User, Loader2 } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
+import { Loader2, Globe } from "lucide-react";
+import { motion } from "framer-motion";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -40,33 +40,32 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 p-4 md:p-6">
-      <div className="max-w-2xl mx-auto space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-3">
-            <User className="h-7 w-7 text-primary" />
-            {t("sidebar.profile")}
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            {t("profile.description")}
-          </p>
-        </div>
-
-        {/* Profile Settings */}
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 pb-24 md:pb-6">
+      <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
+        {/* Profile Settings with Avatar */}
         <ProfileSettings />
 
         {/* Language Toggle - Mobile only */}
-        <div className="md:hidden">
-          <div className="flex items-center justify-between px-1 mb-2">
-            <span className="text-sm font-medium text-muted-foreground">
-              {t("profile.language")}
-            </span>
+        <motion.div 
+          className="md:hidden"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <div className="bg-card rounded-2xl border-2 border-border p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-indigo-500/10">
+                  <Globe className="h-5 w-5 text-indigo-500" />
+                </div>
+                <span className="font-medium text-base">
+                  {t("profile.language")}
+                </span>
+              </div>
+              <LanguageToggle />
+            </div>
           </div>
-          <LanguageToggle />
-        </div>
-
-        <Separator className="md:hidden" />
+        </motion.div>
 
         {/* Menu Links - Mobile only */}
         <div className="md:hidden">

@@ -4,14 +4,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Camera, Loader2, Save, User } from "lucide-react";
+import { Camera, Loader2, Save, Flame, Star, Trophy, Zap } from "lucide-react";
 import { getAvatarColor, getInitials } from "@/lib/avatarColors";
+import { motion } from "framer-motion";
 
 interface ProfileSettingsProps {
   onUpdate?: () => void;
+}
+
+interface UserStats {
+  current_streak: number;
+  total_points: number;
+  level: number;
+  meals_completed: number;
 }
 
 export function ProfileSettings({ onUpdate }: ProfileSettingsProps) {
@@ -21,6 +28,7 @@ export function ProfileSettings({ onUpdate }: ProfileSettingsProps) {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [stats, setStats] = useState<UserStats | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { t } = useLanguage();
@@ -34,15 +42,25 @@ export function ProfileSettings({ onUpdate }: ProfileSettingsProps) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("display_name, avatar_url")
-        .eq("id", user.id)
-        .maybeSingle();
+      const [profileRes, statsRes] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("display_name, avatar_url")
+          .eq("id", user.id)
+          .maybeSingle(),
+        supabase
+          .from("user_stats")
+          .select("current_streak, total_points, level, meals_completed")
+          .eq("user_id", user.id)
+          .maybeSingle()
+      ]);
 
-      if (profile) {
-        setDisplayName(profile.display_name || "");
-        setAvatarUrl(profile.avatar_url);
+      if (profileRes.data) {
+        setDisplayName(profileRes.data.display_name || "");
+        setAvatarUrl(profileRes.data.avatar_url);
+      }
+      if (statsRes.data) {
+        setStats(statsRes.data);
       }
     } catch (err) {
       console.error("Error loading profile:", err);
@@ -68,7 +86,6 @@ export function ProfileSettings({ onUpdate }: ProfileSettingsProps) {
       return;
     }
 
-    // Validate nickname format (alphanumeric, underscores, 3-20 chars)
     const nicknameRegex = /^[a-zA-Z0-9_]{3,20}$/;
     if (!nicknameRegex.test(displayName.trim())) {
       setError(t("profile.nicknameInvalid"));
@@ -82,7 +99,6 @@ export function ProfileSettings({ onUpdate }: ProfileSettingsProps) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      // Check if nickname is available
       const isAvailable = await checkNicknameAvailability(displayName.trim(), user.id);
       if (!isAvailable) {
         setError(t("profile.nicknameTaken"));
@@ -123,7 +139,6 @@ export function ProfileSettings({ onUpdate }: ProfileSettingsProps) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith("image/")) {
       toast({
         variant: "destructive",
@@ -133,7 +148,6 @@ export function ProfileSettings({ onUpdate }: ProfileSettingsProps) {
       return;
     }
 
-    // Validate file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
       toast({
         variant: "destructive",
@@ -152,22 +166,18 @@ export function ProfileSettings({ onUpdate }: ProfileSettingsProps) {
       const fileExt = file.name.split(".").pop();
       const filePath = `${user.id}/avatar.${fileExt}`;
 
-      // Upload to storage
       const { error: uploadError } = await supabase.storage
         .from("avatars")
         .upload(filePath, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from("avatars")
         .getPublicUrl(filePath);
 
-      // Add cache-busting query param
       const avatarUrlWithCacheBust = `${publicUrl}?t=${Date.now()}`;
 
-      // Update profile
       const { error: updateError } = await supabase
         .from("profiles")
         .update({ avatar_url: avatarUrlWithCacheBust })
@@ -199,44 +209,58 @@ export function ProfileSettings({ onUpdate }: ProfileSettingsProps) {
 
   if (loading) {
     return (
-      <Card>
-        <CardContent className="p-6 flex items-center justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-primary" />
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
     );
   }
 
+  const statItems = [
+    { icon: Flame, value: stats?.current_streak || 0, label: t("dashboard.streak"), color: "text-primary", bg: "bg-primary/10" },
+    { icon: Star, value: stats?.total_points || 0, label: t("dashboard.points"), color: "text-yellow-500", bg: "bg-yellow-500/10" },
+    { icon: Trophy, value: stats?.level || 1, label: t("dashboard.level"), color: "text-secondary", bg: "bg-secondary/10" },
+    { icon: Zap, value: stats?.meals_completed || 0, label: t("dashboard.mealsCompleted"), color: "text-green-500", bg: "bg-green-500/10" },
+  ];
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <User className="h-5 w-5" />
-          {t("profile.title")}
-        </CardTitle>
-        <CardDescription>{t("profile.description")}</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Avatar Section */}
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative">
-            <Avatar className="h-24 w-24 border-4 border-primary/20">
+    <div className="space-y-6">
+      {/* Avatar Hero Section */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-gradient-to-br from-primary/20 via-secondary/10 to-background rounded-3xl p-6 relative overflow-hidden"
+      >
+        {/* Background decoration */}
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-secondary/20 rounded-full blur-2xl" />
+        </div>
+
+        <div className="relative flex flex-col items-center gap-4">
+          {/* Large Avatar */}
+          <motion.div 
+            className="relative"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <div className="absolute -inset-2 bg-gradient-to-r from-primary to-secondary rounded-full opacity-50 blur-lg animate-pulse" />
+            <Avatar className="h-28 w-28 border-4 border-background shadow-xl relative">
               <AvatarImage src={avatarUrl || undefined} alt={displayName} />
-              <AvatarFallback className={`${avatarColor} text-white text-2xl font-bold`}>
+              <AvatarFallback className={`${avatarColor} text-white text-3xl font-bold`}>
                 {getInitials(displayName)}
               </AvatarFallback>
             </Avatar>
             <Button
               size="icon"
-              variant="secondary"
-              className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full"
+              variant="duolingo"
+              className="absolute -bottom-1 -right-1 h-10 w-10 rounded-full shadow-lg"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
             >
               {uploading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
-                <Camera className="h-4 w-4" />
+                <Camera className="h-5 w-5" />
               )}
             </Button>
             <input
@@ -246,13 +270,60 @@ export function ProfileSettings({ onUpdate }: ProfileSettingsProps) {
               onChange={handleAvatarUpload}
               className="hidden"
             />
-          </div>
-          <p className="text-sm text-muted-foreground">{t("profile.avatarHint")}</p>
-        </div>
+          </motion.div>
 
-        {/* Nickname Section */}
+          {/* Username display */}
+          {displayName && (
+            <motion.h2 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-xl font-bold text-foreground"
+            >
+              @{displayName}
+            </motion.h2>
+          )}
+        </div>
+      </motion.div>
+
+      {/* Stats Grid - Duolingo Style */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="grid grid-cols-2 gap-3"
+      >
+        {statItems.map((stat, index) => (
+          <motion.div
+            key={stat.label}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.1 + index * 0.05 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className={`${stat.bg} rounded-2xl p-4 border-2 border-border/50 shadow-sm`}
+          >
+            <div className="flex items-center gap-3">
+              <div className={`${stat.bg} p-2 rounded-xl`}>
+                <stat.icon className={`h-5 w-5 ${stat.color}`} />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+                <p className="text-xs text-muted-foreground">{stat.label}</p>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </motion.div>
+
+      {/* Nickname Edit Section */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="bg-card rounded-2xl border-2 border-border p-5 space-y-4"
+      >
         <div className="space-y-2">
-          <Label htmlFor="nickname">{t("profile.nickname")}</Label>
+          <Label htmlFor="nickname" className="text-base font-semibold">{t("profile.nickname")}</Label>
           <Input
             id="nickname"
             value={displayName}
@@ -261,26 +332,31 @@ export function ProfileSettings({ onUpdate }: ProfileSettingsProps) {
               setError(null);
             }}
             placeholder={t("profile.nicknamePlaceholder")}
-            className={error ? "border-destructive" : ""}
+            className={`h-12 rounded-xl text-base ${error ? "border-destructive" : ""}`}
           />
           {error && <p className="text-sm text-destructive">{error}</p>}
           <p className="text-xs text-muted-foreground">{t("profile.nicknameHint")}</p>
         </div>
 
-        <Button onClick={handleSave} disabled={saving} className="w-full gap-2">
+        <Button 
+          onClick={handleSave} 
+          disabled={saving} 
+          variant="duolingo"
+          className="w-full h-12 text-base font-semibold gap-2"
+        >
           {saving ? (
             <>
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-5 w-5 animate-spin" />
               {t("common.loading")}
             </>
           ) : (
             <>
-              <Save className="h-4 w-4" />
+              <Save className="h-5 w-5" />
               {t("profile.saveChanges")}
             </>
           )}
         </Button>
-      </CardContent>
-    </Card>
+      </motion.div>
+    </div>
   );
 }
