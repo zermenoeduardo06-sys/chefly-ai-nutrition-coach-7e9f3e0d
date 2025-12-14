@@ -1005,6 +1005,12 @@ export const translations = {
     "shopping.exportSuccess": "¡PDF exportado!",
     "shopping.exportSuccessDesc": "Tu lista de compras ha sido descargada",
     "shopping.exportError": "Error al exportar el PDF",
+
+    // Preferences
+    "preferences.title": "Preferencias",
+    "preferences.saved": "¡Preferencias guardadas!",
+    "preferences.savedDesc": "Tus preferencias han sido actualizadas correctamente",
+    "preferences.cooking": "Preferencias de Cocina",
   },
   en: {
     // Navigation
@@ -1999,6 +2005,12 @@ export const translations = {
     "shopping.exportSuccess": "PDF exported!",
     "shopping.exportSuccessDesc": "Your shopping list has been downloaded",
     "shopping.exportError": "Error exporting PDF",
+
+    // Preferences
+    "preferences.title": "Preferences",
+    "preferences.saved": "Preferences saved!",
+    "preferences.savedDesc": "Your preferences have been updated successfully",
+    "preferences.cooking": "Cooking Preferences",
   },
 };
 
