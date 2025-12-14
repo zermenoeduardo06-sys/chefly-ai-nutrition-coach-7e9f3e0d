@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ArrowLeft, Crown, ExternalLink, Check, X } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, ArrowLeft, Check, ExternalLink, Sparkles, Crown, Star, Zap } from "lucide-react";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { motion } from "framer-motion";
+import mascotFlexing from "@/assets/mascot-flexing.png";
+import mascotFire from "@/assets/mascot-fire.png";
 
 const Subscription = () => {
   const [loading, setLoading] = useState(true);
@@ -16,6 +17,7 @@ const Subscription = () => {
   const [userId, setUserId] = useState<string | undefined>(undefined);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t, language } = useLanguage();
   const subscription = useSubscription(userId);
   const { limits } = useSubscriptionLimits(userId);
 
@@ -48,7 +50,9 @@ const Subscription = () => {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "No se pudo abrir el portal de gestión. Intenta de nuevo.",
+        description: language === "es" 
+          ? "No se pudo abrir el portal de gestión. Intenta de nuevo."
+          : "Could not open management portal. Please try again.",
       });
     } finally {
       setPortalLoading(false);
@@ -57,190 +61,294 @@ const Subscription = () => {
 
   if (loading || subscription.isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-primary/20 via-background to-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
-  const features = [
+  const plans = [
     {
-      name: "Generar nuevos planes",
-      basic: false,
-      intermediate: true,
+      id: "intermediate",
+      name: language === "es" ? "Chefly Plus" : "Chefly Plus",
+      subtitle: language === "es" ? "Nutrición personalizada sin límites" : "Unlimited personalized nutrition",
+      price: "$290 MXN",
+      period: language === "es" ? "/mes" : "/month",
+      features: [
+        language === "es" ? "Genera nuevos planes semanales" : "Generate new weekly plans",
+        language === "es" ? "Intercambia comidas libremente" : "Swap meals freely",
+        language === "es" ? "Chat ilimitado con coach" : "Unlimited chat with coach",
+        language === "es" ? "Check-in semanal adaptativo" : "Weekly adaptive check-in",
+        language === "es" ? "Sistema de amigos y comparación" : "Friends & comparison system",
+      ],
+      recommended: true,
+      mascot: mascotFlexing,
+      gradient: "from-emerald-400 via-teal-500 to-cyan-500",
+      isCurrentPlan: !limits.isBasicPlan && subscription.subscribed,
     },
     {
-      name: "Intercambiar comidas",
-      basic: false,
-      intermediate: true,
-    },
-    {
-      name: "Chat ilimitado con coach",
-      basic: false,
-      intermediate: true,
-    },
-    {
-      name: "Chat limitado (5 mensajes/día)",
-      basic: true,
-      intermediate: false,
-    },
-    {
-      name: "Ver plan semanal",
-      basic: true,
-      intermediate: true,
-    },
-    {
-      name: "Marcar comidas completadas",
-      basic: true,
-      intermediate: true,
+      id: "basic",
+      name: language === "es" ? "Plan Básico" : "Basic Plan",
+      subtitle: language === "es" ? "Comienza tu viaje nutricional" : "Start your nutrition journey",
+      price: "$240 MXN",
+      period: language === "es" ? "/mes" : "/month",
+      features: [
+        language === "es" ? "Ver tu plan semanal" : "View your weekly plan",
+        language === "es" ? "Marcar comidas completadas" : "Mark completed meals",
+        language === "es" ? "5 mensajes de chat al día" : "5 chat messages per day",
+        language === "es" ? "Seguimiento de progreso" : "Progress tracking",
+      ],
+      recommended: false,
+      mascot: mascotFire,
+      gradient: "from-orange-400 to-amber-500",
+      isCurrentPlan: limits.isBasicPlan && subscription.subscribed,
     },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
-      <main className="container mx-auto px-4 py-6 space-y-6 max-w-4xl">
-        <div className="flex items-center gap-4 mb-6">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">Gestionar Suscripción</h1>
-            <p className="text-muted-foreground">Administra tu plan y facturación</p>
-          </div>
+    <div className="min-h-screen bg-background pb-24 md:pb-6">
+      {/* Hero Header with Gradient */}
+      <div className="relative bg-gradient-to-br from-primary via-primary/80 to-secondary overflow-hidden">
+        {/* Sparkle decorations */}
+        <div className="absolute inset-0 pointer-events-none">
+          <motion.div 
+            className="absolute top-8 left-8"
+            animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <Sparkles className="h-5 w-5 text-white/60" />
+          </motion.div>
+          <motion.div 
+            className="absolute top-12 right-12"
+            animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.8, 0.3] }}
+            transition={{ duration: 2.5, repeat: Infinity, delay: 0.5 }}
+          >
+            <Star className="h-4 w-4 text-white/50" />
+          </motion.div>
+          <motion.div 
+            className="absolute bottom-16 left-1/4"
+            animate={{ scale: [1, 1.2, 1], opacity: [0.4, 0.9, 0.4] }}
+            transition={{ duration: 1.8, repeat: Infinity, delay: 1 }}
+          >
+            <Sparkles className="h-3 w-3 text-white/40" />
+          </motion.div>
+          <motion.div 
+            className="absolute top-20 right-1/3"
+            animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0.7, 0.3] }}
+            transition={{ duration: 2.2, repeat: Infinity, delay: 0.3 }}
+          >
+            <Star className="h-3 w-3 text-white/30" />
+          </motion.div>
         </div>
 
-        {/* Current Plan */}
-        <Card className="border-2 border-primary">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Crown className="h-8 w-8 text-primary" />
-                <div>
-                  <CardTitle className="text-2xl">
-                    {limits.planName || "Plan Básico"}
-                  </CardTitle>
-                  <CardDescription>
-                    {subscription.subscribed 
-                      ? "Tu suscripción activa"
-                      : "Plan gratuito"}
-                  </CardDescription>
-                </div>
-              </div>
-              <Badge variant="default" className="bg-primary">
-                {subscription.subscribed ? "Activo" : "Gratuito"}
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {subscription.subscription_end && (
-              <Alert>
-                <AlertDescription>
-                  Tu suscripción se renueva el {new Date(subscription.subscription_end).toLocaleDateString('es-ES', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  })}
-                </AlertDescription>
-              </Alert>
-            )}
+        <div className="relative px-4 pt-4 pb-8">
+          {/* Back button */}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => navigate("/dashboard")}
+            className="text-white hover:bg-white/20 mb-4"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
 
-            {/* Features Table */}
-            <div className="space-y-3 mt-6">
-              <h3 className="font-semibold">Características de tu plan</h3>
-              <div className="space-y-2">
-                {features.map((feature) => {
-                  const hasFeature = limits.isBasicPlan ? feature.basic : feature.intermediate;
-                  return (
-                    <div key={feature.name} className="flex items-center justify-between py-2 border-b border-border/50">
-                      <span className="text-sm">{feature.name}</span>
-                      {hasFeature ? (
-                        <Check className="h-5 w-5 text-green-500" />
-                      ) : (
-                        <X className="h-5 w-5 text-muted-foreground" />
+          {/* Title */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center"
+          >
+            <h1 className="text-3xl font-bold text-white mb-1">
+              {language === "es" ? "Suscripción" : "Subscription"}
+            </h1>
+            <p className="text-white/70 text-sm uppercase tracking-widest font-semibold">
+              {language === "es" ? "CONOCE LOS PLANES" : "EXPLORE PLANS"}
+            </p>
+          </motion.div>
+
+          {/* Mascot in hero */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2, type: "spring" }}
+            className="flex justify-center mt-4"
+          >
+            <div className="relative">
+              <div className="absolute -inset-4 bg-white/20 rounded-3xl blur-xl" />
+              <div className="relative bg-white/10 backdrop-blur-sm rounded-3xl p-4 border border-white/20">
+                <img 
+                  src={mascotFlexing} 
+                  alt="Chefly mascot" 
+                  className="h-28 w-28 object-contain"
+                />
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Plans */}
+      <div className="px-4 -mt-4 space-y-4 max-w-lg mx-auto">
+        {plans.map((plan, index) => (
+          <motion.div
+            key={plan.id}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 + index * 0.1 }}
+          >
+            {/* Recommended Badge */}
+            {plan.recommended && (
+              <div className={`bg-gradient-to-r ${plan.gradient} rounded-t-2xl px-4 py-2`}>
+                <span className="text-white font-bold text-sm uppercase tracking-wide flex items-center gap-2">
+                  <Crown className="h-4 w-4" />
+                  {language === "es" ? "RECOMENDADO" : "RECOMMENDED"}
+                </span>
+              </div>
+            )}
+            
+            <div className={`
+              bg-card border-2 rounded-2xl overflow-hidden
+              ${plan.recommended ? "rounded-t-none border-t-0" : ""}
+              ${plan.isCurrentPlan ? "border-primary ring-2 ring-primary/20" : "border-border"}
+            `}>
+              <div className="p-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    {/* Plan name */}
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="text-xl font-bold text-foreground">{plan.name}</h3>
+                      {plan.isCurrentPlan && (
+                        <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-semibold">
+                          {language === "es" ? "Tu plan" : "Your plan"}
+                        </span>
                       )}
                     </div>
-                  );
-                })}
+                    <p className="text-muted-foreground text-sm mb-4">{plan.subtitle}</p>
+
+                    {/* Features */}
+                    <ul className="space-y-2.5">
+                      {plan.features.map((feature, i) => (
+                        <motion.li 
+                          key={i}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.4 + i * 0.05 }}
+                          className="flex items-center gap-2.5"
+                        >
+                          <div className={`p-0.5 rounded-full bg-gradient-to-r ${plan.gradient}`}>
+                            <Check className="h-3.5 w-3.5 text-white" />
+                          </div>
+                          <span className="text-sm text-foreground">{feature}</span>
+                        </motion.li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Mascot */}
+                  <motion.div 
+                    className="flex-shrink-0"
+                    whileHover={{ scale: 1.1, rotate: 5 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <img 
+                      src={plan.mascot} 
+                      alt={plan.name} 
+                      className="h-24 w-24 object-contain"
+                    />
+                  </motion.div>
+                </div>
+
+                {/* CTA Button */}
+                <motion.div 
+                  className="mt-5"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  {plan.isCurrentPlan ? (
+                    <Button
+                      onClick={handleManageSubscription}
+                      disabled={portalLoading}
+                      variant="duolingoOutline"
+                      className="w-full h-12 text-base font-bold"
+                    >
+                      {portalLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                          {language === "es" ? "Abriendo..." : "Opening..."}
+                        </>
+                      ) : (
+                        <>
+                          <ExternalLink className="mr-2 h-5 w-5" />
+                          {language === "es" ? "GESTIONAR PLAN" : "MANAGE PLAN"}
+                        </>
+                      )}
+                    </Button>
+                  ) : subscription.subscribed ? (
+                    <Button
+                      onClick={handleManageSubscription}
+                      disabled={portalLoading}
+                      variant="duolingoOutline"
+                      className="w-full h-12 text-base font-bold"
+                    >
+                      {portalLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                          {language === "es" ? "Abriendo..." : "Opening..."}
+                        </>
+                      ) : (
+                        <>
+                          <Zap className="mr-2 h-5 w-5" />
+                          {language === "es" ? "CAMBIAR PLAN" : "SWITCH PLAN"}
+                        </>
+                      )}
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => navigate("/pricing")}
+                      variant={plan.recommended ? "duolingo" : "duolingoOutline"}
+                      className="w-full h-12 text-base font-bold"
+                    >
+                      {language === "es" ? `OBTENER POR ${plan.price}` : `GET FOR ${plan.price}`}
+                    </Button>
+                  )}
+                </motion.div>
               </div>
             </div>
+          </motion.div>
+        ))}
 
-            {/* Action Buttons */}
-            <div className="flex flex-col gap-3 pt-4">
-              {subscription.subscribed ? (
-                <Button
-                  onClick={handleManageSubscription}
-                  disabled={portalLoading}
-                  variant="outline"
-                  size="lg"
-                >
-                  {portalLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Abriendo portal...
-                    </>
-                  ) : (
-                    <>
-                      <ExternalLink className="mr-2 h-4 w-4" />
-                      Gestionar suscripción en Stripe
-                    </>
-                  )}
-                </Button>
-              ) : (
-                <Button
-                  onClick={() => navigate("/pricing")}
-                  size="lg"
-                  variant="hero"
-                >
-                  Ver planes disponibles
-                </Button>
-              )}
-              
-              {subscription.subscribed && (
-                <Alert className="mt-4">
-                  <AlertDescription className="text-sm">
-                    <strong>¿Necesitas cancelar?</strong> Haz clic en "Gestionar suscripción en Stripe" para acceder al portal donde podrás cancelar tu plan, actualizar tu método de pago y ver tu historial de facturación.
-                  </AlertDescription>
-                </Alert>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Upgrade Card */}
-        {limits.isBasicPlan && (
-          <Card className="border-2 border-secondary bg-gradient-to-r from-primary/10 to-secondary/10">
-            <CardHeader>
-              <CardTitle>Mejora a Plan Intermedio</CardTitle>
-              <CardDescription>
-                Desbloquea todas las funciones premium
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 mb-4">
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-primary" />
-                  <span className="text-sm">Genera nuevos planes cuando quieras</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-primary" />
-                  <span className="text-sm">Intercambia comidas entre días</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-primary" />
-                  <span className="text-sm">Chat ilimitado con tu coach nutricional</span>
-                </li>
-              </ul>
-              <Button
-                onClick={() => navigate("/pricing")}
-                className="w-full"
-                variant="hero"
-              >
-                Ver planes
-              </Button>
-            </CardContent>
-          </Card>
+        {/* Subscription renewal info */}
+        {subscription.subscribed && subscription.subscription_end && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            className="bg-muted/50 rounded-2xl p-4 border border-border"
+          >
+            <p className="text-sm text-center text-muted-foreground">
+              {language === "es" ? "Tu suscripción se renueva el " : "Your subscription renews on "}
+              <span className="font-semibold text-foreground">
+                {new Date(subscription.subscription_end).toLocaleDateString(
+                  language === "es" ? 'es-ES' : 'en-US', 
+                  { year: 'numeric', month: 'long', day: 'numeric' }
+                )}
+              </span>
+            </p>
+          </motion.div>
         )}
-      </main>
+
+        {/* Help text */}
+        <motion.p 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7 }}
+          className="text-xs text-center text-muted-foreground pb-4"
+        >
+          {language === "es" 
+            ? "¿Necesitas ayuda? Gestiona tu suscripción en cualquier momento."
+            : "Need help? Manage your subscription anytime."}
+        </motion.p>
+      </div>
     </div>
   );
 };
