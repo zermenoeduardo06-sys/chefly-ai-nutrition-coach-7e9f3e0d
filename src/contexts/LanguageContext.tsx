@@ -442,15 +442,15 @@ export const translations = {
     "mealDetail.benefits": "Beneficios",
     "mealDetail.ingredients": "Ingredientes",
     "mealDetail.steps": "Pasos a seguir",
-    "mealDetail.swapMeal": "Intercambiar comida",
+    "mealDetail.swapMeal": "Intercambiar con otro día",
     "mealDetail.lockedMessage": "Necesitas estar suscrito para intercambiar comidas",
     "mealDetail.breakfast": "Desayuno",
     "mealDetail.lunch": "Almuerzo",
     "mealDetail.dinner": "Cena",
     
     // Swap Meal
-    "swapMeal.title": "Intercambiar comida",
-    "swapMeal.description": "Selecciona con qué comida quieres intercambiar",
+    "swapMeal.title": "Intercambiar comida entre días",
+    "swapMeal.description": "Selecciona la comida de otro día con la que quieres intercambiar",
     
     // Challenges
     "challenges.title": "Desafíos Diarios",
@@ -1341,15 +1341,15 @@ export const translations = {
     "mealDetail.benefits": "Benefits",
     "mealDetail.ingredients": "Ingredients",
     "mealDetail.steps": "Cooking Steps",
-    "mealDetail.swapMeal": "Swap meal",
+    "mealDetail.swapMeal": "Swap with another day",
     "mealDetail.lockedMessage": "You need to be subscribed to swap meals",
     "mealDetail.breakfast": "Breakfast",
     "mealDetail.lunch": "Lunch",
     "mealDetail.dinner": "Dinner",
     
     // Swap Meal
-    "swapMeal.title": "Swap meal",
-    "swapMeal.description": "Select which meal you want to swap with",
+    "swapMeal.title": "Swap meal between days",
+    "swapMeal.description": "Select a meal from another day to swap with",
     
     // Challenges
     "challenges.title": "Daily Challenges",
