@@ -9,10 +9,15 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useTrialGuard } from "@/hooks/useTrialGuard";
 import { getAvatarColor, getInitials } from "@/lib/avatarColors";
 import { useLanguage } from "@/contexts/LanguageContext";
+import ModularAvatar from "@/components/avatar/ModularAvatar";
+import { AvatarConfig } from "@/components/avatar/AvatarParts";
+import { Json } from "@/integrations/supabase/types";
+
 interface LeaderboardEntry {
   user_id: string;
   display_name: string | null;
   avatar_url: string | null;
+  avatar_config: Json | null;
   total_points: number;
   level: number;
   current_streak: number;
@@ -63,7 +68,7 @@ const Leaderboard = () => {
       const userIds = stats.map(s => s.user_id);
       const { data: profiles } = await supabase
         .from("profiles")
-        .select("id, display_name, avatar_url")
+        .select("id, display_name, avatar_url, avatar_config")
         .in("id", userIds);
 
       // Get achievement counts for each user
@@ -85,6 +90,7 @@ const Leaderboard = () => {
           user_id: stat.user_id,
           display_name: profile?.display_name || null,
           avatar_url: profile?.avatar_url || null,
+          avatar_config: profile?.avatar_config || null,
           total_points: stat.total_points,
           level: stat.level,
           current_streak: stat.current_streak,
@@ -179,12 +185,18 @@ const Leaderboard = () => {
                           </div>
 
                           {/* Avatar */}
-                          <Avatar className="h-10 w-10 md:h-12 md:w-12 flex-shrink-0">
-                            <AvatarImage src={entry.avatar_url || undefined} alt={getDisplayName(entry)} />
-                            <AvatarFallback className={`${getAvatarColor(entry.display_name || entry.user_id)} text-white font-semibold text-sm`}>
-                              {getInitials(entry.display_name)}
-                            </AvatarFallback>
-                          </Avatar>
+                          {entry.avatar_config && !entry.avatar_url ? (
+                            <div className="h-10 w-10 md:h-12 md:w-12 rounded-full overflow-hidden flex-shrink-0">
+                              <ModularAvatar config={entry.avatar_config as unknown as AvatarConfig} size={48} />
+                            </div>
+                          ) : (
+                            <Avatar className="h-10 w-10 md:h-12 md:w-12 flex-shrink-0">
+                              <AvatarImage src={entry.avatar_url || undefined} alt={getDisplayName(entry)} />
+                              <AvatarFallback className={`${getAvatarColor(entry.display_name || entry.user_id)} text-white font-semibold text-sm`}>
+                                {getInitials(entry.display_name)}
+                              </AvatarFallback>
+                            </Avatar>
+                          )}
 
                           {/* User Info */}
                           <div className="flex-1 min-w-0">

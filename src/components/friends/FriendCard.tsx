@@ -8,6 +8,8 @@ import { Friend } from "@/hooks/useFriendships";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { FriendStatsComparison } from "./FriendStatsComparison";
 import { getAvatarColor, getInitials } from "@/lib/avatarColors";
+import ModularAvatar from "@/components/avatar/ModularAvatar";
+import { AvatarConfig } from "@/components/avatar/AvatarParts";
 
 interface FriendCardProps {
   friend: Friend;
@@ -25,6 +27,8 @@ export function FriendCard({ friend, currentUserId, onAccept, onReject, onRemove
 
   const displayName = friend.displayName || t("friends.anonymous");
   const canCompare = friend.status === "accepted" && currentUserId;
+  
+  const hasModularAvatar = friend.avatarConfig && !friend.avatarUrl;
 
   return (
     <Card className="bg-card/50 border-border/50 hover:border-primary/30 transition-colors">
@@ -32,12 +36,18 @@ export function FriendCard({ friend, currentUserId, onAccept, onReject, onRemove
         <CardContent className="p-4">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3 min-w-0">
-              <Avatar className="h-12 w-12 border-2 border-primary/20">
-                <AvatarImage src={friend.avatarUrl || undefined} alt={displayName} />
-                <AvatarFallback className={`${avatarColor} text-white font-semibold`}>
-                  {getInitials(friend.displayName)}
-                </AvatarFallback>
-              </Avatar>
+              {hasModularAvatar ? (
+                <div className="h-12 w-12 rounded-full overflow-hidden border-2 border-primary/20 flex-shrink-0">
+                  <ModularAvatar config={friend.avatarConfig as unknown as AvatarConfig} size={48} />
+                </div>
+              ) : (
+                <Avatar className="h-12 w-12 border-2 border-primary/20">
+                  <AvatarImage src={friend.avatarUrl || undefined} alt={displayName} />
+                  <AvatarFallback className={`${avatarColor} text-white font-semibold`}>
+                    {getInitials(friend.displayName)}
+                  </AvatarFallback>
+                </Avatar>
+              )}
               <div className="min-w-0">
                 <p className="font-medium text-foreground truncate">@{displayName}</p>
               </div>
