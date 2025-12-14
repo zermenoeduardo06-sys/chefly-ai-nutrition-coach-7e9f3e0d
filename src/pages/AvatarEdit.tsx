@@ -2,9 +2,15 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { AvatarEditor, getAvatarColorById } from "@/components/profile/AvatarEditor";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, X, Camera } from "lucide-react";
+import { motion } from "framer-motion";
+import AvatarBuilder from "@/components/avatar/AvatarBuilder";
+import ModularAvatar from "@/components/avatar/ModularAvatar";
+import { AvatarConfig, defaultAvatarConfig } from "@/components/avatar/AvatarParts";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getInitials } from "@/lib/avatarColors";
 
 const AvatarEdit = () => {
   const navigate = useNavigate();
@@ -17,7 +23,8 @@ const AvatarEdit = () => {
   const [uploading, setUploading] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [selectedColor, setSelectedColor] = useState<string>("coral");
+  const [avatarConfig, setAvatarConfig] = useState<AvatarConfig>(defaultAvatarConfig);
+  const [avatarMode, setAvatarMode] = useState<"modular" | "photo">("modular");
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -29,14 +36,26 @@ const AvatarEdit = () => {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("display_name, avatar_url, avatar_background_color")
+        .select("display_name, avatar_url, avatar_config")
         .eq("id", user.id)
         .maybeSingle();
 
       if (profile) {
         setDisplayName(profile.display_name || "User");
         setAvatarUrl(profile.avatar_url);
-        setSelectedColor(profile.avatar_background_color || "coral");
+        if (profile.avatar_config && typeof profile.avatar_config === 'object') {
+          const config = profile.avatar_config as Record<string, unknown>;
+          setAvatarConfig({
+            skinTone: typeof config.skinTone === 'number' ? config.skinTone : 0,
+            body: typeof config.body === 'number' ? config.body : 0,
+            eyes: typeof config.eyes === 'number' ? config.eyes : 0,
+            hair: typeof config.hair === 'number' ? config.hair : 0,
+            glasses: typeof config.glasses === 'number' ? config.glasses : -1,
+            accessory: typeof config.accessory === 'number' ? config.accessory : -1,
+          });
+        }
+        // Set mode based on whether user has a photo or uses modular
+        setAvatarMode(profile.avatar_url ? "photo" : "modular");
       }
       setLoading(false);
     };
@@ -44,19 +63,22 @@ const AvatarEdit = () => {
     loadProfile();
   }, [navigate]);
 
-  const handleColorSelect = (colorId: string) => {
-    setSelectedColor(colorId);
-  };
-
   const handleSave = async () => {
     setSaving(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      const updateData: any = { avatar_config: avatarConfig };
+      
+      // If using modular avatar, clear the photo URL
+      if (avatarMode === "modular") {
+        updateData.avatar_url = null;
+      }
+
       const { error } = await supabase
         .from("profiles")
-        .update({ avatar_background_color: selectedColor })
+        .update(updateData)
         .eq("id", user.id);
 
       if (error) throw error;
@@ -66,7 +88,7 @@ const AvatarEdit = () => {
         description: t("avatar.savedDesc"),
       });
 
-      navigate(-1);
+      navigate("/dashboard/settings");
     } catch (err: any) {
       console.error("Error saving avatar:", err);
       toast({
@@ -130,6 +152,7 @@ const AvatarEdit = () => {
       if (updateError) throw updateError;
 
       setAvatarUrl(avatarUrlWithCacheBust);
+      setAvatarMode("photo");
 
       toast({
         title: t("profile.avatarUploaded"),
@@ -147,6 +170,25 @@ const AvatarEdit = () => {
     }
   };
 
+  const handleRemovePhoto = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { error } = await supabase
+        .from("profiles")
+        .update({ avatar_url: null })
+        .eq("id", user.id);
+
+      if (error) throw error;
+
+      setAvatarUrl(null);
+      setAvatarMode("modular");
+    } catch (err: any) {
+      console.error("Error removing photo:", err);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -156,18 +198,91 @@ const AvatarEdit = () => {
   }
 
   return (
-    <>
-      <AvatarEditor
-        displayName={displayName}
-        avatarUrl={avatarUrl}
-        currentColor={selectedColor}
-        onColorSelect={handleColorSelect}
-        onUploadClick={() => fileInputRef.current?.click()}
-        onSave={handleSave}
-        onCancel={() => navigate(-1)}
-        uploading={uploading}
-        saving={saving}
-      />
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="sticky top-0 z-50 bg-background border-b border-border"
+      >
+        <div className="flex items-center justify-between px-4 py-4">
+          <button onClick={() => navigate("/dashboard/settings")} className="p-2 -ml-2">
+            <X className="h-6 w-6 text-muted-foreground" />
+          </button>
+          <h1 className="text-lg font-bold text-foreground">{t("avatar.editTitle")}</h1>
+          <Button onClick={handleSave} disabled={saving} size="sm">
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : "OK"}
+          </Button>
+        </div>
+      </motion.div>
+
+      {/* Content */}
+      <div className="px-4 py-6 pb-24">
+        <Tabs value={avatarMode} onValueChange={(v) => setAvatarMode(v as "modular" | "photo")} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="modular">{t("avatar.createAvatar")}</TabsTrigger>
+            <TabsTrigger value="photo">{t("avatar.uploadPhoto")}</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="modular" className="space-y-6">
+            <AvatarBuilder config={avatarConfig} onChange={setAvatarConfig} />
+          </TabsContent>
+
+          <TabsContent value="photo" className="space-y-6">
+            {/* Photo Preview */}
+            <div className="flex flex-col items-center gap-4 py-8">
+              <div className="relative">
+                {avatarUrl ? (
+                  <motion.img
+                    initial={{ scale: 0.9 }}
+                    animate={{ scale: 1 }}
+                    src={avatarUrl}
+                    alt="Avatar"
+                    className="w-40 h-40 rounded-full object-cover border-4 border-primary"
+                  />
+                ) : (
+                  <div className="w-40 h-40 rounded-full bg-primary flex items-center justify-center text-4xl font-bold text-primary-foreground">
+                    {getInitials(displayName)}
+                  </div>
+                )}
+                
+                {uploading && (
+                  <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+                    <Loader2 className="w-8 h-8 animate-spin text-white" />
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  variant="outline"
+                  className="gap-2"
+                >
+                  <Camera className="w-4 h-4" />
+                  {avatarUrl ? t("avatar.changePhoto") : t("avatar.uploadPhoto")}
+                </Button>
+                
+                {avatarUrl && (
+                  <Button
+                    onClick={handleRemovePhoto}
+                    variant="ghost"
+                    className="text-destructive"
+                  >
+                    {t("avatar.removePhoto")}
+                  </Button>
+                )}
+              </div>
+
+              <p className="text-sm text-muted-foreground text-center">
+                {t("avatar.photoHint")}
+              </p>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+
       <input
         ref={fileInputRef}
         type="file"
@@ -175,7 +290,7 @@ const AvatarEdit = () => {
         onChange={handleAvatarUpload}
         className="hidden"
       />
-    </>
+    </div>
   );
 };
 
