@@ -416,6 +416,8 @@ export const translations = {
     "dashboard.helpSection": "Ayuda",
     "dashboard.helpDesc": "¿Necesitas ayuda? Vuelve a ver el tutorial",
     "dashboard.viewTutorial": "Ver tutorial",
+    "dashboard.swipeToComplete": "Desliza para completar",
+    "dashboard.swipeToChangeDay": "Desliza para cambiar día",
     
     // Tutorial
     "tutorial.welcome.title": "¡Bienvenido a Chefly!",
@@ -1442,6 +1444,8 @@ export const translations = {
     "dashboard.helpSection": "Help",
     "dashboard.helpDesc": "Need help? Watch the tutorial again",
     "dashboard.viewTutorial": "View tutorial",
+    "dashboard.swipeToComplete": "Swipe to complete",
+    "dashboard.swipeToChangeDay": "Swipe to change day",
     
     // Tutorial
     "tutorial.welcome.title": "Welcome to Chefly!",
