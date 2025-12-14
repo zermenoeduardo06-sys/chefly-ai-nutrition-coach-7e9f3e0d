@@ -26,6 +26,7 @@ import confetti from "canvas-confetti";
 import DashboardTutorial from "@/components/DashboardTutorial";
 import { InAppTour } from "@/components/InAppTour";
 import { clearAllShoppingListCaches } from "@/utils/shoppingListCache";
+import { MobileStatsBar } from "@/components/MobileStatsBar";
 
 interface Meal {
   id: string;
@@ -784,6 +785,14 @@ const Dashboard = () => {
     <TooltipProvider delayDuration={300}>
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 overflow-x-hidden">
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6 max-w-full overflow-hidden">
+        
+        {/* Mobile Stats Bar - Duolingo Style */}
+        <MobileStatsBar 
+          streak={userStats.current_streak}
+          points={userStats.total_points}
+          level={userStats.level}
+        />
+
         {/* Subscription Banner */}
         {profile && (
           <SubscriptionBanner 
@@ -965,7 +974,7 @@ const Dashboard = () => {
                   <Button
                     data-tour="chat"
                     onClick={() => navigate("/chat")}
-                    variant="outline"
+                    variant="duolingoOutline"
                     className="h-auto py-4 flex-col gap-2 relative"
                   >
                     <MessageCircle className="h-5 w-5" />
@@ -986,7 +995,7 @@ const Dashboard = () => {
                 <TooltipTrigger asChild>
                   <Button
                     onClick={() => navigate("/onboarding")}
-                    variant="outline"
+                    variant="duolingoOutline"
                     className="h-auto py-4 flex-col gap-2"
                   >
                     <Settings className="h-5 w-5" />
@@ -1004,7 +1013,7 @@ const Dashboard = () => {
                     <Button
                       onClick={handleManageSubscription}
                       disabled={portalLoading}
-                      variant="outline"
+                      variant="duolingoOutline"
                       className="h-auto py-4 flex-col gap-2"
                     >
                       {portalLoading ? (
@@ -1117,7 +1126,7 @@ const Dashboard = () => {
                       onClick={() => navigate("/pricing")} 
                       size="sm" 
                       className="w-full"
-                      variant="default"
+                      variant="duolingo"
                     >
                       {t("dashboard.viewPlans")}
                     </Button>
@@ -1177,16 +1186,16 @@ const Dashboard = () => {
               const meals = groupedMeals[day];
 
               return (
-                <Card key={day} className="overflow-hidden border-border/50 shadow-lg hover:shadow-xl transition-all">
-                  <CardHeader className="bg-gradient-to-r from-primary/5 to-secondary/5 border-b p-3 sm:p-6">
+                <Card key={day} className="overflow-hidden border-2 border-border/50 shadow-lg hover:shadow-xl hover:border-primary/20 transition-all rounded-2xl">
+                  <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 border-b p-3 sm:p-6">
                     <div className="flex items-center justify-between gap-2">
                       <CardTitle className="flex items-center gap-2 sm:gap-3 min-w-0">
-                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0">
-                          <span className="text-primary-foreground font-bold text-xs sm:text-sm">{day + 1}</span>
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-primary to-primary-hover flex items-center justify-center flex-shrink-0 shadow-[0_3px_0_hsl(16_90%_45%)]">
+                          <span className="text-primary-foreground font-bold text-sm sm:text-base">{day + 1}</span>
                         </div>
-                        <span className="text-base sm:text-xl truncate">{dayNames[day]}</span>
+                        <span className="text-base sm:text-xl font-bold truncate">{dayNames[day]}</span>
                       </CardTitle>
-                      <Badge variant="outline" className="text-xs flex-shrink-0">{meals.length} {t("dashboard.meals")}</Badge>
+                      <Badge variant="secondary" className="text-xs flex-shrink-0 rounded-xl px-3">{meals.length} {t("dashboard.meals")}</Badge>
                     </div>
                   </CardHeader>
                   <CardContent className="p-3 sm:p-6">
@@ -1197,7 +1206,7 @@ const Dashboard = () => {
                         return (
                           <Card 
                             key={meal.id} 
-                            className={`border-border/50 bg-gradient-to-br from-card to-muted/20 hover:shadow-md transition-all overflow-hidden relative ${isCompleted ? 'ring-2 ring-green-500' : ''}`}
+                            className={`border-2 border-border/50 bg-gradient-to-br from-card to-muted/20 hover:shadow-md hover:border-primary/30 transition-all overflow-hidden relative rounded-2xl ${isCompleted ? 'ring-2 ring-secondary border-secondary/30' : ''}`}
                           >
                             {meal.image_url && (
                               <div className="relative h-32 sm:h-40 w-full overflow-hidden">
@@ -1208,7 +1217,7 @@ const Dashboard = () => {
                                   className={`w-full h-full object-cover ${isCompleted ? 'opacity-60' : ''}`}
                                 />
                                 <div className="absolute top-2 right-2">
-                                  <Badge variant="secondary" className="backdrop-blur-sm bg-background/80 text-xs">
+                                  <Badge variant="secondary" className="backdrop-blur-sm bg-background/80 text-xs rounded-xl">
                                     {mealTypes[meal.meal_type]}
                                   </Badge>
                                 </div>
@@ -1217,15 +1226,15 @@ const Dashboard = () => {
                                   <TooltipTrigger asChild>
                                     <Button
                                       size="icon"
-                                      variant={isCompleted ? "secondary" : "default"}
+                                      variant={isCompleted ? "duolingoSecondary" : "duolingo"}
                                       data-tour={isFirstMealOfFirstDay ? "complete-meal" : undefined}
-                                      className={`absolute top-2 left-2 h-8 w-8 shadow-lg ${isCompleted ? 'bg-green-500/90 hover:bg-green-600/90 text-white' : 'bg-primary/90 hover:bg-primary'}`}
+                                      className="absolute top-2 left-2 h-9 w-9 shadow-lg rounded-xl"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         completeMeal(meal.id);
                                       }}
                                     >
-                                      <Check className="h-4 w-4" />
+                                      <Check className="h-5 w-5" />
                                     </Button>
                                   </TooltipTrigger>
                                   <TooltipContent side="right">
@@ -1243,7 +1252,7 @@ const Dashboard = () => {
                             >
                               {!meal.image_url && (
                                 <div className="flex items-center justify-between gap-2 mb-2">
-                                  <Badge variant="secondary" className="shrink-0 text-xs">
+                                  <Badge variant="secondary" className="shrink-0 text-xs rounded-xl">
                                     {mealTypes[meal.meal_type]}
                                   </Badge>
                                 </div>
@@ -1272,9 +1281,9 @@ const Dashboard = () => {
                               {!meal.image_url && (
                                 <Button
                                   size="sm"
-                                  variant={isCompleted ? "secondary" : "default"}
+                                  variant={isCompleted ? "duolingoSecondary" : "duolingo"}
                                   data-tour={isFirstMealOfFirstDay ? "complete-meal" : undefined}
-                                  className={`w-full text-xs gap-1.5 ${isCompleted ? 'bg-green-500/90 hover:bg-green-600/90 text-white' : ''}`}
+                                  className="w-full text-xs gap-1.5 rounded-xl"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     completeMeal(meal.id);
@@ -1316,7 +1325,8 @@ const Dashboard = () => {
                     <Button 
                       onClick={initiateGenerateMealPlan} 
                       disabled={generating}
-                      size="lg"
+                      size="xl"
+                      variant="duolingo"
                       className="min-w-[200px]"
                     >
                       <Sparkles className="mr-2 h-5 w-5" />
@@ -1324,7 +1334,7 @@ const Dashboard = () => {
                     </Button>
                     <Button 
                       onClick={() => navigate("/onboarding")}
-                      variant="outline"
+                      variant="duolingoOutline"
                       size="lg"
                     >
                       <Settings className="mr-2 h-4 w-4" />
