@@ -46,20 +46,20 @@ export function AppSidebar() {
   }, []);
 
   const baseMenuItems = [
-    { title: t("sidebar.dashboard"), url: "/dashboard", icon: Home },
-    { title: t("sidebar.profile"), url: "/dashboard/profile", icon: User },
-    { title: t("sidebar.shopping"), url: "/dashboard/shopping", icon: ShoppingCart },
-    { title: t("sidebar.progress"), url: "/dashboard/progress", icon: TrendingUp },
-    { title: t("sidebar.achievements"), url: "/dashboard/achievements", icon: Trophy },
-    { title: t("sidebar.challenges"), url: "/dashboard/challenges", icon: Target },
-    { title: t("sidebar.leaderboard"), url: "/dashboard/leaderboard", icon: Users },
-    { title: t("sidebar.friends"), url: "/dashboard/friends", icon: UserPlus },
-    { title: t("sidebar.coach"), url: "/chat", icon: MessageCircle },
-    { title: t("sidebar.subscription"), url: "/subscription", icon: CreditCard },
+    { title: t("sidebar.dashboard"), url: "/dashboard", icon: Home, tourId: "" },
+    { title: t("sidebar.profile"), url: "/dashboard/profile", icon: User, tourId: "" },
+    { title: t("sidebar.shopping"), url: "/dashboard/shopping", icon: ShoppingCart, tourId: "shopping" },
+    { title: t("sidebar.progress"), url: "/dashboard/progress", icon: TrendingUp, tourId: "progress" },
+    { title: t("sidebar.achievements"), url: "/dashboard/achievements", icon: Trophy, tourId: "achievements" },
+    { title: t("sidebar.challenges"), url: "/dashboard/challenges", icon: Target, tourId: "challenges" },
+    { title: t("sidebar.leaderboard"), url: "/dashboard/leaderboard", icon: Users, tourId: "" },
+    { title: t("sidebar.friends"), url: "/dashboard/friends", icon: UserPlus, tourId: "friends" },
+    { title: t("sidebar.coach"), url: "/chat", icon: MessageCircle, tourId: "" },
+    { title: t("sidebar.subscription"), url: "/subscription", icon: CreditCard, tourId: "" },
   ];
 
   const menuItems = isAffiliate 
-    ? [...baseMenuItems, { title: t("sidebar.affiliates"), url: "/affiliates", icon: DollarSign }]
+    ? [...baseMenuItems, { title: t("sidebar.affiliates"), url: "/affiliates", icon: DollarSign, tourId: "" }]
     : baseMenuItems;
 
   const handleLogout = async () => {
@@ -93,7 +93,7 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
+                <SidebarMenuItem key={item.title} data-tour={item.tourId || undefined}>
                   <SidebarMenuButton asChild>
                     <NavLink to={item.url}>
                       <item.icon className="h-5 w-5" />

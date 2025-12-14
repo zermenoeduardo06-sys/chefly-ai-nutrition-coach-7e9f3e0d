@@ -950,7 +950,7 @@ const Dashboard = () => {
         </Card>
 
         {/* Quick Actions */}
-        <Card className="border-border/50 shadow-lg">
+        <Card data-tour="quick-actions" className="border-border/50 shadow-lg">
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
               <Settings className="h-5 w-5 text-primary" />

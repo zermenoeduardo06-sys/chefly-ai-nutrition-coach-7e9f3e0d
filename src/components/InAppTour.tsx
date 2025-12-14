@@ -43,9 +43,34 @@ const tourStepsDesktop: TourStep[] = [
     titleKey: "tour.navigation.title",
     descKey: "tour.navigation.desc",
   },
+  {
+    target: "[data-tour='shopping']",
+    titleKey: "tour.shopping.title",
+    descKey: "tour.shopping.desc",
+  },
+  {
+    target: "[data-tour='progress']",
+    titleKey: "tour.progress.title",
+    descKey: "tour.progress.desc",
+  },
+  {
+    target: "[data-tour='achievements']",
+    titleKey: "tour.achievements.title",
+    descKey: "tour.achievements.desc",
+  },
+  {
+    target: "[data-tour='challenges']",
+    titleKey: "tour.challenges.title",
+    descKey: "tour.challenges.desc",
+  },
+  {
+    target: "[data-tour='friends']",
+    titleKey: "tour.friends.title",
+    descKey: "tour.friends.desc",
+  },
 ];
 
-// Mobile tour skips navigation (sidebar is hidden) and uses different order
+// Mobile tour skips navigation (sidebar is hidden) and shows page previews
 const tourStepsMobile: TourStep[] = [
   {
     target: "[data-tour='gamification']",
@@ -66,6 +91,11 @@ const tourStepsMobile: TourStep[] = [
     target: "[data-tour='chat']",
     titleKey: "tour.chat.title",
     descKey: "tour.chat.desc",
+  },
+  {
+    target: "[data-tour='quick-actions']",
+    titleKey: "tour.navigation.title",
+    descKey: "tour.navigation.desc",
   },
 ];
 
