@@ -165,66 +165,73 @@ const Chat = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 flex flex-col">
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
+      {/* Header with safe area */}
+      <header className="border-b bg-card/95 backdrop-blur-lg sticky top-0 z-40 safe-area-top">
+        <div className="container mx-auto px-4 py-3 flex items-center gap-3">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => navigate("/dashboard")}
+            className="touch-target flex-shrink-0"
+          >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div className="flex items-center gap-2 flex-1">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center">
-              <Bot className="h-6 w-6 text-primary-foreground" />
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center flex-shrink-0">
+              <Bot className="h-5 w-5 text-primary-foreground" />
             </div>
-            <div>
-              <h1 className="text-xl font-bold">Chefly</h1>
-              <p className="text-xs text-muted-foreground">Tu coach nutricional personal</p>
+            <div className="min-w-0">
+              <h1 className="text-lg font-bold truncate">Chefly</h1>
+              <p className="text-xs text-muted-foreground truncate">{t("chat.subtitle")}</p>
             </div>
           </div>
           {limits.isBasicPlan && (
-            <Badge variant="outline" className="ml-auto">
-              {limits.chatMessagesUsed}/{limits.dailyChatLimit} mensajes
+            <Badge variant="outline" className="ml-auto flex-shrink-0 text-xs">
+              {limits.chatMessagesUsed}/{limits.dailyChatLimit}
             </Badge>
           )}
         </div>
       </header>
 
-      <div className="flex-1 container mx-auto px-4 py-6 flex flex-col max-w-4xl">
-        <ScrollArea className="flex-1 pr-4">
+      {/* Messages area - flex-1 to fill available space */}
+      <div className="flex-1 container mx-auto px-4 py-4 flex flex-col max-w-4xl overflow-hidden">
+        <ScrollArea className="flex-1 -mx-4 px-4">
           <div className="space-y-4 pb-4">
             {messages.length === 0 ? (
-              <Card className="p-8 text-center border-dashed">
-                <Bot className="h-12 w-12 mx-auto mb-4 text-primary" />
-                <h3 className="text-xl font-semibold mb-2">¡Hola! Soy Chefly</h3>
-                <p className="text-muted-foreground mb-6">
-                  Pregúntame cualquier cosa sobre tu plan de comidas, nutrición o cambios en tu dieta
+              <Card className="p-6 md:p-8 text-center border-dashed">
+                <Bot className="h-10 w-10 md:h-12 md:w-12 mx-auto mb-3 text-primary" />
+                <h3 className="text-lg md:text-xl font-semibold mb-2">¡Hola! Soy Chefly</h3>
+                <p className="text-sm text-muted-foreground mb-5">
+                  {t("chat.welcomeMessage")}
                 </p>
-                <div className="grid md:grid-cols-2 gap-3 text-sm">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                   <Button
                     variant="outline"
-                    className="justify-start h-auto py-3 px-4"
+                    className="justify-start h-auto py-3 px-4 text-left active-scale"
                     onClick={() => setInput("¿Puedo cambiar la cena del martes?")}
                   >
-                    "¿Puedo cambiar la cena del martes?"
+                    "¿Puedo cambiar la cena?"
                   </Button>
                   <Button
                     variant="outline"
-                    className="justify-start h-auto py-3 px-4"
-                    onClick={() => setInput("¿Qué puedo comer si no tengo horno?")}
-                  >
-                    "¿Qué puedo comer si no tengo horno?"
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="justify-start h-auto py-3 px-4"
+                    className="justify-start h-auto py-3 px-4 text-left active-scale"
                     onClick={() => setInput("Dame ideas de snacks saludables")}
                   >
-                    "Dame ideas de snacks saludables"
+                    "Ideas de snacks saludables"
                   </Button>
                   <Button
                     variant="outline"
-                    className="justify-start h-auto py-3 px-4"
+                    className="justify-start h-auto py-3 px-4 text-left active-scale"
+                    onClick={() => setInput("¿Qué puedo comer si no tengo horno?")}
+                  >
+                    "¿Si no tengo horno?"
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="justify-start h-auto py-3 px-4 text-left active-scale"
                     onClick={() => setInput("¿Cuánta proteína debo comer?")}
                   >
-                    "¿Cuánta proteína debo comer?"
+                    "¿Cuánta proteína necesito?"
                   </Button>
                 </div>
               </Card>
@@ -232,25 +239,25 @@ const Chat = () => {
               messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`flex gap-3 ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                  className={`flex gap-2 md:gap-3 ${message.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   {message.role === "assistant" && (
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center flex-shrink-0">
-                      <Bot className="h-5 w-5 text-primary-foreground" />
+                    <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center flex-shrink-0">
+                      <Bot className="h-4 w-4 md:h-5 md:w-5 text-primary-foreground" />
                     </div>
                   )}
                   <Card
-                    className={`max-w-[80%] p-4 ${
+                    className={`max-w-[85%] md:max-w-[80%] p-3 md:p-4 ${
                       message.role === "user"
                         ? "bg-primary text-primary-foreground"
                         : "bg-card"
                     }`}
                   >
-                    <p className="whitespace-pre-wrap">{message.content}</p>
+                    <p className="whitespace-pre-wrap text-sm md:text-base">{message.content}</p>
                   </Card>
                   {message.role === "user" && (
-                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                      <User className="h-5 w-5" />
+                    <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                      <User className="h-4 w-4 md:h-5 md:w-5" />
                     </div>
                   )}
                 </div>
@@ -260,15 +267,25 @@ const Chat = () => {
           </div>
         </ScrollArea>
 
-        <form onSubmit={handleSend} className="mt-4 flex gap-2">
+        {/* Input area - sticky at bottom with safe area */}
+        <form 
+          onSubmit={handleSend} 
+          className="mt-3 flex gap-2 bg-background pt-2 pb-safe-area-bottom"
+        >
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Escribe tu pregunta..."
+            placeholder={t("chat.placeholder")}
             disabled={loading}
-            className="flex-1"
+            className="flex-1 h-11 text-base"
+            enterKeyHint="send"
           />
-          <Button type="submit" disabled={loading || !input.trim()} variant="hero">
+          <Button 
+            type="submit" 
+            disabled={loading || !input.trim()} 
+            variant="hero"
+            className="h-11 w-11 md:w-auto md:px-4 touch-target"
+          >
             {loading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
