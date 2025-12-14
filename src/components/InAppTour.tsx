@@ -9,7 +9,6 @@ interface TourStep {
   target: string;
   titleKey: string;
   descKey: string;
-  position: "top" | "bottom" | "left" | "right";
 }
 
 interface InAppTourProps {
@@ -20,158 +19,90 @@ interface InAppTourProps {
 
 const tourSteps: TourStep[] = [
   {
+    target: "[data-tour='gamification']",
+    titleKey: "tour.gamification.title",
+    descKey: "tour.gamification.desc",
+  },
+  {
     target: "[data-tour='meal-plan']",
     titleKey: "tour.mealPlan.title",
     descKey: "tour.mealPlan.desc",
-    position: "top",
   },
   {
     target: "[data-tour='complete-meal']",
     titleKey: "tour.completeMeal.title",
     descKey: "tour.completeMeal.desc",
-    position: "left",
-  },
-  {
-    target: "[data-tour='gamification']",
-    titleKey: "tour.gamification.title",
-    descKey: "tour.gamification.desc",
-    position: "bottom",
   },
   {
     target: "[data-tour='chat']",
     titleKey: "tour.chat.title",
     descKey: "tour.chat.desc",
-    position: "bottom",
   },
   {
     target: "[data-tour='navigation']",
     titleKey: "tour.navigation.title",
     descKey: "tour.navigation.desc",
-    position: "right",
   },
 ];
 
 export function InAppTour({ open, onComplete, onSkip }: InAppTourProps) {
   const { t } = useLanguage();
   const [currentStep, setCurrentStep] = useState(0);
-  const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({});
-  const [highlightStyle, setHighlightStyle] = useState<React.CSSProperties>({});
-  const [arrowStyle, setArrowStyle] = useState<React.CSSProperties>({});
-  const [arrowRotation, setArrowRotation] = useState(0);
+  const [highlightRect, setHighlightRect] = useState({ top: 0, left: 0, width: 0, height: 0 });
   const [isReady, setIsReady] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   const calculatePositions = useCallback(() => {
     if (!open) return;
+    
+    // Check if mobile
+    setIsMobile(window.innerWidth < 768);
     
     const step = tourSteps[currentStep];
     const element = document.querySelector(step.target);
     
     if (!element) {
       console.log("Element not found:", step.target);
+      setIsReady(true);
       return;
     }
 
     const rect = element.getBoundingClientRect();
-    const padding = 12;
-    const tooltipWidth = 340;
-    const tooltipHeight = 220;
-    const arrowSize = 48;
-    const gap = 16;
+    const padding = isMobile ? 6 : 10;
 
-    // Highlight position
-    setHighlightStyle({
-      position: "fixed",
+    setHighlightRect({
       top: rect.top - padding,
       left: rect.left - padding,
       width: rect.width + padding * 2,
-      height: rect.height + padding * 2,
-      pointerEvents: "none",
+      height: Math.min(rect.height + padding * 2, window.innerHeight * 0.4), // Limit height on mobile
     });
 
-    // Calculate tooltip and arrow position based on step position
-    let tooltipTop = 0;
-    let tooltipLeft = 0;
-    let arrowTop = 0;
-    let arrowLeft = 0;
-    let rotation = 0;
-
-    switch (step.position) {
-      case "bottom":
-        tooltipTop = rect.bottom + gap + arrowSize;
-        tooltipLeft = rect.left + rect.width / 2 - tooltipWidth / 2;
-        arrowTop = rect.bottom + gap;
-        arrowLeft = rect.left + rect.width / 2 - arrowSize / 2;
-        rotation = 0; // Arrow pointing up
-        break;
-      case "top":
-        tooltipTop = rect.top - tooltipHeight - gap - arrowSize;
-        tooltipLeft = rect.left + rect.width / 2 - tooltipWidth / 2;
-        arrowTop = rect.top - gap - arrowSize;
-        arrowLeft = rect.left + rect.width / 2 - arrowSize / 2;
-        rotation = 180; // Arrow pointing down
-        break;
-      case "left":
-        tooltipTop = rect.top + rect.height / 2 - tooltipHeight / 2;
-        tooltipLeft = rect.left - tooltipWidth - gap - arrowSize;
-        arrowTop = rect.top + rect.height / 2 - arrowSize / 2;
-        arrowLeft = rect.left - gap - arrowSize;
-        rotation = 90; // Arrow pointing right
-        break;
-      case "right":
-        tooltipTop = rect.top + rect.height / 2 - tooltipHeight / 2;
-        tooltipLeft = rect.right + gap + arrowSize;
-        arrowTop = rect.top + rect.height / 2 - arrowSize / 2;
-        arrowLeft = rect.right + gap;
-        rotation = -90; // Arrow pointing left
-        break;
-    }
-
-    // Keep tooltip within viewport
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-
-    if (tooltipLeft < 16) tooltipLeft = 16;
-    if (tooltipLeft + tooltipWidth > viewportWidth - 16) {
-      tooltipLeft = viewportWidth - tooltipWidth - 16;
-    }
-    if (tooltipTop < 16) tooltipTop = 16;
-    if (tooltipTop + tooltipHeight > viewportHeight - 16) {
-      tooltipTop = viewportHeight - tooltipHeight - 16;
-    }
-
-    setTooltipStyle({
-      position: "fixed",
-      top: tooltipTop,
-      left: tooltipLeft,
-      width: tooltipWidth,
-    });
-
-    setArrowStyle({
-      position: "fixed",
-      top: arrowTop,
-      left: arrowLeft,
-    });
-
-    setArrowRotation(rotation);
     setIsReady(true);
 
-    // Scroll element into view
+    // Scroll element into view with offset for tooltip
     element.scrollIntoView({ behavior: "smooth", block: "center" });
-  }, [currentStep, open]);
+  }, [currentStep, open, isMobile]);
 
   useEffect(() => {
     if (open) {
       setIsReady(false);
-      const timer = setTimeout(calculatePositions, 150);
+      const timer = setTimeout(calculatePositions, 200);
       window.addEventListener("resize", calculatePositions);
-      window.addEventListener("scroll", calculatePositions);
+      window.addEventListener("scroll", calculatePositions, true);
       return () => {
         clearTimeout(timer);
         window.removeEventListener("resize", calculatePositions);
-        window.removeEventListener("scroll", calculatePositions);
+        window.removeEventListener("scroll", calculatePositions, true);
       };
     }
   }, [open, currentStep, calculatePositions]);
+
+  useEffect(() => {
+    if (!open) {
+      setCurrentStep(0);
+      setIsReady(false);
+    }
+  }, [open]);
 
   const handleNext = () => {
     if (currentStep < tourSteps.length - 1) {
@@ -191,73 +122,173 @@ export function InAppTour({ open, onComplete, onSkip }: InAppTourProps) {
 
   if (!open) return null;
 
+  // Calculate best position for tooltip based on highlight position
+  const getTooltipPosition = () => {
+    const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
+    const tooltipHeight = isMobile ? 200 : 220;
+    const tooltipWidth = isMobile ? Math.min(viewportWidth - 32, 320) : 360;
+    const gap = 16;
+
+    // Check if there's more space above or below the highlight
+    const spaceAbove = highlightRect.top;
+    const spaceBelow = viewportHeight - (highlightRect.top + highlightRect.height);
+
+    let top: number;
+    let arrowDirection: "up" | "down";
+
+    if (spaceBelow >= tooltipHeight + gap + 40 || spaceBelow > spaceAbove) {
+      // Position below
+      top = Math.min(
+        highlightRect.top + highlightRect.height + gap + 40,
+        viewportHeight - tooltipHeight - 16
+      );
+      arrowDirection = "up";
+    } else {
+      // Position above
+      top = Math.max(
+        highlightRect.top - tooltipHeight - gap - 40,
+        16
+      );
+      arrowDirection = "down";
+    }
+
+    // Ensure tooltip doesn't go below viewport
+    if (top + tooltipHeight > viewportHeight - 16) {
+      top = viewportHeight - tooltipHeight - 16;
+    }
+
+    // Ensure tooltip doesn't go above viewport
+    if (top < 16) {
+      top = 16;
+    }
+
+    // Center horizontally on mobile, or align with highlight on desktop
+    let left: number;
+    if (isMobile) {
+      left = (viewportWidth - tooltipWidth) / 2;
+    } else {
+      left = Math.max(16, Math.min(
+        highlightRect.left + highlightRect.width / 2 - tooltipWidth / 2,
+        viewportWidth - tooltipWidth - 16
+      ));
+    }
+
+    // Arrow position
+    const arrowLeft = Math.max(
+      left + 20,
+      Math.min(
+        highlightRect.left + highlightRect.width / 2 - 20,
+        left + tooltipWidth - 60
+      )
+    );
+
+    const arrowTop = arrowDirection === "up" 
+      ? top - 36
+      : top + tooltipHeight - 4;
+
+    return { top, left, tooltipWidth, arrowLeft, arrowTop, arrowDirection };
+  };
+
+  const tooltipPos = isReady ? getTooltipPosition() : null;
+
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-[9999]">
-          {/* Dark overlay */}
+        <div className="fixed inset-0 z-[9999] overflow-hidden">
+          {/* Dark overlay with cutout */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black/75"
+            className="absolute inset-0"
             onClick={onSkip}
-          />
+          >
+            {/* SVG mask for spotlight effect */}
+            <svg className="w-full h-full">
+              <defs>
+                <mask id="spotlight-mask">
+                  <rect width="100%" height="100%" fill="white" />
+                  {isReady && (
+                    <rect
+                      x={highlightRect.left}
+                      y={highlightRect.top}
+                      width={highlightRect.width}
+                      height={highlightRect.height}
+                      rx="12"
+                      fill="black"
+                    />
+                  )}
+                </mask>
+              </defs>
+              <rect
+                width="100%"
+                height="100%"
+                fill="rgba(0, 0, 0, 0.8)"
+                mask="url(#spotlight-mask)"
+              />
+            </svg>
+          </motion.div>
 
-          {/* Spotlight highlight */}
+          {/* Highlight border with glow */}
           {isReady && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              style={highlightStyle}
-              className="rounded-xl border-4 border-primary bg-transparent shadow-[0_0_0_9999px_rgba(0,0,0,0.75)] z-[10000]"
-            />
+            <>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="absolute pointer-events-none rounded-xl border-[3px] border-primary z-[10000]"
+                style={{
+                  top: highlightRect.top,
+                  left: highlightRect.left,
+                  width: highlightRect.width,
+                  height: highlightRect.height,
+                  boxShadow: "0 0 20px 5px hsl(var(--primary) / 0.5), inset 0 0 20px 5px hsl(var(--primary) / 0.1)",
+                }}
+              />
+              {/* Pulsing effect */}
+              <motion.div
+                animate={{ 
+                  opacity: [0.3, 0.6, 0.3],
+                  scale: [1, 1.02, 1],
+                }}
+                transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                className="absolute pointer-events-none rounded-xl border-2 border-primary/50 z-[9999]"
+                style={{
+                  top: highlightRect.top - 4,
+                  left: highlightRect.left - 4,
+                  width: highlightRect.width + 8,
+                  height: highlightRect.height + 8,
+                }}
+              />
+            </>
           )}
 
-          {/* Pulsing ring around highlight */}
-          {isReady && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ 
-                opacity: [0.5, 1, 0.5], 
-                scale: [1, 1.05, 1],
-              }}
-              transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
-              style={{
-                ...highlightStyle,
-                border: "none",
-                boxShadow: "0 0 30px 10px hsl(var(--primary) / 0.4)",
-              }}
-              className="rounded-xl z-[9999]"
-            />
-          )}
-
-          {/* Animated arrow pointing to element */}
-          {isReady && (
+          {/* Animated arrow */}
+          {isReady && tooltipPos && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              style={arrowStyle}
-              className="z-[10001] pointer-events-none"
+              className="absolute z-[10001] pointer-events-none"
+              style={{
+                top: tooltipPos.arrowTop,
+                left: tooltipPos.arrowLeft,
+              }}
             >
               <motion.svg
-                width="48"
-                height="48"
-                viewBox="0 0 48 48"
+                width="40"
+                height="40"
+                viewBox="0 0 40 40"
                 animate={{ 
-                  y: arrowRotation === 0 ? [-4, 4, -4] : 
-                     arrowRotation === 180 ? [4, -4, 4] : 0,
-                  x: arrowRotation === 90 ? [4, -4, 4] :
-                     arrowRotation === -90 ? [-4, 4, -4] : 0,
+                  y: tooltipPos.arrowDirection === "up" ? [-6, 0, -6] : [6, 0, 6],
                 }}
-                transition={{ repeat: Infinity, duration: 0.8, ease: "easeInOut" }}
-                style={{ transform: `rotate(${arrowRotation}deg)` }}
+                transition={{ repeat: Infinity, duration: 0.7, ease: "easeInOut" }}
                 className="text-primary drop-shadow-lg"
+                style={{ 
+                  transform: tooltipPos.arrowDirection === "down" ? "rotate(180deg)" : "none"
+                }}
               >
                 <path
-                  d="M24 8L24 36M24 36L14 26M24 36L34 26"
+                  d="M20 8L20 28M20 28L10 18M20 28L30 18"
                   stroke="currentColor"
                   strokeWidth="4"
                   strokeLinecap="round"
@@ -268,46 +299,55 @@ export function InAppTour({ open, onComplete, onSkip }: InAppTourProps) {
             </motion.div>
           )}
 
-          {/* Tooltip with mascot */}
-          {isReady && (
+          {/* Tooltip */}
+          {isReady && tooltipPos && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 10 }}
+              initial={{ opacity: 0, scale: 0.9, y: tooltipPos.arrowDirection === "up" ? 20 : -20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.3, delay: 0.1 }}
-              style={tooltipStyle}
-              className="z-[10002]"
+              transition={{ duration: 0.25, delay: 0.05 }}
+              className="absolute z-[10002]"
+              style={{
+                top: tooltipPos.top,
+                left: tooltipPos.left,
+                width: tooltipPos.tooltipWidth,
+              }}
             >
               <div className="bg-card border-2 border-primary/30 rounded-2xl shadow-2xl overflow-hidden">
-                {/* Header with mascot */}
-                <div className="bg-gradient-to-r from-primary via-primary to-primary/80 p-4 flex items-center gap-4">
+                {/* Header */}
+                <div className="bg-gradient-to-r from-primary via-primary to-primary/80 p-3 md:p-4 flex items-center gap-3">
                   <motion.img
                     src={mascotImage}
-                    alt="Chefly Guide"
-                    className="w-20 h-20 object-contain drop-shadow-lg flex-shrink-0"
+                    alt="Chefly"
+                    className="w-14 h-14 md:w-16 md:h-16 object-contain drop-shadow-lg flex-shrink-0"
                     animate={{ 
-                      y: [0, -5, 0],
-                      rotate: [0, 3, -3, 0],
+                      y: [0, -3, 0],
+                      rotate: [0, 2, -2, 0],
                     }}
-                    transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
+                    transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
                   />
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-primary-foreground font-bold text-lg leading-tight">
+                    <h3 className="text-primary-foreground font-bold text-base md:text-lg leading-tight">
                       {t(tourSteps[currentStep].titleKey)}
                     </h3>
-                    <div className="flex gap-1.5 mt-2">
-                      {tourSteps.map((_, i) => (
-                        <div
-                          key={i}
-                          className={`h-2 rounded-full transition-all ${
-                            i === currentStep 
-                              ? "w-6 bg-white" 
-                              : i < currentStep 
-                              ? "w-2 bg-white/80" 
-                              : "w-2 bg-white/30"
-                          }`}
-                        />
-                      ))}
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <span className="text-primary-foreground/80 text-xs">
+                        {currentStep + 1}/{tourSteps.length}
+                      </span>
+                      <div className="flex gap-1">
+                        {tourSteps.map((_, i) => (
+                          <div
+                            key={i}
+                            className={`h-1.5 rounded-full transition-all ${
+                              i === currentStep 
+                                ? "w-4 bg-white" 
+                                : i < currentStep 
+                                ? "w-1.5 bg-white/70" 
+                                : "w-1.5 bg-white/30"
+                            }`}
+                          />
+                        ))}
+                      </div>
                     </div>
                   </div>
                   <Button
@@ -316,25 +356,25 @@ export function InAppTour({ open, onComplete, onSkip }: InAppTourProps) {
                     className="h-8 w-8 text-white/80 hover:text-white hover:bg-white/20 flex-shrink-0"
                     onClick={onSkip}
                   >
-                    <X className="h-5 w-5" />
+                    <X className="h-4 w-4" />
                   </Button>
                 </div>
 
                 {/* Content */}
-                <div className="p-4">
-                  <p className="text-sm text-muted-foreground leading-relaxed">
+                <div className="p-3 md:p-4">
+                  <p className="text-xs md:text-sm text-muted-foreground leading-relaxed">
                     {t(tourSteps[currentStep].descKey)}
                   </p>
                 </div>
 
-                {/* Footer with navigation */}
-                <div className="p-4 pt-0 flex gap-3">
+                {/* Footer */}
+                <div className="px-3 pb-3 md:px-4 md:pb-4 flex gap-2">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={handlePrev}
                     disabled={currentStep === 0}
-                    className="flex-1"
+                    className="flex-1 h-9 text-xs md:text-sm"
                   >
                     <ChevronLeft className="h-4 w-4 mr-1" />
                     {t("tour.prev")}
@@ -342,7 +382,7 @@ export function InAppTour({ open, onComplete, onSkip }: InAppTourProps) {
                   <Button
                     size="sm"
                     onClick={handleNext}
-                    className="flex-1 bg-primary hover:bg-primary/90"
+                    className="flex-1 h-9 text-xs md:text-sm"
                   >
                     {currentStep === tourSteps.length - 1 ? t("tour.finish") : t("tour.next")}
                     {currentStep < tourSteps.length - 1 && <ChevronRight className="h-4 w-4 ml-1" />}
