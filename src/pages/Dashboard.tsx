@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, RefreshCw, MessageCircle, Calendar, Settings, TrendingUp, Utensils, Clock, Sparkles, Check, Lock, CreditCard, Languages, HelpCircle } from "lucide-react";
+import { MealImageWithSkeleton } from "@/components/MealImageWithSkeleton";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -1187,16 +1188,12 @@ const Dashboard = () => {
                             className={`border-border/50 bg-gradient-to-br from-card to-muted/20 hover:shadow-md transition-all overflow-hidden relative ${isCompleted ? 'ring-2 ring-green-500' : ''}`}
                           >
                             {meal.image_url && (
-                              <div className="relative h-32 sm:h-40 w-full overflow-hidden bg-muted">
-                                <img 
-                                  src={meal.image_url} 
+                              <div className="relative h-32 sm:h-40 w-full overflow-hidden">
+                                <MealImageWithSkeleton
+                                  src={meal.image_url}
                                   alt={meal.name}
-                                  loading="eager"
+                                  containerClassName="h-full w-full"
                                   className={`w-full h-full object-cover ${isCompleted ? 'opacity-60' : ''}`}
-                                  onError={(e) => {
-                                    const target = e.target as HTMLImageElement;
-                                    target.style.display = 'none';
-                                  }}
                                 />
                                 <div className="absolute top-2 right-2">
                                   <Badge variant="secondary" className="backdrop-blur-sm bg-background/80 text-xs">
