@@ -9,7 +9,9 @@ import {
   ChevronRight,
   DollarSign,
   LogOut,
-  HelpCircle
+  HelpCircle,
+  UtensilsCrossed,
+  Shield
 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
@@ -89,8 +91,10 @@ export function ProfileMenuLinks() {
       title: t("profile.menuSection.account"),
       items: [
         { icon: CreditCard, labelKey: "sidebar.subscription", path: "/subscription", iconColor: "text-purple-500", iconBg: "bg-purple-500/10" },
+        { icon: UtensilsCrossed, labelKey: "sidebar.preferences", path: "/preferences", iconColor: "text-cyan-500", iconBg: "bg-cyan-500/10" },
+        { icon: Settings, labelKey: "sidebar.settings", path: "/dashboard/settings", iconColor: "text-slate-500", iconBg: "bg-slate-500/10" },
         ...(isAffiliate ? [{ icon: DollarSign, labelKey: "sidebar.affiliates", path: "/affiliates", iconColor: "text-emerald-500", iconBg: "bg-emerald-500/10" }] : []),
-        ...(isAdmin ? [{ icon: Settings, labelKey: "sidebar.admin", path: "/admin/affiliates", iconColor: "text-slate-500", iconBg: "bg-slate-500/10" }] : []),
+        ...(isAdmin ? [{ icon: Shield, labelKey: "sidebar.admin", path: "/admin/affiliates", iconColor: "text-red-500", iconBg: "bg-red-500/10" }] : []),
       ],
     },
     {
