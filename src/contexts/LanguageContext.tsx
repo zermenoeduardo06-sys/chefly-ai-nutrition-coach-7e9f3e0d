@@ -241,6 +241,12 @@ export const translations = {
     "profile.error": "Error",
     "profile.invalidFileType": "Solo se permiten imágenes",
     "profile.fileTooLarge": "La imagen debe ser menor a 2MB",
+    "profile.language": "Idioma",
+    "profile.desktopHint": "Usa el menú lateral para acceder a todas las funciones",
+    "profile.menuSection.activity": "Actividad",
+    "profile.menuSection.account": "Cuenta",
+    "profile.menuSection.support": "Soporte",
+    "profile.faq": "Preguntas Frecuentes",
     
     // Dashboard
     "dashboard.days": ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"],
@@ -1186,6 +1192,12 @@ export const translations = {
     "profile.error": "Error",
     "profile.invalidFileType": "Only images are allowed",
     "profile.fileTooLarge": "Image must be smaller than 2MB",
+    "profile.language": "Language",
+    "profile.desktopHint": "Use the sidebar menu to access all features",
+    "profile.menuSection.activity": "Activity",
+    "profile.menuSection.account": "Account",
+    "profile.menuSection.support": "Support",
+    "profile.faq": "Frequently Asked Questions",
     "friends.alreadyExists": "A request or friendship already exists with this user",
     
     // Dashboard

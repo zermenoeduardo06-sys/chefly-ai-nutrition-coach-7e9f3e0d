@@ -4,7 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTrialGuard } from "@/hooks/useTrialGuard";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ProfileSettings } from "@/components/profile/ProfileSettings";
+import { ProfileMenuLinks } from "@/components/profile/ProfileMenuLinks";
+import { LanguageToggle } from "@/components/LanguageToggle";
 import { User, Loader2 } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -52,6 +55,28 @@ const Profile = () => {
 
         {/* Profile Settings */}
         <ProfileSettings />
+
+        {/* Language Toggle - Mobile only */}
+        <div className="md:hidden">
+          <div className="flex items-center justify-between px-1 mb-2">
+            <span className="text-sm font-medium text-muted-foreground">
+              {t("profile.language")}
+            </span>
+          </div>
+          <LanguageToggle />
+        </div>
+
+        <Separator className="md:hidden" />
+
+        {/* Menu Links - Mobile only */}
+        <div className="md:hidden">
+          <ProfileMenuLinks />
+        </div>
+
+        {/* Desktop: Show minimal info */}
+        <div className="hidden md:block text-center text-sm text-muted-foreground pt-4">
+          {t("profile.desktopHint")}
+        </div>
       </div>
     </div>
   );
