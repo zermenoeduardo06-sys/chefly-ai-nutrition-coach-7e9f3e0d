@@ -1187,11 +1187,16 @@ const Dashboard = () => {
                             className={`border-border/50 bg-gradient-to-br from-card to-muted/20 hover:shadow-md transition-all overflow-hidden relative ${isCompleted ? 'ring-2 ring-green-500' : ''}`}
                           >
                             {meal.image_url && (
-                              <div className="relative h-32 sm:h-40 w-full overflow-hidden">
+                              <div className="relative h-32 sm:h-40 w-full overflow-hidden bg-muted">
                                 <img 
                                   src={meal.image_url} 
                                   alt={meal.name}
+                                  loading="eager"
                                   className={`w-full h-full object-cover ${isCompleted ? 'opacity-60' : ''}`}
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                  }}
                                 />
                                 <div className="absolute top-2 right-2">
                                   <Badge variant="secondary" className="backdrop-blur-sm bg-background/80 text-xs">
