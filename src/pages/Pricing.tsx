@@ -1,18 +1,21 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Check, Loader2 } from "lucide-react";
+import { Check, Loader2, Crown, Sparkles, Star, ArrowLeft, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { SUBSCRIPTION_TIERS } from "@/hooks/useSubscription";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { motion } from "framer-motion";
+import mascotFlexing from "@/assets/mascot-flexing.png";
+import mascotFire from "@/assets/mascot-fire.png";
 
 interface SubscriptionPlan {
   id: string;
   name: string;
   nameEn: string;
+  subtitle: string;
+  subtitleEn: string;
   price_mxn: number;
   billing_period: string;
   features: string[];
@@ -21,6 +24,9 @@ interface SubscriptionPlan {
   coming_soon?: boolean;
   is_active: boolean;
   stripe_price_id?: string;
+  recommended: boolean;
+  mascot: string;
+  gradient: string;
 }
 
 const Pricing = () => {
@@ -29,57 +35,66 @@ const Pricing = () => {
   const { t, language } = useLanguage();
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
 
-  // Planes directamente desde la configuración de Stripe
   const plans: SubscriptionPlan[] = [
     {
-      id: "basic",
-      name: "Básico",
-      nameEn: "Basic",
-      price_mxn: SUBSCRIPTION_TIERS.BASIC.price,
-      billing_period: "monthly",
-      features: [
-        "Plan de comidas semanal personalizado",
-        "Seguimiento de calorías y macros",
-        "Acceso a recetas básicas",
-        "Chat con IA (5 mensajes/día)",
-      ],
-      featuresEn: [
-        "Personalized weekly meal plan",
-        "Calorie and macro tracking",
-        "Access to basic recipes",
-        "AI Chat (5 messages/day)",
-      ],
-      display_order: 1,
-      is_active: true,
-      stripe_price_id: SUBSCRIPTION_TIERS.BASIC.price_id,
-    },
-    {
       id: "intermediate",
-      name: "Intermedio",
-      nameEn: "Intermediate",
+      name: "Chefly Plus",
+      nameEn: "Chefly Plus",
+      subtitle: "Nutrición personalizada sin límites",
+      subtitleEn: "Unlimited personalized nutrition",
       price_mxn: SUBSCRIPTION_TIERS.INTERMEDIATE.price,
       billing_period: "monthly",
       features: [
-        "Todo lo del plan Básico",
-        "Planes de comidas diarios ilimitados",
-        "Recetas premium y variadas",
-        "Chat con IA ilimitado",
-        "Lista de compras automática",
-        "Seguimiento de progreso avanzado",
+        "Genera nuevos planes semanales",
+        "Intercambia comidas libremente",
+        "Chat ilimitado con coach IA",
+        "Check-in semanal adaptativo",
+        "Sistema de amigos y comparación",
         "Desafíos diarios ilimitados",
       ],
       featuresEn: [
-        "Everything in Basic plan",
-        "Unlimited daily meal plans",
-        "Premium and varied recipes",
-        "Unlimited AI Chat",
-        "Automatic shopping list",
-        "Advanced progress tracking",
+        "Generate new weekly plans",
+        "Swap meals freely",
+        "Unlimited AI coach chat",
+        "Weekly adaptive check-in",
+        "Friends & comparison system",
         "Unlimited daily challenges",
+      ],
+      display_order: 1,
+      is_active: true,
+      stripe_price_id: SUBSCRIPTION_TIERS.INTERMEDIATE.price_id,
+      recommended: true,
+      mascot: mascotFlexing,
+      gradient: "from-emerald-400 via-teal-500 to-cyan-500",
+    },
+    {
+      id: "basic",
+      name: "Plan Básico",
+      nameEn: "Basic Plan",
+      subtitle: "Comienza tu viaje nutricional",
+      subtitleEn: "Start your nutrition journey",
+      price_mxn: SUBSCRIPTION_TIERS.BASIC.price,
+      billing_period: "monthly",
+      features: [
+        "Ver tu plan semanal",
+        "Marcar comidas completadas",
+        "5 mensajes de chat al día",
+        "Seguimiento de progreso",
+        "Sistema de logros",
+      ],
+      featuresEn: [
+        "View your weekly plan",
+        "Mark completed meals",
+        "5 chat messages per day",
+        "Progress tracking",
+        "Achievement system",
       ],
       display_order: 2,
       is_active: true,
-      stripe_price_id: SUBSCRIPTION_TIERS.INTERMEDIATE.price_id,
+      stripe_price_id: SUBSCRIPTION_TIERS.BASIC.price_id,
+      recommended: false,
+      mascot: mascotFire,
+      gradient: "from-orange-400 to-amber-500",
     },
   ];
 
@@ -102,7 +117,6 @@ const Pricing = () => {
         return;
       }
 
-      // Capturar código de afiliado y referido de Endorsely
       const affiliateCode = localStorage.getItem("affiliate_code");
       const endorselyReferral = (window as any).endorsely_referral;
 
@@ -117,7 +131,6 @@ const Pricing = () => {
       if (error) throw error;
 
       if (data.url) {
-        // En móvil, redirigir en la misma ventana para mejor UX
         window.location.href = data.url;
       }
     } catch (error) {
@@ -133,77 +146,215 @@ const Pricing = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 py-12 px-4">
-      <div className="container mx-auto max-w-6xl">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            {t("pricing.pageTitle")}
-          </h1>
-          <p className="text-xl text-muted-foreground">
-            {t("pricing.pageSubtitle")}
-          </p>
+    <div className="min-h-screen bg-background pb-8">
+      {/* Hero Header with Gradient */}
+      <div className="relative bg-gradient-to-br from-primary via-primary/80 to-secondary overflow-hidden">
+        {/* Sparkle decorations */}
+        <div className="absolute inset-0 pointer-events-none">
+          <motion.div 
+            className="absolute top-8 left-8"
+            animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <Sparkles className="h-5 w-5 text-white/60" />
+          </motion.div>
+          <motion.div 
+            className="absolute top-12 right-12"
+            animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.8, 0.3] }}
+            transition={{ duration: 2.5, repeat: Infinity, delay: 0.5 }}
+          >
+            <Star className="h-4 w-4 text-white/50" />
+          </motion.div>
+          <motion.div 
+            className="absolute bottom-16 left-1/4"
+            animate={{ scale: [1, 1.2, 1], opacity: [0.4, 0.9, 0.4] }}
+            transition={{ duration: 1.8, repeat: Infinity, delay: 1 }}
+          >
+            <Sparkles className="h-3 w-3 text-white/40" />
+          </motion.div>
+          <motion.div 
+            className="absolute top-20 right-1/3"
+            animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0.7, 0.3] }}
+            transition={{ duration: 2.2, repeat: Infinity, delay: 0.3 }}
+          >
+            <Star className="h-3 w-3 text-white/30" />
+          </motion.div>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {plans.map((plan, index) => (
-            <Card
-              key={plan.id}
-              className={`relative flex flex-col ${
-                index === 1 ? "border-primary shadow-lg scale-105" : ""
-              }`}
-            >
-              {index === 1 && (
-                <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  {t("pricing.mostPopular")}
-                </Badge>
-              )}
-              
-              <CardHeader>
-                <CardTitle className="text-2xl">{language === "es" ? plan.name : plan.nameEn}</CardTitle>
-                <CardDescription>
-                  <span className="text-4xl font-bold text-foreground">
-                    ${Math.round(plan.price_mxn / 20)}
-                  </span>
-                  <span className="text-muted-foreground"> USD/{t("pricing.month")}</span>
-                </CardDescription>
-              </CardHeader>
+        <div className="relative px-4 pt-4 pb-8">
+          {/* Back button */}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => navigate(-1)}
+            className="text-white hover:bg-white/20 mb-4"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
 
-              <CardContent className="flex-1">
-                <ul className="space-y-3">
-                  {(language === "es" ? plan.features : plan.featuresEn).map((feature, idx) => (
-                    <li key={idx} className="flex items-start gap-2">
-                      <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                      <span className="text-sm">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
+          {/* Title */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center"
+          >
+            <h1 className="text-3xl font-bold text-white mb-1">
+              {language === "es" ? "Elige tu Plan" : "Choose Your Plan"}
+            </h1>
+            <p className="text-white/70 text-sm uppercase tracking-widest font-semibold">
+              {language === "es" ? "DESBLOQUEA TU POTENCIAL" : "UNLOCK YOUR POTENTIAL"}
+            </p>
+          </motion.div>
 
-              <CardFooter>
-                <Button
-                  className="w-full"
-                  variant={index === 1 ? "default" : "outline"}
-                  onClick={() => handleSelectPlan(plan)}
-                  disabled={checkoutLoading === plan.id}
+          {/* Mascot in hero */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2, type: "spring" }}
+            className="flex justify-center mt-4"
+          >
+            <div className="relative">
+              <div className="absolute -inset-4 bg-white/20 rounded-3xl blur-xl" />
+              <div className="relative bg-white/10 backdrop-blur-sm rounded-3xl p-4 border border-white/20">
+                <img 
+                  src={mascotFlexing} 
+                  alt="Chefly mascot" 
+                  className="h-28 w-28 object-contain"
+                />
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Plans */}
+      <div className="px-4 -mt-4 space-y-4 max-w-lg mx-auto">
+        {plans.map((plan, index) => (
+          <motion.div
+            key={plan.id}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 + index * 0.1 }}
+          >
+            {/* Recommended Badge */}
+            {plan.recommended && (
+              <div className={`bg-gradient-to-r ${plan.gradient} rounded-t-2xl px-4 py-2`}>
+                <span className="text-white font-bold text-sm uppercase tracking-wide flex items-center gap-2">
+                  <Crown className="h-4 w-4" />
+                  {language === "es" ? "RECOMENDADO" : "RECOMMENDED"}
+                </span>
+              </div>
+            )}
+            
+            <div className={`
+              bg-card border-2 rounded-2xl overflow-hidden
+              ${plan.recommended ? "rounded-t-none border-t-0 border-primary" : "border-border"}
+            `}>
+              <div className="p-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    {/* Plan name */}
+                    <h3 className="text-xl font-bold text-foreground mb-1">
+                      {language === "es" ? plan.name : plan.nameEn}
+                    </h3>
+                    <p className="text-muted-foreground text-sm mb-3">
+                      {language === "es" ? plan.subtitle : plan.subtitleEn}
+                    </p>
+
+                    {/* Price */}
+                    <div className="flex items-baseline gap-1 mb-4">
+                      <span className="text-3xl font-bold text-foreground">
+                        ${Math.round(plan.price_mxn / 20)}
+                      </span>
+                      <span className="text-muted-foreground text-sm">
+                        USD/{language === "es" ? "mes" : "month"}
+                      </span>
+                    </div>
+
+                    {/* Features */}
+                    <ul className="space-y-2.5">
+                      {(language === "es" ? plan.features : plan.featuresEn).map((feature, i) => (
+                        <motion.li 
+                          key={i}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.4 + i * 0.05 }}
+                          className="flex items-center gap-2.5"
+                        >
+                          <div className={`p-0.5 rounded-full bg-gradient-to-r ${plan.gradient}`}>
+                            <Check className="h-3.5 w-3.5 text-white" />
+                          </div>
+                          <span className="text-sm text-foreground">{feature}</span>
+                        </motion.li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Mascot */}
+                  <motion.div 
+                    className="flex-shrink-0"
+                    whileHover={{ scale: 1.1, rotate: 5 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <img 
+                      src={plan.mascot} 
+                      alt={plan.name} 
+                      className="h-24 w-24 object-contain"
+                    />
+                  </motion.div>
+                </div>
+
+                {/* CTA Button */}
+                <motion.div 
+                  className="mt-5"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  {checkoutLoading === plan.id ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {t("pricing.processing")}
-                    </>
-                  ) : (
-                    t("pricing.selectPlan")
-                  )}
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
+                  <Button
+                    onClick={() => handleSelectPlan(plan)}
+                    disabled={checkoutLoading === plan.id}
+                    variant={plan.recommended ? "duolingo" : "duolingoOutline"}
+                    className="w-full h-12 text-base font-bold"
+                  >
+                    {checkoutLoading === plan.id ? (
+                      <>
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        {language === "es" ? "Procesando..." : "Processing..."}
+                      </>
+                    ) : (
+                      <>
+                        <Zap className="mr-2 h-5 w-5" />
+                        {language === "es" 
+                          ? `COMENZAR POR $${Math.round(plan.price_mxn / 20)}/MES`
+                          : `START FOR $${Math.round(plan.price_mxn / 20)}/MONTH`
+                        }
+                      </>
+                    )}
+                  </Button>
+                </motion.div>
+              </div>
+            </div>
+          </motion.div>
+        ))}
 
-        <div className="mt-12 text-center text-sm text-muted-foreground">
-          <p>{t("pricing.allPlansInclude")}</p>
-          <p className="mt-2">{t("pricing.cancelAnytime")}</p>
-        </div>
+        {/* Footer info */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          className="text-center space-y-2 pt-4"
+        >
+          <p className="text-sm text-muted-foreground">
+            {language === "es" 
+              ? "✨ Prueba gratis por 4 días incluida"
+              : "✨ 4-day free trial included"}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {language === "es" 
+              ? "Cancela en cualquier momento. Sin compromisos."
+              : "Cancel anytime. No commitments."}
+          </p>
+        </motion.div>
       </div>
     </div>
   );
