@@ -24,6 +24,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import WeeklyCheckInBanner from "@/components/checkin/WeeklyCheckInBanner";
 import confetti from "canvas-confetti";
 import DashboardTutorial from "@/components/DashboardTutorial";
+import { InAppTour } from "@/components/InAppTour";
 import { clearAllShoppingListCaches } from "@/utils/shoppingListCache";
 
 interface Meal {
@@ -88,6 +89,7 @@ const Dashboard = () => {
   const [userId, setUserId] = useState<string | undefined>(undefined);
   const [portalLoading, setPortalLoading] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [showInAppTour, setShowInAppTour] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { limits, refreshLimits } = useSubscriptionLimits(userId);
@@ -132,10 +134,11 @@ const Dashboard = () => {
     await loadUserStats(user.id);
     await loadMealPlan(user.id);
     
-    // Check if user has seen the tutorial
-    const tutorialSeen = localStorage.getItem(`tutorial_seen_${user.id}`);
-    if (!tutorialSeen) {
-      setShowTutorial(true);
+    // Check if user has seen the in-app tour
+    const tourSeen = localStorage.getItem(`in_app_tour_seen_${user.id}`);
+    if (!tourSeen) {
+      // Small delay to let the dashboard render first
+      setTimeout(() => setShowInAppTour(true), 500);
     }
   };
   
@@ -143,6 +146,13 @@ const Dashboard = () => {
     if (userId) {
       localStorage.setItem(`tutorial_seen_${userId}`, 'true');
     }
+  };
+
+  const handleInAppTourComplete = () => {
+    if (userId) {
+      localStorage.setItem(`in_app_tour_seen_${userId}`, 'true');
+    }
+    setShowInAppTour(false);
   };
 
   const loadUserStats = async (userId: string) => {
@@ -791,7 +801,7 @@ const Dashboard = () => {
         )}
 
         {/* Mascot and Gamification Section */}
-        <Card className="border-border/50 shadow-lg bg-gradient-to-br from-card to-muted/20">
+        <Card data-tour="gamification" className="border-border/50 shadow-lg bg-gradient-to-br from-card to-muted/20">
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
@@ -953,6 +963,7 @@ const Dashboard = () => {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
+                    data-tour="chat"
                     onClick={() => navigate("/chat")}
                     variant="outline"
                     className="h-auto py-4 flex-col gap-2 relative"
@@ -1129,7 +1140,7 @@ const Dashboard = () => {
           <CardContent>
             <Button
               variant="outline"
-              onClick={() => setShowTutorial(true)}
+              onClick={() => setShowInAppTour(true)}
               className="gap-2"
             >
               <Sparkles className="h-4 w-4" />
@@ -1141,7 +1152,7 @@ const Dashboard = () => {
         <Separator />
 
         {/* Weekly Meal Plan */}
-        <Card className="border-border/50 shadow-lg">
+        <Card data-tour="meal-plan" className="border-border/50 shadow-lg">
           <CardHeader className="pb-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
@@ -1185,6 +1196,7 @@ const Dashboard = () => {
                         return (
                           <Card 
                             key={meal.id} 
+                            data-tour={day === 0 && meals.indexOf(meal) === 0 ? "complete-meal" : undefined}
                             className={`border-border/50 bg-gradient-to-br from-card to-muted/20 hover:shadow-md transition-all overflow-hidden relative ${isCompleted ? 'ring-2 ring-green-500' : ''}`}
                           >
                             {meal.image_url && (
@@ -1361,6 +1373,12 @@ const Dashboard = () => {
         open={showTutorial}
         onOpenChange={setShowTutorial}
         onComplete={handleTutorialComplete}
+      />
+
+      <InAppTour
+        open={showInAppTour}
+        onComplete={handleInAppTourComplete}
+        onSkip={handleInAppTourComplete}
       />
 
     </div>
