@@ -246,8 +246,7 @@ const Terms = () => {
                 Para preguntas sobre estos Términos y Condiciones, puede contactarnos en:
               </p>
               <ul className="list-none space-y-2 text-muted-foreground ml-4 mt-3">
-                <li><strong>Email:</strong> legal@chefly-ai.com</li>
-                <li><strong>Soporte:</strong> support@chefly-ai.com</li>
+                <li><strong>Email:</strong> chefly.ai.mx@gmail.com</li>
               </ul>
             </section>
 
