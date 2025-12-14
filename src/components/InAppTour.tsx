@@ -17,7 +17,7 @@ interface InAppTourProps {
   onSkip: () => void;
 }
 
-const tourSteps: TourStep[] = [
+const tourStepsDesktop: TourStep[] = [
   {
     target: "[data-tour='gamification']",
     titleKey: "tour.gamification.title",
@@ -45,6 +45,30 @@ const tourSteps: TourStep[] = [
   },
 ];
 
+// Mobile tour skips navigation (sidebar is hidden) and uses different order
+const tourStepsMobile: TourStep[] = [
+  {
+    target: "[data-tour='gamification']",
+    titleKey: "tour.gamification.title",
+    descKey: "tour.gamification.desc",
+  },
+  {
+    target: "[data-tour='meal-plan']",
+    titleKey: "tour.mealPlan.title",
+    descKey: "tour.mealPlan.desc",
+  },
+  {
+    target: "[data-tour='complete-meal']",
+    titleKey: "tour.completeMeal.title",
+    descKey: "tour.completeMeal.desc",
+  },
+  {
+    target: "[data-tour='chat']",
+    titleKey: "tour.chat.title",
+    descKey: "tour.chat.desc",
+  },
+];
+
 export function InAppTour({ open, onComplete, onSkip }: InAppTourProps) {
   const { t } = useLanguage();
   const [currentStep, setCurrentStep] = useState(0);
@@ -56,9 +80,17 @@ export function InAppTour({ open, onComplete, onSkip }: InAppTourProps) {
     if (!open) return;
     
     // Check if mobile
-    setIsMobile(window.innerWidth < 768);
+    const mobile = window.innerWidth < 768;
+    setIsMobile(mobile);
     
+    const tourSteps = mobile ? tourStepsMobile : tourStepsDesktop;
     const step = tourSteps[currentStep];
+    
+    if (!step) {
+      setIsReady(true);
+      return;
+    }
+    
     const element = document.querySelector(step.target);
     
     if (!element) {
@@ -103,6 +135,9 @@ export function InAppTour({ open, onComplete, onSkip }: InAppTourProps) {
       setIsReady(false);
     }
   }, [open]);
+
+  // Get the correct tour steps based on device
+  const tourSteps = isMobile ? tourStepsMobile : tourStepsDesktop;
 
   const handleNext = () => {
     if (currentStep < tourSteps.length - 1) {
