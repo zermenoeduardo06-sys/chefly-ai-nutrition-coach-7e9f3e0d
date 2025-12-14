@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 
@@ -15,14 +16,23 @@ const navSections = [
 export const LandingNavbar = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { scrollY } = useScroll();
   const [activeSection, setActiveSection] = useState<string>("");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
 
+  // Transform values based on scroll
+  const backgroundColor = useTransform(
+    scrollY,
+    [0, 100],
+    ["hsl(var(--background) / 0.3)", "hsl(var(--background) / 0.85)"]
+  );
+  const backdropBlur = useTransform(scrollY, [0, 100], ["blur(8px)", "blur(20px)"]);
+  const borderOpacity = useTransform(scrollY, [0, 100], [0, 0.5]);
+  const shadowOpacity = useTransform(scrollY, [0, 100], [0, 0.1]);
+
+  // Track active section on scroll
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-      
       const sections = navSections.map((s) => document.getElementById(s.id));
       const scrollPosition = window.scrollY + 150;
 
@@ -36,7 +46,7 @@ export const LandingNavbar = () => {
       setActiveSection("");
     };
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("scroll", handleScroll);
     handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -57,39 +67,58 @@ export const LandingNavbar = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 animate-fade-in">
-      <nav
-        className={`border-b transition-all duration-300 ${
-          isScrolled 
-            ? "bg-background/85 backdrop-blur-xl border-border/50 shadow-lg" 
-            : "bg-background/30 backdrop-blur-sm border-transparent"
-        }`}
+    <motion.header
+      className="fixed top-0 left-0 right-0 z-50"
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+    >
+      <motion.nav
+        className="border-b transition-colors duration-300"
+        style={{
+          backgroundColor: backgroundColor as any,
+          backdropFilter: backdropBlur as any,
+          WebkitBackdropFilter: backdropBlur as any,
+          borderColor: `hsl(var(--border) / ${borderOpacity.get()})`,
+          boxShadow: `0 4px 30px hsl(var(--foreground) / ${shadowOpacity.get()})`,
+        }}
         role="navigation"
         aria-label="Main navigation"
       >
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           {/* Logo */}
-          <button
+          <motion.button
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            className="text-2xl md:text-3xl font-brand font-black bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent tracking-tight cursor-pointer hover:scale-105 active:scale-95 transition-transform"
+            className="text-2xl md:text-3xl font-brand font-black bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent tracking-tight cursor-pointer"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             Chefly.AI
-          </button>
+          </motion.button>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-1">
             {navSections.map((section) => (
-              <button
+              <motion.button
                 key={section.id}
                 onClick={() => scrollToSection(section.id)}
-                className={`relative px-4 py-2 text-sm font-medium transition-colors rounded-full hover:scale-105 active:scale-95 ${
+                className={`relative px-4 py-2 text-sm font-medium transition-colors rounded-full ${
                   activeSection === section.id
-                    ? "text-primary bg-primary/10"
+                    ? "text-primary"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
                 {t(section.labelKey)}
-              </button>
+                {activeSection === section.id && (
+                  <motion.div
+                    layoutId="activeSection"
+                    className="absolute inset-0 bg-primary/10 rounded-full -z-10"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                  />
+                )}
+              </motion.button>
             ))}
           </div>
 
@@ -99,7 +128,7 @@ export const LandingNavbar = () => {
               <LanguageToggle />
             </div>
             
-            <div className="hidden sm:block">
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="hidden sm:block">
               <Button
                 variant="outline"
                 size="sm"
@@ -108,37 +137,44 @@ export const LandingNavbar = () => {
               >
                 {t("nav.login")}
               </Button>
-            </div>
+            </motion.div>
 
-            <Button
-              variant="default"
-              size="sm"
-              onClick={() => navigate("/auth")}
-              className="bg-gradient-to-r from-primary to-primary-hover shadow-lg shadow-primary/25 text-xs sm:text-sm px-3 sm:px-4"
-            >
-              <span className="hidden sm:inline">{t("hero.cta")}</span>
-              <span className="sm:hidden">Empezar</span>
-            </Button>
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => navigate("/auth")}
+                className="bg-gradient-to-r from-primary to-primary-hover shadow-lg shadow-primary/25 text-xs sm:text-sm px-3 sm:px-4"
+              >
+                <span className="hidden sm:inline">{t("hero.cta")}</span>
+                <span className="sm:hidden">Empezar</span>
+              </Button>
+            </motion.div>
 
             {/* Mobile menu button */}
-            <button
-              className="md:hidden p-1.5 text-foreground active:scale-90 transition-transform"
+            <motion.button
+              className="md:hidden p-1.5 text-foreground"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
+              whileTap={{ scale: 0.9 }}
             >
               {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
+            </motion.button>
           </div>
         </div>
 
         {/* Mobile menu */}
-        <div
-          className={`md:hidden overflow-hidden border-t border-border/30 transition-all duration-300 ${
-            isMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-          }`}
+        <motion.div
+          initial={false}
+          animate={{
+            height: isMenuOpen ? "auto" : 0,
+            opacity: isMenuOpen ? 1 : 0,
+          }}
+          transition={{ duration: 0.3 }}
+          className="md:hidden overflow-hidden border-t border-border/30"
         >
           <div className="container mx-auto px-4 py-4 space-y-2">
             {navSections.map((section) => (
-              <button
+              <motion.button
                 key={section.id}
                 onClick={() => scrollToSection(section.id)}
                 className={`w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
@@ -146,16 +182,17 @@ export const LandingNavbar = () => {
                     ? "bg-primary/10 text-primary"
                     : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                 }`}
+                whileTap={{ scale: 0.98 }}
               >
                 {t(section.labelKey)}
-              </button>
+              </motion.button>
             ))}
             <div className="pt-2 flex items-center gap-2">
               <LanguageToggle />
             </div>
           </div>
-        </div>
-      </nav>
-    </header>
+        </motion.div>
+      </motion.nav>
+    </motion.header>
   );
 };

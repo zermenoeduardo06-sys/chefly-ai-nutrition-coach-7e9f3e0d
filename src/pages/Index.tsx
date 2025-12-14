@@ -10,16 +10,13 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { InteractiveDemoSection } from "@/components/InteractiveDemoSection";
+import { ContactForm } from "@/components/ContactForm";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAffiliateTracking } from "@/hooks/useAffiliateTracking";
-import { HeroParticlesLite } from "@/components/HeroParticlesLite";
+import { AffiliatePromoBanner } from "@/components/AffiliatePromoBanner";
+import { HeroParticles } from "@/components/HeroParticles";
 import { LandingNavbar } from "@/components/LandingNavbar";
-import { lazy, Suspense } from "react";
-
-// Lazy load heavy components
-const InteractiveDemoSection = lazy(() => import("@/components/InteractiveDemoSection").then(m => ({ default: m.InteractiveDemoSection })));
-const ContactForm = lazy(() => import("@/components/ContactForm").then(m => ({ default: m.ContactForm })));
-const AffiliatePromoBanner = lazy(() => import("@/components/AffiliatePromoBanner").then(m => ({ default: m.AffiliatePromoBanner })));
 
 interface SubscriptionPlan {
   id: string;
@@ -160,8 +157,8 @@ const Index = () => {
       {/* Hero Section */}
       <main>
       <section className="relative overflow-hidden min-h-[85vh] sm:min-h-[90vh]" aria-labelledby="hero-heading">
-        {/* Lightweight particles background */}
-        <HeroParticlesLite />
+        {/* Animated Particles Background with Parallax */}
+        <HeroParticles />
         
         <div className="container mx-auto px-4 pt-20 pb-12 sm:py-20 lg:py-32 relative z-10">
           <div className="grid md:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 items-center">
@@ -263,9 +260,7 @@ const Index = () => {
       </section>
 
       {/* Affiliate Promo Banner */}
-      <Suspense fallback={null}>
-        <AffiliatePromoBanner />
-      </Suspense>
+      <AffiliatePromoBanner />
 
       {/* How It Works Section */}
       <section id="how-it-works" className="py-12 sm:py-20 scroll-mt-20">
@@ -297,9 +292,7 @@ const Index = () => {
       </section>
 
       {/* Interactive Demo Section */}
-      <Suspense fallback={<div className="py-20" />}>
-        <InteractiveDemoSection />
-      </Suspense>
+      <InteractiveDemoSection />
 
       {/* Features Section */}
       <section id="features" className="py-12 sm:py-20 bg-card/50 scroll-mt-20">
@@ -494,9 +487,7 @@ const Index = () => {
             </p>
           </div>
           
-          <Suspense fallback={<div className="h-64" />}>
-            <ContactForm />
-          </Suspense>
+          <ContactForm />
         </div>
       </section>
 
