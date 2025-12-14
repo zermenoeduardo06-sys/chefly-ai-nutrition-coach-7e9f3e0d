@@ -102,7 +102,6 @@ const Onboarding = () => {
     { value: "Mediterránea", labelKey: "onboarding.cuisine.mediterranean" },
     { value: "Americana", labelKey: "onboarding.cuisine.american" },
     { value: "Vegetariana", labelKey: "onboarding.cuisine.vegetarian" },
-    { value: "Saludable", labelKey: "onboarding.cuisine.healthy" },
   ];
 
   const complexities = [
