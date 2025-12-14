@@ -6,7 +6,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { getInitials } from "@/lib/avatarColors";
-import { getAvatarColorById } from "@/components/profile/AvatarEditor";
+import ModularAvatar from "@/components/avatar/ModularAvatar";
+import { AvatarConfig, defaultAvatarConfig } from "@/components/avatar/AvatarParts";
 import { Loader2, Settings, UserPlus, Flame, Star, Trophy, Zap, Calendar, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
@@ -22,7 +23,7 @@ interface UserStats {
 interface ProfileData {
   display_name: string | null;
   avatar_url: string | null;
-  avatar_background_color: string | null;
+  avatar_config: AvatarConfig | null;
   created_at: string | null;
 }
 
@@ -45,7 +46,7 @@ const Profile = () => {
       const [profileRes, statsRes] = await Promise.all([
         supabase
           .from("profiles")
-          .select("display_name, avatar_url, avatar_background_color, created_at")
+          .select("display_name, avatar_url, avatar_config, created_at")
           .eq("id", user.id)
           .maybeSingle(),
         supabase
@@ -56,7 +57,25 @@ const Profile = () => {
       ]);
 
       if (profileRes.data) {
-        setProfile(profileRes.data);
+        const data = profileRes.data;
+        let avatarConfig: AvatarConfig | null = null;
+        if (data.avatar_config && typeof data.avatar_config === 'object') {
+          const config = data.avatar_config as Record<string, unknown>;
+          avatarConfig = {
+            skinTone: typeof config.skinTone === 'number' ? config.skinTone : 0,
+            body: typeof config.body === 'number' ? config.body : 0,
+            eyes: typeof config.eyes === 'number' ? config.eyes : 0,
+            hair: typeof config.hair === 'number' ? config.hair : 0,
+            glasses: typeof config.glasses === 'number' ? config.glasses : -1,
+            accessory: typeof config.accessory === 'number' ? config.accessory : -1,
+          };
+        }
+        setProfile({
+          display_name: data.display_name,
+          avatar_url: data.avatar_url,
+          avatar_config: avatarConfig,
+          created_at: data.created_at,
+        });
       }
       if (statsRes.data) {
         setStats(statsRes.data);
@@ -80,7 +99,8 @@ const Profile = () => {
   }
 
   const displayName = profile?.display_name || "User";
-  const avatarColor = getAvatarColorById(profile?.avatar_background_color || null);
+  const hasPhoto = !!profile?.avatar_url;
+  const avatarConfig = profile?.avatar_config || defaultAvatarConfig;
   const joinDate = profile?.created_at 
     ? format(new Date(profile.created_at), "yyyy", { locale: language === 'es' ? es : enUS })
     : new Date().getFullYear().toString();
@@ -109,7 +129,7 @@ const Profile = () => {
           </Link>
         </div>
 
-        {/* Large Avatar Section */}
+        {/* Large Avatar Section - Duolingo Style */}
         <div className="flex flex-col items-center pb-6">
           <motion.div 
             className="relative"
@@ -118,12 +138,18 @@ const Profile = () => {
             transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
           >
             <div className="absolute -inset-3 bg-gradient-to-r from-primary/30 to-secondary/30 rounded-full blur-xl" />
-            <Avatar className="h-32 w-32 border-4 border-primary/50 shadow-2xl relative">
-              <AvatarImage src={profile?.avatar_url || undefined} alt={displayName} />
-              <AvatarFallback className={`${avatarColor} text-white text-4xl font-bold`}>
-                {getInitials(displayName)}
-              </AvatarFallback>
-            </Avatar>
+            {hasPhoto ? (
+              <Avatar className="h-32 w-32 border-4 border-primary/50 shadow-2xl relative">
+                <AvatarImage src={profile?.avatar_url || undefined} alt={displayName} />
+                <AvatarFallback className="bg-primary text-white text-4xl font-bold">
+                  {getInitials(displayName)}
+                </AvatarFallback>
+              </Avatar>
+            ) : (
+              <div className="relative">
+                <ModularAvatar config={avatarConfig} size={140} />
+              </div>
+            )}
           </motion.div>
         </div>
       </motion.div>
