@@ -3,7 +3,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, Check, ChefHat, Sparkles, ShoppingBasket } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, ChefHat, Sparkles, ShoppingBasket, Info } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import cheflyGuideMascot from "@/assets/chefly-guide-mascot.png";
 
@@ -177,6 +177,17 @@ export function StepByStepDialog({
           {!mealImage && (
             <h2 className="text-lg font-bold text-center line-clamp-1 mb-2">{mealName}</h2>
           )}
+          
+          {/* Language notice */}
+          <div className="flex items-center gap-1.5 justify-center text-[10px] text-muted-foreground/70">
+            <Info className="w-3 h-3" />
+            <span>
+              {language === 'es' 
+                ? "El idioma de la receta depende del idioma seleccionado al generar tu plan"
+                : "Recipe language depends on the language selected when generating your plan"
+              }
+            </span>
+          </div>
         </div>
 
         {/* Main content */}
