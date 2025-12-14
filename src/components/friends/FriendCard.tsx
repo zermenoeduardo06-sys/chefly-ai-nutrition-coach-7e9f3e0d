@@ -7,6 +7,7 @@ import { UserMinus, Check, X, Clock, BarChart3, ChevronDown, ChevronUp } from "l
 import { Friend } from "@/hooks/useFriendships";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { FriendStatsComparison } from "./FriendStatsComparison";
+import { getAvatarColor, getInitials } from "@/lib/avatarColors";
 
 interface FriendCardProps {
   friend: Friend;
@@ -20,13 +21,7 @@ interface FriendCardProps {
 export function FriendCard({ friend, currentUserId, onAccept, onReject, onRemove, isPending }: FriendCardProps) {
   const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
-  
-  const getInitials = (displayName?: string | null) => {
-    if (displayName) {
-      return displayName.slice(0, 2).toUpperCase();
-    }
-    return "??";
-  };
+  const avatarColor = getAvatarColor(friend.displayName || friend.friendId);
 
   const displayName = friend.displayName || t("friends.anonymous");
   const canCompare = friend.status === "accepted" && currentUserId;
@@ -39,7 +34,7 @@ export function FriendCard({ friend, currentUserId, onAccept, onReject, onRemove
             <div className="flex items-center gap-3 min-w-0">
               <Avatar className="h-12 w-12 border-2 border-primary/20">
                 <AvatarImage src={friend.avatarUrl || undefined} alt={displayName} />
-                <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                <AvatarFallback className={`${avatarColor} text-white font-semibold`}>
                   {getInitials(friend.displayName)}
                 </AvatarFallback>
               </Avatar>

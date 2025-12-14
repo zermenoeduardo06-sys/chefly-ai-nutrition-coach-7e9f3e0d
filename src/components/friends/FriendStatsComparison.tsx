@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Loader2, Trophy, Flame, Target, Star, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { getAvatarColor, getInitials } from "@/lib/avatarColors";
 
 interface UserStats {
   total_points: number;
@@ -51,7 +52,8 @@ export function FriendStatsComparison({ friend, currentUserId }: FriendStatsComp
     fetchStats();
   }, [currentUserId, friend.friendId]);
 
-  const getInitials = (name?: string | null) => name?.slice(0, 2).toUpperCase() || "??";
+  const myAvatarColor = getAvatarColor(myProfile?.display_name || currentUserId);
+  const friendAvatarColor = getAvatarColor(friend.displayName || friend.friendId);
 
   const getComparisonIcon = (myValue: number, friendValue: number) => {
     if (myValue > friendValue) return <TrendingUp className="h-4 w-4 text-green-500" />;
@@ -137,7 +139,7 @@ export function FriendStatsComparison({ friend, currentUserId }: FriendStatsComp
           <div className="flex items-center gap-2">
             <Avatar className="h-10 w-10 border-2 border-primary">
               <AvatarImage src={myProfile?.avatar_url || undefined} />
-              <AvatarFallback className="bg-primary/20 text-primary text-sm">
+              <AvatarFallback className={`${myAvatarColor} text-white text-sm`}>
                 {getInitials(myProfile?.display_name)}
               </AvatarFallback>
             </Avatar>
@@ -148,7 +150,7 @@ export function FriendStatsComparison({ friend, currentUserId }: FriendStatsComp
             <span className="font-medium text-sm text-foreground">{friendDisplayName}</span>
             <Avatar className="h-10 w-10 border-2 border-muted">
               <AvatarImage src={friend.avatarUrl || undefined} />
-              <AvatarFallback className="bg-muted text-muted-foreground text-sm">
+              <AvatarFallback className={`${friendAvatarColor} text-white text-sm`}>
                 {getInitials(friend.displayName)}
               </AvatarFallback>
             </Avatar>

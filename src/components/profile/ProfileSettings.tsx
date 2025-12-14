@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Camera, Loader2, Save, User } from "lucide-react";
+import { getAvatarColor, getInitials } from "@/lib/avatarColors";
 
 interface ProfileSettingsProps {
   onUpdate?: () => void;
@@ -194,12 +195,7 @@ export function ProfileSettings({ onUpdate }: ProfileSettingsProps) {
     }
   };
 
-  const getInitials = () => {
-    if (displayName) {
-      return displayName.slice(0, 2).toUpperCase();
-    }
-    return "??";
-  };
+  const avatarColor = getAvatarColor(displayName || 'user');
 
   if (loading) {
     return (
@@ -226,8 +222,8 @@ export function ProfileSettings({ onUpdate }: ProfileSettingsProps) {
           <div className="relative">
             <Avatar className="h-24 w-24 border-4 border-primary/20">
               <AvatarImage src={avatarUrl || undefined} alt={displayName} />
-              <AvatarFallback className="bg-primary/10 text-primary text-2xl font-bold">
-                {getInitials()}
+              <AvatarFallback className={`${avatarColor} text-white text-2xl font-bold`}>
+                {getInitials(displayName)}
               </AvatarFallback>
             </Avatar>
             <Button
