@@ -44,7 +44,48 @@ export function MealDetailDialog({
 
   const mealTypeLabel = t(`mealDetail.${meal.meal_type}`) || t(`dashboard.meals.${meal.meal_type}`);
 
-  const exportToPDF = () => {
+  const loadImageAsBase64 = (url: string): Promise<string | null> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          const maxWidth = 170; // PDF width minus margins
+          const maxHeight = 80;
+          
+          let width = img.width;
+          let height = img.height;
+          
+          // Scale to fit
+          if (width > maxWidth) {
+            height = (height * maxWidth) / width;
+            width = maxWidth;
+          }
+          if (height > maxHeight) {
+            width = (width * maxHeight) / height;
+            height = maxHeight;
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', 0.8));
+          } else {
+            resolve(null);
+          }
+        } catch {
+          resolve(null);
+        }
+      };
+      img.onerror = () => resolve(null);
+      img.src = url;
+    });
+  };
+
+  const exportToPDF = async () => {
     try {
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.getWidth();
@@ -57,21 +98,61 @@ export function MealDetailDialog({
       const textColor = [51, 51, 51] as const;
       const mutedColor = [107, 114, 128] as const;
 
-      // Header with gradient-like effect
-      doc.setFillColor(...primaryColor);
-      doc.rect(0, 0, pageWidth, 45, 'F');
+      // Try to load the image
+      let imageBase64: string | null = null;
+      let imageHeight = 0;
+      
+      if (meal.image_url) {
+        toast({
+          title: language === 'es' ? "Generando PDF..." : "Generating PDF...",
+          description: language === 'es' ? "Cargando imagen..." : "Loading image...",
+        });
+        imageBase64 = await loadImageAsBase64(meal.image_url);
+      }
 
-      // Meal type badge
-      doc.setFontSize(10);
-      doc.setTextColor(255, 255, 255);
-      doc.text(mealTypeLabel.toUpperCase(), margin, yPosition);
-      yPosition += 8;
+      if (imageBase64) {
+        // Add image at the top
+        const imgProps = doc.getImageProperties(imageBase64);
+        const imgWidth = contentWidth;
+        imageHeight = (imgProps.height * imgWidth) / imgProps.width;
+        imageHeight = Math.min(imageHeight, 70); // Max height for image
+        
+        doc.addImage(imageBase64, 'JPEG', margin, yPosition, imgWidth, imageHeight);
+        
+        yPosition = yPosition + imageHeight + 10;
+        
+        // Header banner below image
+        doc.setFillColor(...primaryColor);
+        doc.rect(margin, yPosition - 5, contentWidth, 25, 'F');
+        
+        // Meal type badge
+        doc.setFontSize(9);
+        doc.setTextColor(255, 255, 255);
+        doc.text(mealTypeLabel.toUpperCase(), margin + 5, yPosition + 3);
+        
+        // Meal name
+        doc.setFontSize(16);
+        doc.setFont("helvetica", "bold");
+        doc.text(meal.name, margin + 5, yPosition + 13, { maxWidth: contentWidth - 10 });
+        
+        yPosition = yPosition + 28;
+      } else {
+        // Header without image - green banner
+        doc.setFillColor(...primaryColor);
+        doc.rect(0, 0, pageWidth, 45, 'F');
 
-      // Meal name
-      doc.setFontSize(22);
-      doc.setFont("helvetica", "bold");
-      doc.text(meal.name, margin, yPosition + 8, { maxWidth: contentWidth });
-      yPosition = 55;
+        // Meal type badge
+        doc.setFontSize(10);
+        doc.setTextColor(255, 255, 255);
+        doc.text(mealTypeLabel.toUpperCase(), margin, yPosition);
+        yPosition += 8;
+
+        // Meal name
+        doc.setFontSize(22);
+        doc.setFont("helvetica", "bold");
+        doc.text(meal.name, margin, yPosition + 8, { maxWidth: contentWidth });
+        yPosition = 55;
+      }
 
       // Description
       doc.setFontSize(11);
@@ -202,11 +283,15 @@ export function MealDetailDialog({
         });
       }
 
-      // Footer
-      const footerY = doc.internal.pageSize.getHeight() - 10;
-      doc.setFontSize(8);
-      doc.setTextColor(...mutedColor);
-      doc.text("Chefly.AI - Tu Coach Nutricional", pageWidth / 2, footerY, { align: 'center' });
+      // Footer on all pages
+      const totalPages = doc.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        const footerY = doc.internal.pageSize.getHeight() - 10;
+        doc.setFontSize(8);
+        doc.setTextColor(...mutedColor);
+        doc.text("Chefly.AI - Tu Coach Nutricional", pageWidth / 2, footerY, { align: 'center' });
+      }
 
       // Save the PDF
       const fileName = `${meal.name.replace(/[^a-zA-Z0-9áéíóúñÁÉÍÓÚÑ\s]/g, '').replace(/\s+/g, '_')}.pdf`;
