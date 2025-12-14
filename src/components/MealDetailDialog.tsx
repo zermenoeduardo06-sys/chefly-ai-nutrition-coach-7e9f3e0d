@@ -2,8 +2,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { Flame, Apple, Beef, Cookie, ArrowLeftRight, Lock } from "lucide-react";
+import { Flame, Apple, Beef, Cookie, ArrowLeftRight, Lock, Download } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import jsPDF from "jspdf";
+import { useToast } from "@/hooks/use-toast";
 
 interface Meal {
   id: string;
@@ -35,10 +37,194 @@ export function MealDetailDialog({
   onSwapMeal,
   canSwap = true
 }: MealDetailDialogProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const { toast } = useToast();
+  
   if (!meal) return null;
 
   const mealTypeLabel = t(`mealDetail.${meal.meal_type}`) || t(`dashboard.meals.${meal.meal_type}`);
+
+  const exportToPDF = () => {
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 20;
+      const contentWidth = pageWidth - margin * 2;
+      let yPosition = 20;
+
+      // Colors
+      const primaryColor = [16, 185, 129] as const; // Emerald green
+      const textColor = [51, 51, 51] as const;
+      const mutedColor = [107, 114, 128] as const;
+
+      // Header with gradient-like effect
+      doc.setFillColor(...primaryColor);
+      doc.rect(0, 0, pageWidth, 45, 'F');
+
+      // Meal type badge
+      doc.setFontSize(10);
+      doc.setTextColor(255, 255, 255);
+      doc.text(mealTypeLabel.toUpperCase(), margin, yPosition);
+      yPosition += 8;
+
+      // Meal name
+      doc.setFontSize(22);
+      doc.setFont("helvetica", "bold");
+      doc.text(meal.name, margin, yPosition + 8, { maxWidth: contentWidth });
+      yPosition = 55;
+
+      // Description
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(...mutedColor);
+      const descLines = doc.splitTextToSize(meal.description, contentWidth);
+      doc.text(descLines, margin, yPosition);
+      yPosition += descLines.length * 5 + 10;
+
+      // Nutritional info section
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(...textColor);
+      doc.text(language === 'es' ? "Información Nutricional" : "Nutritional Information", margin, yPosition);
+      yPosition += 8;
+
+      // Nutrition boxes
+      const boxWidth = (contentWidth - 15) / 4;
+      const nutritionData = [
+        { label: language === 'es' ? 'Calorías' : 'Calories', value: `${meal.calories || 0}` },
+        { label: language === 'es' ? 'Proteína' : 'Protein', value: `${meal.protein || 0}g` },
+        { label: language === 'es' ? 'Carbos' : 'Carbs', value: `${meal.carbs || 0}g` },
+        { label: language === 'es' ? 'Grasas' : 'Fats', value: `${meal.fats || 0}g` },
+      ];
+
+      nutritionData.forEach((item, index) => {
+        const boxX = margin + index * (boxWidth + 5);
+        doc.setFillColor(245, 245, 245);
+        doc.roundedRect(boxX, yPosition, boxWidth, 22, 3, 3, 'F');
+        
+        doc.setFontSize(14);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(...primaryColor);
+        doc.text(item.value, boxX + boxWidth / 2, yPosition + 10, { align: 'center' });
+        
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(...mutedColor);
+        doc.text(item.label, boxX + boxWidth / 2, yPosition + 17, { align: 'center' });
+      });
+      yPosition += 32;
+
+      // Benefits section
+      if (meal.benefits) {
+        doc.setFontSize(14);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(...textColor);
+        doc.text(language === 'es' ? "Beneficios" : "Benefits", margin, yPosition);
+        yPosition += 7;
+        
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(...mutedColor);
+        const benefitLines = doc.splitTextToSize(meal.benefits, contentWidth);
+        doc.text(benefitLines, margin, yPosition);
+        yPosition += benefitLines.length * 5 + 10;
+      }
+
+      // Ingredients section
+      if (meal.ingredients && meal.ingredients.length > 0) {
+        // Check if we need a new page
+        if (yPosition > 240) {
+          doc.addPage();
+          yPosition = 20;
+        }
+
+        doc.setFontSize(14);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(...textColor);
+        doc.text(language === 'es' ? "Ingredientes" : "Ingredients", margin, yPosition);
+        yPosition += 8;
+
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(...textColor);
+
+        meal.ingredients.forEach((ingredient) => {
+          if (yPosition > 270) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          
+          doc.setFillColor(...primaryColor);
+          doc.circle(margin + 2, yPosition - 1.5, 1.5, 'F');
+          
+          const ingredientLines = doc.splitTextToSize(ingredient, contentWidth - 10);
+          doc.text(ingredientLines, margin + 8, yPosition);
+          yPosition += ingredientLines.length * 5 + 3;
+        });
+        yPosition += 5;
+      }
+
+      // Steps section
+      if (meal.steps && meal.steps.length > 0) {
+        // Check if we need a new page
+        if (yPosition > 240) {
+          doc.addPage();
+          yPosition = 20;
+        }
+
+        doc.setFontSize(14);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(...textColor);
+        doc.text(language === 'es' ? "Preparación" : "Preparation Steps", margin, yPosition);
+        yPosition += 10;
+
+        meal.steps.forEach((step, index) => {
+          if (yPosition > 260) {
+            doc.addPage();
+            yPosition = 20;
+          }
+
+          // Step number circle
+          doc.setFillColor(...primaryColor);
+          doc.circle(margin + 4, yPosition, 4, 'F');
+          doc.setFontSize(9);
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(255, 255, 255);
+          doc.text(`${index + 1}`, margin + 4, yPosition + 1, { align: 'center' });
+
+          // Step text
+          doc.setFontSize(10);
+          doc.setFont("helvetica", "normal");
+          doc.setTextColor(...textColor);
+          const stepLines = doc.splitTextToSize(step, contentWidth - 15);
+          doc.text(stepLines, margin + 12, yPosition + 1);
+          yPosition += stepLines.length * 5 + 8;
+        });
+      }
+
+      // Footer
+      const footerY = doc.internal.pageSize.getHeight() - 10;
+      doc.setFontSize(8);
+      doc.setTextColor(...mutedColor);
+      doc.text("Chefly.AI - Tu Coach Nutricional", pageWidth / 2, footerY, { align: 'center' });
+
+      // Save the PDF
+      const fileName = `${meal.name.replace(/[^a-zA-Z0-9áéíóúñÁÉÍÓÚÑ\s]/g, '').replace(/\s+/g, '_')}.pdf`;
+      doc.save(fileName);
+
+      toast({
+        title: language === 'es' ? "¡Receta exportada!" : "Recipe exported!",
+        description: language === 'es' ? "Tu receta se descargó como PDF" : "Your recipe was downloaded as PDF",
+      });
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      toast({
+        variant: "destructive",
+        title: language === 'es' ? "Error" : "Error",
+        description: language === 'es' ? "No se pudo exportar la receta" : "Could not export recipe",
+      });
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -57,13 +243,32 @@ export function MealDetailDialog({
               </Badge>
               <DialogTitle className="text-3xl text-white drop-shadow-lg">{meal.name}</DialogTitle>
             </div>
+            {/* PDF Export button on image */}
+            <Button
+              variant="secondary"
+              size="icon"
+              onClick={exportToPDF}
+              className="absolute top-4 right-4 backdrop-blur-sm bg-background/80 hover:bg-background"
+              title={language === 'es' ? "Exportar receta a PDF" : "Export recipe to PDF"}
+            >
+              <Download className="h-4 w-4" />
+            </Button>
           </div>
         )}
         
         {!meal.image_url && (
           <DialogHeader>
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center justify-between mb-2">
               <Badge variant="secondary">{mealTypeLabel}</Badge>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={exportToPDF}
+                className="gap-2"
+              >
+                <Download className="h-4 w-4" />
+                PDF
+              </Button>
             </div>
             <DialogTitle className="text-2xl">{meal.name}</DialogTitle>
           </DialogHeader>
@@ -150,23 +355,32 @@ export function MealDetailDialog({
         )}
 
         {/* Action Buttons */}
-        {onSwapMeal && (
-          <>
-            <Separator />
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => onSwapMeal(meal.id)}
-                disabled={!canSwap}
-                className="w-full"
-              >
-                {!canSwap && <Lock className="mr-2 h-4 w-4" />}
-                <ArrowLeftRight className="mr-2 h-4 w-4" />
-                {t('mealDetail.swapMeal')}
-              </Button>
-            </DialogFooter>
-          </>
-        )}
+        <Separator />
+        <DialogFooter className="flex-col sm:flex-row gap-2">
+          {/* PDF Export button in footer for image-having meals */}
+          {meal.image_url && (
+            <Button
+              variant="outline"
+              onClick={exportToPDF}
+              className="w-full sm:w-auto gap-2"
+            >
+              <Download className="h-4 w-4" />
+              {language === 'es' ? "Exportar PDF" : "Export PDF"}
+            </Button>
+          )}
+          {onSwapMeal && (
+            <Button
+              variant="outline"
+              onClick={() => onSwapMeal(meal.id)}
+              disabled={!canSwap}
+              className="w-full sm:w-auto"
+            >
+              {!canSwap && <Lock className="mr-2 h-4 w-4" />}
+              <ArrowLeftRight className="mr-2 h-4 w-4" />
+              {t('mealDetail.swapMeal')}
+            </Button>
+          )}
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
