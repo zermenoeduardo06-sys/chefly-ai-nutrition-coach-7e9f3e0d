@@ -52,7 +52,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
           <SidebarTrigger />
         </header>
         {/* Main content with safe area and bottom padding for mobile nav */}
-        <main className="flex-1 pb-mobile-nav md:pb-0 scroll-touch safe-area-top">{children}</main>
+        <main className="flex-1 pb-mobile-nav md:pb-0 scroll-touch pt-safe-top">{children}</main>
       </div>
     </div>
     {/* Mobile bottom navigation */}
