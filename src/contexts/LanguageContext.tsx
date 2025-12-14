@@ -964,7 +964,8 @@ export const translations = {
     "onboarding.dislikes.placeholder": "Ej: Brócoli, cilantro, champiñones...",
     "onboarding.notes.title": "Comentarios adicionales (opcional)",
     "onboarding.notes.placeholder": "¿Algo más que debamos saber? Ej: Horarios preferidos, alimentos favoritos, etc.",
-    
+    "onboarding.avatar.title": "Crea tu avatar",
+    "onboarding.avatar.description": "Personaliza tu avatar para que te represente en la app",
     "onboarding.buttons.back": "Atrás",
     "onboarding.buttons.next": "Siguiente",
     "onboarding.buttons.creating": "Guardando...",
@@ -1989,7 +1990,8 @@ export const translations = {
     "onboarding.dislikes.placeholder": "Ex: Broccoli, cilantro, mushrooms...",
     "onboarding.notes.title": "Additional comments (optional)",
     "onboarding.notes.placeholder": "Anything else we should know? Ex: Preferred schedules, favorite foods, etc.",
-    
+    "onboarding.avatar.title": "Create your avatar",
+    "onboarding.avatar.description": "Customize your avatar to represent you in the app",
     "onboarding.buttons.back": "Back",
     "onboarding.buttons.next": "Next",
     "onboarding.buttons.creating": "Saving...",

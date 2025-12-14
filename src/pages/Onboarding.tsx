@@ -20,6 +20,8 @@ import { Badge } from "@/components/ui/badge";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import cheflyLogo from "@/assets/chefly-logo.png";
 import { clearAllShoppingListCaches } from "@/utils/shoppingListCache";
+import AvatarBuilder from "@/components/avatar/AvatarBuilder";
+import { AvatarConfig, defaultAvatarConfig } from "@/components/avatar/AvatarParts";
 
 const Onboarding = () => {
   const [step, setStep] = useState(1);
@@ -50,6 +52,7 @@ const Onboarding = () => {
   const [weight, setWeight] = useState("");
   const [gender, setGender] = useState("");
   const [additionalNotes, setAdditionalNotes] = useState("");
+  const [avatarConfig, setAvatarConfig] = useState<AvatarConfig>(defaultAvatarConfig);
 
   const goals = [
     { value: "lose_fat", labelKey: "onboarding.goal.loseFat" },
@@ -255,6 +258,17 @@ const Onboarding = () => {
         if (error) throw error;
       }
 
+      // Save avatar config to profile
+      const avatarJson = JSON.parse(JSON.stringify(avatarConfig));
+      const { error: avatarError } = await supabase
+        .from("profiles")
+        .update({ avatar_config: avatarJson })
+        .eq("id", user.id);
+
+      if (avatarError) {
+        console.error("Error saving avatar:", avatarError);
+      }
+
       toast({
         title: t("onboarding.toast.perfect"),
         description: t("onboarding.toast.generating"),
@@ -364,7 +378,7 @@ const Onboarding = () => {
         </motion.div>
 
         {/* Progress indicator */}
-        <OnboardingProgress currentStep={step} totalSteps={10} />
+        <OnboardingProgress currentStep={step} totalSteps={11} />
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -382,7 +396,7 @@ const Onboarding = () => {
                   <Sparkles className="w-5 h-5 text-primary" />
                 </motion.div>
                 <div>
-                  <CardTitle className="text-lg">{t("onboarding.step", { current: step, total: 10 })}</CardTitle>
+                  <CardTitle className="text-lg">{t("onboarding.step", { current: step, total: 11 })}</CardTitle>
                   <CardDescription>{t("onboarding.description")}</CardDescription>
                 </div>
               </div>
@@ -806,7 +820,19 @@ const Onboarding = () => {
               </motion.div>
             )}
 
-            <motion.div 
+            {/* Step 11: Avatar Creation */}
+            {step === 11 && (
+              <OnboardingStepWrapper
+                step={11}
+                title={t("onboarding.avatar.title")}
+                description={t("onboarding.avatar.description")}
+                onSelectionMade={true}
+              >
+                <AvatarBuilder config={avatarConfig} onChange={setAvatarConfig} />
+              </OnboardingStepWrapper>
+            )}
+
+            <motion.div
               className="flex gap-3 pt-6 border-t border-border/50 mt-6"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -828,7 +854,7 @@ const Onboarding = () => {
                   </Button>
                 </motion.div>
               )}
-              {step < 10 ? (
+              {step < 11 ? (
                 <motion.div 
                   className="flex-1"
                   whileHover={{ scale: 1.02 }}
