@@ -51,28 +51,37 @@ export function MealDetailDialog({
       img.onload = () => {
         try {
           const canvas = document.createElement('canvas');
-          const maxWidth = 170; // PDF width minus margins
-          const maxHeight = 80;
+          // Use higher resolution for better PDF quality (2x scale)
+          const scale = 2;
+          const targetWidth = 510; // PDF width in points (~170mm * 3)
+          const targetHeight = 210; // Max height for image
           
           let width = img.width;
           let height = img.height;
           
-          // Scale to fit
-          if (width > maxWidth) {
-            height = (height * maxWidth) / width;
-            width = maxWidth;
+          // Calculate aspect ratio and scale to fit
+          const aspectRatio = width / height;
+          if (width > targetWidth) {
+            width = targetWidth;
+            height = width / aspectRatio;
           }
-          if (height > maxHeight) {
-            width = (width * maxHeight) / height;
-            height = maxHeight;
+          if (height > targetHeight) {
+            height = targetHeight;
+            width = height * aspectRatio;
           }
           
-          canvas.width = width;
-          canvas.height = height;
+          // Apply 2x scale for retina-quality output
+          canvas.width = width * scale;
+          canvas.height = height * scale;
           const ctx = canvas.getContext('2d');
           if (ctx) {
+            // Enable image smoothing for better quality
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.scale(scale, scale);
             ctx.drawImage(img, 0, 0, width, height);
-            resolve(canvas.toDataURL('image/jpeg', 0.8));
+            // Use high quality JPEG
+            resolve(canvas.toDataURL('image/jpeg', 0.95));
           } else {
             resolve(null);
           }
