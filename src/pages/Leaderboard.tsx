@@ -8,6 +8,7 @@ import { Trophy, Medal, Crown, Award, Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useTrialGuard } from "@/hooks/useTrialGuard";
 import { getAvatarColor, getInitials } from "@/lib/avatarColors";
+import { useLanguage } from "@/contexts/LanguageContext";
 interface LeaderboardEntry {
   user_id: string;
   display_name: string | null;
@@ -20,6 +21,7 @@ interface LeaderboardEntry {
 
 const Leaderboard = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -113,7 +115,7 @@ const Leaderboard = () => {
 
 
   const getDisplayName = (entry: LeaderboardEntry) => {
-    return entry.display_name ? `@${entry.display_name}` : "Usuario Anónimo";
+    return entry.display_name ? `@${entry.display_name}` : t('leaderboard.anonymousUser');
   };
 
   if (loading || trialLoading) {
@@ -138,10 +140,10 @@ const Leaderboard = () => {
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-2">
             <Trophy className="h-8 w-8 text-primary" />
-            <h1 className="text-3xl font-bold">Tabla de Clasificación</h1>
+            <h1 className="text-3xl font-bold">{t('leaderboard.title')}</h1>
           </div>
           <p className="text-muted-foreground">
-            Compara tu progreso con otros usuarios de NutriCoach
+            {t('leaderboard.subtitle')}
           </p>
         </div>
 
@@ -149,10 +151,10 @@ const Leaderboard = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Award className="h-5 w-5" />
-              Top 100 Usuarios
+              {t('leaderboard.top100')}
             </CardTitle>
             <CardDescription>
-              Clasificación basada en puntos totales
+              {t('leaderboard.rankingDesc')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -191,15 +193,15 @@ const Leaderboard = () => {
                                 {getDisplayName(entry)}
                               </p>
                               {isCurrentUser && (
-                                <Badge variant="default" className="text-xs">Tú</Badge>
+                                <Badge variant="default" className="text-xs">{t('leaderboard.you')}</Badge>
                               )}
                             </div>
                             <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
-                              <span>Nivel {entry.level}</span>
+                              <span>{t('leaderboard.level')} {entry.level}</span>
                               <span>•</span>
-                              <span>{entry.achievements_count} logros</span>
+                              <span>{entry.achievements_count} {t('leaderboard.achievements')}</span>
                               <span>•</span>
-                              <span>{entry.current_streak} días de racha</span>
+                              <span>{entry.current_streak} {t('leaderboard.streakDays')}</span>
                             </div>
                           </div>
 
@@ -209,7 +211,7 @@ const Leaderboard = () => {
                               <Trophy className="h-5 w-5" />
                               {entry.total_points.toLocaleString()}
                             </div>
-                            <p className="text-xs text-muted-foreground">puntos</p>
+                            <p className="text-xs text-muted-foreground">{t('leaderboard.points')}</p>
                           </div>
                         </div>
                       </CardContent>
