@@ -37,17 +37,33 @@ import ShoppingList from "./pages/ShoppingList";
 
 const queryClient = new QueryClient();
 
+import { MobileBottomNav } from "@/components/MobileBottomNav";
+
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
   <SidebarProvider>
     <div className="flex min-h-screen w-full">
-      <AppSidebar />
-      <div className="flex-1 flex flex-col">
-        <header className="h-14 border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10 flex items-center px-4">
-          <SidebarTrigger />
+      {/* Sidebar - hidden on mobile */}
+      <div className="hidden md:block">
+        <AppSidebar />
+      </div>
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Header - only show sidebar trigger on desktop */}
+        <header className="h-14 border-b bg-card/95 backdrop-blur-lg sticky top-0 z-40 flex items-center px-4 safe-area-top">
+          <div className="hidden md:block">
+            <SidebarTrigger />
+          </div>
+          {/* Mobile header title */}
+          <div className="md:hidden flex items-center">
+            <img src="/lovable-uploads/chefly-logo.png" alt="Chefly" className="h-8 w-auto" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+            <span className="font-semibold text-lg ml-2">Chefly</span>
+          </div>
         </header>
-        <main className="flex-1">{children}</main>
+        {/* Main content with bottom padding for mobile nav */}
+        <main className="flex-1 pb-mobile-nav md:pb-0 scroll-touch">{children}</main>
       </div>
     </div>
+    {/* Mobile bottom navigation */}
+    <MobileBottomNav />
   </SidebarProvider>
 );
 
