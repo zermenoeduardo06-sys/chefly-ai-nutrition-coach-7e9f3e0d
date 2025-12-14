@@ -32,6 +32,7 @@ import { SwipeableDaysNavigator } from "@/components/SwipeableDaysNavigator";
 import { SwipeableMealCard } from "@/components/SwipeableMealCard";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useHaptics } from "@/hooks/useHaptics";
+import { useOfflineMode } from "@/hooks/useOfflineMode";
 
 interface Meal {
   id: string;
@@ -107,6 +108,7 @@ const Dashboard = () => {
   const { t, getArray, language, setLanguage } = useLanguage();
   const { scheduleMealReminders, scheduleStreakRiskAlert, permissionGranted, isNative } = useNotifications();
   const { successNotification, celebrationPattern, errorNotification, selectionChanged } = useHaptics();
+  const { isOnline, isSyncing, pendingCount, cacheMeals, getCachedMeals, addPendingCompletion } = useOfflineMode(userId);
 
   const dayNames = getArray("dashboard.days");
   const mealTypes: { [key: string]: string } = {
@@ -228,6 +230,19 @@ const Dashboard = () => {
       toast({
         title: t("dashboard.mealCompleted"),
         description: t("dashboard.keepStreak"),
+      });
+      return;
+    }
+
+    // If offline, queue for later sync
+    if (!isOnline) {
+      addPendingCompletion(mealId);
+      setCompletedMeals(prev => new Set([...prev, mealId]));
+      successNotification();
+      triggerCelebration();
+      toast({
+        title: language === 'es' ? '¡Guardado offline!' : 'Saved offline!',
+        description: language === 'es' ? 'Se sincronizará cuando vuelvas a estar online' : 'Will sync when you\'re back online',
       });
       return;
     }
@@ -516,6 +531,24 @@ const Dashboard = () => {
         return;
       }
 
+      // Try to load from network first, fall back to cache if offline
+      if (!isOnline) {
+        const cached = getCachedMeals();
+        if (cached) {
+          setMealPlan({
+            id: cached.id,
+            week_start_date: cached.week_start_date,
+            meals: cached.meals,
+          });
+          toast({
+            title: language === 'es' ? 'Modo offline' : 'Offline mode',
+            description: language === 'es' ? 'Mostrando comidas guardadas' : 'Showing cached meals',
+          });
+          setLoading(false);
+          return;
+        }
+      }
+
       // Get the most recent meal plan
       const { data: plans, error: planError } = await supabase
         .from("meal_plans")
@@ -526,6 +559,17 @@ const Dashboard = () => {
 
       if (planError) {
         console.error("Error loading meal plans:", planError);
+        // Try cache on error
+        const cached = getCachedMeals();
+        if (cached) {
+          setMealPlan({
+            id: cached.id,
+            week_start_date: cached.week_start_date,
+            meals: cached.meals,
+          });
+          setLoading(false);
+          return;
+        }
         throw planError;
       }
 
@@ -554,11 +598,16 @@ const Dashboard = () => {
           return;
         }
 
-        setMealPlan({
+        const mealPlanData = {
           id: planId,
           week_start_date: plans[0].week_start_date,
           meals: meals,
-        });
+        };
+
+        setMealPlan(mealPlanData);
+        
+        // Cache meals for offline use
+        cacheMeals({ id: planId, week_start_date: plans[0].week_start_date }, meals);
         
         // Load completed meals for today
         await loadCompletedMeals(userId);
@@ -812,6 +861,32 @@ const Dashboard = () => {
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 overflow-x-hidden pt-safe-top">
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6 max-w-full overflow-hidden">
         
+        {/* Offline/Syncing Indicator */}
+        {(!isOnline || pendingCount > 0) && (
+          <div className={`flex items-center gap-2 p-3 rounded-lg text-sm ${
+            !isOnline 
+              ? 'bg-destructive/10 text-destructive border border-destructive/20' 
+              : 'bg-primary/10 text-primary border border-primary/20'
+          }`}>
+            {!isOnline ? (
+              <>
+                <div className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
+                <span>{language === 'es' ? 'Sin conexión - Modo offline activo' : 'No connection - Offline mode active'}</span>
+              </>
+            ) : isSyncing ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>{language === 'es' ? 'Sincronizando...' : 'Syncing...'}</span>
+              </>
+            ) : pendingCount > 0 ? (
+              <>
+                <div className="w-2 h-2 rounded-full bg-primary" />
+                <span>{language === 'es' ? `${pendingCount} comida(s) pendiente(s) de sincronizar` : `${pendingCount} meal(s) pending sync`}</span>
+              </>
+            ) : null}
+          </div>
+        )}
+
         {/* Mobile Stats Bar - Duolingo Style */}
         <MobileStatsBar 
           streak={userStats.current_streak}
