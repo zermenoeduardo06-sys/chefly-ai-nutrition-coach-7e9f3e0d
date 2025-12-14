@@ -114,6 +114,31 @@ export default {
             opacity: "1",
           },
         },
+        "bounce-in": {
+          "0%": {
+            transform: "scale(0.3)",
+            opacity: "0",
+          },
+          "50%": {
+            transform: "scale(1.05)",
+          },
+          "70%": {
+            transform: "scale(0.9)",
+          },
+          "100%": {
+            transform: "scale(1)",
+            opacity: "1",
+          },
+        },
+        "pop": {
+          "0%": { transform: "scale(1)" },
+          "50%": { transform: "scale(1.15)" },
+          "100%": { transform: "scale(1)" },
+        },
+        "wiggle": {
+          "0%, 100%": { transform: "rotate(-3deg)" },
+          "50%": { transform: "rotate(3deg)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -121,6 +146,9 @@ export default {
         "fade-in": "fade-in 0.5s ease-out forwards",
         "grow-up": "grow-up 0.6s ease-out forwards",
         "grow-right": "grow-right 0.8s ease-out forwards",
+        "bounce-in": "bounce-in 0.5s ease-out forwards",
+        "pop": "pop 0.3s ease-out",
+        "wiggle": "wiggle 0.3s ease-in-out",
       },
     },
   },
