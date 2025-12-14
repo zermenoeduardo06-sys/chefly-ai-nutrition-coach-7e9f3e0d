@@ -38,6 +38,7 @@ import Settings from "./pages/Settings";
 import ProfileEdit from "./pages/ProfileEdit";
 import AvatarEdit from "./pages/AvatarEdit";
 import Preferences from "./pages/Preferences";
+import NotificationSettings from "./pages/NotificationSettings";
 
 const queryClient = new QueryClient();
 
@@ -87,6 +88,7 @@ const App = () => (
             <Route path="/dashboard/settings/profile" element={<DashboardLayout><ProfileEdit /></DashboardLayout>} />
             <Route path="/dashboard/settings/avatar" element={<DashboardLayout><AvatarEdit /></DashboardLayout>} />
             <Route path="/dashboard/settings/preferences" element={<DashboardLayout><Preferences /></DashboardLayout>} />
+            <Route path="/dashboard/settings/notifications" element={<DashboardLayout><NotificationSettings /></DashboardLayout>} />
             <Route path="/dashboard/shopping" element={<DashboardLayout><ShoppingList /></DashboardLayout>} />
             <Route path="/chat" element={<Chat />} />
             <Route path="/pricing" element={<Pricing />} />
