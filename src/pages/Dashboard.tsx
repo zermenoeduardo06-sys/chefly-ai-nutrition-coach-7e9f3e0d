@@ -27,6 +27,7 @@ import DashboardTutorial from "@/components/DashboardTutorial";
 import { InAppTour } from "@/components/InAppTour";
 import { clearAllShoppingListCaches } from "@/utils/shoppingListCache";
 import { MobileStatsBar } from "@/components/MobileStatsBar";
+import { useNotifications } from "@/hooks/useNotifications";
 
 interface Meal {
   id: string;
@@ -98,6 +99,7 @@ const Dashboard = () => {
   const { isBlocked, isLoading: trialLoading } = useTrialGuard();
   const [searchParams] = useSearchParams();
   const { t, getArray, language, setLanguage } = useLanguage();
+  const { scheduleMealReminders, scheduleStreakRiskAlert, permissionGranted, isNative } = useNotifications();
 
   const dayNames = getArray("dashboard.days");
   const mealTypes: { [key: string]: string } = {
@@ -165,6 +167,10 @@ const Dashboard = () => {
 
     if (data) {
       setUserStats(data);
+      // Schedule streak risk alert if on native platform with permissions
+      if (isNative && permissionGranted && data.current_streak >= 2) {
+        scheduleStreakRiskAlert(data.current_streak, data.last_activity_date, language);
+      }
     } else if (!error || error.code === 'PGRST116') {
       // Create initial stats if they don't exist
       const { data: newStats } = await supabase
@@ -185,6 +191,13 @@ const Dashboard = () => {
       }
     }
   };
+
+  // Schedule meal reminders when dashboard loads on native platform
+  useEffect(() => {
+    if (isNative && permissionGranted && userId) {
+      scheduleMealReminders(language);
+    }
+  }, [isNative, permissionGranted, userId, language]);
 
   const loadCompletedMeals = async (userId: string) => {
     const today = new Date().toISOString().split('T')[0];
