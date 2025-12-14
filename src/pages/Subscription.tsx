@@ -107,76 +107,28 @@ const Subscription = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-6">
-      {/* Hero Header with Gradient */}
+      {/* Compact Header */}
       <div className="relative bg-gradient-to-br from-primary via-primary/80 to-secondary overflow-hidden">
-        {/* Sparkle decorations */}
-        <div className="absolute inset-0 pointer-events-none">
-          <motion.div 
-            className="absolute top-12 left-8"
-            animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            <Sparkles className="h-5 w-5 text-white/60" />
-          </motion.div>
-          <motion.div 
-            className="absolute top-16 right-12"
-            animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.8, 0.3] }}
-            transition={{ duration: 2.5, repeat: Infinity, delay: 0.5 }}
-          >
-            <Star className="h-4 w-4 text-white/50" />
-          </motion.div>
-          <motion.div 
-            className="absolute bottom-20 left-1/4"
-            animate={{ scale: [1, 1.2, 1], opacity: [0.4, 0.9, 0.4] }}
-            transition={{ duration: 1.8, repeat: Infinity, delay: 1 }}
-          >
-            <Sparkles className="h-3 w-3 text-white/40" />
-          </motion.div>
-        </div>
-
-        <div className="relative px-4 pt-6 pb-10">
-          {/* Back button */}
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => navigate("/dashboard")}
-            className="text-white hover:bg-white/20 mb-4"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-
-          {/* Title */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center"
-          >
-            <h1 className="text-3xl font-bold text-white mb-1">
-              {language === "es" ? "Suscripción" : "Subscription"}
-            </h1>
-            <p className="text-white/70 text-sm uppercase tracking-widest font-semibold">
-              {language === "es" ? "CONOCE LOS PLANES" : "EXPLORE PLANS"}
-            </p>
-          </motion.div>
-
-          {/* Mascot in hero */}
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2, type: "spring" }}
-            className="flex justify-center mt-6"
-          >
-            <div className="relative">
-              <div className="absolute -inset-4 bg-white/20 rounded-3xl blur-xl" />
-              <div className="relative bg-white/10 backdrop-blur-sm rounded-3xl p-4 border border-white/20">
-                <img 
-                  src={mascotFlexing} 
-                  alt="Chefly mascot" 
-                  className="h-24 w-24 object-contain"
-                />
-              </div>
+        <div className="relative px-4 py-4">
+          {/* Back button and title row */}
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => navigate("/dashboard")}
+              className="text-white hover:bg-white/20 h-9 w-9"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div>
+              <h1 className="text-xl font-bold text-white">
+                {language === "es" ? "Suscripción" : "Subscription"}
+              </h1>
+              <p className="text-white/70 text-xs uppercase tracking-wide">
+                {language === "es" ? "PLANES" : "PLANS"}
+              </p>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
 
