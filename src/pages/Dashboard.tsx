@@ -783,7 +783,7 @@ const Dashboard = () => {
 
   return (
     <TooltipProvider delayDuration={300}>
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 overflow-x-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 overflow-x-hidden pt-safe-top">
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6 max-w-full overflow-hidden">
         
         {/* Mobile Stats Bar - Duolingo Style */}

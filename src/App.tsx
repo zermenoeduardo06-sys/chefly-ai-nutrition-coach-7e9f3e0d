@@ -47,8 +47,6 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
         <AppSidebar />
       </div>
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile safe area spacer - blends with background */}
-        <div className="md:hidden h-safe-top bg-background" />
         {/* Desktop header - only show sidebar trigger */}
         <header className="hidden md:flex h-14 border-b bg-card/95 backdrop-blur-lg sticky top-0 z-40 items-center px-4">
           <SidebarTrigger />

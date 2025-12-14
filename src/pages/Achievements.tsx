@@ -88,8 +88,8 @@ const Achievements = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-6">
-      {/* Hero Header */}
-      <div className="relative bg-gradient-to-br from-yellow-500 via-amber-500 to-orange-500 overflow-hidden">
+      {/* Hero Header with safe area */}
+      <div className="relative bg-gradient-to-br from-yellow-500 via-amber-500 to-orange-500 overflow-hidden pt-safe-top">
         {/* Sparkle decorations */}
         <div className="absolute inset-0 pointer-events-none">
           <motion.div 
@@ -108,7 +108,7 @@ const Achievements = () => {
           </motion.div>
         </div>
 
-        <div className="relative px-4 pt-6 pb-8">
+        <div className="relative px-4 pt-4 pb-8">
           {/* Title */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
