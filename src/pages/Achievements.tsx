@@ -78,7 +78,7 @@ const Achievements = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
-      <main className="container mx-auto px-4 py-6">
+      <main className="container mx-auto px-4 py-4 md:py-6">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <p className="text-muted-foreground">{t('achievements.loading')}</p>

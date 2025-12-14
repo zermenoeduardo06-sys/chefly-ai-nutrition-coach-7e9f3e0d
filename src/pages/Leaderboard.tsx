@@ -136,30 +136,30 @@ const Leaderboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
-      <main className="container mx-auto px-4 py-6">
-        <div className="mb-6">
-          <div className="flex items-center gap-3 mb-2">
-            <Trophy className="h-8 w-8 text-primary" />
-            <h1 className="text-3xl font-bold">{t('leaderboard.title')}</h1>
+      <main className="container mx-auto px-4 py-4 md:py-6">
+        <div className="mb-4 md:mb-6">
+          <div className="flex items-center gap-2 md:gap-3 mb-1 md:mb-2">
+            <Trophy className="h-6 w-6 md:h-8 md:w-8 text-primary" />
+            <h1 className="text-2xl md:text-3xl font-bold">{t('leaderboard.title')}</h1>
           </div>
-          <p className="text-muted-foreground">
+          <p className="text-sm md:text-base text-muted-foreground">
             {t('leaderboard.subtitle')}
           </p>
         </div>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Award className="h-5 w-5" />
+          <CardHeader className="p-4 md:p-6">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <Award className="h-4 w-4 md:h-5 md:w-5" />
               {t('leaderboard.top100')}
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xs md:text-sm">
               {t('leaderboard.rankingDesc')}
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[600px] pr-4">
-              <div className="space-y-3">
+          <CardContent className="p-2 md:p-6 pt-0">
+            <ScrollArea className="h-[500px] md:h-[600px]">
+              <div className="space-y-2 md:space-y-3 pr-2 md:pr-4">
                 {leaderboard.map((entry, index) => {
                   const isCurrentUser = entry.user_id === currentUserId;
                   return (
@@ -171,47 +171,47 @@ const Leaderboard = () => {
                           : "hover:shadow-md"
                       }`}
                     >
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-4">
+                      <CardContent className="p-3 md:p-4">
+                        <div className="flex items-center gap-2 md:gap-4">
                           {/* Rank */}
-                          <div className="flex items-center justify-center w-12">
+                          <div className="flex items-center justify-center w-8 md:w-12 flex-shrink-0">
                             {getRankIcon(index)}
                           </div>
 
                           {/* Avatar */}
-                          <Avatar className="h-12 w-12">
+                          <Avatar className="h-10 w-10 md:h-12 md:w-12 flex-shrink-0">
                             <AvatarImage src={entry.avatar_url || undefined} alt={getDisplayName(entry)} />
-                            <AvatarFallback className={`${getAvatarColor(entry.display_name || entry.user_id)} text-white font-semibold`}>
+                            <AvatarFallback className={`${getAvatarColor(entry.display_name || entry.user_id)} text-white font-semibold text-sm`}>
                               {getInitials(entry.display_name)}
                             </AvatarFallback>
                           </Avatar>
 
                           {/* User Info */}
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <p className={`font-semibold truncate ${isCurrentUser ? "text-primary" : ""}`}>
+                            <div className="flex items-center gap-1 md:gap-2">
+                              <p className={`font-semibold truncate text-sm md:text-base ${isCurrentUser ? "text-primary" : ""}`}>
                                 {getDisplayName(entry)}
                               </p>
                               {isCurrentUser && (
-                                <Badge variant="default" className="text-xs">{t('leaderboard.you')}</Badge>
+                                <Badge variant="default" className="text-[10px] md:text-xs px-1.5">{t('leaderboard.you')}</Badge>
                               )}
                             </div>
-                            <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
-                              <span>{t('leaderboard.level')} {entry.level}</span>
-                              <span>•</span>
-                              <span>{entry.achievements_count} {t('leaderboard.achievements')}</span>
-                              <span>•</span>
-                              <span>{entry.current_streak} {t('leaderboard.streakDays')}</span>
+                            <div className="flex items-center gap-2 md:gap-3 mt-0.5 md:mt-1 text-xs md:text-sm text-muted-foreground">
+                              <span className="hidden sm:inline">{t('leaderboard.level')} {entry.level}</span>
+                              <span className="sm:hidden">Nv.{entry.level}</span>
+                              <span className="hidden sm:inline">•</span>
+                              <span className="hidden sm:inline">{entry.achievements_count} {t('leaderboard.achievements')}</span>
+                              <span>🔥{entry.current_streak}</span>
                             </div>
                           </div>
 
                           {/* Points */}
-                          <div className="text-right">
-                            <div className="flex items-center gap-1 text-primary font-bold text-xl">
-                              <Trophy className="h-5 w-5" />
+                          <div className="text-right flex-shrink-0">
+                            <div className="flex items-center gap-1 text-primary font-bold text-base md:text-xl">
+                              <Trophy className="h-4 w-4 md:h-5 md:w-5" />
                               {entry.total_points.toLocaleString()}
                             </div>
-                            <p className="text-xs text-muted-foreground">{t('leaderboard.points')}</p>
+                            <p className="text-[10px] md:text-xs text-muted-foreground">{t('leaderboard.points')}</p>
                           </div>
                         </div>
                       </CardContent>

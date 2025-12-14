@@ -39,34 +39,37 @@ const Progress = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
-      <main className="container mx-auto px-4 py-6 space-y-6">
-        <div className="flex items-center gap-2 mb-6">
-          <TrendingDown className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold">{t('progress.title')}</h1>
+      <main className="container mx-auto px-4 py-4 md:py-6 space-y-4 md:space-y-6">
+        <div className="flex items-center gap-2 mb-4 md:mb-6">
+          <TrendingDown className="h-6 w-6 md:h-8 md:w-8 text-primary" />
+          <h1 className="text-2xl md:text-3xl font-bold">{t('progress.title')}</h1>
         </div>
 
         <Tabs defaultValue="nutrition" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="nutrition">{t('progress.tabNutrition')}</TabsTrigger>
-            <TabsTrigger value="body">
-              <Scale className="mr-2 h-4 w-4" />
-              {t('progress.tabBody')}
+          <TabsList className="grid w-full grid-cols-2 h-11">
+            <TabsTrigger value="nutrition" className="text-sm md:text-base">
+              {t('progress.tabNutrition')}
+            </TabsTrigger>
+            <TabsTrigger value="body" className="text-sm md:text-base">
+              <Scale className="mr-1.5 md:mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">{t('progress.tabBody')}</span>
+              <span className="sm:hidden">{t('progress.tabWeight')}</span>
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="nutrition" className="mt-6">
+          <TabsContent value="nutrition" className="mt-4 md:mt-6">
             <NutritionProgressCharts />
           </TabsContent>
 
-          <TabsContent value="body" className="mt-6 space-y-6">
+          <TabsContent value="body" className="mt-4 md:mt-6 space-y-4 md:space-y-6">
             <Card>
-              <CardHeader>
-                <CardTitle>{t('progress.recordMeasurements')}</CardTitle>
-                <CardDescription>
+              <CardHeader className="p-4 md:p-6">
+                <CardTitle className="text-base md:text-lg">{t('progress.recordMeasurements')}</CardTitle>
+                <CardDescription className="text-sm">
                   {t('progress.recordMeasurementsDesc')}
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4 md:p-6 pt-0">
                 {userId && (
                   <BodyMeasurementForm 
                     userId={userId} 
