@@ -83,7 +83,7 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar>
+    <Sidebar data-tour="navigation">
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className={collapsed ? "opacity-0" : ""}>

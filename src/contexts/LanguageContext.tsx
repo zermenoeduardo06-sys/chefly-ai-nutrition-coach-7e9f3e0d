@@ -362,6 +362,22 @@ export const translations = {
     "tutorial.start": "¡Comenzar!",
     "tutorial.skip": "Saltar",
     
+    // In-App Tour
+    "tour.mealPlan.title": "Tu Menú Semanal",
+    "tour.mealPlan.desc": "Aquí ves tus comidas del día organizado. Haz clic en cualquier tarjeta para ver la receta completa con ingredientes y pasos.",
+    "tour.completeMeal.title": "Marca tus Comidas",
+    "tour.completeMeal.desc": "Presiona el botón ✓ cuando prepares una comida. ¡Ganarás 10 puntos y mantendrás tu racha activa!",
+    "tour.gamification.title": "Tu Progreso",
+    "tour.gamification.desc": "Aquí ves tus puntos, nivel y racha. ¡Completa comidas seguidas para desbloquear logros especiales!",
+    "tour.chat.title": "Tu Coach IA",
+    "tour.chat.desc": "¿Dudas sobre nutrición? Pregunta lo que quieras a tu asistente inteligente. Está aquí para ayudarte.",
+    "tour.navigation.title": "Menú de Navegación",
+    "tour.navigation.desc": "Explora otras secciones: tu progreso, logros, amigos, lista de compras y más. ¡Todo a un clic!",
+    "tour.prev": "Anterior",
+    "tour.next": "Siguiente",
+    "tour.finish": "¡Empezar!",
+    "tour.skip": "Saltar",
+    
     // Tooltips
     "tooltip.level": "Tu nivel sube cada 100 puntos. ¡Completa comidas para subir más rápido!",
     "tooltip.mealsCompleted": "Total de comidas que has preparado siguiendo tu plan",
@@ -1234,6 +1250,22 @@ export const translations = {
     "tutorial.next": "Next",
     "tutorial.start": "Let's go!",
     "tutorial.skip": "Skip",
+    
+    // In-App Tour
+    "tour.mealPlan.title": "Your Weekly Menu",
+    "tour.mealPlan.desc": "Here you see today's meals organized. Click any card to see the full recipe with ingredients and steps.",
+    "tour.completeMeal.title": "Mark Your Meals",
+    "tour.completeMeal.desc": "Press the ✓ button when you prepare a meal. You'll earn 10 points and keep your streak going!",
+    "tour.gamification.title": "Your Progress",
+    "tour.gamification.desc": "Here you see your points, level, and streak. Complete consecutive meals to unlock special achievements!",
+    "tour.chat.title": "Your AI Coach",
+    "tour.chat.desc": "Questions about nutrition? Ask anything to your smart assistant. It's here to help you.",
+    "tour.navigation.title": "Navigation Menu",
+    "tour.navigation.desc": "Explore other sections: your progress, achievements, friends, shopping list, and more. Everything is one click away!",
+    "tour.prev": "Previous",
+    "tour.next": "Next",
+    "tour.finish": "Let's Start!",
+    "tour.skip": "Skip",
     
     // Tooltips
     "tooltip.level": "Your level increases every 100 points. Complete meals to level up faster!",
