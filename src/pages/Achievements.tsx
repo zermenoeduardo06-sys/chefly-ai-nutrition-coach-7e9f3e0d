@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AchievementsDisplay } from "@/components/AchievementsDisplay";
 import { useTrialGuard } from "@/hooks/useTrialGuard";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Loader2 } from "lucide-react";
 
 interface Achievement {
@@ -18,6 +19,7 @@ interface Achievement {
 
 const Achievements = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [unlockedAchievements, setUnlockedAchievements] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -79,7 +81,7 @@ const Achievements = () => {
       <main className="container mx-auto px-4 py-6">
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <p className="text-muted-foreground">Cargando logros...</p>
+            <p className="text-muted-foreground">{t('achievements.loading')}</p>
           </div>
         ) : (
           <AchievementsDisplay

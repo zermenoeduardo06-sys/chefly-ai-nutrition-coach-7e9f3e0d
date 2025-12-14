@@ -7,9 +7,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, Scale, TrendingDown } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Progress = () => {
   const { isBlocked, isLoading } = useTrialGuard();
+  const { t } = useLanguage();
   const [userId, setUserId] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
@@ -40,15 +42,15 @@ const Progress = () => {
       <main className="container mx-auto px-4 py-6 space-y-6">
         <div className="flex items-center gap-2 mb-6">
           <TrendingDown className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold">Tu Progreso</h1>
+          <h1 className="text-3xl font-bold">{t('progress.title')}</h1>
         </div>
 
         <Tabs defaultValue="nutrition" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="nutrition">Nutrición</TabsTrigger>
+            <TabsTrigger value="nutrition">{t('progress.tabNutrition')}</TabsTrigger>
             <TabsTrigger value="body">
               <Scale className="mr-2 h-4 w-4" />
-              Medidas Corporales
+              {t('progress.tabBody')}
             </TabsTrigger>
           </TabsList>
 
@@ -59,9 +61,9 @@ const Progress = () => {
           <TabsContent value="body" className="mt-6 space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Registrar Medidas</CardTitle>
+                <CardTitle>{t('progress.recordMeasurements')}</CardTitle>
                 <CardDescription>
-                  Registra tu peso y medidas corporales para hacer seguimiento de tu progreso
+                  {t('progress.recordMeasurementsDesc')}
                 </CardDescription>
               </CardHeader>
               <CardContent>

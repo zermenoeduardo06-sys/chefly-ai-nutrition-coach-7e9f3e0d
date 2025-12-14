@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const formSchema = z.object({
   measurement_date: z.string(),
@@ -29,6 +30,7 @@ interface BodyMeasurementFormProps {
 
 export const BodyMeasurementForm = ({ userId, onSuccess }: BodyMeasurementFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
+  const { t } = useLanguage();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -70,7 +72,7 @@ export const BodyMeasurementForm = ({ userId, onSuccess }: BodyMeasurementFormPr
 
       if (error) throw error;
 
-      toast.success("Medidas guardadas correctamente");
+      toast.success(t('bodyMeasurements.saveSuccess'));
       form.reset({
         measurement_date: new Date().toISOString().split('T')[0],
         weight: "",
@@ -84,7 +86,7 @@ export const BodyMeasurementForm = ({ userId, onSuccess }: BodyMeasurementFormPr
       });
       onSuccess();
     } catch (error: any) {
-      toast.error("Error al guardar las medidas: " + error.message);
+      toast.error(t('bodyMeasurements.saveError') + ": " + error.message);
     } finally {
       setIsLoading(false);
     }
@@ -98,7 +100,7 @@ export const BodyMeasurementForm = ({ userId, onSuccess }: BodyMeasurementFormPr
           name="measurement_date"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Fecha</FormLabel>
+              <FormLabel>{t('bodyMeasurements.date')}</FormLabel>
               <FormControl>
                 <Input type="date" {...field} />
               </FormControl>
@@ -113,7 +115,7 @@ export const BodyMeasurementForm = ({ userId, onSuccess }: BodyMeasurementFormPr
             name="weight"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Peso (kg)</FormLabel>
+                <FormLabel>{t('bodyMeasurements.weight')}</FormLabel>
                 <FormControl>
                   <Input type="number" step="0.1" placeholder="70.5" {...field} />
                 </FormControl>
@@ -127,7 +129,7 @@ export const BodyMeasurementForm = ({ userId, onSuccess }: BodyMeasurementFormPr
             name="neck"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Cuello (cm)</FormLabel>
+                <FormLabel>{t('bodyMeasurements.neck')}</FormLabel>
                 <FormControl>
                   <Input type="number" step="0.1" placeholder="35.0" {...field} />
                 </FormControl>
@@ -141,7 +143,7 @@ export const BodyMeasurementForm = ({ userId, onSuccess }: BodyMeasurementFormPr
             name="chest"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Pecho (cm)</FormLabel>
+                <FormLabel>{t('bodyMeasurements.chest')}</FormLabel>
                 <FormControl>
                   <Input type="number" step="0.1" placeholder="95.0" {...field} />
                 </FormControl>
@@ -155,7 +157,7 @@ export const BodyMeasurementForm = ({ userId, onSuccess }: BodyMeasurementFormPr
             name="waist"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Cintura (cm)</FormLabel>
+                <FormLabel>{t('bodyMeasurements.waist')}</FormLabel>
                 <FormControl>
                   <Input type="number" step="0.1" placeholder="80.0" {...field} />
                 </FormControl>
@@ -169,7 +171,7 @@ export const BodyMeasurementForm = ({ userId, onSuccess }: BodyMeasurementFormPr
             name="hips"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Cadera (cm)</FormLabel>
+                <FormLabel>{t('bodyMeasurements.hips')}</FormLabel>
                 <FormControl>
                   <Input type="number" step="0.1" placeholder="95.0" {...field} />
                 </FormControl>
@@ -183,7 +185,7 @@ export const BodyMeasurementForm = ({ userId, onSuccess }: BodyMeasurementFormPr
             name="arms"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Brazos (cm)</FormLabel>
+                <FormLabel>{t('bodyMeasurements.arms')}</FormLabel>
                 <FormControl>
                   <Input type="number" step="0.1" placeholder="30.0" {...field} />
                 </FormControl>
@@ -197,7 +199,7 @@ export const BodyMeasurementForm = ({ userId, onSuccess }: BodyMeasurementFormPr
             name="thighs"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Muslos (cm)</FormLabel>
+                <FormLabel>{t('bodyMeasurements.thighs')}</FormLabel>
                 <FormControl>
                   <Input type="number" step="0.1" placeholder="55.0" {...field} />
                 </FormControl>
@@ -212,10 +214,10 @@ export const BodyMeasurementForm = ({ userId, onSuccess }: BodyMeasurementFormPr
           name="notes"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Notas (opcional)</FormLabel>
+              <FormLabel>{t('bodyMeasurements.notes')}</FormLabel>
               <FormControl>
                 <Textarea 
-                  placeholder="Ej: Me siento con más energía hoy"
+                  placeholder={t('bodyMeasurements.notesPlaceholder')}
                   {...field} 
                 />
               </FormControl>
@@ -226,7 +228,7 @@ export const BodyMeasurementForm = ({ userId, onSuccess }: BodyMeasurementFormPr
 
         <Button type="submit" className="w-full" disabled={isLoading}>
           {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Guardar Medidas
+          {t('bodyMeasurements.save')}
         </Button>
       </form>
     </Form>

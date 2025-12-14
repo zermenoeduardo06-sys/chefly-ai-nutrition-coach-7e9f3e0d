@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Lock } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Achievement {
   id: string;
@@ -23,6 +24,8 @@ interface AchievementsDisplayProps {
 }
 
 export const AchievementsDisplay = ({ achievements, unlockedAchievements }: AchievementsDisplayProps) => {
+  const { t } = useLanguage();
+  
   const sortedAchievements = [...achievements].sort((a, b) => {
     const aUnlocked = unlockedAchievements.has(a.id);
     const bUnlocked = unlockedAchievements.has(b.id);
@@ -36,10 +39,10 @@ export const AchievementsDisplay = ({ achievements, unlockedAchievements }: Achi
       <CardHeader className="bg-gradient-to-r from-primary/5 to-secondary/5 border-b">
         <CardTitle className="flex items-center gap-2">
           <span className="text-2xl">🏆</span>
-          Logros y Medallas
+          {t('achievements.title')}
         </CardTitle>
         <CardDescription>
-          Desbloquea medallas completando retos
+          {t('achievements.subtitle')}
         </CardDescription>
       </CardHeader>
       <CardContent className="p-6">
@@ -89,7 +92,7 @@ export const AchievementsDisplay = ({ achievements, unlockedAchievements }: Achi
                             </Badge>
                             {isUnlocked && (
                               <Badge variant="secondary" className="text-sm px-3 py-1">
-                                ✓ Desbloqueado
+                                ✓ {t('achievements.unlocked')}
                               </Badge>
                             )}
                           </div>
