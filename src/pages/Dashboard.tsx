@@ -1152,9 +1152,9 @@ const Dashboard = () => {
         <Separator />
 
         {/* Weekly Meal Plan */}
-        <Card data-tour="meal-plan" className="border-border/50 shadow-lg">
+        <Card className="border-border/50 shadow-lg">
           <CardHeader className="pb-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div data-tour="meal-plan" className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <Calendar className="h-5 w-5 text-primary flex-shrink-0" />
@@ -1191,12 +1191,12 @@ const Dashboard = () => {
                   </CardHeader>
                   <CardContent className="p-3 sm:p-6">
                     <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                      {meals.map((meal) => {
+                      {meals.map((meal, mealIndex) => {
                         const isCompleted = completedMeals.has(meal.id);
+                        const isFirstMealOfFirstDay = day === 0 && mealIndex === 0;
                         return (
                           <Card 
                             key={meal.id} 
-                            data-tour={day === 0 && meals.indexOf(meal) === 0 ? "complete-meal" : undefined}
                             className={`border-border/50 bg-gradient-to-br from-card to-muted/20 hover:shadow-md transition-all overflow-hidden relative ${isCompleted ? 'ring-2 ring-green-500' : ''}`}
                           >
                             {meal.image_url && (
@@ -1218,6 +1218,7 @@ const Dashboard = () => {
                                     <Button
                                       size="icon"
                                       variant={isCompleted ? "secondary" : "default"}
+                                      data-tour={isFirstMealOfFirstDay ? "complete-meal" : undefined}
                                       className={`absolute top-2 left-2 h-8 w-8 shadow-lg ${isCompleted ? 'bg-green-500/90 hover:bg-green-600/90 text-white' : 'bg-primary/90 hover:bg-primary'}`}
                                       onClick={(e) => {
                                         e.stopPropagation();
@@ -1272,6 +1273,7 @@ const Dashboard = () => {
                                 <Button
                                   size="sm"
                                   variant={isCompleted ? "secondary" : "default"}
+                                  data-tour={isFirstMealOfFirstDay ? "complete-meal" : undefined}
                                   className={`w-full text-xs gap-1.5 ${isCompleted ? 'bg-green-500/90 hover:bg-green-600/90 text-white' : ''}`}
                                   onClick={(e) => {
                                     e.stopPropagation();
