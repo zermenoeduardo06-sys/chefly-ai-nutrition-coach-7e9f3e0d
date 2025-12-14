@@ -500,6 +500,7 @@ export function MealDetailDialog({
             steps={meal.steps}
             mealName={meal.name}
             mealImage={meal.image_url}
+            ingredients={meal.ingredients}
           />
         )}
       </DialogContent>
