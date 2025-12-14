@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, Check, ChefHat, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, ChefHat, Sparkles, Clock, Utensils } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import cheflyGuideMascot from "@/assets/chefly-guide-mascot.png";
 
@@ -12,6 +12,7 @@ interface StepByStepDialogProps {
   steps: string[];
   mealName: string;
   mealImage?: string;
+  ingredients?: string[];
 }
 
 export function StepByStepDialog({
@@ -20,6 +21,7 @@ export function StepByStepDialog({
   steps,
   mealName,
   mealImage,
+  ingredients,
 }: StepByStepDialogProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
@@ -53,14 +55,36 @@ export function StepByStepDialog({
   // Get mascot message based on step progress
   const getMascotMessage = () => {
     if (currentStep === 0) {
-      return language === 'es' ? "¡Empecemos a cocinar!" : "Let's start cooking!";
+      return language === 'es' ? "¡Empecemos a cocinar! 👨‍🍳" : "Let's start cooking! 👨‍🍳";
     } else if (isLastStep) {
-      return language === 'es' ? "¡Último paso! ¡Ya casi!" : "Last step! Almost there!";
+      return language === 'es' ? "¡Último paso! ¡Ya casi terminas! 🎉" : "Last step! Almost there! 🎉";
     } else if (currentStep < steps.length / 2) {
-      return language === 'es' ? "¡Vas muy bien!" : "You're doing great!";
+      return language === 'es' ? "¡Vas muy bien! Sigue así 💪" : "You're doing great! Keep going 💪";
     } else {
-      return language === 'es' ? "¡Ya casi terminas!" : "Almost done!";
+      return language === 'es' ? "¡Ya casi terminas! Un poco más 🔥" : "Almost done! Just a bit more 🔥";
     }
+  };
+
+  // Get a tip for the current step
+  const getStepTip = () => {
+    const tips = {
+      es: [
+        "💡 Tip: Prepara todos los ingredientes antes de empezar",
+        "💡 Tip: Usa fuego medio para mejores resultados",
+        "💡 Tip: No olvides probar la sazón",
+        "💡 Tip: Tómate tu tiempo, la paciencia es clave",
+        "💡 Tip: Mantén tu área de trabajo limpia",
+      ],
+      en: [
+        "💡 Tip: Prep all ingredients before starting",
+        "💡 Tip: Use medium heat for best results",
+        "💡 Tip: Don't forget to taste as you go",
+        "💡 Tip: Take your time, patience is key",
+        "💡 Tip: Keep your workspace clean",
+      ]
+    };
+    const tipList = language === 'es' ? tips.es : tips.en;
+    return tipList[currentStep % tipList.length];
   };
 
   return (
@@ -71,7 +95,7 @@ export function StepByStepDialog({
       }
       onOpenChange(isOpen);
     }}>
-      <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-lg max-h-[90vh] overflow-hidden p-0 rounded-3xl border-4 border-primary/30 bg-gradient-to-b from-background to-primary/5">
+      <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-lg max-h-[90vh] overflow-y-auto p-0 rounded-3xl border-4 border-primary/30 bg-gradient-to-b from-background to-primary/5">
         {/* Header with progress */}
         <div className="relative p-4 pb-2">
           {/* Progress bar */}
@@ -86,19 +110,19 @@ export function StepByStepDialog({
           
           {/* Step indicator */}
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">
+            <span className="text-muted-foreground font-medium">
               {language === 'es' ? 'Paso' : 'Step'} {currentStep + 1} {language === 'es' ? 'de' : 'of'} {steps.length}
             </span>
             <div className="flex gap-1">
               {steps.map((_, index) => (
                 <motion.div
                   key={index}
-                  className={`w-2 h-2 rounded-full ${
+                  className={`w-2.5 h-2.5 rounded-full ${
                     index === currentStep
                       ? 'bg-primary'
                       : completedSteps.includes(index)
                       ? 'bg-secondary'
-                      : 'bg-muted'
+                      : 'bg-muted-foreground/30'
                   }`}
                   animate={{
                     scale: index === currentStep ? 1.3 : 1,
@@ -110,13 +134,28 @@ export function StepByStepDialog({
           </div>
         </div>
 
-        {/* Meal name */}
-        <div className="px-4 pb-2">
-          <h2 className="text-lg font-bold text-center line-clamp-1">{mealName}</h2>
+        {/* Meal image and name */}
+        <div className="px-4 pb-3">
+          {mealImage && (
+            <div className="relative h-24 rounded-2xl overflow-hidden mb-3">
+              <img 
+                src={mealImage} 
+                alt={mealName}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              <h2 className="absolute bottom-2 left-3 right-3 text-white font-bold text-lg line-clamp-1 drop-shadow-lg">
+                {mealName}
+              </h2>
+            </div>
+          )}
+          {!mealImage && (
+            <h2 className="text-lg font-bold text-center line-clamp-1 mb-2">{mealName}</h2>
+          )}
         </div>
 
         {/* Main content */}
-        <div className="px-4 pb-4 flex-1 overflow-hidden">
+        <div className="px-4 pb-4 flex-1">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentStep}
@@ -124,13 +163,13 @@ export function StepByStepDialog({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -50 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="flex flex-col gap-4"
+              className="flex flex-col gap-3"
             >
               {/* Step card */}
-              <div className="relative bg-card border-2 border-primary/20 rounded-2xl p-5 shadow-lg min-h-[180px]">
-                {/* Step number badge */}
+              <div className="relative bg-card border-2 border-primary/20 rounded-2xl p-4 pt-5 shadow-lg">
+                {/* Step number badge - inside the card now */}
                 <motion.div
-                  className="absolute -top-4 left-4 w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg"
+                  className="absolute top-3 left-3 w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-md"
                   initial={{ scale: 0, rotate: -180 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
@@ -140,22 +179,58 @@ export function StepByStepDialog({
 
                 {/* Sparkles decoration */}
                 <motion.div
-                  className="absolute top-2 right-2"
+                  className="absolute top-3 right-3"
                   animate={{ rotate: [0, 15, -15, 0] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
                   <Sparkles className="w-5 h-5 text-primary/40" />
                 </motion.div>
 
+                {/* Step header */}
+                <div className="ml-10 mb-3">
+                  <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                    {language === 'es' ? `Paso ${currentStep + 1}` : `Step ${currentStep + 1}`}
+                  </span>
+                </div>
+
                 {/* Step text */}
                 <motion.p
-                  className="text-base leading-relaxed mt-4"
+                  className="text-base leading-relaxed font-medium"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
                 >
                   {steps[currentStep]}
                 </motion.p>
+
+                {/* Step tip */}
+                <motion.div
+                  className="mt-4 p-2.5 bg-primary/5 border border-primary/10 rounded-xl"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <p className="text-xs text-muted-foreground">
+                    {getStepTip()}
+                  </p>
+                </motion.div>
+
+                {/* Estimated time indicator */}
+                <motion.div
+                  className="mt-3 flex items-center gap-4 text-xs text-muted-foreground"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.6 }}
+                >
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5" />
+                    ~{Math.max(2, Math.ceil(steps[currentStep].length / 50))} min
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Utensils className="w-3.5 h-3.5" />
+                    {language === 'es' ? 'Preparación' : 'Preparation'}
+                  </span>
+                </motion.div>
               </div>
 
               {/* Mascot section */}
@@ -166,9 +241,9 @@ export function StepByStepDialog({
                 transition={{ delay: 0.4 }}
               >
                 <motion.div
-                  className="relative w-16 h-16 shrink-0"
+                  className="relative w-14 h-14 shrink-0"
                   animate={{ 
-                    y: [0, -5, 0],
+                    y: [0, -4, 0],
                   }}
                   transition={{ 
                     duration: 2, 
@@ -190,19 +265,19 @@ export function StepByStepDialog({
                     }}
                     transition={{ duration: 1.5, repeat: Infinity }}
                   >
-                    <ChefHat className="w-4 h-4 text-primary" />
+                    <ChefHat className="w-3.5 h-3.5 text-primary" />
                   </motion.div>
                 </motion.div>
                 
                 {/* Speech bubble */}
                 <motion.div
-                  className="relative flex-1 bg-background rounded-xl p-3 shadow-sm"
+                  className="relative flex-1 bg-background rounded-xl p-2.5 shadow-sm"
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 0.5, type: "spring" }}
                 >
                   {/* Triangle */}
-                  <div className="absolute left-0 top-1/2 -translate-x-2 -translate-y-1/2 w-0 h-0 border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent border-r-[8px] border-r-background" />
+                  <div className="absolute left-0 top-1/2 -translate-x-2 -translate-y-1/2 w-0 h-0 border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-r-[6px] border-r-background" />
                   
                   <p className="text-sm font-medium text-foreground">
                     {getMascotMessage()}
