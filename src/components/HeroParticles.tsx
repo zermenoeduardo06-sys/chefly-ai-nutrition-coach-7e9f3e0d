@@ -1,7 +1,7 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 
-interface Particle {
+interface DreamyBlob {
   id: number;
   size: number;
   x: string;
@@ -11,78 +11,108 @@ interface Particle {
   opacity: number;
 }
 
-const generateParticles = (count: number): Particle[] => {
+const generateDreamyBlobs = (count: number): DreamyBlob[] => {
   return Array.from({ length: count }, (_, i) => ({
     id: i,
-    size: Math.random() * 6 + 2,
+    size: Math.random() * 300 + 150,
     x: `${Math.random() * 100}%`,
     y: `${Math.random() * 100}%`,
-    duration: Math.random() * 10 + 15,
-    delay: Math.random() * 5,
-    opacity: Math.random() * 0.5 + 0.1,
+    duration: Math.random() * 15 + 20, // Slower animations (20-35s)
+    delay: Math.random() * 8,
+    opacity: Math.random() * 0.3 + 0.1,
   }));
 };
 
-// Reduce particles on mobile for better performance
+// Reduce blobs on mobile for performance
 const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-const floatingParticles = generateParticles(isMobile ? 12 : 30);
-const glowOrbs = generateParticles(isMobile ? 4 : 8);
+const dreamyBlobs = generateDreamyBlobs(isMobile ? 4 : 8);
+const softOrbs = generateDreamyBlobs(isMobile ? 3 : 6);
 
 export const HeroParticles = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollY } = useScroll();
   
-  // Parallax transforms for different layers
-  const y1 = useTransform(scrollY, [0, 500], [0, 150]);
-  const y2 = useTransform(scrollY, [0, 500], [0, 100]);
-  const y3 = useTransform(scrollY, [0, 500], [0, 50]);
-  const opacity = useTransform(scrollY, [0, 400], [1, 0]);
+  // Gentle parallax transforms
+  const y1 = useTransform(scrollY, [0, 600], [0, 80]);
+  const y2 = useTransform(scrollY, [0, 600], [0, 50]);
+  const opacity = useTransform(scrollY, [0, 500], [1, 0]);
 
   return (
     <div 
       ref={containerRef}
       className="absolute inset-0 overflow-hidden pointer-events-none"
     >
-      {/* Base gradient layer */}
+      {/* Warm dreamy base gradient */}
       <motion.div 
-        className="absolute inset-0 bg-gradient-to-br from-primary/10 via-secondary/5 to-background"
+        className="absolute inset-0"
         style={{ opacity }}
-      />
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-secondary/5" />
+        {/* Soft warm overlay - creates the "dreamy mist" effect */}
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-primary/10" />
+      </motion.div>
 
-      {/* Animated gradient mesh - Layer 1 (slowest parallax) */}
+      {/* Large soft blobs - Layer 1 (slowest, creates depth) */}
       <motion.div 
         className="absolute inset-0"
         style={{ y: y1, opacity }}
       >
-        <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full bg-gradient-to-br from-primary/20 to-transparent blur-3xl animate-pulse" />
-        <div className="absolute bottom-0 right-1/4 w-80 h-80 rounded-full bg-gradient-to-tl from-secondary/20 to-transparent blur-3xl animate-pulse" style={{ animationDelay: "2s" }} />
+        {dreamyBlobs.map((blob) => (
+          <motion.div
+            key={`dream-blob-${blob.id}`}
+            className="absolute rounded-full"
+            style={{
+              width: blob.size,
+              height: blob.size,
+              left: blob.x,
+              top: blob.y,
+              background: blob.id % 3 === 0 
+                ? "radial-gradient(circle, hsl(var(--primary) / 0.15) 0%, hsl(var(--primary) / 0.05) 40%, transparent 70%)"
+                : blob.id % 3 === 1
+                ? "radial-gradient(circle, hsl(var(--secondary) / 0.12) 0%, hsl(var(--secondary) / 0.04) 40%, transparent 70%)"
+                : "radial-gradient(circle, hsl(var(--accent) / 0.1) 0%, hsl(var(--accent) / 0.03) 40%, transparent 70%)",
+              filter: "blur(60px)",
+            }}
+            animate={{
+              x: [0, 30, -20, 0],
+              y: [0, -25, 15, 0],
+              scale: [1, 1.15, 0.95, 1],
+            }}
+            transition={{
+              duration: blob.duration,
+              repeat: Infinity,
+              delay: blob.delay,
+              ease: "easeInOut",
+            }}
+          />
+        ))}
       </motion.div>
 
-      {/* Glow orbs - Layer 2 (medium parallax) */}
+      {/* Soft glowing orbs - Layer 2 (medium speed, adds warmth) */}
       <motion.div 
         className="absolute inset-0"
         style={{ y: y2, opacity }}
       >
-        {glowOrbs.map((orb) => (
+        {softOrbs.map((orb) => (
           <motion.div
-            key={`orb-${orb.id}`}
+            key={`soft-orb-${orb.id}`}
             className="absolute rounded-full"
             style={{
-              width: orb.size * 15,
-              height: orb.size * 15,
+              width: orb.size * 0.6,
+              height: orb.size * 0.6,
               left: orb.x,
               top: orb.y,
               background: orb.id % 2 === 0 
-                ? "radial-gradient(circle, hsl(var(--primary) / 0.3) 0%, transparent 70%)"
-                : "radial-gradient(circle, hsl(var(--secondary) / 0.25) 0%, transparent 70%)",
-              filter: "blur(20px)",
+                ? "radial-gradient(circle, hsl(var(--primary) / 0.2) 0%, hsl(var(--primary) / 0.08) 30%, transparent 60%)"
+                : "radial-gradient(circle, hsl(var(--secondary) / 0.18) 0%, hsl(var(--secondary) / 0.06) 30%, transparent 60%)",
+              filter: "blur(40px)",
             }}
             animate={{
-              scale: [1, 1.3, 1],
+              scale: [1, 1.2, 1],
               opacity: [orb.opacity, orb.opacity * 1.5, orb.opacity],
             }}
             transition={{
-              duration: orb.duration * 0.5,
+              duration: orb.duration * 0.7,
               repeat: Infinity,
               delay: orb.delay,
               ease: "easeInOut",
@@ -91,154 +121,128 @@ export const HeroParticles = () => {
         ))}
       </motion.div>
 
-      {/* Floating particles - Layer 3 (fastest parallax) */}
+      {/* Floating dust particles - Layer 3 (subtle, adds texture) */}
       <motion.div 
         className="absolute inset-0"
-        style={{ y: y3, opacity }}
+        style={{ opacity }}
       >
-        {floatingParticles.map((particle) => (
+        {[...Array(isMobile ? 8 : 15)].map((_, i) => (
           <motion.div
-            key={`particle-${particle.id}`}
-            className="absolute rounded-full"
+            key={`dust-${i}`}
+            className="absolute rounded-full bg-primary/20"
             style={{
-              width: particle.size,
-              height: particle.size,
-              left: particle.x,
-              top: particle.y,
-              background: particle.id % 3 === 0 
-                ? "hsl(var(--primary))"
-                : particle.id % 3 === 1
-                ? "hsl(var(--secondary))"
-                : "hsl(var(--foreground) / 0.3)",
-              boxShadow: particle.id % 2 === 0 
-                ? "0 0 10px hsl(var(--primary) / 0.5)"
-                : "0 0 8px hsl(var(--secondary) / 0.4)",
+              width: Math.random() * 4 + 2,
+              height: Math.random() * 4 + 2,
+              left: `${5 + i * 6}%`,
+              top: `${10 + (i % 5) * 18}%`,
+              filter: "blur(1px)",
             }}
             animate={{
-              y: [0, -30, 0],
-              x: [0, particle.id % 2 === 0 ? 10 : -10, 0],
-              opacity: [particle.opacity, particle.opacity * 2, particle.opacity],
-              scale: [1, 1.2, 1],
+              y: [0, -40, 0],
+              x: [0, i % 2 === 0 ? 15 : -15, 0],
+              opacity: [0.2, 0.5, 0.2],
             }}
             transition={{
-              duration: particle.duration,
+              duration: 12 + Math.random() * 8,
               repeat: Infinity,
-              delay: particle.delay,
+              delay: i * 0.8,
               ease: "easeInOut",
             }}
           />
         ))}
       </motion.div>
 
-      {/* Shooting stars / meteors */}
+      {/* Soft ambient light spots */}
       <motion.div 
         className="absolute inset-0"
         style={{ opacity }}
       >
-        {[...Array(3)].map((_, i) => (
-          <motion.div
-            key={`meteor-${i}`}
-            className="absolute w-1 h-20 rounded-full"
-            style={{
-              background: "linear-gradient(to bottom, hsl(var(--primary)), transparent)",
-              left: `${20 + i * 30}%`,
-              top: "-20%",
-              rotate: "45deg",
-            }}
-            animate={{
-              y: ["0%", "150%"],
-              x: ["0%", "50%"],
-              opacity: [0, 1, 0],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              delay: i * 4 + 2,
-              ease: "easeIn",
-            }}
-          />
-        ))}
+        <motion.div
+          className="absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full"
+          style={{
+            background: "radial-gradient(circle, hsl(var(--primary) / 0.08) 0%, transparent 60%)",
+            filter: "blur(80px)",
+          }}
+          animate={{
+            scale: [1, 1.1, 1],
+            x: [0, 20, 0],
+            y: [0, -15, 0],
+          }}
+          transition={{
+            duration: 25,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+        <motion.div
+          className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full"
+          style={{
+            background: "radial-gradient(circle, hsl(var(--secondary) / 0.06) 0%, transparent 60%)",
+            filter: "blur(70px)",
+          }}
+          animate={{
+            scale: [1, 1.15, 1],
+            x: [0, -25, 0],
+            y: [0, 20, 0],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            delay: 5,
+            ease: "easeInOut",
+          }}
+        />
       </motion.div>
 
-      {/* Floating sparkle dots */}
+      {/* Soft wave at bottom - gentler animation */}
       <motion.div 
-        className="absolute inset-0"
-        style={{ y: y3, opacity }}
-      >
-        {[...Array(12)].map((_, i) => (
-          <motion.div
-            key={`sparkle-${i}`}
-            className="absolute"
-            style={{
-              left: `${8 + i * 8}%`,
-              top: `${10 + (i % 4) * 25}%`,
-            }}
-          >
-            <motion.div
-              className="w-1 h-1 bg-primary rounded-full"
-              animate={{
-                scale: [0, 1.5, 0],
-                opacity: [0, 1, 0],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                delay: i * 0.5,
-                ease: "easeInOut",
-              }}
-            />
-          </motion.div>
-        ))}
-      </motion.div>
-
-      {/* Animated wave at bottom */}
-      <motion.div 
-        className="absolute bottom-0 left-0 right-0 h-32"
+        className="absolute bottom-0 left-0 right-0 h-40"
         style={{ opacity }}
       >
         <svg
-          className="absolute bottom-0 w-full h-32"
-          viewBox="0 0 1440 120"
+          className="absolute bottom-0 w-full h-40"
+          viewBox="0 0 1440 160"
           preserveAspectRatio="none"
         >
           <motion.path
-            d="M0,40 C360,100 720,0 1080,60 C1260,90 1380,50 1440,70 L1440,120 L0,120 Z"
-            fill="hsl(var(--primary) / 0.05)"
+            d="M0,80 C360,120 720,40 1080,100 C1260,130 1380,70 1440,90 L1440,160 L0,160 Z"
+            fill="hsl(var(--primary) / 0.03)"
             animate={{
               d: [
-                "M0,40 C360,100 720,0 1080,60 C1260,90 1380,50 1440,70 L1440,120 L0,120 Z",
-                "M0,60 C360,20 720,80 1080,30 C1260,50 1380,80 1440,50 L1440,120 L0,120 Z",
-                "M0,40 C360,100 720,0 1080,60 C1260,90 1380,50 1440,70 L1440,120 L0,120 Z",
+                "M0,80 C360,120 720,40 1080,100 C1260,130 1380,70 1440,90 L1440,160 L0,160 Z",
+                "M0,100 C360,60 720,110 1080,70 C1260,90 1380,120 1440,80 L1440,160 L0,160 Z",
+                "M0,80 C360,120 720,40 1080,100 C1260,130 1380,70 1440,90 L1440,160 L0,160 Z",
               ],
             }}
             transition={{
-              duration: 8,
+              duration: 15,
               repeat: Infinity,
               ease: "easeInOut",
             }}
           />
           <motion.path
-            d="M0,80 C480,40 960,100 1440,60 L1440,120 L0,120 Z"
-            fill="hsl(var(--secondary) / 0.03)"
+            d="M0,120 C480,80 960,140 1440,100 L1440,160 L0,160 Z"
+            fill="hsl(var(--secondary) / 0.02)"
             animate={{
               d: [
-                "M0,80 C480,40 960,100 1440,60 L1440,120 L0,120 Z",
-                "M0,50 C480,90 960,30 1440,80 L1440,120 L0,120 Z",
-                "M0,80 C480,40 960,100 1440,60 L1440,120 L0,120 Z",
+                "M0,120 C480,80 960,140 1440,100 L1440,160 L0,160 Z",
+                "M0,90 C480,130 960,70 1440,120 L1440,160 L0,160 Z",
+                "M0,120 C480,80 960,140 1440,100 L1440,160 L0,160 Z",
               ],
             }}
             transition={{
-              duration: 6,
+              duration: 12,
               repeat: Infinity,
               ease: "easeInOut",
-              delay: 1,
+              delay: 2,
             }}
           />
         </svg>
       </motion.div>
 
-      {/* Vignette overlay for depth */}
-      <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-60" />
+      {/* Vignette overlay for depth - softer */}
+      <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-transparent to-transparent" />
     </div>
   );
 };
