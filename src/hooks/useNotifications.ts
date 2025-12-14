@@ -81,7 +81,8 @@ export const useNotifications = () => {
     title: string,
     body: string,
     hour: number,
-    minute: number
+    minute: number,
+    extra?: Record<string, unknown>
   ) => {
     const now = new Date();
     const scheduledDate = new Date();
@@ -91,6 +92,9 @@ export const useNotifications = () => {
     if (scheduledDate <= now) {
       scheduledDate.setDate(scheduledDate.getDate() + 1);
     }
+
+    // Calculate day of week for deep linking (0 = Saturday start)
+    const dayOfWeek = scheduledDate.getDay() === 0 ? 6 : scheduledDate.getDay() - 1;
 
     await LocalNotifications.schedule({
       notifications: [
@@ -106,6 +110,7 @@ export const useNotifications = () => {
           sound: 'default',
           smallIcon: 'ic_stat_icon_config_sample',
           iconColor: '#F97316',
+          extra: extra || { type: 'meal', dayOfWeek },
         },
       ],
     });
@@ -146,7 +151,8 @@ export const useNotifications = () => {
         messages[language].breakfast.title,
         messages[language].breakfast.body,
         breakfastHour,
-        breakfastMin
+        breakfastMin,
+        { type: 'meal', mealType: 'breakfast' }
       );
 
       await scheduleNotificationAtTime(
@@ -154,7 +160,8 @@ export const useNotifications = () => {
         messages[language].lunch.title,
         messages[language].lunch.body,
         lunchHour,
-        lunchMin
+        lunchMin,
+        { type: 'meal', mealType: 'lunch' }
       );
 
       await scheduleNotificationAtTime(
@@ -162,7 +169,8 @@ export const useNotifications = () => {
         messages[language].dinner.title,
         messages[language].dinner.body,
         dinnerHour,
-        dinnerMin
+        dinnerMin,
+        { type: 'meal', mealType: 'dinner' }
       );
 
       console.log('Meal reminders scheduled successfully');
