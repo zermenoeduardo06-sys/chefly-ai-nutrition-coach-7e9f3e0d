@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Trophy, Medal, Crown, Award, Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useTrialGuard } from "@/hooks/useTrialGuard";
-
+import { getAvatarColor, getInitials } from "@/lib/avatarColors";
 interface LeaderboardEntry {
   user_id: string;
   display_name: string | null;
@@ -111,12 +111,6 @@ const Leaderboard = () => {
     }
   };
 
-  const getInitials = (displayName: string | null) => {
-    if (displayName) {
-      return displayName.substring(0, 2).toUpperCase();
-    }
-    return "??";
-  };
 
   const getDisplayName = (entry: LeaderboardEntry) => {
     return entry.display_name ? `@${entry.display_name}` : "Usuario Anónimo";
@@ -185,7 +179,7 @@ const Leaderboard = () => {
                           {/* Avatar */}
                           <Avatar className="h-12 w-12">
                             <AvatarImage src={entry.avatar_url || undefined} alt={getDisplayName(entry)} />
-                            <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                            <AvatarFallback className={`${getAvatarColor(entry.display_name || entry.user_id)} text-white font-semibold`}>
                               {getInitials(entry.display_name)}
                             </AvatarFallback>
                           </Avatar>
