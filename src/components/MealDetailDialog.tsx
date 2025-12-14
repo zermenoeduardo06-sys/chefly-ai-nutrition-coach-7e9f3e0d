@@ -1,11 +1,13 @@
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { Flame, Apple, Beef, Cookie, ArrowLeftRight, Lock, Download } from "lucide-react";
+import { Flame, Apple, Beef, Cookie, ArrowLeftRight, Lock, Download, Play } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import jsPDF from "jspdf";
 import { useToast } from "@/hooks/use-toast";
+import { StepByStepDialog } from "./StepByStepDialog";
 
 interface Meal {
   id: string;
@@ -39,6 +41,7 @@ export function MealDetailDialog({
 }: MealDetailDialogProps) {
   const { t, language } = useLanguage();
   const { toast } = useToast();
+  const [stepByStepOpen, setStepByStepOpen] = useState(false);
   
   if (!meal) return null;
 
@@ -450,31 +453,55 @@ export function MealDetailDialog({
 
           {/* Action Buttons */}
           <Separator className="my-4" />
-          <DialogFooter className="flex-col sm:flex-row gap-2 p-0">
-            {meal.image_url && (
+          <DialogFooter className="flex-col gap-2 p-0">
+            {/* Step by Step Button - Primary Action */}
+            {meal.steps && meal.steps.length > 0 && (
               <Button
-                variant="outline"
-                onClick={exportToPDF}
-                className="w-full sm:w-auto gap-2 h-10 rounded-xl"
+                onClick={() => setStepByStepOpen(true)}
+                className="w-full h-12 rounded-xl text-base font-semibold gap-2 bg-gradient-to-r from-primary to-secondary hover:opacity-90 shadow-lg"
               >
-                <Download className="h-4 w-4" />
-                {language === 'es' ? "Exportar PDF" : "Export PDF"}
+                <Play className="h-5 w-5" />
+                {language === 'es' ? "Ver paso a paso" : "View step by step"}
               </Button>
             )}
-            {onSwapMeal && (
-              <Button
-                variant="outline"
-                onClick={() => onSwapMeal(meal.id)}
-                disabled={!canSwap}
-                className="w-full sm:w-auto h-10 rounded-xl"
-              >
-                {!canSwap && <Lock className="mr-2 h-4 w-4" />}
-                <ArrowLeftRight className="mr-2 h-4 w-4" />
-                {t('mealDetail.swapMeal')}
-              </Button>
-            )}
+            
+            <div className="flex gap-2 w-full">
+              {meal.image_url && (
+                <Button
+                  variant="outline"
+                  onClick={exportToPDF}
+                  className="flex-1 gap-2 h-10 rounded-xl"
+                >
+                  <Download className="h-4 w-4" />
+                  PDF
+                </Button>
+              )}
+              {onSwapMeal && (
+                <Button
+                  variant="outline"
+                  onClick={() => onSwapMeal(meal.id)}
+                  disabled={!canSwap}
+                  className="flex-1 h-10 rounded-xl"
+                >
+                  {!canSwap && <Lock className="mr-1 h-4 w-4" />}
+                  <ArrowLeftRight className="mr-1 h-4 w-4" />
+                  {t('mealDetail.swapMeal')}
+                </Button>
+              )}
+            </div>
           </DialogFooter>
         </div>
+
+        {/* Step by Step Dialog */}
+        {meal.steps && meal.steps.length > 0 && (
+          <StepByStepDialog
+            open={stepByStepOpen}
+            onOpenChange={setStepByStepOpen}
+            steps={meal.steps}
+            mealName={meal.name}
+            mealImage={meal.image_url}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );
