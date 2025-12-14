@@ -107,8 +107,8 @@ const Subscription = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-6">
-      {/* Compact Header */}
-      <div className="relative bg-gradient-to-br from-primary via-primary/80 to-secondary overflow-hidden">
+      {/* Compact Header with safe area */}
+      <div className="relative bg-gradient-to-br from-primary via-primary/80 to-secondary overflow-hidden pt-safe-top">
         <div className="relative px-4 py-4">
           {/* Back button and title row */}
           <div className="flex items-center gap-3">
