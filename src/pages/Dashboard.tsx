@@ -33,6 +33,7 @@ import { SwipeableMealCard } from "@/components/SwipeableMealCard";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useHaptics } from "@/hooks/useHaptics";
 import { useOfflineMode } from "@/hooks/useOfflineMode";
+import { useDeepLinking } from "@/hooks/useDeepLinking";
 
 interface Meal {
   id: string;
@@ -109,6 +110,35 @@ const Dashboard = () => {
   const { scheduleMealReminders, scheduleStreakRiskAlert, permissionGranted, isNative } = useNotifications();
   const { successNotification, celebrationPattern, errorNotification, selectionChanged } = useHaptics();
   const { isOnline, isSyncing, pendingCount, cacheMeals, getCachedMeals, addPendingCompletion } = useOfflineMode(userId);
+
+  // Deep linking handler for opening specific meals from notifications
+  const handleDeepLinkMealOpen = (mealType: string, dayOfWeek: number) => {
+    if (mealPlan) {
+      const meal = mealPlan.meals.find(
+        m => m.meal_type === mealType && m.day_of_week === dayOfWeek
+      );
+      if (meal) {
+        setSelectedMeal(meal);
+        setMealDialogOpen(true);
+        // Set mobile day for proper view
+        setCurrentMobileDay(dayOfWeek);
+      }
+    }
+  };
+
+  useDeepLinking(handleDeepLinkMealOpen);
+
+  // Handle deep link from URL params after meals load
+  useEffect(() => {
+    const openMeal = searchParams.get('openMeal');
+    const day = searchParams.get('day');
+    
+    if (openMeal && day !== null && mealPlan) {
+      handleDeepLinkMealOpen(openMeal, parseInt(day, 10));
+      // Clear URL params after handling
+      navigate('/dashboard', { replace: true });
+    }
+  }, [searchParams, mealPlan]);
 
   const dayNames = getArray("dashboard.days");
   const mealTypes: { [key: string]: string } = {
