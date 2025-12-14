@@ -28,6 +28,9 @@ import { InAppTour } from "@/components/InAppTour";
 import { clearAllShoppingListCaches } from "@/utils/shoppingListCache";
 import { MobileStatsBar } from "@/components/MobileStatsBar";
 import { useNotifications } from "@/hooks/useNotifications";
+import { SwipeableDaysNavigator } from "@/components/SwipeableDaysNavigator";
+import { SwipeableMealCard } from "@/components/SwipeableMealCard";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Meal {
   id: string;
@@ -92,6 +95,8 @@ const Dashboard = () => {
   const [portalLoading, setPortalLoading] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const [showInAppTour, setShowInAppTour] = useState(false);
+  const [currentMobileDay, setCurrentMobileDay] = useState(0);
+  const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { limits, refreshLimits } = useSubscriptionLimits(userId);
@@ -1194,12 +1199,48 @@ const Dashboard = () => {
           <CardContent className="space-y-3 sm:space-y-4">
 
           {Object.keys(groupedMeals).length > 0 ? (
-            Object.keys(groupedMeals).map((dayIndex) => {
+            <>
+              {/* Mobile: Swipeable single day view */}
+              {isMobile && (
+                <div className="md:hidden">
+                  <SwipeableDaysNavigator
+                    currentDay={currentMobileDay}
+                    totalDays={Object.keys(groupedMeals).length}
+                    dayNames={dayNames}
+                    onDayChange={setCurrentMobileDay}
+                  />
+                  
+                  <div className="mt-4 space-y-3">
+                    {groupedMeals[currentMobileDay]?.map((meal, mealIndex) => {
+                      const isCompleted = completedMeals.has(meal.id);
+                      const isFirstMealOfFirstDay = currentMobileDay === 0 && mealIndex === 0;
+                      return (
+                        <SwipeableMealCard
+                          key={meal.id}
+                          meal={meal}
+                          isCompleted={isCompleted}
+                          mealTypeLabel={mealTypes[meal.meal_type]}
+                          onComplete={completeMeal}
+                          onClick={() => {
+                            setSelectedMeal(meal);
+                            setMealDialogOpen(true);
+                          }}
+                          isFirstMeal={isFirstMealOfFirstDay}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              
+              {/* Desktop: All days view */}
+              <div className={isMobile ? "hidden md:block" : ""}>
+            {Object.keys(groupedMeals).map((dayIndex) => {
               const day = parseInt(dayIndex);
               const meals = groupedMeals[day];
 
               return (
-                <Card key={day} className="overflow-hidden border-2 border-border/50 shadow-lg hover:shadow-xl hover:border-primary/20 transition-all rounded-2xl">
+                <Card key={day} className="overflow-hidden border-2 border-border/50 shadow-lg hover:shadow-xl hover:border-primary/20 transition-all rounded-2xl mb-4">
                   <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 border-b p-3 sm:p-6">
                     <div className="flex items-center justify-between gap-2">
                       <CardTitle className="flex items-center gap-2 sm:gap-3 min-w-0">
@@ -1314,7 +1355,9 @@ const Dashboard = () => {
                   </CardContent>
                 </Card>
               );
-            })
+            })}
+              </div>
+            </>
            ) : (
             <Card className="border-dashed border-2">
               <CardContent className="flex flex-col items-center justify-center py-16 px-6">
