@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { FileDown } from "lucide-react";
+import { Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { usePDFExport } from "@/hooks/usePDFExport";
 import jsPDF from "jspdf";
 
 interface ShoppingItemData {
@@ -39,8 +40,9 @@ const categoryLabels: Record<string, Record<string, string>> = {
 export function ExportPDFButton({ items, weekDate }: ExportPDFButtonProps) {
   const { t, language } = useLanguage();
   const { toast } = useToast();
+  const { exportPDF } = usePDFExport();
 
-  const exportToPDF = () => {
+  const exportToPDFHandler = async () => {
     try {
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.getWidth();
@@ -122,14 +124,9 @@ export function ExportPDFButton({ items, weekDate }: ExportPDFButtonProps) {
       const footerText = language === 'es' ? "Chefly.AI - Tu coach nutricional con IA" : "Chefly.AI - Your AI nutrition coach";
       doc.text(footerText, pageWidth / 2, 290, { align: "center" });
 
-      // Save the PDF
+      // Export the PDF using native share on mobile
       const fileName = `lista-compras-${weekDate.replace(/\s/g, "-")}.pdf`;
-      doc.save(fileName);
-
-      toast({
-        title: t("shopping.exportSuccess"),
-        description: t("shopping.exportSuccessDesc"),
-      });
+      await exportPDF(doc, fileName);
     } catch (error) {
       console.error("Error exporting PDF:", error);
       toast({
@@ -144,10 +141,10 @@ export function ExportPDFButton({ items, weekDate }: ExportPDFButtonProps) {
     <Button
       variant="outline"
       size="sm"
-      onClick={exportToPDF}
+      onClick={exportToPDFHandler}
       className="gap-2"
     >
-      <FileDown className="h-4 w-4" />
+      <Share2 className="h-4 w-4" />
       <span className="hidden sm:inline">{t("shopping.exportPDF")}</span>
     </Button>
   );

@@ -3,10 +3,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { Flame, Apple, Beef, Cookie, ArrowLeftRight, Lock, Download, Play } from "lucide-react";
+import { Flame, Apple, Beef, Cookie, ArrowLeftRight, Lock, Share2, Play } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import jsPDF from "jspdf";
 import { useToast } from "@/hooks/use-toast";
+import { usePDFExport } from "@/hooks/usePDFExport";
 import { StepByStepDialog } from "./StepByStepDialog";
 
 interface Meal {
@@ -41,6 +42,7 @@ export function MealDetailDialog({
 }: MealDetailDialogProps) {
   const { t, language } = useLanguage();
   const { toast } = useToast();
+  const { exportPDF } = usePDFExport();
   const [stepByStepOpen, setStepByStepOpen] = useState(false);
   
   if (!meal) return null;
@@ -305,14 +307,9 @@ export function MealDetailDialog({
         doc.text("Chefly.AI - Tu Coach Nutricional", pageWidth / 2, footerY, { align: 'center' });
       }
 
-      // Save the PDF
+      // Export the PDF using native share on mobile
       const fileName = `${meal.name.replace(/[^a-zA-Z0-9áéíóúñÁÉÍÓÚÑ\s]/g, '').replace(/\s+/g, '_')}.pdf`;
-      doc.save(fileName);
-
-      toast({
-        title: language === 'es' ? "¡Receta exportada!" : "Recipe exported!",
-        description: language === 'es' ? "Tu receta se descargó como PDF" : "Your recipe was downloaded as PDF",
-      });
+      await exportPDF(doc, fileName);
     } catch (error) {
       console.error('Error exporting PDF:', error);
       toast({
@@ -346,9 +343,9 @@ export function MealDetailDialog({
                 size="icon"
                 onClick={exportToPDF}
                 className="absolute top-3 right-3 h-8 w-8 backdrop-blur-sm bg-background/80 hover:bg-background"
-                title={language === 'es' ? "Exportar receta a PDF" : "Export recipe to PDF"}
+                title={language === 'es' ? "Compartir receta" : "Share recipe"}
               >
-                <Download className="h-4 w-4" />
+                <Share2 className="h-4 w-4" />
               </Button>
             </div>
           )}
@@ -363,7 +360,7 @@ export function MealDetailDialog({
                   onClick={exportToPDF}
                   className="gap-1.5 h-8 text-xs"
                 >
-                  <Download className="h-3.5 w-3.5" />
+                  <Share2 className="h-3.5 w-3.5" />
                   PDF
                 </Button>
               </div>
@@ -472,7 +469,7 @@ export function MealDetailDialog({
                   onClick={exportToPDF}
                   className="flex-1 gap-2 h-10 rounded-xl"
                 >
-                  <Download className="h-4 w-4" />
+                  <Share2 className="h-4 w-4" />
                   PDF
                 </Button>
               )}
