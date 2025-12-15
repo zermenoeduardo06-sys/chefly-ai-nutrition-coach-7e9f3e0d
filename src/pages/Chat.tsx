@@ -5,13 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Send, ArrowLeft, Sparkles } from "lucide-react";
+import { Loader2, Send, ArrowLeft, Sparkles, Volume2, VolumeX } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { Badge } from "@/components/ui/badge";
 import { useTrialGuard } from "@/hooks/useTrialGuard";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion, AnimatePresence } from "framer-motion";
+import { useHaptics } from "@/hooks/useHaptics";
+import { useChatSounds } from "@/hooks/useChatSounds";
 
 // Import mascots
 import mascotCooking from "@/assets/mascot-cooking.png";
@@ -255,12 +257,30 @@ const Chat = () => {
   const [initialLoading, setInitialLoading] = useState(true);
   const [userId, setUserId] = useState<string | undefined>(undefined);
   const [newMessageId, setNewMessageId] = useState<string | null>(null);
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    const saved = localStorage.getItem('chefly-sounds');
+    return saved !== 'false';
+  });
   const navigate = useNavigate();
   const { toast } = useToast();
   const scrollRef = useRef<HTMLDivElement>(null);
   const { limits, refreshLimits } = useSubscriptionLimits(userId);
   const { isBlocked, isLoading: trialLoading } = useTrialGuard();
   const { t, language } = useLanguage();
+  
+  // Haptics and sounds
+  const { lightImpact, mediumImpact, successNotification, errorNotification } = useHaptics();
+  const { playMessageSent, playMessageReceived, playError } = useChatSounds();
+
+  const toggleSound = () => {
+    const newValue = !soundEnabled;
+    setSoundEnabled(newValue);
+    localStorage.setItem('chefly-sounds', String(newValue));
+    if (newValue) {
+      playMessageReceived();
+      lightImpact();
+    }
+  };
 
   useEffect(() => {
     checkAuth();
@@ -325,6 +345,10 @@ const Chat = () => {
     setInput("");
     setLoading(true);
 
+    // Play send sound and haptic
+    if (soundEnabled) playMessageSent();
+    lightImpact();
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No user found");
@@ -365,6 +389,10 @@ const Chat = () => {
       setMessages((prev) => [...prev, aiMessage]);
       setNewMessageId(aiMessageId);
 
+      // Play receive sound and haptic
+      if (soundEnabled) playMessageReceived();
+      successNotification();
+
       // Save AI response to database
       await supabase.from("chat_messages").insert({
         user_id: user.id,
@@ -375,6 +403,10 @@ const Chat = () => {
       // Refresh limits after sending
       refreshLimits();
     } catch (error: any) {
+      // Play error sound and haptic
+      if (soundEnabled) playError();
+      errorNotification();
+      
       toast({
         variant: "destructive",
         title: "Error",
@@ -389,6 +421,8 @@ const Chat = () => {
 
   const handleSuggestionClick = (text: string) => {
     setInput(text);
+    if (soundEnabled) playMessageSent();
+    lightImpact();
   };
 
   if (initialLoading || trialLoading) {
@@ -461,8 +495,23 @@ const Chat = () => {
             </div>
           </div>
           
+          {/* Sound toggle */}
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={toggleSound}
+            className="p-2 rounded-full hover:bg-muted transition-colors"
+            title={soundEnabled ? (language === 'es' ? 'Silenciar' : 'Mute') : (language === 'es' ? 'Activar sonido' : 'Unmute')}
+          >
+            {soundEnabled ? (
+              <Volume2 className="h-5 w-5 text-primary" />
+            ) : (
+              <VolumeX className="h-5 w-5 text-muted-foreground" />
+            )}
+          </motion.button>
+          
           {limits.isBasicPlan && (
-            <Badge variant="outline" className="ml-auto flex-shrink-0 text-xs border-primary/30">
+            <Badge variant="outline" className="flex-shrink-0 text-xs border-primary/30">
               {limits.chatMessagesUsed}/{limits.dailyChatLimit}
             </Badge>
           )}
