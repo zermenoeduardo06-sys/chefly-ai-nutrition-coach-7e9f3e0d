@@ -194,7 +194,8 @@ const MobileWelcomeTutorial = ({ open, onComplete }: MobileWelcomeTutorialProps)
 
   // Calculate tooltip position
   const getTooltipStyle = (): React.CSSProperties => {
-    if (isWelcome) {
+    // Welcome and center positions - center on screen
+    if (isWelcome || currentStepData.position === "center") {
       return { 
         top: "50%", 
         transform: "translateY(-50%)",
@@ -204,22 +205,19 @@ const MobileWelcomeTutorial = ({ open, onComplete }: MobileWelcomeTutorialProps)
     }
     
     if (currentStepData.position === "top") {
-      // Position above the element (for bottom nav) - more space from bottom
+      // Position above the element (for bottom nav)
       const bottomPosition = window.innerHeight - highlightRect.top + 24;
       return { 
-        bottom: `${Math.max(bottomPosition, 100)}px`,
+        bottom: `${Math.max(bottomPosition, 120)}px`,
         left: "1rem",
         right: "1rem",
       };
     }
     
-    // Position below the element - but keep it in upper half of screen
-    const topPosition = Math.min(
-      highlightRect.top + highlightRect.height + 24,
-      window.innerHeight * 0.35
-    );
+    // Position "bottom" means tooltip goes below the highlighted element
+    // But we want it visible, so put it in the center-ish area of the screen
     return { 
-      top: `${topPosition}px`,
+      top: "30%",
       left: "1rem",
       right: "1rem",
     };
