@@ -180,13 +180,15 @@ const Dashboard = () => {
     await loadUserStats(user.id);
     await loadMealPlan(user.id);
     
-    // Check if user has seen the welcome tutorial (different key for native vs web)
-    const tutorialKey = isNativePlatform ? `mobile_welcome_seen_${user.id}` : `in_app_tour_seen_${user.id}`;
+    // Check if user has seen the welcome tutorial
+    // Use mobile tutorial for native apps OR mobile web views
+    const useMobileTutorial = isNativePlatform || isMobile;
+    const tutorialKey = useMobileTutorial ? `mobile_welcome_seen_${user.id}` : `in_app_tour_seen_${user.id}`;
     const tutorialSeen = localStorage.getItem(tutorialKey);
     if (!tutorialSeen) {
       // Small delay to let the dashboard render first
       setTimeout(() => {
-        if (isNativePlatform) {
+        if (useMobileTutorial) {
           setShowMobileWelcome(true);
         } else {
           setShowInAppTour(true);
@@ -1299,7 +1301,8 @@ const Dashboard = () => {
             <Button
               variant="outline"
               onClick={() => {
-                if (isNativePlatform) {
+                const useMobileTutorial = isNativePlatform || isMobile;
+                if (useMobileTutorial) {
                   setShowMobileWelcome(true);
                 } else {
                   setShowInAppTour(true);
