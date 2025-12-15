@@ -12,33 +12,25 @@ import { Loader2, Sparkles, Shield, Clock, Utensils, ChefHat } from "lucide-reac
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "framer-motion";
 import cheflyLogo from "@/assets/chefly-logo.png";
+import { useNativeGoogleAuth } from "@/hooks/useNativeGoogleAuth";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t, language } = useLanguage();
+  const { signInWithGoogle, loading: googleLoading } = useNativeGoogleAuth();
 
   const handleGoogleSignIn = async () => {
-    setGoogleLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`,
-        },
-      });
-      if (error) throw error;
-    } catch (error: any) {
+    const { error } = await signInWithGoogle();
+    if (error) {
       toast({
         variant: "destructive",
         title: t("auth.error"),
         description: error.message,
       });
-      setGoogleLoading(false);
     }
   };
 
