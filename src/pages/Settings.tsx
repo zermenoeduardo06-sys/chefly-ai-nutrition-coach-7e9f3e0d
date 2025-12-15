@@ -16,11 +16,13 @@ import {
   MessageSquare,
   LogOut,
   Settings as SettingsIcon,
-  DollarSign
+  DollarSign,
+  Moon
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface SettingsItem {
   icon: React.ElementType;
@@ -80,6 +82,7 @@ const Settings = () => {
     { icon: User, label: t("settings.profile"), path: "/dashboard/settings/profile" },
     { icon: Bell, label: t("settings.notifications"), path: "/dashboard/settings/notifications" },
     { icon: Globe, label: t("settings.language"), rightElement: <LanguageToggle /> },
+    { icon: Moon, label: t("settings.darkMode"), rightElement: <ThemeToggle /> },
     { icon: Shield, label: t("settings.privacy"), path: "/privacy" },
   ];
 
