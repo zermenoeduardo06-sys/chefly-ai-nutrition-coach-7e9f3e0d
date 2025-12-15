@@ -1,5 +1,7 @@
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { Capacitor } from "@capacitor/core";
 import heroImage from "@/assets/hero-nutrition.jpg";
 import coachMascot from "@/assets/coach-mascot.png";
 import testimonial1 from "@/assets/testimonial-1.jpg";
@@ -32,6 +34,22 @@ const Index = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   
+  // Redirect to auth for native mobile apps (skip landing page)
+  useEffect(() => {
+    const checkNativeAndAuth = async () => {
+      if (Capacitor.isNativePlatform()) {
+        // Check if already logged in
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          navigate("/dashboard", { replace: true });
+        } else {
+          navigate("/auth", { replace: true });
+        }
+      }
+    };
+    checkNativeAndAuth();
+  }, [navigate]);
+
   // Activar tracking de afiliados
   useAffiliateTracking();
 
