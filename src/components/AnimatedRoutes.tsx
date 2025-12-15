@@ -38,6 +38,7 @@ import ProfileEdit from '@/pages/ProfileEdit';
 import AvatarEdit from '@/pages/AvatarEdit';
 import Preferences from '@/pages/Preferences';
 import NotificationSettings from '@/pages/NotificationSettings';
+import FoodHistory from '@/pages/FoodHistory';
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
   <SidebarProvider>
@@ -89,6 +90,7 @@ export const AnimatedRoutes = () => {
         <Route path="/dashboard/settings/preferences" element={<DashboardLayout><PageTransition><Preferences /></PageTransition></DashboardLayout>} />
         <Route path="/dashboard/settings/notifications" element={<DashboardLayout><PageTransition><NotificationSettings /></PageTransition></DashboardLayout>} />
         <Route path="/dashboard/shopping" element={<DashboardLayout><PageTransition><ShoppingList /></PageTransition></DashboardLayout>} />
+        <Route path="/dashboard/food-history" element={<DashboardLayout><PageTransition><FoodHistory /></PageTransition></DashboardLayout>} />
         <Route path="/subscription" element={<DashboardLayout><PageTransition><Subscription /></PageTransition></DashboardLayout>} />
         <Route path="/admin/affiliates" element={<DashboardLayout><PageTransition><AdminAffiliatesDashboard /></PageTransition></DashboardLayout>} />
         

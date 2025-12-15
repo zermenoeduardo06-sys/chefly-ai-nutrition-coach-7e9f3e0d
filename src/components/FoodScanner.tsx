@@ -1,11 +1,12 @@
 import { useState, useRef } from 'react';
-import { Camera, Upload, X, Loader2, Utensils, Flame, Beef, Wheat, Droplets } from 'lucide-react';
+import { Camera, Upload, X, Loader2, Utensils, Flame, Beef, Wheat, Droplets, Save, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFoodScanner, FoodAnalysisResult } from '@/hooks/useFoodScanner';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Capacitor } from '@capacitor/core';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface FoodScannerProps {
   open: boolean;
@@ -14,8 +15,11 @@ interface FoodScannerProps {
 
 export function FoodScanner({ open, onOpenChange }: FoodScannerProps) {
   const { language } = useLanguage();
+  const { toast } = useToast();
   const { analyzeFood, isAnalyzing, result, clearResult } = useFoodScanner();
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
@@ -35,12 +39,60 @@ export function FoodScanner({ open, onOpenChange }: FoodScannerProps) {
   const handleClose = () => {
     setPreviewImage(null);
     clearResult();
+    setSaved(false);
     onOpenChange(false);
   };
 
   const handleNewScan = () => {
     setPreviewImage(null);
     clearResult();
+    setSaved(false);
+  };
+
+  const handleSave = async () => {
+    if (!result || !result.success || !result.nutrition) return;
+
+    setIsSaving(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { error } = await supabase
+        .from('food_scans')
+        .insert({
+          user_id: user.id,
+          dish_name: result.dish_name || 'Unknown',
+          foods_identified: result.foods_identified || [],
+          portion_estimate: result.portion_estimate,
+          calories: result.nutrition.calories || 0,
+          protein: result.nutrition.protein || 0,
+          carbs: result.nutrition.carbs || 0,
+          fat: result.nutrition.fat || 0,
+          fiber: result.nutrition.fiber || 0,
+          confidence: result.confidence || 'medium',
+          notes: result.notes,
+          image_url: previewImage,
+        });
+
+      if (error) throw error;
+
+      setSaved(true);
+      toast({
+        title: language === 'es' ? '¡Guardado!' : 'Saved!',
+        description: language === 'es' 
+          ? 'El escaneo se agregó a tu historial y progreso nutricional'
+          : 'The scan was added to your history and nutrition progress',
+      });
+    } catch (error) {
+      console.error('Error saving scan:', error);
+      toast({
+        title: language === 'es' ? 'Error' : 'Error',
+        description: language === 'es' ? 'No se pudo guardar el escaneo' : 'Could not save the scan',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const t = {
@@ -49,6 +101,9 @@ export function FoodScanner({ open, onOpenChange }: FoodScannerProps) {
     uploadImage: language === 'es' ? 'Subir Imagen' : 'Upload Image',
     analyzing: language === 'es' ? 'Analizando...' : 'Analyzing...',
     scanAgain: language === 'es' ? 'Escanear Otra' : 'Scan Another',
+    save: language === 'es' ? 'Guardar' : 'Save',
+    saving: language === 'es' ? 'Guardando...' : 'Saving...',
+    saved: language === 'es' ? 'Guardado' : 'Saved',
     calories: language === 'es' ? 'Calorías' : 'Calories',
     protein: language === 'es' ? 'Proteína' : 'Protein',
     carbs: language === 'es' ? 'Carbohidratos' : 'Carbs',
@@ -229,11 +284,35 @@ export function FoodScanner({ open, onOpenChange }: FoodScannerProps) {
                   </div>
                 )}
 
-                {/* Scan Again Button */}
-                <Button onClick={handleNewScan} variant="outline" className="w-full gap-2">
-                  <Camera className="h-4 w-4" />
-                  {t.scanAgain}
-                </Button>
+                {/* Action Buttons */}
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={handleSave} 
+                    disabled={isSaving || saved}
+                    className="flex-1 gap-2"
+                  >
+                    {isSaving ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        {t.saving}
+                      </>
+                    ) : saved ? (
+                      <>
+                        <Check className="h-4 w-4" />
+                        {t.saved}
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4" />
+                        {t.save}
+                      </>
+                    )}
+                  </Button>
+                  <Button onClick={handleNewScan} variant="outline" className="gap-2">
+                    <Camera className="h-4 w-4" />
+                    {t.scanAgain}
+                  </Button>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
