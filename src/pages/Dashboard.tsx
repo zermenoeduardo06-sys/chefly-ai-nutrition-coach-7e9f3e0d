@@ -105,7 +105,13 @@ const Dashboard = () => {
   const [showInAppTour, setShowInAppTour] = useState(false);
   const [showMobileWelcome, setShowMobileWelcome] = useState(false);
   const [showFoodScanner, setShowFoodScanner] = useState(false);
-  const [currentMobileDay, setCurrentMobileDay] = useState(0);
+  const [currentMobileDay, setCurrentMobileDay] = useState(() => {
+    // Initialize to current day of week (0 = Monday, 6 = Sunday)
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    // Convert from Sunday=0 to Monday=0 format
+    return dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  });
   const isNativePlatform = Capacitor.isNativePlatform();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -967,6 +973,9 @@ const Dashboard = () => {
         {/* Calendar Day Widget */}
         <CalendarDayWidget 
           isCheckInDay={userId ? true : false}
+          currentDay={currentMobileDay}
+          onDayChange={setCurrentMobileDay}
+          weekStartDate={mealPlan?.week_start_date}
         />
 
         {/* Weekly Check-In Banner (Premium feature) */}
