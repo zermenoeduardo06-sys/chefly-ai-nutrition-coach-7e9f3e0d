@@ -41,3 +41,6 @@ verify_jwt = false
 
 [functions.migrate-meal-images]
 verify_jwt = false
+
+[functions.analyze-food]
+verify_jwt = true
