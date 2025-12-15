@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { startOfWeek, format } from "date-fns";
-import { useSubscription, SUBSCRIPTION_TIERS } from "./useSubscription";
 
 export interface WeeklyCheckInData {
   weightChange: "up" | "down" | "same" | null;
@@ -35,11 +34,8 @@ export const useWeeklyCheckIn = (userId: string | undefined): UseWeeklyCheckInRe
     weeklyGoals: [],
   });
 
-  const { subscribed, product_id, isLoading: subLoading } = useSubscription(userId);
-
-  // Only Intermediate plan (290 MXN) and above can access Weekly Check-In
-  // Basic plan users cannot access this feature
-  const canAccessCheckIn = subscribed && product_id === SUBSCRIPTION_TIERS.INTERMEDIATE.product_id;
+  // Weekly Check-In is now available for all users
+  const canAccessCheckIn = true;
 
   useEffect(() => {
     const checkIfDue = async () => {
@@ -84,10 +80,8 @@ export const useWeeklyCheckIn = (userId: string | undefined): UseWeeklyCheckInRe
       }
     };
 
-    if (!subLoading) {
-      checkIfDue();
-    }
-  }, [userId, subLoading]);
+    checkIfDue();
+  }, [userId]);
 
   const submitCheckIn = async (): Promise<boolean> => {
     if (!userId || !checkInData.weightChange || !checkInData.energyLevel) {
@@ -122,7 +116,7 @@ export const useWeeklyCheckIn = (userId: string | undefined): UseWeeklyCheckInRe
 
   return {
     isCheckInDue,
-    isLoading: isLoading || subLoading,
+    isLoading,
     canAccessCheckIn,
     checkInData,
     setCheckInData,
