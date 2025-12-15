@@ -25,6 +25,7 @@ import WeeklyCheckInBanner from "@/components/checkin/WeeklyCheckInBanner";
 import confetti from "canvas-confetti";
 import DashboardTutorial from "@/components/DashboardTutorial";
 import { InAppTour } from "@/components/InAppTour";
+import MobileWelcomeTutorial from "@/components/MobileWelcomeTutorial";
 import { clearAllShoppingListCaches } from "@/utils/shoppingListCache";
 import { MobileStatsBar } from "@/components/MobileStatsBar";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -34,6 +35,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useHaptics } from "@/hooks/useHaptics";
 import { useOfflineMode } from "@/hooks/useOfflineMode";
 import { useDeepLinking } from "@/hooks/useDeepLinking";
+import { Capacitor } from "@capacitor/core";
 
 interface Meal {
   id: string;
@@ -98,7 +100,9 @@ const Dashboard = () => {
   const [portalLoading, setPortalLoading] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const [showInAppTour, setShowInAppTour] = useState(false);
+  const [showMobileWelcome, setShowMobileWelcome] = useState(false);
   const [currentMobileDay, setCurrentMobileDay] = useState(0);
+  const isNativePlatform = Capacitor.isNativePlatform();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -176,11 +180,18 @@ const Dashboard = () => {
     await loadUserStats(user.id);
     await loadMealPlan(user.id);
     
-    // Check if user has seen the in-app tour
-    const tourSeen = localStorage.getItem(`in_app_tour_seen_${user.id}`);
-    if (!tourSeen) {
+    // Check if user has seen the welcome tutorial (different key for native vs web)
+    const tutorialKey = isNativePlatform ? `mobile_welcome_seen_${user.id}` : `in_app_tour_seen_${user.id}`;
+    const tutorialSeen = localStorage.getItem(tutorialKey);
+    if (!tutorialSeen) {
       // Small delay to let the dashboard render first
-      setTimeout(() => setShowInAppTour(true), 500);
+      setTimeout(() => {
+        if (isNativePlatform) {
+          setShowMobileWelcome(true);
+        } else {
+          setShowInAppTour(true);
+        }
+      }, 500);
     }
   };
   
@@ -188,6 +199,13 @@ const Dashboard = () => {
     if (userId) {
       localStorage.setItem(`tutorial_seen_${userId}`, 'true');
     }
+  };
+
+  const handleMobileWelcomeComplete = () => {
+    if (userId) {
+      localStorage.setItem(`mobile_welcome_seen_${userId}`, 'true');
+    }
+    setShowMobileWelcome(false);
   };
 
   const handleInAppTourComplete = () => {
@@ -1280,7 +1298,13 @@ const Dashboard = () => {
           <CardContent>
             <Button
               variant="outline"
-              onClick={() => setShowInAppTour(true)}
+              onClick={() => {
+                if (isNativePlatform) {
+                  setShowMobileWelcome(true);
+                } else {
+                  setShowInAppTour(true);
+                }
+              }}
               className="gap-2"
             >
               <Sparkles className="h-4 w-4" />
@@ -1560,6 +1584,11 @@ const Dashboard = () => {
         open={showInAppTour}
         onComplete={handleInAppTourComplete}
         onSkip={handleInAppTourComplete}
+      />
+
+      <MobileWelcomeTutorial
+        open={showMobileWelcome}
+        onComplete={handleMobileWelcomeComplete}
       />
 
     </div>
