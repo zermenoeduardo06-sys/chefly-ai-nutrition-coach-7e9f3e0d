@@ -182,10 +182,18 @@ const Dashboard = () => {
     
     // Check if user has seen the welcome tutorial
     // Use mobile tutorial for native apps OR mobile web views
+    // Only show to truly new users (created within last 24 hours)
     const useMobileTutorial = isNativePlatform || isMobile;
     const tutorialKey = useMobileTutorial ? `mobile_welcome_seen_${user.id}` : `in_app_tour_seen_${user.id}`;
     const tutorialSeen = localStorage.getItem(tutorialKey);
-    if (!tutorialSeen) {
+    
+    // Check if user was created in the last 24 hours
+    const userCreatedAt = new Date(user.created_at || Date.now());
+    const now = new Date();
+    const hoursSinceCreation = (now.getTime() - userCreatedAt.getTime()) / (1000 * 60 * 60);
+    const isNewUser = hoursSinceCreation < 24;
+    
+    if (!tutorialSeen && isNewUser) {
       // Small delay to let the dashboard render first
       setTimeout(() => {
         if (useMobileTutorial) {
