@@ -28,7 +28,7 @@ const App = () => {
             )}
           </AnimatePresence>
           <BrowserRouter>
-            <CookieConsent />
+            {!Capacitor.isNativePlatform() && <CookieConsent />}
             <AnimatedRoutes />
           </BrowserRouter>
         </TooltipProvider>
