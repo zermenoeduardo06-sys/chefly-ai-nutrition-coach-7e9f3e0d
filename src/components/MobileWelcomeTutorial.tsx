@@ -193,25 +193,39 @@ const MobileWelcomeTutorial = ({ open, onComplete }: MobileWelcomeTutorialProps)
   const isLastStep = currentStep === tourSteps.length - 1;
 
   // Calculate tooltip position
-  const getTooltipPosition = () => {
+  const getTooltipStyle = (): React.CSSProperties => {
     if (isWelcome) {
-      return { top: "50%", transform: "translateY(-50%)" };
-    }
-    
-    if (currentStepData.position === "top") {
-      // Position above the element (for bottom nav)
       return { 
-        bottom: `${window.innerHeight - highlightRect.top + 20}px`,
+        top: "50%", 
+        transform: "translateY(-50%)",
+        left: "1rem",
+        right: "1rem",
       };
     }
     
-    // Position below the element
+    if (currentStepData.position === "top") {
+      // Position above the element (for bottom nav) - more space from bottom
+      const bottomPosition = window.innerHeight - highlightRect.top + 24;
+      return { 
+        bottom: `${Math.max(bottomPosition, 100)}px`,
+        left: "1rem",
+        right: "1rem",
+      };
+    }
+    
+    // Position below the element - but keep it in upper half of screen
+    const topPosition = Math.min(
+      highlightRect.top + highlightRect.height + 24,
+      window.innerHeight * 0.35
+    );
     return { 
-      top: `${highlightRect.top + highlightRect.height + 20}px`,
+      top: `${topPosition}px`,
+      left: "1rem",
+      right: "1rem",
     };
   };
 
-  const tooltipStyle = getTooltipPosition();
+  const tooltipStyle = getTooltipStyle();
 
   return (
     <AnimatePresence>
@@ -330,7 +344,7 @@ const MobileWelcomeTutorial = ({ open, onComplete }: MobileWelcomeTutorialProps)
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.3, delay: 0.1 }}
-            className="absolute left-4 right-4 z-[10002]"
+            className="absolute z-[10002]"
             style={tooltipStyle}
           >
             <div className="bg-card border-2 border-primary/30 rounded-3xl shadow-2xl overflow-hidden">
