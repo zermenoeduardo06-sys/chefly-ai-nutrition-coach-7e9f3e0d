@@ -548,6 +548,60 @@ export type Database = {
         }
         Relationships: []
       }
+      food_scans: {
+        Row: {
+          calories: number | null
+          carbs: number | null
+          confidence: string | null
+          created_at: string
+          dish_name: string
+          fat: number | null
+          fiber: number | null
+          foods_identified: string[] | null
+          id: string
+          image_url: string | null
+          notes: string | null
+          portion_estimate: string | null
+          protein: number | null
+          scanned_at: string
+          user_id: string
+        }
+        Insert: {
+          calories?: number | null
+          carbs?: number | null
+          confidence?: string | null
+          created_at?: string
+          dish_name: string
+          fat?: number | null
+          fiber?: number | null
+          foods_identified?: string[] | null
+          id?: string
+          image_url?: string | null
+          notes?: string | null
+          portion_estimate?: string | null
+          protein?: number | null
+          scanned_at?: string
+          user_id: string
+        }
+        Update: {
+          calories?: number | null
+          carbs?: number | null
+          confidence?: string | null
+          created_at?: string
+          dish_name?: string
+          fat?: number | null
+          fiber?: number | null
+          foods_identified?: string[] | null
+          id?: string
+          image_url?: string | null
+          notes?: string | null
+          portion_estimate?: string | null
+          protein?: number | null
+          scanned_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       friendships: {
         Row: {
           created_at: string

@@ -1211,6 +1211,22 @@ const Dashboard = () => {
                   <p className="text-xs max-w-[200px]">{language === 'es' ? 'Toma una foto de tu comida y obtén información nutricional' : 'Take a photo of your food and get nutritional info'}</p>
                 </TooltipContent>
               </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => navigate('/dashboard/food-history')}
+                    variant="duolingoOutline"
+                    className="h-auto py-4 flex-col gap-2"
+                  >
+                    <Utensils className="h-5 w-5" />
+                    <span className="text-sm">{language === 'es' ? 'Historial' : 'History'}</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs max-w-[200px]">{language === 'es' ? 'Ver historial de comidas escaneadas' : 'View scanned food history'}</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
             
             {/* Generate new plan button */}

@@ -10,25 +10,29 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Progress } from "@/components/ui/progress";
 
+interface MealDetail {
+  name: string;
+  type: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fats: number;
+  isScanned?: boolean;
+}
+
 interface DayDetail {
   date: Date;
   dateKey: string;
   dayName: string;
   shortDay: string;
   mealsCompleted: number;
+  scansCount: number;
   totalMeals: number;
   calories: number;
   protein: number;
   carbs: number;
   fats: number;
-  meals: Array<{
-    name: string;
-    type: string;
-    calories: number;
-    protein: number;
-    carbs: number;
-    fats: number;
-  }>;
+  meals: MealDetail[];
 }
 
 interface WeekSummary {
@@ -95,6 +99,15 @@ export const NutritionProgressCharts = () => {
         .lte("completed_at", weekEnd.toISOString())
         .order("completed_at", { ascending: true });
 
+      // Get food scans
+      const { data: foodScans } = await supabase
+        .from("food_scans")
+        .select("*")
+        .eq("user_id", user.id)
+        .gte("scanned_at", weekStart.toISOString())
+        .lte("scanned_at", weekEnd.toISOString())
+        .order("scanned_at", { ascending: true });
+
       // Process daily data
       const dailyMap = new Map<string, DayDetail>();
       weekDays.forEach((day, index) => {
@@ -105,6 +118,7 @@ export const NutritionProgressCharts = () => {
           dayName: format(day, "EEEE", { locale }),
           shortDay: dayNames[index],
           mealsCompleted: 0,
+          scansCount: 0,
           totalMeals: 3,
           calories: 0,
           protein: 0,
@@ -132,6 +146,7 @@ export const NutritionProgressCharts = () => {
             protein: completion.meals.protein || 0,
             carbs: completion.meals.carbs || 0,
             fats: completion.meals.fats || 0,
+            isScanned: false,
           });
           
           totalCalories += completion.meals.calories || 0;
@@ -142,7 +157,35 @@ export const NutritionProgressCharts = () => {
         }
       });
 
-      const daysWithData = Array.from(dailyMap.values()).filter(d => d.mealsCompleted > 0).length;
+      // Process food scans
+      foodScans?.forEach((scan: any) => {
+        const dateKey = scan.scanned_at.split('T')[0];
+        const existing = dailyMap.get(dateKey);
+        if (existing) {
+          existing.scansCount += 1;
+          existing.calories += scan.calories || 0;
+          existing.protein += scan.protein || 0;
+          existing.carbs += scan.carbs || 0;
+          existing.fats += scan.fat || 0;
+          existing.meals.push({
+            name: scan.dish_name,
+            type: language === "es" ? "Escaneado" : "Scanned",
+            calories: scan.calories || 0,
+            protein: scan.protein || 0,
+            carbs: scan.carbs || 0,
+            fats: scan.fat || 0,
+            isScanned: true,
+          });
+          
+          totalCalories += scan.calories || 0;
+          totalProtein += scan.protein || 0;
+          totalCarbs += scan.carbs || 0;
+          totalFats += scan.fat || 0;
+          totalMeals += 1;
+        }
+      });
+
+      const daysWithData = Array.from(dailyMap.values()).filter(d => d.mealsCompleted > 0 || d.scansCount > 0).length;
       
       setWeeklyData(Array.from(dailyMap.values()));
       setWeekTotals({ 
@@ -165,6 +208,14 @@ export const NutritionProgressCharts = () => {
         .eq("user_id", user.id)
         .gte("completed_at", threeMonthsAgo.toISOString())
         .order("completed_at", { ascending: true });
+
+      // Also get monthly food scans
+      const { data: monthlyScans } = await supabase
+        .from("food_scans")
+        .select("scanned_at, calories, protein, carbs, fat")
+        .eq("user_id", user.id)
+        .gte("scanned_at", threeMonthsAgo.toISOString())
+        .order("scanned_at", { ascending: true });
 
       const weeklyMap = new Map<string, WeekSummary>();
       let currentWeekStart = startOfWeek(threeMonthsAgo, { weekStartsOn: 1 });
@@ -191,6 +242,26 @@ export const NutritionProgressCharts = () => {
           existing.protein += completion.meals.protein || 0;
           existing.carbs += completion.meals.carbs || 0;
           existing.fats += completion.meals.fats || 0;
+          existing.mealsCompleted += 1;
+          
+          if (!daysPerWeek.has(weekKey)) daysPerWeek.set(weekKey, new Set());
+          daysPerWeek.get(weekKey)?.add(dayKey);
+        }
+      });
+
+      // Process monthly food scans
+      monthlyScans?.forEach((scan: any) => {
+        const scanDate = new Date(scan.scanned_at);
+        const weekStartDate = startOfWeek(scanDate, { weekStartsOn: 1 });
+        const weekKey = format(weekStartDate, "yyyy-MM-dd");
+        const dayKey = scan.scanned_at.split('T')[0];
+        
+        const existing = weeklyMap.get(weekKey);
+        if (existing) {
+          existing.calories += scan.calories || 0;
+          existing.protein += scan.protein || 0;
+          existing.carbs += scan.carbs || 0;
+          existing.fats += scan.fat || 0;
           existing.mealsCompleted += 1;
           
           if (!daysPerWeek.has(weekKey)) daysPerWeek.set(weekKey, new Set());
@@ -332,7 +403,7 @@ export const NutritionProgressCharts = () => {
             {weeklyData.map((day, index) => {
               const isSelected = isSameDay(day.date, selectedDate);
               const isToday = isSameDay(day.date, new Date());
-              const hasData = day.mealsCompleted > 0;
+              const hasData = day.mealsCompleted > 0 || day.scansCount > 0;
               
               return (
                 <motion.button
@@ -384,14 +455,23 @@ export const NutritionProgressCharts = () => {
                   <h3 className="font-bold text-lg capitalize">{selectedDayData?.dayName || format(selectedDate, "EEEE", { locale })}</h3>
                   <p className="text-sm text-muted-foreground">{format(selectedDate, "d MMMM yyyy", { locale })}</p>
                 </div>
-                {selectedDayData && selectedDayData.mealsCompleted > 0 && (
-                  <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-semibold">
-                    {selectedDayData.mealsCompleted}/{selectedDayData.totalMeals} {language === "es" ? "comidas" : "meals"}
+                {selectedDayData && (selectedDayData.mealsCompleted > 0 || selectedDayData.scansCount > 0) && (
+                  <div className="flex gap-2">
+                    {selectedDayData.mealsCompleted > 0 && (
+                      <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-semibold">
+                        {selectedDayData.mealsCompleted}/{selectedDayData.totalMeals} {language === "es" ? "comidas" : "meals"}
+                      </div>
+                    )}
+                    {selectedDayData.scansCount > 0 && (
+                      <div className="bg-secondary/10 text-secondary px-3 py-1 rounded-full text-sm font-semibold">
+                        {selectedDayData.scansCount} {language === "es" ? "escaneados" : "scanned"}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
 
-              {selectedDayData && selectedDayData.mealsCompleted > 0 ? (
+              {selectedDayData && (selectedDayData.mealsCompleted > 0 || selectedDayData.scansCount > 0) ? (
                 <div className="space-y-4">
                   {/* Calories Progress */}
                   <div className="bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 rounded-xl p-4">
