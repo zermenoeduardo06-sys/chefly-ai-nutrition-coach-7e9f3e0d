@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TrendingUp, Calendar, Utensils, Flame, Droplets, Beef, Wheat, Apple, Target, Sparkles, Star, ChevronLeft, ChevronRight } from "lucide-react";
+import { TrendingUp, Calendar, Utensils, Flame, Droplets, Beef, Wheat, Apple, Target, Sparkles, Star, ChevronLeft, ChevronRight, Camera, CheckCircle2 } from "lucide-react";
 import { startOfWeek, format, eachDayOfInterval, endOfWeek, subWeeks, subMonths, isSameWeek, isSameDay, addDays, subDays } from "date-fns";
 import { es, enUS } from "date-fns/locale";
 import { motion, AnimatePresence } from "framer-motion";
@@ -537,28 +537,78 @@ export const NutritionProgressCharts = () => {
                   <div className="space-y-2">
                     <h4 className="text-sm font-semibold flex items-center gap-2">
                       <Apple className="h-4 w-4 text-green-500" />
-                      {language === "es" ? "Comidas completadas" : "Completed meals"}
+                      {language === "es" ? "Registro del día" : "Day's log"}
                     </h4>
-                    {selectedDayData.meals.map((meal, idx) => (
-                      <motion.div
-                        key={idx}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: idx * 0.1 }}
-                        className="bg-muted/50 rounded-lg p-3 flex items-center justify-between"
-                      >
-                        <div>
-                          <p className="font-medium text-sm">{meal.name}</p>
-                          <p className="text-xs text-muted-foreground capitalize">{meal.type}</p>
+                    
+                    {/* Separate Plan Meals and Scanned Foods */}
+                    {selectedDayData.meals.filter(m => !m.isScanned).length > 0 && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
+                          <span>{language === "es" ? "Del plan semanal" : "From meal plan"}</span>
                         </div>
-                        <div className="text-right">
-                          <p className="font-bold text-primary">{meal.calories} cal</p>
-                          <p className="text-[10px] text-muted-foreground">
-                            P:{meal.protein}g C:{meal.carbs}g G:{meal.fats}g
-                          </p>
+                        {selectedDayData.meals.filter(m => !m.isScanned).map((meal, idx) => (
+                          <motion.div
+                            key={`plan-${idx}`}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: idx * 0.1 }}
+                            className="bg-primary/5 border border-primary/10 rounded-xl p-3 flex items-center justify-between"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                                <Utensils className="h-4 w-4 text-primary" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-sm">{meal.name}</p>
+                                <p className="text-xs text-muted-foreground capitalize">{meal.type}</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-bold text-primary">{meal.calories} cal</p>
+                              <p className="text-[10px] text-muted-foreground">
+                                P:{meal.protein}g C:{meal.carbs}g G:{meal.fats}g
+                              </p>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {/* Scanned Foods */}
+                    {selectedDayData.meals.filter(m => m.isScanned).length > 0 && (
+                      <div className="space-y-2 mt-3">
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <Camera className="h-3.5 w-3.5 text-secondary" />
+                          <span>{language === "es" ? "Comidas escaneadas" : "Scanned foods"}</span>
                         </div>
-                      </motion.div>
-                    ))}
+                        {selectedDayData.meals.filter(m => m.isScanned).map((meal, idx) => (
+                          <motion.div
+                            key={`scan-${idx}`}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: idx * 0.1 }}
+                            className="bg-secondary/5 border border-secondary/10 rounded-xl p-3 flex items-center justify-between"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center">
+                                <Camera className="h-4 w-4 text-secondary" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-sm">{meal.name}</p>
+                                <p className="text-xs text-secondary">{language === "es" ? "Escaneado" : "Scanned"}</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-bold text-secondary">{meal.calories} cal</p>
+                              <p className="text-[10px] text-muted-foreground">
+                                P:{meal.protein}g C:{meal.carbs}g G:{meal.fats}g
+                              </p>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : (
