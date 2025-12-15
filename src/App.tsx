@@ -10,6 +10,7 @@ import CookieConsent from "@/components/CookieConsent";
 import { AnimatedRoutes } from "@/components/AnimatedRoutes";
 import SplashScreen from "@/components/SplashScreen";
 import { AnimatePresence } from "framer-motion";
+import { ThemeProvider } from "next-themes";
 
 const queryClient = new QueryClient();
 
@@ -18,21 +19,23 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <AnimatePresence mode="wait">
-            {showSplash && (
-              <SplashScreen onComplete={() => setShowSplash(false)} />
-            )}
-          </AnimatePresence>
-          <BrowserRouter>
-            {!Capacitor.isNativePlatform() && <CookieConsent />}
-            <AnimatedRoutes />
-          </BrowserRouter>
-        </TooltipProvider>
-      </LanguageProvider>
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+        <LanguageProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <AnimatePresence mode="wait">
+              {showSplash && (
+                <SplashScreen onComplete={() => setShowSplash(false)} />
+              )}
+            </AnimatePresence>
+            <BrowserRouter>
+              {!Capacitor.isNativePlatform() && <CookieConsent />}
+              <AnimatedRoutes />
+            </BrowserRouter>
+          </TooltipProvider>
+        </LanguageProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 };
