@@ -1,89 +1,179 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { 
-  ChefHat,
-  Check, 
-  Trophy, 
-  ShoppingCart,
-  MessageCircle,
   ChevronRight,
-  Sparkles,
+  X,
+  Home,
+  ShoppingCart,
+  TrendingUp,
+  MessageCircle,
+  User,
 } from "lucide-react";
 import cheflyMascot from "@/assets/chefly-mascot.png";
 import { useHaptics } from "@/hooks/useHaptics";
+
+interface TourStep {
+  target: string;
+  titleEs: string;
+  titleEn: string;
+  descEs: string;
+  descEn: string;
+  position: "top" | "bottom" | "center";
+  icon?: React.ComponentType<{ className?: string }>;
+}
 
 interface MobileWelcomeTutorialProps {
   open: boolean;
   onComplete: () => void;
 }
 
+const tourSteps: TourStep[] = [
+  {
+    target: "welcome",
+    titleEs: "¡Bienvenido a Chefly!",
+    titleEn: "Welcome to Chefly!",
+    descEs: "Tu coach de nutrición con IA. Te guiaré por la app para que saques el máximo provecho.",
+    descEn: "Your AI nutrition coach. I'll guide you through the app so you get the most out of it.",
+    position: "center",
+  },
+  {
+    target: "[data-tour='meal-plan']",
+    titleEs: "Tu menú semanal",
+    titleEn: "Your weekly menu",
+    descEs: "Aquí verás todas tus comidas personalizadas. Desliza entre días y toca cualquier comida para ver la receta completa.",
+    descEn: "Here you'll see all your personalized meals. Swipe between days and tap any meal to see the full recipe.",
+    position: "bottom",
+  },
+  {
+    target: "[data-tour='complete-meal']",
+    titleEs: "Marca tus comidas",
+    titleEn: "Mark your meals",
+    descEs: "Toca el botón verde para marcar cuando completes una comida. ¡Ganarás puntos y mantendrás tu racha!",
+    descEn: "Tap the green button to mark when you complete a meal. You'll earn points and maintain your streak!",
+    position: "bottom",
+  },
+  {
+    target: "nav-home",
+    titleEs: "Inicio",
+    titleEn: "Home",
+    descEs: "Tu pantalla principal con el menú semanal, estadísticas y acceso rápido a todo.",
+    descEn: "Your main screen with the weekly menu, stats and quick access to everything.",
+    position: "top",
+    icon: Home,
+  },
+  {
+    target: "nav-shopping",
+    titleEs: "Lista de compras",
+    titleEn: "Shopping list",
+    descEs: "Tu lista de ingredientes generada automáticamente. ¡Lista para ir al super!",
+    descEn: "Your automatically generated ingredient list. Ready to go shopping!",
+    position: "top",
+    icon: ShoppingCart,
+  },
+  {
+    target: "nav-progress",
+    titleEs: "Tu progreso",
+    titleEn: "Your progress",
+    descEs: "Aquí verás gráficas de tu nutrición y medidas corporales a lo largo del tiempo.",
+    descEn: "Here you'll see charts of your nutrition and body measurements over time.",
+    position: "top",
+    icon: TrendingUp,
+  },
+  {
+    target: "nav-chat",
+    titleEs: "Chat con tu coach",
+    titleEn: "Chat with your coach",
+    descEs: "¿Dudas sobre nutrición? Pregúntame lo que quieras. Estoy aquí para ayudarte.",
+    descEn: "Nutrition questions? Ask me anything. I'm here to help.",
+    position: "top",
+    icon: MessageCircle,
+  },
+  {
+    target: "nav-profile",
+    titleEs: "Tu perfil",
+    titleEn: "Your profile",
+    descEs: "Configura tu avatar, ajustes, notificaciones y administra tu suscripción.",
+    descEn: "Set up your avatar, settings, notifications and manage your subscription.",
+    position: "top",
+    icon: User,
+  },
+];
+
 const MobileWelcomeTutorial = ({ open, onComplete }: MobileWelcomeTutorialProps) => {
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
   const [currentStep, setCurrentStep] = useState(0);
+  const [highlightRect, setHighlightRect] = useState({ top: 0, left: 0, width: 0, height: 0 });
+  const [isReady, setIsReady] = useState(false);
   const { selectionChanged, successNotification } = useHaptics();
 
-  const steps = [
-    {
-      icon: Sparkles,
-      emoji: "👋",
-      titleEs: "¡Bienvenido a Chefly!",
-      titleEn: "Welcome to Chefly!",
-      descEs: "Tu coach de nutrición personalizado con inteligencia artificial. Te ayudaré a comer mejor cada día.",
-      descEn: "Your personalized AI nutrition coach. I'll help you eat better every day.",
-      color: "from-primary to-primary/80",
-    },
-    {
-      icon: ChefHat,
-      emoji: "🍽️",
-      titleEs: "Tu menú semanal",
-      titleEn: "Your weekly menu",
-      descEs: "Desliza entre días para ver todas tus comidas. Cada receta está personalizada para ti.",
-      descEn: "Swipe between days to see all your meals. Each recipe is personalized for you.",
-      color: "from-orange-500 to-amber-500",
-    },
-    {
-      icon: Check,
-      emoji: "✅",
-      titleEs: "Marca tus comidas",
-      titleEn: "Track your meals",
-      descEs: "Toca la palomita verde para marcar cuando completes una comida y ganar puntos.",
-      descEn: "Tap the green checkmark when you complete a meal to earn points.",
-      color: "from-green-500 to-emerald-500",
-    },
-    {
-      icon: Trophy,
-      emoji: "🏆",
-      titleEs: "Gana recompensas",
-      titleEn: "Earn rewards",
-      descEs: "Completa comidas para subir de nivel, mantener tu racha y desbloquear logros.",
-      descEn: "Complete meals to level up, maintain your streak and unlock achievements.",
-      color: "from-yellow-500 to-orange-500",
-    },
-    {
-      icon: ShoppingCart,
-      emoji: "🛒",
-      titleEs: "Lista de compras",
-      titleEn: "Shopping list",
-      descEs: "Tu lista de ingredientes se genera automáticamente. ¡Todo listo para ir al super!",
-      descEn: "Your ingredient list is generated automatically. Ready to go shopping!",
-      color: "from-blue-500 to-cyan-500",
-    },
-    {
-      icon: MessageCircle,
-      emoji: "💬",
-      titleEs: "Chat con tu coach",
-      titleEn: "Chat with your coach",
-      descEs: "¿Dudas sobre nutrición? Pregúntame lo que quieras en el chat.",
-      descEn: "Nutrition questions? Ask me anything in the chat.",
-      color: "from-purple-500 to-pink-500",
-    },
-  ];
+  const calculatePositions = useCallback(() => {
+    if (!open) return;
+    
+    const step = tourSteps[currentStep];
+    
+    // Welcome screen or center position doesn't need highlighting
+    if (step.target === "welcome" || step.position === "center") {
+      setIsReady(true);
+      return;
+    }
+    
+    // Handle nav items specially
+    let element: Element | null = null;
+    if (step.target.startsWith("nav-")) {
+      const navType = step.target.replace("nav-", "");
+      const pathMap: Record<string, string> = {
+        home: "/dashboard",
+        shopping: "/dashboard/shopping",
+        progress: "/dashboard/progress",
+        chat: "/chat",
+        profile: "/dashboard/profile",
+      };
+      const path = pathMap[navType];
+      element = document.querySelector(`nav a[href="${path}"]`);
+    } else {
+      element = document.querySelector(step.target);
+    }
+    
+    if (!element) {
+      console.log("Element not found:", step.target);
+      setIsReady(true);
+      return;
+    }
+
+    const rect = element.getBoundingClientRect();
+    const padding = 8;
+
+    setHighlightRect({
+      top: rect.top - padding,
+      left: rect.left - padding,
+      width: rect.width + padding * 2,
+      height: rect.height + padding * 2,
+    });
+
+    setIsReady(true);
+  }, [currentStep, open]);
+
+  useEffect(() => {
+    if (open) {
+      setIsReady(false);
+      const timer = setTimeout(calculatePositions, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [open, currentStep, calculatePositions]);
+
+  useEffect(() => {
+    if (!open) {
+      setCurrentStep(0);
+      setIsReady(false);
+    }
+  }, [open]);
 
   const handleNext = () => {
     selectionChanged();
-    if (currentStep < steps.length - 1) {
+    if (currentStep < tourSteps.length - 1) {
+      setIsReady(false);
       setCurrentStep(currentStep + 1);
     } else {
       successNotification();
@@ -97,121 +187,284 @@ const MobileWelcomeTutorial = ({ open, onComplete }: MobileWelcomeTutorialProps)
 
   if (!open) return null;
 
-  const currentStepData = steps[currentStep];
-  const isLastStep = currentStep === steps.length - 1;
+  const currentStepData = tourSteps[currentStep];
+  const isWelcome = currentStepData.target === "welcome";
+  const isNavStep = currentStepData.target.startsWith("nav-");
+  const isLastStep = currentStep === tourSteps.length - 1;
+
+  // Calculate tooltip position
+  const getTooltipPosition = () => {
+    if (isWelcome) {
+      return { top: "50%", transform: "translateY(-50%)" };
+    }
+    
+    if (currentStepData.position === "top") {
+      // Position above the element (for bottom nav)
+      return { 
+        bottom: `${window.innerHeight - highlightRect.top + 20}px`,
+      };
+    }
+    
+    // Position below the element
+    return { 
+      top: `${highlightRect.top + highlightRect.height + 20}px`,
+    };
+  };
+
+  const tooltipStyle = getTooltipPosition();
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[9999] bg-background flex flex-col"
-    >
-      {/* Progress dots at top */}
-      <div className="pt-safe-top px-6 pt-4 flex justify-between items-center">
-        <div className="flex gap-1.5">
-          {steps.map((_, index) => (
+    <AnimatePresence>
+      {open && (
+        <div className="fixed inset-0 z-[9999] overflow-hidden">
+          {/* Dark overlay with cutout */}
+          {!isWelcome && isReady && (
             <motion.div
-              key={index}
-              className={`h-1.5 rounded-full transition-all ${
-                index === currentStep 
-                  ? "w-6 bg-primary" 
-                  : index < currentStep 
-                  ? "w-1.5 bg-primary/60" 
-                  : "w-1.5 bg-muted"
-              }`}
-              layoutId={`dot-${index}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0"
+            >
+              <svg className="w-full h-full">
+                <defs>
+                  <mask id="mobile-spotlight-mask">
+                    <rect width="100%" height="100%" fill="white" />
+                    <rect
+                      x={highlightRect.left}
+                      y={highlightRect.top}
+                      width={highlightRect.width}
+                      height={highlightRect.height}
+                      rx="16"
+                      fill="black"
+                    />
+                  </mask>
+                </defs>
+                <rect
+                  width="100%"
+                  height="100%"
+                  fill="rgba(0, 0, 0, 0.85)"
+                  mask="url(#mobile-spotlight-mask)"
+                />
+              </svg>
+            </motion.div>
+          )}
+
+          {/* Welcome screen overlay */}
+          {isWelcome && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-background/95 backdrop-blur-sm"
             />
-          ))}
-        </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleSkip}
-          className="text-muted-foreground text-xs"
-        >
-          {language === 'es' ? 'Saltar' : 'Skip'}
-        </Button>
-      </div>
+          )}
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col items-center justify-center px-8 pb-safe-bottom">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentStep}
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
-            transition={{ duration: 0.3 }}
-            className="flex flex-col items-center text-center w-full max-w-sm"
-          >
-            {/* Mascot with animated glow */}
-            <div className="relative mb-6">
-              <motion.div
-                className={`absolute inset-0 bg-gradient-to-br ${currentStepData.color} rounded-full blur-3xl opacity-30`}
-                animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.4, 0.2] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              />
-              <motion.div
-                animate={{ y: [0, -8, 0] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                className="relative"
-              >
-                {currentStep === 0 ? (
-                  <img 
-                    src={cheflyMascot} 
-                    alt="Chefly" 
-                    className="w-32 h-32 object-contain drop-shadow-xl"
-                  />
-                ) : (
-                  <div className={`w-28 h-28 rounded-3xl bg-gradient-to-br ${currentStepData.color} flex items-center justify-center shadow-xl`}>
-                    <span className="text-5xl">{currentStepData.emoji}</span>
-                  </div>
-                )}
-              </motion.div>
-            </div>
-
-            {/* Title */}
-            <motion.h2
-              className="text-2xl font-bold text-foreground mb-3"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-            >
-              {language === 'es' ? currentStepData.titleEs : currentStepData.titleEn}
-            </motion.h2>
-
-            {/* Description */}
-            <motion.p
-              className="text-muted-foreground text-base leading-relaxed"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              {language === 'es' ? currentStepData.descEs : currentStepData.descEn}
-            </motion.p>
-          </motion.div>
-        </AnimatePresence>
-      </div>
-
-      {/* Bottom action button */}
-      <div className="px-6 pb-8 pb-safe-bottom">
-        <Button
-          onClick={handleNext}
-          size="lg"
-          className="w-full h-14 text-lg font-semibold rounded-2xl shadow-lg"
-        >
-          {isLastStep ? (
-            language === 'es' ? '¡Comenzar!' : "Let's go!"
-          ) : (
+          {/* Highlight border for non-welcome steps */}
+          {!isWelcome && isReady && (
             <>
-              {language === 'es' ? 'Siguiente' : 'Next'}
-              <ChevronRight className="ml-2 h-5 w-5" />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="absolute pointer-events-none rounded-2xl border-[3px] border-primary z-[10000]"
+                style={{
+                  top: highlightRect.top,
+                  left: highlightRect.left,
+                  width: highlightRect.width,
+                  height: highlightRect.height,
+                  boxShadow: "0 0 30px 8px hsl(var(--primary) / 0.6)",
+                }}
+              />
+              {/* Pulsing effect */}
+              <motion.div
+                animate={{ 
+                  opacity: [0.3, 0.7, 0.3],
+                  scale: [1, 1.05, 1],
+                }}
+                transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut" }}
+                className="absolute pointer-events-none rounded-2xl border-2 border-primary/60 z-[9999]"
+                style={{
+                  top: highlightRect.top - 6,
+                  left: highlightRect.left - 6,
+                  width: highlightRect.width + 12,
+                  height: highlightRect.height + 12,
+                }}
+              />
             </>
           )}
-        </Button>
-      </div>
-    </motion.div>
+
+          {/* Progress dots at top */}
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="absolute top-0 left-0 right-0 pt-safe-top px-4 pt-3 flex justify-between items-center z-[10001]"
+          >
+            <div className="flex gap-1">
+              {tourSteps.map((_, index) => (
+                <div
+                  key={index}
+                  className={`h-1 rounded-full transition-all duration-300 ${
+                    index === currentStep 
+                      ? "w-5 bg-primary" 
+                      : index < currentStep 
+                      ? "w-1.5 bg-primary/60" 
+                      : "w-1.5 bg-white/30"
+                  }`}
+                />
+              ))}
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleSkip}
+              className="text-white/70 hover:text-white hover:bg-white/10 text-xs h-8 px-2"
+            >
+              <X className="h-4 w-4 mr-1" />
+              {language === 'es' ? 'Saltar' : 'Skip'}
+            </Button>
+          </motion.div>
+
+          {/* Tooltip / Content Card */}
+          <motion.div
+            key={currentStep}
+            initial={{ opacity: 0, scale: 0.9, y: currentStepData.position === "top" ? 30 : -30 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+            className="absolute left-4 right-4 z-[10002]"
+            style={tooltipStyle}
+          >
+            <div className="bg-card border-2 border-primary/30 rounded-3xl shadow-2xl overflow-hidden">
+              {/* Header with mascot or icon */}
+              <div className="bg-gradient-to-r from-primary via-primary to-primary/80 p-4 flex items-center gap-4">
+                {isWelcome ? (
+                  <motion.img
+                    src={cheflyMascot}
+                    alt="Chefly"
+                    className="w-20 h-20 object-contain drop-shadow-lg flex-shrink-0"
+                    animate={{ 
+                      y: [0, -5, 0],
+                      rotate: [0, 3, -3, 0],
+                    }}
+                    transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
+                  />
+                ) : isNavStep && currentStepData.icon ? (
+                  <motion.div 
+                    className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center flex-shrink-0"
+                    animate={{ scale: [1, 1.1, 1] }}
+                    transition={{ repeat: Infinity, duration: 1.5 }}
+                  >
+                    <currentStepData.icon className="h-8 w-8 text-white" />
+                  </motion.div>
+                ) : (
+                  <motion.div 
+                    className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center flex-shrink-0"
+                    animate={{ y: [0, -3, 0] }}
+                    transition={{ repeat: Infinity, duration: 1.5 }}
+                  >
+                    <span className="text-3xl">👆</span>
+                  </motion.div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-primary-foreground font-bold text-lg leading-tight">
+                    {language === 'es' ? currentStepData.titleEs : currentStepData.titleEn}
+                  </h3>
+                  <span className="text-primary-foreground/70 text-xs">
+                    {currentStep + 1} / {tourSteps.length}
+                  </span>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="p-4">
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  {language === 'es' ? currentStepData.descEs : currentStepData.descEn}
+                </p>
+              </div>
+
+              {/* Action button */}
+              <div className="px-4 pb-4">
+                <Button
+                  onClick={handleNext}
+                  size="lg"
+                  className="w-full h-12 text-base font-semibold rounded-xl"
+                >
+                  {isLastStep ? (
+                    language === 'es' ? '¡Comenzar!' : "Let's go!"
+                  ) : (
+                    <>
+                      {language === 'es' ? 'Siguiente' : 'Next'}
+                      <ChevronRight className="ml-1 h-5 w-5" />
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Animated arrow pointing to element */}
+          {!isWelcome && isReady && currentStepData.position === "top" && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="absolute z-[10001] pointer-events-none"
+              style={{
+                top: highlightRect.top - 50,
+                left: highlightRect.left + highlightRect.width / 2 - 20,
+              }}
+            >
+              <motion.svg
+                width="40"
+                height="40"
+                viewBox="0 0 40 40"
+                animate={{ y: [0, 8, 0] }}
+                transition={{ repeat: Infinity, duration: 0.8, ease: "easeInOut" }}
+                className="text-primary drop-shadow-lg"
+              >
+                <path
+                  d="M20 8L20 28M20 28L10 18M20 28L30 18"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
+                />
+              </motion.svg>
+            </motion.div>
+          )}
+
+          {!isWelcome && isReady && currentStepData.position === "bottom" && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="absolute z-[10001] pointer-events-none"
+              style={{
+                top: highlightRect.top + highlightRect.height + 8,
+                left: highlightRect.left + highlightRect.width / 2 - 20,
+              }}
+            >
+              <motion.svg
+                width="40"
+                height="40"
+                viewBox="0 0 40 40"
+                animate={{ y: [-8, 0, -8] }}
+                transition={{ repeat: Infinity, duration: 0.8, ease: "easeInOut" }}
+                className="text-primary drop-shadow-lg"
+                style={{ transform: "rotate(180deg)" }}
+              >
+                <path
+                  d="M20 8L20 28M20 28L10 18M20 28L30 18"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
+                />
+              </motion.svg>
+            </motion.div>
+          )}
+        </div>
+      )}
+    </AnimatePresence>
   );
 };
 
