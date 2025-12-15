@@ -127,12 +127,19 @@ export const SwipeableMealCard = ({
                   {mealTypeLabel}
                 </Badge>
               </div>
-              {/* Complete indicator on image */}
+              {/* Complete indicator on image - clickable */}
               <Button
                 size="icon"
                 variant={isCompleted ? "duolingoSecondary" : "duolingo"}
                 data-tour={isFirstMeal ? "complete-meal" : undefined}
-                className="absolute top-2 left-2 h-9 w-9 shadow-lg rounded-xl pointer-events-none"
+                className="absolute top-2 left-2 h-9 w-9 shadow-lg rounded-xl"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!isCompleted) {
+                    mediumImpact();
+                    onComplete(meal.id);
+                  }
+                }}
               >
                 <Check className="h-5 w-5" />
               </Button>
