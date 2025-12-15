@@ -474,24 +474,29 @@ const Chat = () => {
               className="relative"
               whileHover={{ scale: 1.05 }}
             >
-              <img 
-                src={mascotFire}
-                alt="Chefly"
-                className="w-10 h-10 object-contain"
-              />
-              {/* Online indicator */}
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 p-1 shadow-sm">
+                <img 
+                  src={mascotFire}
+                  alt="Chefly"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              {/* Online indicator - subtle dot */}
               <motion.div 
-                className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-card"
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
+                className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-card shadow-sm"
+                animate={{ scale: [1, 1.15, 1] }}
+                transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
               />
             </motion.div>
             
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <h1 className="text-lg font-bold truncate text-foreground">Chefly</h1>
-              <p className="text-xs text-green-500 font-medium">
-                {language === 'es' ? '🟢 En línea' : '🟢 Online'}
-              </p>
+              <div className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span className="text-xs text-muted-foreground font-medium">
+                  {language === 'es' ? 'Tu coach nutricional' : 'Your nutrition coach'}
+                </span>
+              </div>
             </div>
           </div>
           
