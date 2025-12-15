@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, RefreshCw, MessageCircle, Calendar, Settings, TrendingUp, Utensils, Clock, Sparkles, Check, Lock, CreditCard, Languages, HelpCircle } from "lucide-react";
+import { Loader2, RefreshCw, MessageCircle, Calendar, Settings, TrendingUp, Utensils, Clock, Sparkles, Check, Lock, CreditCard, Languages, HelpCircle, Camera } from "lucide-react";
 import { MealImageWithSkeleton } from "@/components/MealImageWithSkeleton";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
@@ -36,6 +36,7 @@ import { useHaptics } from "@/hooks/useHaptics";
 import { useOfflineMode } from "@/hooks/useOfflineMode";
 import { useDeepLinking } from "@/hooks/useDeepLinking";
 import { Capacitor } from "@capacitor/core";
+import { FoodScanner } from "@/components/FoodScanner";
 
 interface Meal {
   id: string;
@@ -101,6 +102,7 @@ const Dashboard = () => {
   const [showTutorial, setShowTutorial] = useState(false);
   const [showInAppTour, setShowInAppTour] = useState(false);
   const [showMobileWelcome, setShowMobileWelcome] = useState(false);
+  const [showFoodScanner, setShowFoodScanner] = useState(false);
   const [currentMobileDay, setCurrentMobileDay] = useState(0);
   const isNativePlatform = Capacitor.isNativePlatform();
   const isMobile = useIsMobile();
@@ -1193,6 +1195,22 @@ const Dashboard = () => {
                   </TooltipContent>
                 </Tooltip>
               )}
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => setShowFoodScanner(true)}
+                    variant="duolingoOutline"
+                    className="h-auto py-4 flex-col gap-2"
+                  >
+                    <Camera className="h-5 w-5" />
+                    <span className="text-sm">{language === 'es' ? 'Escanear Comida' : 'Scan Food'}</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs max-w-[200px]">{language === 'es' ? 'Toma una foto de tu comida y obtén información nutricional' : 'Take a photo of your food and get nutritional info'}</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
             
             {/* Generate new plan button */}
@@ -1600,6 +1618,11 @@ const Dashboard = () => {
       <MobileWelcomeTutorial
         open={showMobileWelcome}
         onComplete={handleMobileWelcomeComplete}
+      />
+
+      <FoodScanner
+        open={showFoodScanner}
+        onOpenChange={setShowFoodScanner}
       />
 
     </div>
