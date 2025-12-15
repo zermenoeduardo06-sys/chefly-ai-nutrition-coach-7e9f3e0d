@@ -1,4 +1,4 @@
-import { Home, ShoppingCart, TrendingUp, MessageCircle, User } from "lucide-react";
+import { Home, ShoppingCart, TrendingUp, MessageCircle, User, Camera } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 const navItems = [
   { icon: Home, path: "/dashboard", color: "text-primary", tourId: "nav-home" },
   { icon: ShoppingCart, path: "/dashboard/shopping", color: "text-cyan-500", tourId: "nav-shopping" },
+  { icon: Camera, path: "/dashboard/food-history", color: "text-amber-500", tourId: "nav-scan" },
   { icon: TrendingUp, path: "/dashboard/progress", color: "text-secondary", tourId: "nav-progress" },
   { icon: MessageCircle, path: "/chat", color: "text-pink-500", tourId: "nav-chat" },
   { icon: User, path: "/dashboard/profile", color: "text-purple-500", tourId: "nav-profile" },
