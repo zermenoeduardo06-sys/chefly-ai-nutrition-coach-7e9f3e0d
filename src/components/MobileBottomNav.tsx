@@ -4,11 +4,11 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
 const navItems = [
-  { icon: Home, path: "/dashboard", color: "text-primary" },
-  { icon: ShoppingCart, path: "/dashboard/shopping", color: "text-cyan-500" },
-  { icon: TrendingUp, path: "/dashboard/progress", color: "text-secondary" },
-  { icon: MessageCircle, path: "/chat", color: "text-pink-500" },
-  { icon: User, path: "/dashboard/profile", color: "text-purple-500" },
+  { icon: Home, path: "/dashboard", color: "text-primary", tourId: "nav-home" },
+  { icon: ShoppingCart, path: "/dashboard/shopping", color: "text-cyan-500", tourId: "nav-shopping" },
+  { icon: TrendingUp, path: "/dashboard/progress", color: "text-secondary", tourId: "nav-progress" },
+  { icon: MessageCircle, path: "/chat", color: "text-pink-500", tourId: "nav-chat" },
+  { icon: User, path: "/dashboard/profile", color: "text-purple-500", tourId: "nav-profile" },
 ];
 
 export function MobileBottomNav() {
@@ -30,6 +30,7 @@ export function MobileBottomNav() {
             <NavLink
               key={item.path}
               to={item.path}
+              data-tour={item.tourId}
               className="flex items-center justify-center flex-1 h-full"
             >
               <motion.div
