@@ -67,11 +67,19 @@ const Profile = () => {
           const config = data.avatar_config as Record<string, unknown>;
           avatarConfig = {
             skinTone: typeof config.skinTone === 'number' ? config.skinTone : 0,
-            body: typeof config.body === 'number' ? config.body : 0,
-            eyes: typeof config.eyes === 'number' ? config.eyes : 0,
-            hair: typeof config.hair === 'number' ? config.hair : 0,
+            faceShape: typeof config.faceShape === 'number' ? config.faceShape : 0,
+            eyeStyle: typeof config.eyeStyle === 'number' ? config.eyeStyle : (typeof config.eyes === 'number' ? config.eyes : 0),
+            eyeColor: typeof config.eyeColor === 'number' ? config.eyeColor : 0,
+            eyebrowStyle: typeof config.eyebrowStyle === 'number' ? config.eyebrowStyle : 0,
+            hairStyle: typeof config.hairStyle === 'number' ? config.hairStyle : (typeof config.hair === 'number' ? config.hair : 0),
+            hairColor: typeof config.hairColor === 'number' ? config.hairColor : 0,
+            mouthStyle: typeof config.mouthStyle === 'number' ? config.mouthStyle : 0,
+            facialHair: typeof config.facialHair === 'number' ? config.facialHair : -1,
             glasses: typeof config.glasses === 'number' ? config.glasses : -1,
-            accessory: typeof config.accessory === 'number' ? config.accessory : -1,
+            earrings: typeof config.earrings === 'number' ? config.earrings : -1,
+            headwear: typeof config.headwear === 'number' ? config.headwear : -1,
+            outfit: typeof config.outfit === 'number' ? config.outfit : 0,
+            outfitColor: typeof config.outfitColor === 'number' ? config.outfitColor : (typeof config.body === 'number' ? config.body : 0),
           };
         }
         setProfile({

@@ -3,18 +3,29 @@ import {
   defaultAvatarConfig,
   SKIN_TONES,
   HAIR_COLORS,
-  BODY_COLORS,
+  EYE_COLORS,
+  FACE_SHAPES,
   EYES_STYLES,
+  EYEBROW_STYLES,
   HAIR_STYLES,
+  MOUTH_STYLES,
+  FACIAL_HAIR_STYLES,
   GLASSES_STYLES,
-  ACCESSORY_STYLES,
+  EARRING_STYLES,
+  HEADWEAR_STYLES,
+  OUTFIT_STYLES,
+  OUTFIT_COLORS,
+  AvatarDefs,
   Face,
   Eyes,
+  Eyebrows,
   Mouth,
+  FacialHair,
   Hair,
   Body,
   Glasses,
-  Accessory,
+  Earrings,
+  Headwear,
 } from "./AvatarParts";
 
 interface ModularAvatarProps {
@@ -24,54 +35,81 @@ interface ModularAvatarProps {
 }
 
 const ModularAvatar = ({ config, size = 200, className = "" }: ModularAvatarProps) => {
-  const avatarConfig = config || defaultAvatarConfig;
+  // Merge with defaults for backwards compatibility
+  const avatarConfig: AvatarConfig = {
+    ...defaultAvatarConfig,
+    ...(config || {}),
+    // Map old 'body' to 'outfitColor' for backwards compatibility
+    outfitColor: config?.outfitColor ?? (config as any)?.body ?? defaultAvatarConfig.outfitColor,
+  };
   
-  const skinColor = SKIN_TONES[avatarConfig.skinTone] || SKIN_TONES[0];
-  const hairColor = HAIR_COLORS[avatarConfig.hair] || HAIR_COLORS[0];
-  const bodyColor = BODY_COLORS[avatarConfig.body] || BODY_COLORS[0];
-  const eyeStyle = EYES_STYLES[avatarConfig.eyes] || EYES_STYLES[0];
-  const hairStyle = HAIR_STYLES[avatarConfig.hair] || HAIR_STYLES[0];
+  const skinTone = SKIN_TONES[avatarConfig.skinTone] || SKIN_TONES[0];
+  const hairColor = HAIR_COLORS[avatarConfig.hairColor] || HAIR_COLORS[0];
+  const eyeColor = EYE_COLORS[avatarConfig.eyeColor] || EYE_COLORS[0];
+  const faceShape = FACE_SHAPES[avatarConfig.faceShape] || FACE_SHAPES[0];
+  const eyeStyle = EYES_STYLES[avatarConfig.eyeStyle] || EYES_STYLES[0];
+  const eyebrowStyle = EYEBROW_STYLES[avatarConfig.eyebrowStyle] || EYEBROW_STYLES[0];
+  const hairStyle = HAIR_STYLES[avatarConfig.hairStyle] || HAIR_STYLES[0];
+  const mouthStyle = MOUTH_STYLES[avatarConfig.mouthStyle] || MOUTH_STYLES[0];
+  const facialHairStyle = avatarConfig.facialHair >= 0 ? FACIAL_HAIR_STYLES[avatarConfig.facialHair] : null;
   const glassesStyle = avatarConfig.glasses >= 0 ? GLASSES_STYLES[avatarConfig.glasses] : null;
-  const accessoryStyle = avatarConfig.accessory >= 0 ? ACCESSORY_STYLES[avatarConfig.accessory] : null;
+  const earringStyle = avatarConfig.earrings >= 0 ? EARRING_STYLES[avatarConfig.earrings] : null;
+  const headwearStyle = avatarConfig.headwear >= 0 ? HEADWEAR_STYLES[avatarConfig.headwear] : null;
+  const outfitStyle = OUTFIT_STYLES[avatarConfig.outfit] || OUTFIT_STYLES[0];
+  const outfitColor = OUTFIT_COLORS[avatarConfig.outfitColor] || OUTFIT_COLORS[0];
 
   return (
     <svg 
       width={size} 
       height={size} 
-      viewBox="0 0 200 220" 
+      viewBox="0 0 200 200" 
       className={className}
       style={{ overflow: "visible" }}
     >
+      {/* Gradient Definitions */}
+      <AvatarDefs skinTone={skinTone} hairColor={hairColor} outfitColor={outfitColor} />
+      
       {/* Background circle */}
       <circle cx="100" cy="100" r="95" fill="#E8E8E8" />
       
-      {/* Body */}
-      <Body color={bodyColor} skinColor={skinColor} />
-      
-      {/* Face */}
-      <Face skinColor={skinColor} />
-      
-      {/* Hair (behind if long) */}
-      {hairStyle === "long" && (
+      {/* Hair behind (for long styles) */}
+      {(hairStyle === "long" || hairStyle === "longWavy" || hairStyle === "braids") && (
         <g style={{ transform: "translateY(-5px)" }}>
           <Hair style={hairStyle} color={hairColor} />
         </g>
       )}
       
+      {/* Body/Outfit */}
+      <Body style={outfitStyle} color={outfitColor} skinTone={skinTone} />
+      
+      {/* Face */}
+      <Face skinTone={skinTone} faceShape={faceShape} />
+      
+      {/* Earrings (behind face features) */}
+      {earringStyle && <Earrings style={earringStyle} />}
+      
+      {/* Eyebrows */}
+      <Eyebrows style={eyebrowStyle} hairColor={hairColor} />
+      
       {/* Eyes */}
-      <Eyes style={eyeStyle} />
+      <Eyes style={eyeStyle} eyeColor={eyeColor} />
       
       {/* Mouth */}
-      <Mouth />
+      <Mouth style={mouthStyle} />
       
-      {/* Hair (on top) */}
-      {hairStyle !== "long" && <Hair style={hairStyle} color={hairColor} />}
+      {/* Facial Hair */}
+      {facialHairStyle && <FacialHair style={facialHairStyle} color={hairColor} />}
+      
+      {/* Hair on top (for short styles) */}
+      {hairStyle !== "long" && hairStyle !== "longWavy" && hairStyle !== "braids" && (
+        <Hair style={hairStyle} color={hairColor} />
+      )}
       
       {/* Glasses */}
       {glassesStyle && <Glasses style={glassesStyle} />}
       
-      {/* Accessory */}
-      {accessoryStyle && <Accessory style={accessoryStyle} hairColor={hairColor} />}
+      {/* Headwear (on top of everything) */}
+      {headwearStyle && <Headwear style={headwearStyle} hairColor={hairColor} />}
     </svg>
   );
 };
