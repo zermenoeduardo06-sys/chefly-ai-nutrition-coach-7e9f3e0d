@@ -37,6 +37,8 @@ import { useOfflineMode } from "@/hooks/useOfflineMode";
 import { useDeepLinking } from "@/hooks/useDeepLinking";
 import { Capacitor } from "@capacitor/core";
 import { FoodScanner } from "@/components/FoodScanner";
+import { CalendarDayWidget } from "@/components/CalendarDayWidget";
+import { useWeeklyCheckIn } from "@/hooks/useWeeklyCheckIn";
 
 interface Meal {
   id: string;
@@ -961,6 +963,11 @@ const Dashboard = () => {
             trialExpiresAt={profile.trial_expires_at}
           />
         )}
+
+        {/* Calendar Day Widget */}
+        <CalendarDayWidget 
+          isCheckInDay={userId ? true : false}
+        />
 
         {/* Weekly Check-In Banner (Premium feature) */}
         {userId && (
