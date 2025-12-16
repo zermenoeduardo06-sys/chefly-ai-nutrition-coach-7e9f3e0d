@@ -479,10 +479,11 @@ export function MealDetailDialog({
                   onClick={() => onSwapMeal(meal.id)}
                   disabled={!canSwap}
                   className="flex-1 h-10 rounded-xl"
+                  title={!canSwap ? (language === 'es' ? 'Requiere Chefly Plus' : 'Requires Chefly Plus') : undefined}
                 >
                   {!canSwap && <Lock className="mr-1 h-4 w-4" />}
                   <ArrowLeftRight className="mr-1 h-4 w-4" />
-                  {t('mealDetail.swapMeal')}
+                  {!canSwap ? 'Chefly Plus' : t('mealDetail.swapMeal')}
                 </Button>
               )}
             </div>

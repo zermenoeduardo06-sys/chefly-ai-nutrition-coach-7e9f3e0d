@@ -3,17 +3,19 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useFriendships } from "@/hooks/useFriendships";
 import { useTrialGuard } from "@/hooks/useTrialGuard";
+import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { FriendCard } from "@/components/friends/FriendCard";
 import { AddFriendDialog } from "@/components/friends/AddFriendDialog";
-import { Users, UserPlus, Loader2 } from "lucide-react";
+import { Users, UserPlus, Loader2, Lock, Zap, Crown } from "lucide-react";
 
 const Friends = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { isBlocked, isLoading: trialLoading } = useTrialGuard();
   const {
     friends,
@@ -26,6 +28,7 @@ const Friends = () => {
   } = useFriendships();
 
   const [userId, setUserId] = useState<string | null>(null);
+  const { limits } = useSubscriptionLimits(userId || undefined);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -39,7 +42,7 @@ const Friends = () => {
     checkAuth();
   }, [navigate]);
 
-  if (loading || trialLoading) {
+  if (loading || trialLoading || limits.isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-muted/30">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -49,6 +52,80 @@ const Friends = () => {
 
   if (isBlocked) {
     return null;
+  }
+
+  // Show locked screen for free users
+  if (!limits.isCheflyPlus) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 p-4 md:p-6">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="flex items-center gap-3 mb-6">
+            <Users className="h-7 w-7 text-primary" />
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+              {t("friends.title")}
+            </h1>
+          </div>
+
+          {/* Locked Feature Card */}
+          <Card className="border-2 border-primary/30 bg-gradient-to-br from-primary/5 to-secondary/5">
+            <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+                <Lock className="h-10 w-10 text-primary" />
+              </div>
+              
+              <div className="flex items-center gap-2 mb-3">
+                <Crown className="h-5 w-5 text-primary" />
+                <span className="text-sm font-semibold text-primary">
+                  {language === 'es' ? 'Función exclusiva de Chefly Plus' : 'Chefly Plus exclusive feature'}
+                </span>
+              </div>
+              
+              <h2 className="text-xl font-bold text-foreground mb-2">
+                {language === 'es' ? 'Sistema de Amigos' : 'Friends System'}
+              </h2>
+              
+              <p className="text-muted-foreground max-w-md mb-6">
+                {language === 'es' 
+                  ? 'Conecta con amigos, compara tu progreso y compitan juntos para alcanzar sus metas nutricionales.'
+                  : 'Connect with friends, compare your progress and compete together to reach your nutritional goals.'
+                }
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 w-full max-w-lg">
+                <div className="p-3 rounded-xl bg-card border border-border/50">
+                  <Users className="h-5 w-5 text-primary mx-auto mb-2" />
+                  <p className="text-xs text-muted-foreground">
+                    {language === 'es' ? 'Agrega amigos' : 'Add friends'}
+                  </p>
+                </div>
+                <div className="p-3 rounded-xl bg-card border border-border/50">
+                  <Zap className="h-5 w-5 text-primary mx-auto mb-2" />
+                  <p className="text-xs text-muted-foreground">
+                    {language === 'es' ? 'Compara stats' : 'Compare stats'}
+                  </p>
+                </div>
+                <div className="p-3 rounded-xl bg-card border border-border/50">
+                  <Crown className="h-5 w-5 text-primary mx-auto mb-2" />
+                  <p className="text-xs text-muted-foreground">
+                    {language === 'es' ? 'Compite' : 'Compete'}
+                  </p>
+                </div>
+              </div>
+
+              <Button 
+                onClick={() => navigate("/pricing")}
+                size="lg"
+                className="gap-2"
+              >
+                <Zap className="h-4 w-4" />
+                {language === 'es' ? 'Mejorar a Chefly Plus' : 'Upgrade to Chefly Plus'}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
   }
 
   const acceptedFriends = friends.filter(f => f.status === "accepted");
