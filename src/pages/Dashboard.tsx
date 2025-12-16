@@ -803,8 +803,10 @@ const Dashboard = () => {
     if (!limits.canSwapMeals) {
       toast({
         variant: "destructive",
-        title: t("dashboard.featureUnavailable"),
-        description: t("dashboard.needIntermediateSwap"),
+        title: language === 'es' ? "Función exclusiva de Chefly Plus" : "Chefly Plus exclusive feature",
+        description: language === 'es' 
+          ? "Mejora a Chefly Plus para intercambiar comidas entre días"
+          : "Upgrade to Chefly Plus to swap meals between days",
       });
       navigate("/pricing");
       return;

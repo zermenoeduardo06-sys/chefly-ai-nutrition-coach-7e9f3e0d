@@ -334,8 +334,10 @@ const Chat = () => {
     if (limits.chatMessagesUsed >= limits.dailyChatLimit) {
       toast({
         variant: "destructive",
-        title: t("chat.limitReached"),
-        description: t("chat.limitReachedDesc").replace("{{limit}}", limits.dailyChatLimit.toString()),
+        title: language === 'es' ? "Límite de mensajes alcanzado" : "Message limit reached",
+        description: language === 'es' 
+          ? `Has usado tus ${limits.dailyChatLimit} mensajes de hoy. Mejora a Chefly Plus para mensajes ilimitados.`
+          : `You've used your ${limits.dailyChatLimit} messages today. Upgrade to Chefly Plus for unlimited messages.`,
       });
       navigate("/pricing");
       return;
