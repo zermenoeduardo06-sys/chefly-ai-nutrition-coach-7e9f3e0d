@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, RefreshCw, MessageCircle, Calendar, Settings, TrendingUp, Utensils, Clock, Sparkles, Check, Lock, CreditCard, Languages, HelpCircle, Camera } from "lucide-react";
+import { Loader2, RefreshCw, MessageCircle, Calendar, Settings, TrendingUp, Utensils, Clock, Sparkles, Check, Lock, CreditCard, Languages, HelpCircle, Camera, Zap } from "lucide-react";
 import { MealImageWithSkeleton } from "@/components/MealImageWithSkeleton";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
@@ -1235,8 +1235,8 @@ const Dashboard = () => {
                         <RefreshCw className="h-4 w-4 mr-2" />
                         <span className="text-xs">{t("dashboard.generateNewPlan")}</span>
                         {!limits.canGeneratePlans && (
-                          <Badge variant="outline" className="ml-2 text-xs">
-                            {t("dashboard.intermediatePlan")}
+                          <Badge variant="outline" className="ml-2 text-xs bg-primary/10 text-primary border-primary/30">
+                            Chefly Plus
                           </Badge>
                         )}
                       </>
@@ -1543,25 +1543,55 @@ const Dashboard = () => {
                     <p className="text-sm text-muted-foreground">{t("dashboard.generatingAI")}</p>
                   </div>
                 ) : (
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <Button 
-                      onClick={initiateGenerateMealPlan} 
-                      disabled={generating}
-                      size="xl"
-                      variant="duolingo"
-                      className="min-w-[200px]"
-                    >
-                      <Sparkles className="mr-2 h-5 w-5" />
-                      {t("dashboard.generatePlan")}
-                    </Button>
-                    <Button 
-                      onClick={() => navigate("/onboarding")}
-                      variant="duolingoOutline"
-                      size="lg"
-                    >
-                      <Settings className="mr-2 h-4 w-4" />
-                      {t("dashboard.setupPreferences")}
-                    </Button>
+                  <div className="flex flex-col gap-4">
+                    {!limits.canGeneratePlans && (
+                      <div className="p-4 rounded-xl bg-primary/10 border border-primary/30 text-center">
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                          <Lock className="h-5 w-5 text-primary" />
+                          <span className="font-semibold text-primary">
+                            {language === 'es' ? 'Función exclusiva de Chefly Plus' : 'Chefly Plus exclusive feature'}
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          {language === 'es' 
+                            ? 'Mejora tu plan para generar nuevos menús personalizados cada semana'
+                            : 'Upgrade your plan to generate new personalized menus every week'
+                          }
+                        </p>
+                        <Button 
+                          onClick={() => navigate("/pricing")}
+                          variant="duolingo"
+                          size="lg"
+                          className="gap-2"
+                        >
+                          <Zap className="h-4 w-4" />
+                          {language === 'es' ? 'Mejorar a Chefly Plus' : 'Upgrade to Chefly Plus'}
+                        </Button>
+                      </div>
+                    )}
+                    
+                    {limits.canGeneratePlans && (
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        <Button 
+                          onClick={initiateGenerateMealPlan} 
+                          disabled={generating}
+                          size="xl"
+                          variant="duolingo"
+                          className="min-w-[200px]"
+                        >
+                          <Sparkles className="mr-2 h-5 w-5" />
+                          {t("dashboard.generatePlan")}
+                        </Button>
+                        <Button 
+                          onClick={() => navigate("/onboarding")}
+                          variant="duolingoOutline"
+                          size="lg"
+                        >
+                          <Settings className="mr-2 h-4 w-4" />
+                          {t("dashboard.setupPreferences")}
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>
