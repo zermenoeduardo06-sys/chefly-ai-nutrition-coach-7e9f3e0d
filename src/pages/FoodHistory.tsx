@@ -278,7 +278,7 @@ const FoodHistory = () => {
                     onClick={() => setExpandedId(expandedId === scan.id ? null : scan.id)}
                     className="cursor-pointer"
                   >
-                    <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-border/50 hover:shadow-md transition-shadow">
+                    <div className="bg-card rounded-2xl overflow-hidden shadow-sm border border-border/50 hover:shadow-md transition-shadow">
                       <div className="flex gap-0">
                         {/* Image */}
                         {scan.image_url ? (
@@ -302,7 +302,7 @@ const FoodHistory = () => {
                         <div className="flex-1 p-3 min-w-0">
                           <div className="flex justify-between items-start gap-2">
                             <div className="flex-1 min-w-0">
-                              <h3 className="font-semibold text-sm line-clamp-1 text-foreground">{scan.dish_name}</h3>
+                              <h3 className="font-semibold text-sm line-clamp-1 text-card-foreground">{scan.dish_name}</h3>
                               {scan.foods_identified && scan.foods_identified.length > 0 && (
                                 <p className="text-xs text-muted-foreground line-clamp-1">
                                   {scan.foods_identified.slice(0, 3).join(', ')}
@@ -324,21 +324,21 @@ const FoodHistory = () => {
                           
                           {/* Nutrition Grid */}
                           <div className="grid grid-cols-4 gap-2 mt-3">
-                            <div className="bg-orange-50 rounded-lg p-1.5 text-center">
+                            <div className="bg-orange-500/10 dark:bg-orange-500/20 rounded-lg p-1.5 text-center">
                               <Flame className="h-3 w-3 mx-auto text-orange-500" />
-                              <div className="text-xs font-bold text-orange-600">{scan.calories}</div>
+                              <div className="text-xs font-bold text-orange-500 dark:text-orange-400">{scan.calories}</div>
                             </div>
-                            <div className="bg-red-50 rounded-lg p-1.5 text-center">
+                            <div className="bg-red-500/10 dark:bg-red-500/20 rounded-lg p-1.5 text-center">
                               <Beef className="h-3 w-3 mx-auto text-red-500" />
-                              <div className="text-xs font-bold text-red-600">{scan.protein}g</div>
+                              <div className="text-xs font-bold text-red-500 dark:text-red-400">{scan.protein}g</div>
                             </div>
-                            <div className="bg-amber-50 rounded-lg p-1.5 text-center">
+                            <div className="bg-amber-500/10 dark:bg-amber-500/20 rounded-lg p-1.5 text-center">
                               <Wheat className="h-3 w-3 mx-auto text-amber-500" />
-                              <div className="text-xs font-bold text-amber-600">{scan.carbs}g</div>
+                              <div className="text-xs font-bold text-amber-500 dark:text-amber-400">{scan.carbs}g</div>
                             </div>
-                            <div className="bg-blue-50 rounded-lg p-1.5 text-center">
+                            <div className="bg-blue-500/10 dark:bg-blue-500/20 rounded-lg p-1.5 text-center">
                               <Droplets className="h-3 w-3 mx-auto text-blue-500" />
-                              <div className="text-xs font-bold text-blue-600">{scan.fat}g</div>
+                              <div className="text-xs font-bold text-blue-500 dark:text-blue-400">{scan.fat}g</div>
                             </div>
                           </div>
                         </div>
@@ -363,7 +363,7 @@ const FoodHistory = () => {
                                 </div>
                               )}
                               {scan.notes && (
-                                <div className="bg-amber-50 rounded-xl p-3 text-sm text-amber-800">
+                                <div className="bg-amber-500/10 dark:bg-amber-500/20 rounded-xl p-3 text-sm text-amber-700 dark:text-amber-300">
                                   {scan.notes}
                                 </div>
                               )}
