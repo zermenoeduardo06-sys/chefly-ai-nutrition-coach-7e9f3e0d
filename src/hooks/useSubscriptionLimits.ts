@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { SUBSCRIPTION_TIERS } from "./useSubscription";
 
 export interface SubscriptionLimits {
   canReplaceMeals: boolean;
@@ -8,7 +9,8 @@ export interface SubscriptionLimits {
   dailyChatLimit: number;
   chatMessagesUsed: number;
   planName: string;
-  isBasicPlan: boolean;
+  isFreePlan: boolean;
+  isCheflyPlus: boolean;
   isLoading: boolean;
 }
 
@@ -17,10 +19,11 @@ export const useSubscriptionLimits = (userId: string | undefined) => {
     canReplaceMeals: false,
     canSwapMeals: false,
     canGeneratePlans: false,
-    dailyChatLimit: 0,
+    dailyChatLimit: 5,
     chatMessagesUsed: 0,
-    planName: "",
-    isBasicPlan: true,
+    planName: "Gratuito",
+    isFreePlan: true,
+    isCheflyPlus: false,
     isLoading: true,
   });
 
@@ -36,39 +39,15 @@ export const useSubscriptionLimits = (userId: string | undefined) => {
       // Check Stripe subscription first
       const { data: stripeData } = await supabase.functions.invoke("check-subscription");
       
-      let planName = "None";
-      let isIntermediatePlan = false;
-      let isBasicPlan = true;
+      let planName = "Gratuito";
+      let isCheflyPlus = false;
+      let isFreePlan = true;
       
       if (stripeData?.subscribed && stripeData?.product_id) {
-        // User has active Stripe subscription
-        planName = "Intermedio";
-        isIntermediatePlan = true;
-        isBasicPlan = false;
-      } else {
-        // Check database subscription and trial
-        const { data: subscription } = await supabase
-          .from("user_subscriptions")
-          .select(`
-            *,
-            plan:subscription_plans(name, id)
-          `)
-          .eq("user_id", userId)
-          .eq("status", "active")
-          .single();
-
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("trial_expires_at, is_subscribed")
-          .eq("id", userId)
-          .single();
-
-        const hasActiveTrial = profile && new Date(profile.trial_expires_at) > new Date();
-        const isSubscribed = profile?.is_subscribed || false;
-        
-        planName = subscription?.plan?.name || (hasActiveTrial ? "Trial" : "None");
-        isBasicPlan = planName === "Básico" || (!isSubscribed && !hasActiveTrial);
-        isIntermediatePlan = planName === "Intermedio" || hasActiveTrial;
+        // User has active Stripe subscription (Chefly Plus)
+        planName = "Chefly Plus";
+        isCheflyPlus = true;
+        isFreePlan = false;
       }
 
       // Count chat messages used today
@@ -83,26 +62,28 @@ export const useSubscriptionLimits = (userId: string | undefined) => {
       const chatMessagesUsed = chatMessages?.length || 0;
 
       setLimits({
-        canReplaceMeals: isIntermediatePlan,
-        canSwapMeals: isIntermediatePlan,
-        canGeneratePlans: isIntermediatePlan,
-        dailyChatLimit: isBasicPlan ? 5 : 999,
+        canReplaceMeals: isCheflyPlus,
+        canSwapMeals: isCheflyPlus,
+        canGeneratePlans: isCheflyPlus,
+        dailyChatLimit: isFreePlan ? 5 : 999,
         chatMessagesUsed,
         planName,
-        isBasicPlan,
+        isFreePlan,
+        isCheflyPlus,
         isLoading: false,
       });
     } catch (error) {
       console.error("Error loading subscription limits:", error);
-      // Default to basic plan on error
+      // Default to free plan on error
       setLimits({
         canReplaceMeals: false,
         canSwapMeals: false,
         canGeneratePlans: false,
         dailyChatLimit: 5,
         chatMessagesUsed: 0,
-        planName: "Básico",
-        isBasicPlan: true,
+        planName: "Gratuito",
+        isFreePlan: true,
+        isCheflyPlus: false,
         isLoading: false,
       });
     }

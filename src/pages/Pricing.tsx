@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Check, Loader2, Crown, Sparkles, Star, ArrowLeft, Zap } from "lucide-react";
+import { Check, Loader2, Crown, Sparkles, Star, ArrowLeft, Zap, Gift } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { SUBSCRIPTION_TIERS } from "@/hooks/useSubscription";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -10,111 +10,14 @@ import { motion } from "framer-motion";
 import mascotFlexing from "@/assets/mascot-flexing.png";
 import mascotFire from "@/assets/mascot-fire.png";
 
-interface SubscriptionPlan {
-  id: string;
-  name: string;
-  nameEn: string;
-  subtitle: string;
-  subtitleEn: string;
-  price_mxn: number;
-  billing_period: string;
-  features: string[];
-  featuresEn: string[];
-  display_order: number;
-  coming_soon?: boolean;
-  is_active: boolean;
-  stripe_price_id?: string;
-  recommended: boolean;
-  mascot: string;
-  gradient: string;
-}
-
 const Pricing = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t, language } = useLanguage();
-  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
 
-  const plans: SubscriptionPlan[] = [
-    {
-      id: "intermediate",
-      name: "Chefly Plus",
-      nameEn: "Chefly Plus",
-      subtitle: "Nutrición personalizada sin límites",
-      subtitleEn: "Unlimited personalized nutrition",
-      price_mxn: SUBSCRIPTION_TIERS.INTERMEDIATE.price,
-      billing_period: "monthly",
-      features: [
-        "Genera nuevos planes semanales ilimitados",
-        "Intercambia comidas entre días",
-        "Chat ilimitado con coach IA",
-        "Check-in semanal adaptativo",
-        "Sistema de amigos y comparación",
-        "Lista de compras con cantidades reales",
-        "Exportar recetas a PDF",
-        "Modo offline disponible",
-      ],
-      featuresEn: [
-        "Generate unlimited weekly plans",
-        "Swap meals between days",
-        "Unlimited AI coach chat",
-        "Weekly adaptive check-in",
-        "Friends & comparison system",
-        "Shopping list with real quantities",
-        "Export recipes to PDF",
-        "Offline mode available",
-      ],
-      display_order: 1,
-      is_active: true,
-      stripe_price_id: SUBSCRIPTION_TIERS.INTERMEDIATE.price_id,
-      recommended: true,
-      mascot: mascotFlexing,
-      gradient: "from-emerald-400 via-teal-500 to-cyan-500",
-    },
-    {
-      id: "basic",
-      name: "Plan Básico",
-      nameEn: "Basic Plan",
-      subtitle: "Comienza tu viaje nutricional",
-      subtitleEn: "Start your nutrition journey",
-      price_mxn: SUBSCRIPTION_TIERS.BASIC.price,
-      billing_period: "monthly",
-      features: [
-        "Ver tu plan semanal completo",
-        "Marcar comidas completadas",
-        "5 mensajes de chat al día",
-        "Seguimiento de progreso y medidas",
-        "Sistema de logros y puntos",
-        "Desafíos diarios",
-      ],
-      featuresEn: [
-        "View your complete weekly plan",
-        "Mark completed meals",
-        "5 chat messages per day",
-        "Progress & body tracking",
-        "Achievements & points system",
-        "Daily challenges",
-      ],
-      display_order: 2,
-      is_active: true,
-      stripe_price_id: SUBSCRIPTION_TIERS.BASIC.price_id,
-      recommended: false,
-      mascot: mascotFire,
-      gradient: "from-orange-400 to-amber-500",
-    },
-  ];
-
-  const handleSelectPlan = async (plan: SubscriptionPlan) => {
-    if (!plan.stripe_price_id) {
-      toast({
-        variant: "destructive",
-        title: t("common.error"),
-        description: language === "es" ? "Este plan no está disponible por el momento" : "This plan is not available at the moment",
-      });
-      return;
-    }
-
-    setCheckoutLoading(plan.id);
+  const handleSelectCheflyPlus = async () => {
+    setCheckoutLoading(true);
     
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -128,7 +31,7 @@ const Pricing = () => {
 
       const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: { 
-          priceId: plan.stripe_price_id,
+          priceId: SUBSCRIPTION_TIERS.CHEFLY_PLUS.price_id,
           affiliateCode: affiliateCode || null,
           endorselyReferral: endorselyReferral || null,
         },
@@ -147,9 +50,45 @@ const Pricing = () => {
         description: language === "es" ? "No se pudo iniciar el proceso de pago. Intenta de nuevo." : "Could not start payment process. Please try again.",
       });
     } finally {
-      setCheckoutLoading(null);
+      setCheckoutLoading(false);
     }
   };
+
+  const cheflyPlusFeatures = language === "es" ? [
+    "Genera nuevos planes semanales ilimitados",
+    "Intercambia comidas entre días",
+    "Chat ilimitado con coach IA",
+    "Check-in semanal adaptativo",
+    "Sistema de amigos y comparación",
+    "Lista de compras con cantidades reales",
+    "Exportar recetas a PDF",
+    "Modo offline disponible",
+  ] : [
+    "Generate unlimited weekly plans",
+    "Swap meals between days",
+    "Unlimited AI coach chat",
+    "Weekly adaptive check-in",
+    "Friends & comparison system",
+    "Shopping list with real quantities",
+    "Export recipes to PDF",
+    "Offline mode available",
+  ];
+
+  const freeFeatures = language === "es" ? [
+    "Ver tu plan semanal completo",
+    "Marcar comidas completadas",
+    "5 mensajes de chat al día",
+    "Seguimiento de progreso y medidas",
+    "Sistema de logros y puntos",
+    "Desafíos diarios",
+  ] : [
+    "View your complete weekly plan",
+    "Mark completed meals",
+    "5 chat messages per day",
+    "Progress & body tracking",
+    "Achievements & points system",
+    "Daily challenges",
+  ];
 
   return (
     <div className="min-h-screen bg-background pb-8">
@@ -178,13 +117,6 @@ const Pricing = () => {
           >
             <Sparkles className="h-3 w-3 text-white/40" />
           </motion.div>
-          <motion.div 
-            className="absolute top-20 right-1/3"
-            animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0.7, 0.3] }}
-            transition={{ duration: 2.2, repeat: Infinity, delay: 0.3 }}
-          >
-            <Star className="h-3 w-3 text-white/30" />
-          </motion.div>
         </div>
 
         <div className="relative px-4 pt-4 pb-8">
@@ -205,10 +137,10 @@ const Pricing = () => {
             className="text-center"
           >
             <h1 className="text-3xl font-bold text-white mb-1">
-              {language === "es" ? "Elige tu Plan" : "Choose Your Plan"}
+              {language === "es" ? "Mejora tu experiencia" : "Upgrade Your Experience"}
             </h1>
             <p className="text-white/70 text-sm uppercase tracking-widest font-semibold">
-              {language === "es" ? "DESBLOQUEA TU POTENCIAL" : "UNLOCK YOUR POTENTIAL"}
+              {language === "es" ? "DESBLOQUEA TODO EL POTENCIAL" : "UNLOCK FULL POTENTIAL"}
             </p>
           </motion.div>
 
@@ -235,113 +167,165 @@ const Pricing = () => {
 
       {/* Plans */}
       <div className="px-4 -mt-4 space-y-4 max-w-lg mx-auto">
-        {plans.map((plan, index) => (
-          <motion.div
-            key={plan.id}
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 + index * 0.1 }}
-          >
-            {/* Recommended Badge */}
-            {plan.recommended && (
-              <div className={`bg-gradient-to-r ${plan.gradient} rounded-t-2xl px-4 py-2`}>
-                <span className="text-white font-bold text-sm uppercase tracking-wide flex items-center gap-2">
-                  <Crown className="h-4 w-4" />
-                  {language === "es" ? "RECOMENDADO" : "RECOMMENDED"}
-                </span>
-              </div>
-            )}
-            
-            <div className={`
-              bg-card border-2 rounded-2xl overflow-hidden
-              ${plan.recommended ? "rounded-t-none border-t-0 border-primary" : "border-border"}
-            `}>
-              <div className="p-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    {/* Plan name */}
-                    <h3 className="text-xl font-bold text-foreground mb-1">
-                      {language === "es" ? plan.name : plan.nameEn}
-                    </h3>
-                    <p className="text-muted-foreground text-sm mb-3">
-                      {language === "es" ? plan.subtitle : plan.subtitleEn}
-                    </p>
+        {/* Chefly Plus - Main CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <div className="bg-gradient-to-r from-emerald-400 via-teal-500 to-cyan-500 rounded-t-2xl px-4 py-2">
+            <span className="text-white font-bold text-sm uppercase tracking-wide flex items-center gap-2">
+              <Crown className="h-4 w-4" />
+              {language === "es" ? "RECOMENDADO" : "RECOMMENDED"}
+            </span>
+          </div>
+          
+          <div className="bg-card border-2 rounded-2xl rounded-t-none border-t-0 border-primary overflow-hidden">
+            <div className="p-5">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-foreground mb-1">Chefly Plus</h3>
+                  <p className="text-muted-foreground text-sm mb-3">
+                    {language === "es" ? "Nutrición personalizada sin límites" : "Unlimited personalized nutrition"}
+                  </p>
 
-                    {/* Price */}
-                    <div className="flex items-baseline gap-1 mb-4">
-                      <span className="text-3xl font-bold text-foreground">
-                        ${Math.round(plan.price_mxn / 20)}
-                      </span>
-                      <span className="text-muted-foreground text-sm">
-                        USD/{language === "es" ? "mes" : "month"}
-                      </span>
-                    </div>
-
-                    {/* Features */}
-                    <ul className="space-y-2.5">
-                      {(language === "es" ? plan.features : plan.featuresEn).map((feature, i) => (
-                        <motion.li 
-                          key={i}
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.4 + i * 0.05 }}
-                          className="flex items-center gap-2.5"
-                        >
-                          <div className={`p-0.5 rounded-full bg-gradient-to-r ${plan.gradient}`}>
-                            <Check className="h-3.5 w-3.5 text-white" />
-                          </div>
-                          <span className="text-sm text-foreground">{feature}</span>
-                        </motion.li>
-                      ))}
-                    </ul>
+                  {/* Price */}
+                  <div className="flex items-baseline gap-1 mb-4">
+                    <span className="text-3xl font-bold text-foreground">$15</span>
+                    <span className="text-muted-foreground text-sm">
+                      USD/{language === "es" ? "mes" : "month"}
+                    </span>
                   </div>
 
-                  {/* Mascot */}
-                  <motion.div 
-                    className="flex-shrink-0"
-                    whileHover={{ scale: 1.1, rotate: 5 }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                  >
-                    <img 
-                      src={plan.mascot} 
-                      alt={plan.name} 
-                      className="h-24 w-24 object-contain"
-                    />
-                  </motion.div>
+                  {/* Features */}
+                  <ul className="space-y-2.5">
+                    {cheflyPlusFeatures.map((feature, i) => (
+                      <motion.li 
+                        key={i}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.4 + i * 0.05 }}
+                        className="flex items-center gap-2.5"
+                      >
+                        <div className="p-0.5 rounded-full bg-gradient-to-r from-emerald-400 via-teal-500 to-cyan-500">
+                          <Check className="h-3.5 w-3.5 text-white" />
+                        </div>
+                        <span className="text-sm text-foreground">{feature}</span>
+                      </motion.li>
+                    ))}
+                  </ul>
                 </div>
 
-                {/* CTA Button */}
+                {/* Mascot */}
                 <motion.div 
-                  className="mt-5"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  className="flex-shrink-0"
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  transition={{ type: "spring", stiffness: 300 }}
                 >
-                  <Button
-                    onClick={() => handleSelectPlan(plan)}
-                    disabled={checkoutLoading === plan.id}
-                    variant={plan.recommended ? "duolingo" : "duolingoOutline"}
-                    className="w-full h-12 text-base font-bold"
-                  >
-                    {checkoutLoading === plan.id ? (
-                      <>
-                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        {language === "es" ? "Procesando..." : "Processing..."}
-                      </>
-                    ) : (
-                      <>
-                        <Zap className="mr-2 h-5 w-5" />
-                        {language === "es" 
-                          ? `COMENZAR POR $${Math.round(plan.price_mxn / 20)}/MES`
-                          : `START FOR $${Math.round(plan.price_mxn / 20)}/MONTH`
-                        }
-                      </>
-                    )}
-                  </Button>
+                  <img 
+                    src={mascotFlexing} 
+                    alt="Chefly Plus" 
+                    className="h-24 w-24 object-contain"
+                  />
                 </motion.div>
               </div>
+
+              {/* CTA Button */}
+              <motion.div 
+                className="mt-5"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Button
+                  onClick={handleSelectCheflyPlus}
+                  disabled={checkoutLoading}
+                  variant="duolingo"
+                  className="w-full h-12 text-base font-bold"
+                >
+                  {checkoutLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      {language === "es" ? "Procesando..." : "Processing..."}
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="mr-2 h-5 w-5" />
+                      {language === "es" 
+                        ? "COMENZAR POR $15/MES"
+                        : "START FOR $15/MONTH"
+                      }
+                    </>
+                  )}
+                </Button>
+              </motion.div>
             </div>
-          </motion.div>
-        ))}
+          </div>
+        </motion.div>
+
+        {/* Free Plan Info */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <div className="bg-card border-2 rounded-2xl border-border overflow-hidden">
+            <div className="p-5">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="text-xl font-bold text-foreground">
+                      {language === "es" ? "Plan Gratuito" : "Free Plan"}
+                    </h3>
+                    <Gift className="h-5 w-5 text-primary" />
+                  </div>
+                  <p className="text-muted-foreground text-sm mb-3">
+                    {language === "es" ? "Gratis para siempre" : "Free forever"}
+                  </p>
+
+                  {/* Features */}
+                  <ul className="space-y-2">
+                    {freeFeatures.map((feature, i) => (
+                      <motion.li 
+                        key={i}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.5 + i * 0.05 }}
+                        className="flex items-center gap-2"
+                      >
+                        <div className="p-0.5 rounded-full bg-gradient-to-r from-orange-400 to-amber-500">
+                          <Check className="h-3 w-3 text-white" />
+                        </div>
+                        <span className="text-sm text-foreground">{feature}</span>
+                      </motion.li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Mascot */}
+                <motion.div 
+                  className="flex-shrink-0"
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  <img 
+                    src={mascotFire} 
+                    alt="Free Plan" 
+                    className="h-20 w-20 object-contain"
+                  />
+                </motion.div>
+              </div>
+
+              <div className="mt-4 text-center">
+                <p className="text-sm text-muted-foreground">
+                  {language === "es" 
+                    ? "Ya tienes acceso al plan gratuito"
+                    : "You already have access to the free plan"
+                  }
+                </p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
 
         {/* Footer info */}
         <motion.div
@@ -350,11 +334,6 @@ const Pricing = () => {
           transition={{ delay: 0.6 }}
           className="text-center space-y-2 pt-4"
         >
-          <p className="text-sm text-muted-foreground">
-            {language === "es" 
-              ? "✨ Prueba gratis por 4 días incluida"
-              : "✨ 4-day free trial included"}
-          </p>
           <p className="text-xs text-muted-foreground">
             {language === "es" 
               ? "Cancela en cualquier momento. Sin compromisos."

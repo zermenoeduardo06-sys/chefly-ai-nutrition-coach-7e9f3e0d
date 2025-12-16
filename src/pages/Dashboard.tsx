@@ -1147,7 +1147,7 @@ const Dashboard = () => {
                   >
                     <MessageCircle className="h-5 w-5" />
                     <span className="text-sm">{t("dashboard.chatCoach")}</span>
-                    {limits.isBasicPlan && (
+                    {limits.isFreePlan && (
                       <Badge variant="secondary" className="absolute -top-2 -right-2 text-xs">
                         {limits.chatMessagesUsed}/{limits.dailyChatLimit}
                       </Badge>
@@ -1297,7 +1297,7 @@ const Dashboard = () => {
             </div>
 
             {/* Plan limitations info for basic users */}
-            {limits.isBasicPlan && !subscription.subscribed && (
+            {limits.isFreePlan && (
               <div className="mt-4 p-4 bg-muted/50 rounded-lg border border-border/50">
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center flex-shrink-0">

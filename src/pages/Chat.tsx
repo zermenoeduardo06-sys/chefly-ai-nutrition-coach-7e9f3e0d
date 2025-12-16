@@ -515,7 +515,7 @@ const Chat = () => {
             )}
           </motion.button>
           
-          {limits.isBasicPlan && (
+          {limits.isFreePlan && (
             <Badge variant="outline" className="flex-shrink-0 text-xs border-primary/30">
               {limits.chatMessagesUsed}/{limits.dailyChatLimit}
             </Badge>
