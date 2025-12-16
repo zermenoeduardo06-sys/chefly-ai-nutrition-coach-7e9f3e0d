@@ -8,6 +8,9 @@ export interface SubscriptionLimits {
   canGeneratePlans: boolean;
   dailyChatLimit: number;
   chatMessagesUsed: number;
+  dailyFoodScanLimit: number;
+  foodScansUsed: number;
+  canScanFood: boolean;
   planName: string;
   isFreePlan: boolean;
   isCheflyPlus: boolean;
@@ -21,6 +24,9 @@ export const useSubscriptionLimits = (userId: string | undefined) => {
     canGeneratePlans: false,
     dailyChatLimit: 5,
     chatMessagesUsed: 0,
+    dailyFoodScanLimit: 1,
+    foodScansUsed: 0,
+    canScanFood: true,
     planName: "Gratuito",
     isFreePlan: true,
     isCheflyPlus: false,
@@ -61,12 +67,26 @@ export const useSubscriptionLimits = (userId: string | undefined) => {
 
       const chatMessagesUsed = chatMessages?.length || 0;
 
+      // Count food scans used today
+      const { data: foodScans } = await supabase
+        .from("food_scans")
+        .select("id")
+        .eq("user_id", userId)
+        .gte("scanned_at", today);
+
+      const foodScansUsed = foodScans?.length || 0;
+      const dailyFoodScanLimit = isCheflyPlus ? 999 : 1;
+      const canScanFood = isCheflyPlus || foodScansUsed < 1;
+
       setLimits({
         canReplaceMeals: isCheflyPlus,
         canSwapMeals: isCheflyPlus,
         canGeneratePlans: isCheflyPlus,
         dailyChatLimit: isFreePlan ? 5 : 999,
         chatMessagesUsed,
+        dailyFoodScanLimit,
+        foodScansUsed,
+        canScanFood,
         planName,
         isFreePlan,
         isCheflyPlus,
@@ -81,6 +101,9 @@ export const useSubscriptionLimits = (userId: string | undefined) => {
         canGeneratePlans: false,
         dailyChatLimit: 5,
         chatMessagesUsed: 0,
+        dailyFoodScanLimit: 1,
+        foodScansUsed: 0,
+        canScanFood: true,
         planName: "Gratuito",
         isFreePlan: true,
         isCheflyPlus: false,
