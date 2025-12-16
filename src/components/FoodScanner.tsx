@@ -179,7 +179,7 @@ export function FoodScanner({ open, onOpenChange }: FoodScannerProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md max-w-[calc(100%-2rem)] max-h-[85vh] overflow-y-auto overflow-x-hidden p-0 gap-0 border-0 rounded-3xl bg-gradient-to-b from-background to-muted/30">
+      <DialogContent className="sm:max-w-sm max-w-[calc(100%-3rem)] max-h-[80vh] overflow-y-auto overflow-x-hidden p-0 gap-0 border-0 rounded-3xl bg-gradient-to-b from-background to-muted/30 shadow-2xl">
         {/* Header */}
         <div className="relative bg-gradient-to-br from-primary via-primary to-orange-500 p-5 pb-6 rounded-t-3xl">
           <div className="absolute top-4 right-12">
