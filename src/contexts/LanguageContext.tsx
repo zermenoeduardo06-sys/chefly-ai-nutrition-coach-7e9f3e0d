@@ -26,7 +26,7 @@ export const translations = {
     "hero.title": "Tu Coach Nutricional con IA",
     "hero.subtitle": "Menús personalizados, recetas deliciosas y una IA que te guía hacia tus objetivos de salud",
     "hero.cta": "Comienza Gratis",
-    "hero.trial": "Prueba 4 días gratis",
+    "hero.trial": "Plan gratuito para siempre",
     
     // Stats
     "stats.users": "Usuarios activos",
@@ -56,7 +56,7 @@ export const translations = {
     
     // Pricing
     "pricing.title": "Elige tu plan perfecto",
-    "pricing.subtitle": "Comienza con 4 días gratis. Cancela cuando quieras.",
+    "pricing.subtitle": "Comienza gratis y mejora cuando quieras.",
     "pricing.month": "mes",
     "pricing.cta": "Comenzar ahora",
     "pricing.comingSoon": "Próximamente",
@@ -67,12 +67,12 @@ export const translations = {
     "pricing.pageSubtitle": "Comienza tu viaje hacia una mejor alimentación",
     "pricing.allPlansInclude": "Todos los planes incluyen acceso completo a la plataforma",
     "pricing.cancelAnytime": "Puedes cancelar en cualquier momento",
-    "pricing.trialAllPlans": "4 días de prueba gratis en todos los planes",
-    "pricing.cancelNoCommitment": "Cancela en cualquier momento sin compromiso",
+    "pricing.trialAllPlans": "Plan gratuito disponible para siempre",
+    "pricing.cancelNoCommitment": "Cancela Chefly Plus en cualquier momento",
     
     // Hero extras
     "hero.noCardRequired": "Sin tarjeta requerida",
-    "hero.trialDays": "4 días de prueba",
+    "hero.trialDays": "Siempre gratis",
     "hero.cancelAnytime": "Cancela cuando quieras",
     
     // Testimonials
@@ -377,7 +377,7 @@ export const translations = {
     "dashboard.lastUpdate": "Última actualización",
     "dashboard.generateNewPlan": "Generar nuevo plan semanal",
     "dashboard.unlockFeatures": "Desbloquea todas las funciones",
-    "dashboard.withIntermediate": "Con el plan Intermedio puedes:",
+    "dashboard.withIntermediate": "Con Chefly Plus puedes:",
     "dashboard.unlimitedPlans": "Generar planes de comida ilimitados",
     "dashboard.swapMeals": "Intercambiar comidas entre días",
     "dashboard.unlimitedChat": "Chat ilimitado con tu coach",
@@ -1055,7 +1055,7 @@ export const translations = {
     "hero.title": "Your AI Nutrition Coach",
     "hero.subtitle": "Personalized menus, delicious recipes, and an AI that guides you to your health goals",
     "hero.cta": "Start Free",
-    "hero.trial": "4-day free trial",
+    "hero.trial": "Free plan forever",
     
     // Stats
     "stats.users": "Active users",
@@ -1085,7 +1085,7 @@ export const translations = {
     
     // Pricing
     "pricing.title": "Choose your perfect plan",
-    "pricing.subtitle": "Start with a 4-day free trial. Cancel anytime.",
+    "pricing.subtitle": "Start free and upgrade when you want.",
     "pricing.month": "month",
     "pricing.cta": "Start now",
     "pricing.comingSoon": "Coming Soon",
@@ -1096,12 +1096,12 @@ export const translations = {
     "pricing.pageSubtitle": "Start your journey to better nutrition",
     "pricing.allPlansInclude": "All plans include full platform access",
     "pricing.cancelAnytime": "Cancel anytime",
-    "pricing.trialAllPlans": "4-day free trial on all plans",
-    "pricing.cancelNoCommitment": "Cancel anytime, no commitment",
+    "pricing.trialAllPlans": "Free plan available forever",
+    "pricing.cancelNoCommitment": "Cancel Chefly Plus anytime",
     
     // Hero extras
     "hero.noCardRequired": "No card required",
-    "hero.trialDays": "4-day trial",
+    "hero.trialDays": "Free forever",
     "hero.cancelAnytime": "Cancel anytime",
     
     // Testimonials
@@ -1406,7 +1406,7 @@ export const translations = {
     "dashboard.lastUpdate": "Last update",
     "dashboard.generateNewPlan": "Generate new weekly plan",
     "dashboard.unlockFeatures": "Unlock all features",
-    "dashboard.withIntermediate": "With the Intermediate plan you can:",
+    "dashboard.withIntermediate": "With Chefly Plus you can:",
     "dashboard.unlimitedPlans": "Generate unlimited meal plans",
     "dashboard.swapMeals": "Swap meals between days",
     "dashboard.unlimitedChat": "Unlimited chat with your coach",

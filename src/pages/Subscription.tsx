@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ArrowLeft, Check, ExternalLink, Sparkles, Crown, Star, Zap } from "lucide-react";
+import { Loader2, ArrowLeft, Check, ExternalLink, Crown, Zap, Gift } from "lucide-react";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -17,7 +17,7 @@ const Subscription = () => {
   const [userId, setUserId] = useState<string | undefined>(undefined);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
   const subscription = useSubscription(userId);
   const { limits } = useSubscriptionLimits(userId);
 
@@ -69,10 +69,11 @@ const Subscription = () => {
 
   const plans = [
     {
-      id: "intermediate",
-      name: language === "es" ? "Chefly Plus" : "Chefly Plus",
+      id: "chefly-plus",
+      name: "Chefly Plus",
       subtitle: language === "es" ? "Nutrición personalizada sin límites" : "Unlimited personalized nutrition",
       price: "$290 MXN",
+      priceUsd: "$15",
       period: language === "es" ? "/mes" : "/month",
       features: [
         language === "es" ? "Genera nuevos planes semanales ilimitados" : "Generate unlimited weekly plans",
@@ -87,14 +88,15 @@ const Subscription = () => {
       recommended: true,
       mascot: mascotFlexing,
       gradient: "from-emerald-400 via-teal-500 to-cyan-500",
-      isCurrentPlan: !limits.isBasicPlan && subscription.subscribed,
+      isCurrentPlan: limits.isCheflyPlus,
     },
     {
-      id: "basic",
-      name: language === "es" ? "Plan Básico" : "Basic Plan",
+      id: "free",
+      name: language === "es" ? "Plan Gratuito" : "Free Plan",
       subtitle: language === "es" ? "Comienza tu viaje nutricional" : "Start your nutrition journey",
-      price: "$240 MXN",
-      period: language === "es" ? "/mes" : "/month",
+      price: language === "es" ? "GRATIS" : "FREE",
+      priceUsd: "$0",
+      period: language === "es" ? " para siempre" : " forever",
       features: [
         language === "es" ? "Ver tu plan semanal completo" : "View your complete weekly plan",
         language === "es" ? "Marcar comidas completadas" : "Mark completed meals",
@@ -106,7 +108,7 @@ const Subscription = () => {
       recommended: false,
       mascot: mascotFire,
       gradient: "from-orange-400 to-amber-500",
-      isCurrentPlan: limits.isBasicPlan && subscription.subscribed,
+      isCurrentPlan: limits.isFreePlan,
     },
   ];
 
@@ -173,7 +175,24 @@ const Subscription = () => {
                         </span>
                       )}
                     </div>
-                    <p className="text-muted-foreground text-sm mb-4">{plan.subtitle}</p>
+                    <p className="text-muted-foreground text-sm mb-3">{plan.subtitle}</p>
+
+                    {/* Price */}
+                    <div className="flex items-baseline gap-1 mb-4">
+                      <span className="text-2xl font-bold text-foreground">
+                        {plan.id === "free" ? plan.price : plan.priceUsd}
+                      </span>
+                      {plan.id !== "free" && (
+                        <span className="text-muted-foreground text-sm">
+                          USD{plan.period}
+                        </span>
+                      )}
+                      {plan.id === "free" && (
+                        <span className="text-muted-foreground text-sm">
+                          {plan.period}
+                        </span>
+                      )}
+                    </div>
 
                     {/* Features */}
                     <ul className="space-y-2">
@@ -214,52 +233,53 @@ const Subscription = () => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  {plan.isCurrentPlan ? (
-                    <Button
-                      onClick={handleManageSubscription}
-                      disabled={portalLoading}
-                      variant="duolingoOutline"
-                      className="w-full h-11 text-sm font-bold"
-                    >
-                      {portalLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          {language === "es" ? "Abriendo..." : "Opening..."}
-                        </>
-                      ) : (
-                        <>
-                          <ExternalLink className="mr-2 h-4 w-4" />
-                          {language === "es" ? "GESTIONAR PLAN" : "MANAGE PLAN"}
-                        </>
-                      )}
-                    </Button>
-                  ) : subscription.subscribed ? (
-                    <Button
-                      onClick={handleManageSubscription}
-                      disabled={portalLoading}
-                      variant="duolingoOutline"
-                      className="w-full h-11 text-sm font-bold"
-                    >
-                      {portalLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          {language === "es" ? "Abriendo..." : "Opening..."}
-                        </>
-                      ) : (
-                        <>
-                          <Zap className="mr-2 h-4 w-4" />
-                          {language === "es" ? "CAMBIAR PLAN" : "SWITCH PLAN"}
-                        </>
-                      )}
-                    </Button>
+                  {plan.id === "chefly-plus" ? (
+                    plan.isCurrentPlan ? (
+                      <Button
+                        onClick={handleManageSubscription}
+                        disabled={portalLoading}
+                        variant="duolingoOutline"
+                        className="w-full h-11 text-sm font-bold"
+                      >
+                        {portalLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            {language === "es" ? "Abriendo..." : "Opening..."}
+                          </>
+                        ) : (
+                          <>
+                            <ExternalLink className="mr-2 h-4 w-4" />
+                            {language === "es" ? "GESTIONAR PLAN" : "MANAGE PLAN"}
+                          </>
+                        )}
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={() => navigate("/pricing")}
+                        variant="duolingo"
+                        className="w-full h-11 text-sm font-bold"
+                      >
+                        <Zap className="mr-2 h-4 w-4" />
+                        {language === "es" ? "MEJORAR A CHEFLY PLUS" : "UPGRADE TO CHEFLY PLUS"}
+                      </Button>
+                    )
                   ) : (
-                    <Button
-                      onClick={() => navigate("/pricing")}
-                      variant={plan.recommended ? "duolingo" : "duolingoOutline"}
-                      className="w-full h-11 text-sm font-bold"
-                    >
-                      {language === "es" ? `OBTENER POR ${plan.price}` : `GET FOR ${plan.price}`}
-                    </Button>
+                    plan.isCurrentPlan ? (
+                      <div className="flex items-center justify-center gap-2 py-3 text-muted-foreground">
+                        <Gift className="h-4 w-4" />
+                        <span className="text-sm font-medium">
+                          {language === "es" ? "Tu plan actual" : "Your current plan"}
+                        </span>
+                      </div>
+                    ) : (
+                      <Button
+                        variant="duolingoOutline"
+                        className="w-full h-11 text-sm font-bold"
+                        disabled
+                      >
+                        {language === "es" ? "PLAN GRATUITO" : "FREE PLAN"}
+                      </Button>
+                    )
                   )}
                 </motion.div>
               </div>

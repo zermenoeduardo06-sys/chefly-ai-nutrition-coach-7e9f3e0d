@@ -4,26 +4,24 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Crown, Sparkles } from "lucide-react";
+import { Crown, Gift, Zap } from "lucide-react";
 import { SUBSCRIPTION_TIERS } from "@/hooks/useSubscription";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface SubscriptionBannerProps {
   userId: string;
   trialExpiresAt?: string;
 }
 
-export const SubscriptionBanner = ({ userId, trialExpiresAt }: SubscriptionBannerProps) => {
-  const [activePlan, setActivePlan] = useState<string | null>(null);
-  const [daysRemaining, setDaysRemaining] = useState<number | null>(null);
-  const [isTrialActive, setIsTrialActive] = useState(true);
+export const SubscriptionBanner = ({ userId }: SubscriptionBannerProps) => {
+  const [isCheflyPlus, setIsCheflyPlus] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const { language } = useLanguage();
 
   useEffect(() => {
     loadSubscription();
-    if (!activePlan) {
-      calculateTrialDays();
-    }
-  }, [userId, trialExpiresAt, activePlan]);
+  }, [userId]);
 
   const loadSubscription = async () => {
     try {
@@ -31,51 +29,21 @@ export const SubscriptionBanner = ({ userId, trialExpiresAt }: SubscriptionBanne
       const { data: stripeData } = await supabase.functions.invoke("check-subscription");
       
       if (stripeData?.subscribed && stripeData?.product_id) {
-        // Determine plan name from product_id
-        let planName = "Intermedio"; // Default fallback
-        if (stripeData.product_id === SUBSCRIPTION_TIERS.BASIC.product_id) {
-          planName = SUBSCRIPTION_TIERS.BASIC.name;
-        } else if (stripeData.product_id === SUBSCRIPTION_TIERS.INTERMEDIATE.product_id) {
-          planName = SUBSCRIPTION_TIERS.INTERMEDIATE.name;
-        }
-        setActivePlan(planName);
-        setIsTrialActive(false);
-        return;
-      }
-
-      // If no Stripe subscription, check database subscriptions
-      const { data: subscription } = await supabase
-        .from("user_subscriptions")
-        .select(`
-          *,
-          plan:subscription_plans(name)
-        `)
-        .eq("user_id", userId)
-        .eq("status", "active")
-        .single();
-
-      if (subscription && subscription.plan) {
-        setActivePlan(subscription.plan.name);
-        setIsTrialActive(false);
+        setIsCheflyPlus(true);
+      } else {
+        setIsCheflyPlus(false);
       }
     } catch (error) {
       console.error("Error loading subscription:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const calculateTrialDays = () => {
-    if (!trialExpiresAt) return;
+  if (isLoading) return null;
 
-    const expiryDate = new Date(trialExpiresAt);
-    const today = new Date();
-    const diffTime = expiryDate.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    setDaysRemaining(diffDays > 0 ? diffDays : 0);
-  };
-
-  // Don't show banner if user has active paid plan
-  if (activePlan) {
+  // Chefly Plus subscriber banner
+  if (isCheflyPlus) {
     return (
       <Card className="mb-6 border-2 border-primary bg-gradient-to-r from-primary/10 to-secondary/10">
         <CardContent className="p-6">
@@ -87,16 +55,17 @@ export const SubscriptionBanner = ({ userId, trialExpiresAt }: SubscriptionBanne
               
               <div className="space-y-2">
                 <div className="flex items-center gap-3 flex-wrap">
-                  <h3 className="text-xl font-semibold">
-                    Plan {activePlan}
-                  </h3>
+                  <h3 className="text-xl font-semibold">Chefly Plus</h3>
                   <Badge variant="default" className="bg-primary">
-                    Activo
+                    {language === "es" ? "Activo" : "Active"}
                   </Badge>
                 </div>
                 
                 <p className="text-sm text-muted-foreground">
-                  Disfruta de todos los beneficios de tu plan
+                  {language === "es" 
+                    ? "Disfruta de todos los beneficios premium"
+                    : "Enjoy all premium benefits"
+                  }
                 </p>
               </div>
             </div>
@@ -105,7 +74,7 @@ export const SubscriptionBanner = ({ userId, trialExpiresAt }: SubscriptionBanne
               variant="outline"
               onClick={() => navigate("/subscription")}
             >
-              Gestionar plan
+              {language === "es" ? "Gestionar plan" : "Manage plan"}
             </Button>
           </div>
         </CardContent>
@@ -113,78 +82,42 @@ export const SubscriptionBanner = ({ userId, trialExpiresAt }: SubscriptionBanne
     );
   }
 
-  // Show trial banner only if no active plan
-  if (!isTrialActive) return null;
-
-  const isExpiringSoon = daysRemaining !== null && daysRemaining <= 1;
-
+  // Free plan banner with upgrade CTA
   return (
-    <Card className={`mb-6 border-2 ${
-      isExpiringSoon 
-        ? "border-destructive bg-destructive/5" 
-        : "border-primary bg-gradient-to-r from-primary/10 to-secondary/10"
-    }`}>
+    <Card className="mb-6 border-2 border-border bg-gradient-to-r from-muted/50 to-muted/30">
       <CardContent className="p-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-start gap-4">
-            <div className={`p-3 rounded-full ${
-              isExpiringSoon ? "bg-destructive/20" : "bg-primary/20"
-            }`}>
-              {activePlan ? (
-                <Crown className="h-6 w-6 text-primary" />
-              ) : (
-                <Sparkles className="h-6 w-6 text-primary" />
-              )}
+            <div className="p-3 rounded-full bg-primary/10">
+              <Gift className="h-6 w-6 text-primary" />
             </div>
             
             <div className="space-y-2">
               <div className="flex items-center gap-3 flex-wrap">
                 <h3 className="text-xl font-semibold">
-                  {activePlan ? `Plan ${activePlan}` : "Periodo de Prueba Gratis"}
+                  {language === "es" ? "Plan Gratuito" : "Free Plan"}
                 </h3>
-                {!activePlan && (
-                  <Badge variant="secondary" className="bg-primary/20 text-primary">
-                    Prueba Activa
-                  </Badge>
-                )}
+                <Badge variant="secondary" className="bg-secondary/20 text-secondary-foreground">
+                  {language === "es" ? "Gratis" : "Free"}
+                </Badge>
               </div>
               
-              {isTrialActive && daysRemaining !== null && (
-                <>
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Clock className="h-4 w-4" />
-                    <span>
-                      {daysRemaining > 0 
-                        ? `${daysRemaining} ${daysRemaining === 1 ? "día restante" : "días restantes"} de prueba gratis`
-                        : "Tu periodo de prueba ha expirado"
-                      }
-                    </span>
-                  </div>
-                  {daysRemaining > 0 && (
-                    <p className="text-sm text-muted-foreground">
-                      💡 Puedes suscribirte ahora y disfrutar de todos los beneficios premium
-                    </p>
-                  )}
-                </>
-              )}
-
-              {!isTrialActive && activePlan && (
-                <p className="text-sm text-muted-foreground">
-                  Disfruta de todos los beneficios de tu plan
-                </p>
-              )}
+              <p className="text-sm text-muted-foreground">
+                {language === "es" 
+                  ? "Mejora a Chefly Plus para desbloquear todas las funciones"
+                  : "Upgrade to Chefly Plus to unlock all features"
+                }
+              </p>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Button 
-              variant={isExpiringSoon ? "default" : "outline"}
-              className={isExpiringSoon ? "bg-primary hover:bg-primary/90" : ""}
-              onClick={() => navigate("/pricing")}
-            >
-              {daysRemaining && daysRemaining > 0 ? "Suscribirme ahora" : "Ver planes"}
-            </Button>
-          </div>
+          <Button 
+            onClick={() => navigate("/pricing")}
+            className="gap-2"
+          >
+            <Zap className="h-4 w-4" />
+            {language === "es" ? "Mejorar plan" : "Upgrade"}
+          </Button>
         </div>
       </CardContent>
     </Card>

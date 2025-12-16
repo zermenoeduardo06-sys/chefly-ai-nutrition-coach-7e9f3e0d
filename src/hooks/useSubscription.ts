@@ -8,20 +8,12 @@ interface SubscriptionStatus {
   isLoading: boolean;
 }
 
-// Mapeo de product IDs a nombres de planes
-// BASIC = Plan Básico en Stripe (240 MXN / ~$12 USD)
-// INTERMEDIATE = Plan Intermedio en Stripe (290 MXN / ~$15 USD)
+// Chefly Plus es el único plan de pago
 export const SUBSCRIPTION_TIERS = {
-  BASIC: {
-    product_id: "prod_TUMZMM3fEINWI3",
-    price_id: "price_1SXNqRRXGCRSzpK73nntP57D",
-    name: "Básico",
-    price: 240, // ~12 USD
-  },
-  INTERMEDIATE: {
+  CHEFLY_PLUS: {
     product_id: "prod_TUMZx1BcskL9rK",
     price_id: "price_1SXNqfRXGCRSzpK7WyaN4yij",
-    name: "Intermedio",
+    name: "Chefly Plus",
     price: 290, // ~15 USD
   },
 };
@@ -80,18 +72,19 @@ export const useSubscription = (userId: string | undefined) => {
   const getPlanName = () => {
     if (!status.product_id) return null;
     
-    if (status.product_id === SUBSCRIPTION_TIERS.BASIC.product_id) {
-      return SUBSCRIPTION_TIERS.BASIC.name;
+    if (status.product_id === SUBSCRIPTION_TIERS.CHEFLY_PLUS.product_id) {
+      return SUBSCRIPTION_TIERS.CHEFLY_PLUS.name;
     }
-    if (status.product_id === SUBSCRIPTION_TIERS.INTERMEDIATE.product_id) {
-      return SUBSCRIPTION_TIERS.INTERMEDIATE.name;
-    }
-    return null;
+    // Fallback for any other product
+    return "Chefly Plus";
   };
+
+  const isCheflyPlus = status.subscribed && status.product_id === SUBSCRIPTION_TIERS.CHEFLY_PLUS.product_id;
 
   return {
     ...status,
     checkSubscription,
     planName: getPlanName(),
+    isCheflyPlus,
   };
 };
