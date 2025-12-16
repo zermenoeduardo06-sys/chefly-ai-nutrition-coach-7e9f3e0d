@@ -75,7 +75,7 @@ const Dashboard = () => {
   const [generating, setGenerating] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const [mealPlan, setMealPlan] = useState<MealPlan | null>(null);
-  const [trialExpired, setTrialExpired] = useState(false);
+  // Trial system removed - freemium model
   const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null);
   const [mealDialogOpen, setMealDialogOpen] = useState(false);
   const [swapDialogOpen, setSwapDialogOpen] = useState(false);
@@ -554,26 +554,7 @@ const Dashboard = () => {
 
     if (data) {
       setProfile(data);
-      const expired = new Date(data.trial_expires_at) < new Date();
-      const hasActiveSubscription = data.is_subscribed;
-      setTrialExpired(expired && !hasActiveSubscription);
-      
-      // Block access if trial expired and no active subscription
-      // Check subscription status with Stripe
-      if (expired && !hasActiveSubscription) {
-        // Verify with Stripe before blocking
-        const { data: subData } = await supabase.functions.invoke("check-subscription");
-        
-        if (!subData?.subscribed) {
-          toast({
-            title: "Trial expirado",
-            description: "Tu periodo de prueba ha terminado. Elige un plan para continuar.",
-            variant: "destructive",
-          });
-          navigate("/pricing");
-          return;
-        }
-      }
+      // Freemium model: all users have access, no trial blocking
     }
   };
 
@@ -915,8 +896,7 @@ const Dashboard = () => {
     return null; // Will redirect to pricing
   }
 
-  const daysRemaining = profile ? Math.ceil((new Date(profile.trial_expires_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : 0;
-  const trialProgress = profile ? ((4 - daysRemaining) / 4) * 100 : 0;
+  // Trial variables removed - freemium model
 
   return (
     <TooltipProvider delayDuration={300}>
@@ -958,10 +938,7 @@ const Dashboard = () => {
 
         {/* Subscription Banner */}
         {profile && (
-          <SubscriptionBanner 
-            userId={profile.id} 
-            trialExpiresAt={profile.trial_expires_at}
-          />
+          <SubscriptionBanner userId={profile.id} />
         )}
 
         {/* Calendar Day Widget */}
