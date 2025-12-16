@@ -10,6 +10,7 @@ import {
   TrendingUp,
   MessageCircle,
   User,
+  Camera,
 } from "lucide-react";
 import cheflyMascot from "@/assets/chefly-mascot.png";
 import { useHaptics } from "@/hooks/useHaptics";
@@ -55,6 +56,15 @@ const tourSteps: TourStep[] = [
     descEn: "Your automatically generated ingredient list. Ready to go shopping!",
     position: "top",
     icon: ShoppingCart,
+  },
+  {
+    target: "nav-scanner",
+    titleEs: "Escanea tu comida",
+    titleEn: "Scan your food",
+    descEs: "Toma una foto de cualquier comida y nuestra IA calculará las calorías y nutrientes automáticamente. ¡Perfecto para llevar registro de lo que comes!",
+    descEn: "Take a photo of any food and our AI will calculate calories and nutrients automatically. Perfect for tracking what you eat!",
+    position: "top",
+    icon: Camera,
   },
   {
     target: "nav-progress",
@@ -110,6 +120,7 @@ const MobileWelcomeTutorial = ({ open, onComplete }: MobileWelcomeTutorialProps)
       const pathMap: Record<string, string> = {
         home: "/dashboard",
         shopping: "/dashboard/shopping",
+        scanner: "/dashboard/food-history",
         progress: "/dashboard/progress",
         chat: "/chat",
         profile: "/dashboard/profile",
