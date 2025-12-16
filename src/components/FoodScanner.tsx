@@ -7,7 +7,7 @@ import { useFoodScanner } from '@/hooks/useFoodScanner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-
+import cheflyMascot from '@/assets/chefly-mascot.png';
 interface FoodScannerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -180,19 +180,24 @@ export function FoodScanner({ open, onOpenChange }: FoodScannerProps) {
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="w-[90vw] sm:w-[384px] max-w-[384px] max-h-[80vh] overflow-y-auto overflow-x-hidden p-0 gap-0 border-0 rounded-3xl bg-gradient-to-b from-background to-muted/30 shadow-2xl">
-        {/* Header */}
-        <div className="relative bg-gradient-to-br from-primary via-primary to-orange-500 p-5 pb-6 rounded-t-3xl">
+        {/* Header with Mascot */}
+        <div className="relative bg-gradient-to-br from-primary via-primary to-orange-500 p-5 pb-6 rounded-t-3xl overflow-visible">
           <div className="absolute top-4 right-12">
             <span className="flex items-center gap-1 text-xs text-white/90 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1.5 font-medium">
               <Sparkles className="h-3 w-3" />
               {t.aiPowered}
             </span>
           </div>
-          <div className="flex items-center gap-4 mt-1">
-            <div className="p-3.5 bg-white/25 backdrop-blur-sm rounded-2xl shadow-lg">
-              <Utensils className="h-7 w-7 text-white" />
-            </div>
-            <div>
+          <div className="flex items-center gap-3">
+            <motion.img 
+              src={cheflyMascot} 
+              alt="Chefly" 
+              className="h-20 w-20 object-contain drop-shadow-lg"
+              initial={{ scale: 0.8, rotate: -10 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: "spring", stiffness: 200, damping: 15 }}
+            />
+            <div className="flex-1">
               <h2 className="text-xl font-bold text-white">{t.title}</h2>
               <p className="text-white/90 text-sm mt-0.5">{t.instructions}</p>
             </div>
