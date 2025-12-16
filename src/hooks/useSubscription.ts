@@ -14,7 +14,7 @@ export const SUBSCRIPTION_TIERS = {
     product_id: "prod_TUMZx1BcskL9rK",
     price_id: "price_1SXNqfRXGCRSzpK7WyaN4yij",
     name: "Chefly Plus",
-    price: 290, // ~15 USD
+    price: 150, // ~7.99 USD
   },
 };
 
