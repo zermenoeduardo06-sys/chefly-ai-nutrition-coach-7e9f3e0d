@@ -1,13 +1,16 @@
-import { useState, useRef } from 'react';
-import { Camera, Upload, Loader2, Utensils, Flame, Beef, Wheat, Droplets, Save, Check, Sparkles, Leaf } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Camera, Upload, Loader2, Utensils, Flame, Beef, Wheat, Droplets, Save, Check, Sparkles, Leaf, Lock, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFoodScanner } from '@/hooks/useFoodScanner';
+import { useSubscriptionLimits } from '@/hooks/useSubscriptionLimits';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 import cheflyMascot from '@/assets/chefly-mascot.png';
+
 interface FoodScannerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -16,16 +19,39 @@ interface FoodScannerProps {
 export function FoodScanner({ open, onOpenChange }: FoodScannerProps) {
   const { language } = useLanguage();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { analyzeFood, isAnalyzing, result, clearResult } = useFoodScanner();
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [userId, setUserId] = useState<string | undefined>(undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+  const { limits, refreshLimits } = useSubscriptionLimits(userId);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) setUserId(user.id);
+    };
+    if (open) getUser();
+  }, [open]);
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+
+    // Check limit before processing
+    if (!limits.canScanFood) {
+      toast({
+        title: language === 'es' ? 'Límite alcanzado' : 'Limit reached',
+        description: language === 'es' 
+          ? 'Ya usaste tu escaneo gratuito de hoy. Mejora a Chefly Plus para escaneos ilimitados.'
+          : 'You already used your free scan today. Upgrade to Chefly Plus for unlimited scans.',
+        variant: 'destructive',
+      });
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = async (e) => {
@@ -114,6 +140,7 @@ export function FoodScanner({ open, onOpenChange }: FoodScannerProps) {
       if (error) throw error;
 
       setSaved(true);
+      refreshLimits(); // Refresh limits after saving
       toast({
         title: language === 'es' ? '¡Guardado!' : 'Saved!',
         description: language === 'es' 
@@ -157,6 +184,17 @@ export function FoodScanner({ open, onOpenChange }: FoodScannerProps) {
       ? 'Toma una foto de tu comida y obtén la información nutricional al instante'
       : 'Take a photo of your food and get nutritional info instantly',
     aiPowered: language === 'es' ? 'Powered by AI' : 'Powered by AI',
+    limitReached: language === 'es' ? 'Límite diario alcanzado' : 'Daily limit reached',
+    limitDesc: language === 'es' 
+      ? 'Ya usaste tu escaneo gratuito de hoy'
+      : 'You already used your free scan today',
+    upgradeForUnlimited: language === 'es' 
+      ? 'Mejora a Chefly Plus para escaneos ilimitados'
+      : 'Upgrade to Chefly Plus for unlimited scans',
+    upgrade: language === 'es' ? 'Mejorar Plan' : 'Upgrade Plan',
+    scansToday: language === 'es' ? 'escaneo hoy' : 'scan today',
+    scansTodayPlural: language === 'es' ? 'escaneos hoy' : 'scans today',
+    unlimited: language === 'es' ? 'Ilimitado' : 'Unlimited',
   };
 
   const getConfidenceColor = (confidence: string) => {
@@ -237,6 +275,35 @@ export function FoodScanner({ open, onOpenChange }: FoodScannerProps) {
                 </motion.div>
               )}
             </motion.div>
+          ) : !limits.canScanFood ? (
+            /* Limit Reached State */
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-3xl p-8 shadow-lg border-2 border-amber-200"
+            >
+              <div className="text-center">
+                <div className="w-24 h-24 mx-auto bg-gradient-to-br from-amber-100 to-amber-200 rounded-full flex items-center justify-center mb-5 shadow-inner">
+                  <Lock className="h-12 w-12 text-amber-600" />
+                </div>
+                
+                <h3 className="text-lg font-bold text-amber-800 mb-2">{t.limitReached}</h3>
+                <p className="text-amber-700 text-sm mb-2">{t.limitDesc}</p>
+                <p className="text-amber-600 text-xs mb-5">{t.upgradeForUnlimited}</p>
+                
+                <Button
+                  onClick={() => {
+                    handleClose();
+                    navigate('/pricing');
+                  }}
+                  size="lg"
+                  className="gap-2 rounded-2xl shadow-lg px-6 h-12 font-semibold bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
+                >
+                  <Crown className="h-5 w-5" />
+                  {t.upgrade}
+                </Button>
+              </div>
+            </motion.div>
           ) : (
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
@@ -247,6 +314,19 @@ export function FoodScanner({ open, onOpenChange }: FoodScannerProps) {
                 <div className="w-24 h-24 mx-auto bg-gradient-to-br from-primary/20 to-primary/5 rounded-full flex items-center justify-center mb-5 shadow-inner">
                   <Camera className="h-12 w-12 text-primary" />
                 </div>
+
+                {/* Show scan count for free users */}
+                {limits.isFreePlan && (
+                  <p className="text-xs text-muted-foreground mb-4">
+                    {limits.foodScansUsed}/{limits.dailyFoodScanLimit} {limits.foodScansUsed === 1 ? t.scansToday : t.scansTodayPlural}
+                  </p>
+                )}
+                {limits.isCheflyPlus && (
+                  <p className="text-xs text-primary font-medium mb-4 flex items-center justify-center gap-1">
+                    <Crown className="h-3 w-3" />
+                    {t.unlimited}
+                  </p>
+                )}
                 
                 <div className="flex gap-3 justify-center">
                   <Button
