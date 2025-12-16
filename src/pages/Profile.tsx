@@ -3,11 +3,12 @@ import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useTrialGuard } from "@/hooks/useTrialGuard";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { Button } from "@/components/ui/button";
 import ModularAvatar from "@/components/avatar/ModularAvatar";
 import { AvatarConfig, defaultAvatarConfig } from "@/components/avatar/AvatarParts";
 import { ProfileMenuLinks } from "@/components/profile/ProfileMenuLinks";
-import { Loader2, Settings, UserPlus, Pencil, Crown } from "lucide-react";
+import { Loader2, Settings, UserPlus, Pencil, Crown, Zap, ChevronRight, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { es, enUS } from "date-fns/locale";
@@ -30,9 +31,11 @@ const Profile = () => {
   const { t, language } = useLanguage();
   const { isBlocked, isLoading: trialLoading } = useTrialGuard();
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | undefined>(undefined);
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [stats, setStats] = useState<UserStats | null>(null);
   const [friendsCount, setFriendsCount] = useState(0);
+  const { limits } = useSubscriptionLimits(userId);
 
   useEffect(() => {
     const loadData = async () => {
@@ -41,6 +44,8 @@ const Profile = () => {
         navigate("/auth");
         return;
       }
+      
+      setUserId(user.id);
 
       const [profileRes, statsRes, friendsRes] = await Promise.all([
         supabase
@@ -185,11 +190,81 @@ const Profile = () => {
         </div>
       </motion.div>
 
+      {/* Subscription Widget */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="px-4 mb-5"
+      >
+        <Link to="/subscription">
+          <div className={`
+            relative overflow-hidden rounded-2xl border-2 p-4
+            ${limits.isCheflyPlus 
+              ? "bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-cyan-500/10 border-emerald-500/30" 
+              : "bg-gradient-to-br from-primary/10 via-secondary/5 to-primary/10 border-primary/30"
+            }
+          `}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`
+                  p-2.5 rounded-xl
+                  ${limits.isCheflyPlus 
+                    ? "bg-emerald-500/20" 
+                    : "bg-primary/20"
+                  }
+                `}>
+                  {limits.isCheflyPlus ? (
+                    <Crown className="h-5 w-5 text-emerald-500" />
+                  ) : (
+                    <Sparkles className="h-5 w-5 text-primary" />
+                  )}
+                </div>
+                <div>
+                  <p className="font-bold text-foreground">
+                    {limits.isCheflyPlus 
+                      ? "Chefly Plus" 
+                      : (language === "es" ? "Plan Gratuito" : "Free Plan")
+                    }
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {limits.isCheflyPlus
+                      ? (language === "es" ? "Acceso completo activo" : "Full access active")
+                      : (language === "es" ? "Desbloquea más funciones" : "Unlock more features")
+                    }
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {!limits.isCheflyPlus && (
+                  <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-1 rounded-full">
+                    {language === "es" ? "Mejorar" : "Upgrade"}
+                  </span>
+                )}
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              </div>
+            </div>
+            
+            {/* Decorative sparkles for Plus users */}
+            {limits.isCheflyPlus && (
+              <>
+                <div className="absolute top-2 right-10 text-emerald-400/40">
+                  <Zap className="h-3 w-3" />
+                </div>
+                <div className="absolute bottom-2 right-4 text-emerald-400/40">
+                  <Sparkles className="h-4 w-4" />
+                </div>
+              </>
+            )}
+          </div>
+        </Link>
+      </motion.div>
+
       {/* Menu Links */}
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
+        transition={{ delay: 0.2 }}
         className="px-4"
       >
         <ProfileMenuLinks />
