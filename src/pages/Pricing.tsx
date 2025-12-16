@@ -191,7 +191,7 @@ const Pricing = () => {
 
                   {/* Price */}
                   <div className="flex items-baseline gap-1 mb-4">
-                    <span className="text-3xl font-bold text-foreground">$15</span>
+                    <span className="text-3xl font-bold text-foreground">$7.99</span>
                     <span className="text-muted-foreground text-sm">
                       USD/{language === "es" ? "mes" : "month"}
                     </span>
@@ -251,8 +251,8 @@ const Pricing = () => {
                     <>
                       <Zap className="mr-2 h-5 w-5" />
                       {language === "es" 
-                        ? "COMENZAR POR $15/MES"
-                        : "START FOR $15/MONTH"
+                        ? "COMENZAR POR $7.99/MES"
+                        : "START FOR $7.99/MONTH"
                       }
                     </>
                   )}

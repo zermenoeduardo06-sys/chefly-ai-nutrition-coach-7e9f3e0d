@@ -72,8 +72,8 @@ const Subscription = () => {
       id: "chefly-plus",
       name: "Chefly Plus",
       subtitle: language === "es" ? "Nutrición personalizada sin límites" : "Unlimited personalized nutrition",
-      price: "$290 MXN",
-      priceUsd: "$15",
+      price: "$150 MXN",
+      priceUsd: "$7.99",
       period: language === "es" ? "/mes" : "/month",
       features: [
         language === "es" ? "Genera nuevos planes semanales ilimitados" : "Generate unlimited weekly plans",
