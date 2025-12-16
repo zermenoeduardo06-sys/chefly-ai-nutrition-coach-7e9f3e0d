@@ -179,51 +179,55 @@ export function FoodScanner({ open, onOpenChange }: FoodScannerProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto p-0 gap-0 border-0 bg-gradient-to-b from-primary/5 to-background">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto overflow-x-hidden p-0 gap-0 border-0 rounded-3xl bg-gradient-to-b from-background to-muted/30">
         {/* Header */}
-        <div className="relative bg-gradient-to-br from-primary via-primary to-orange-500 p-6 pb-8 rounded-t-lg">
-          <div className="absolute top-3 right-3">
-            <span className="flex items-center gap-1 text-xs text-white/80 bg-white/20 rounded-full px-2 py-1">
+        <div className="relative bg-gradient-to-br from-primary via-primary to-orange-500 p-5 pb-6 rounded-t-3xl">
+          <div className="absolute top-4 right-12">
+            <span className="flex items-center gap-1 text-xs text-white/90 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1.5 font-medium">
               <Sparkles className="h-3 w-3" />
               {t.aiPowered}
             </span>
           </div>
-          <div className="flex items-center gap-3 mt-2">
-            <div className="p-3 bg-white/20 rounded-2xl">
+          <div className="flex items-center gap-4 mt-1">
+            <div className="p-3.5 bg-white/25 backdrop-blur-sm rounded-2xl shadow-lg">
               <Utensils className="h-7 w-7 text-white" />
             </div>
             <div>
               <h2 className="text-xl font-bold text-white">{t.title}</h2>
-              <p className="text-white/80 text-sm">{t.instructions}</p>
+              <p className="text-white/90 text-sm mt-0.5">{t.instructions}</p>
             </div>
           </div>
         </div>
 
-        <div className="p-4 space-y-4 -mt-4">
+        <div className="p-4 space-y-4">
           {/* Preview Image or Upload Area */}
           {previewImage ? (
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="relative rounded-2xl overflow-hidden shadow-lg border-4 border-white bg-white"
+              className="relative rounded-3xl overflow-hidden shadow-xl ring-4 ring-white bg-white"
             >
               <img 
                 src={previewImage} 
                 alt="Food preview" 
-                className="w-full h-52 object-cover"
+                className="w-full h-56 object-cover"
               />
               {isAnalyzing && (
                 <motion.div 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center"
+                  className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/50 to-black/40 backdrop-blur-sm flex items-center justify-center"
                 >
-                  <div className="flex flex-col items-center gap-3">
+                  <div className="flex flex-col items-center gap-4">
                     <div className="relative">
-                      <div className="h-16 w-16 rounded-full border-4 border-white/30 border-t-white animate-spin" />
-                      <Utensils className="h-6 w-6 text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                      <div className="h-20 w-20 rounded-full border-4 border-white/20 border-t-white animate-spin" />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="h-14 w-14 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
+                          <Utensils className="h-7 w-7 text-white" />
+                        </div>
+                      </div>
                     </div>
-                    <span className="text-white font-medium">{t.analyzing}</span>
+                    <span className="text-white font-semibold text-lg">{t.analyzing}</span>
                   </div>
                 </motion.div>
               )}
@@ -232,18 +236,18 @@ export function FoodScanner({ open, onOpenChange }: FoodScannerProps) {
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-white rounded-2xl p-6 shadow-lg border-2 border-dashed border-primary/30"
+              className="bg-white rounded-3xl p-8 shadow-lg border-2 border-dashed border-primary/40"
             >
               <div className="text-center">
-                <div className="w-20 h-20 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                  <Camera className="h-10 w-10 text-primary" />
+                <div className="w-24 h-24 mx-auto bg-gradient-to-br from-primary/20 to-primary/5 rounded-full flex items-center justify-center mb-5 shadow-inner">
+                  <Camera className="h-12 w-12 text-primary" />
                 </div>
                 
                 <div className="flex gap-3 justify-center">
                   <Button
                     onClick={() => cameraInputRef.current?.click()}
                     size="lg"
-                    className="gap-2 rounded-xl shadow-md"
+                    className="gap-2 rounded-2xl shadow-lg px-6 h-12 font-semibold"
                   >
                     <Camera className="h-5 w-5" />
                     {t.takePhoto}
@@ -252,7 +256,7 @@ export function FoodScanner({ open, onOpenChange }: FoodScannerProps) {
                     variant="outline"
                     size="lg"
                     onClick={() => fileInputRef.current?.click()}
-                    className="gap-2 rounded-xl border-2"
+                    className="gap-2 rounded-2xl border-2 px-6 h-12 font-semibold hover:bg-muted/50"
                   >
                     <Upload className="h-5 w-5" />
                     {t.uploadImage}
@@ -289,16 +293,16 @@ export function FoodScanner({ open, onOpenChange }: FoodScannerProps) {
                 className="space-y-3"
               >
                 {/* Dish Name & Confidence */}
-                <div className="bg-white rounded-2xl p-4 shadow-sm">
-                  <div className="flex items-start justify-between">
+                <div className="bg-white rounded-3xl p-5 shadow-md border border-border/50">
+                  <div className="flex items-start justify-between gap-3">
                     <div className="flex-1">
-                      <h3 className="text-lg font-bold text-foreground">{result.dish_name}</h3>
+                      <h3 className="text-xl font-bold text-foreground">{result.dish_name}</h3>
                       {result.portion_estimate && (
-                        <p className="text-sm text-muted-foreground mt-0.5">{result.portion_estimate}</p>
+                        <p className="text-sm text-muted-foreground mt-1">{result.portion_estimate}</p>
                       )}
                     </div>
                     {result.confidence && (
-                      <span className={`text-xs text-white font-medium px-2.5 py-1 rounded-full ${getConfidenceColor(result.confidence)}`}>
+                      <span className={`text-xs text-white font-semibold px-3 py-1.5 rounded-full shadow-sm ${getConfidenceColor(result.confidence)}`}>
                         {getConfidenceText(result.confidence)}
                       </span>
                     )}
@@ -307,49 +311,59 @@ export function FoodScanner({ open, onOpenChange }: FoodScannerProps) {
 
                 {/* Nutrition Grid - Calories prominent */}
                 {result.nutrition && (
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="space-y-3">
                     {/* Calories - Full width highlight */}
-                    <div className="col-span-4 bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl p-4 flex items-center justify-between shadow-md">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-white/20 rounded-xl">
-                          <Flame className="h-6 w-6 text-white" />
+                    <div className="bg-gradient-to-r from-orange-500 via-orange-500 to-amber-400 rounded-3xl p-5 flex items-center justify-between shadow-lg">
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 bg-white/25 backdrop-blur-sm rounded-2xl shadow-inner">
+                          <Flame className="h-7 w-7 text-white" />
                         </div>
                         <div>
-                          <div className="text-white/80 text-xs font-medium">Calorías</div>
-                          <div className="text-3xl font-bold text-white">{result.nutrition.calories}</div>
+                          <div className="text-white/90 text-sm font-medium">Calorías</div>
+                          <div className="text-4xl font-bold text-white tracking-tight">{result.nutrition.calories}</div>
                         </div>
                       </div>
-                      <span className="text-white/80 text-lg font-medium">kcal</span>
+                      <span className="text-white/90 text-xl font-semibold">kcal</span>
                     </div>
 
                     {/* Macros */}
-                    <div className="bg-red-50 rounded-xl p-3 text-center border border-red-100">
-                      <Beef className="h-5 w-5 mx-auto text-red-500 mb-1" />
-                      <div className="text-lg font-bold text-red-600">{result.nutrition.protein}g</div>
-                      <div className="text-[10px] text-red-500/80 font-medium">{t.protein}</div>
-                    </div>
-                    <div className="bg-amber-50 rounded-xl p-3 text-center border border-amber-100">
-                      <Wheat className="h-5 w-5 mx-auto text-amber-500 mb-1" />
-                      <div className="text-lg font-bold text-amber-600">{result.nutrition.carbs}g</div>
-                      <div className="text-[10px] text-amber-500/80 font-medium">{t.carbs}</div>
-                    </div>
-                    <div className="bg-blue-50 rounded-xl p-3 text-center border border-blue-100">
-                      <Droplets className="h-5 w-5 mx-auto text-blue-500 mb-1" />
-                      <div className="text-lg font-bold text-blue-600">{result.nutrition.fat}g</div>
-                      <div className="text-[10px] text-blue-500/80 font-medium">{t.fat}</div>
-                    </div>
-                    <div className="bg-green-50 rounded-xl p-3 text-center border border-green-100">
-                      <Leaf className="h-5 w-5 mx-auto text-green-500 mb-1" />
-                      <div className="text-lg font-bold text-green-600">{result.nutrition.fiber || 0}g</div>
-                      <div className="text-[10px] text-green-500/80 font-medium">{t.fiber}</div>
+                    <div className="grid grid-cols-4 gap-2">
+                      <div className="bg-gradient-to-b from-red-50 to-red-100/50 rounded-2xl p-3 text-center border border-red-100 shadow-sm">
+                        <div className="w-10 h-10 mx-auto bg-red-100 rounded-xl flex items-center justify-center mb-2">
+                          <Beef className="h-5 w-5 text-red-500" />
+                        </div>
+                        <div className="text-xl font-bold text-red-600">{result.nutrition.protein}g</div>
+                        <div className="text-[10px] text-red-500 font-semibold mt-0.5">{t.protein}</div>
+                      </div>
+                      <div className="bg-gradient-to-b from-amber-50 to-amber-100/50 rounded-2xl p-3 text-center border border-amber-100 shadow-sm">
+                        <div className="w-10 h-10 mx-auto bg-amber-100 rounded-xl flex items-center justify-center mb-2">
+                          <Wheat className="h-5 w-5 text-amber-500" />
+                        </div>
+                        <div className="text-xl font-bold text-amber-600">{result.nutrition.carbs}g</div>
+                        <div className="text-[10px] text-amber-500 font-semibold mt-0.5">{t.carbs}</div>
+                      </div>
+                      <div className="bg-gradient-to-b from-blue-50 to-blue-100/50 rounded-2xl p-3 text-center border border-blue-100 shadow-sm">
+                        <div className="w-10 h-10 mx-auto bg-blue-100 rounded-xl flex items-center justify-center mb-2">
+                          <Droplets className="h-5 w-5 text-blue-500" />
+                        </div>
+                        <div className="text-xl font-bold text-blue-600">{result.nutrition.fat}g</div>
+                        <div className="text-[10px] text-blue-500 font-semibold mt-0.5">{t.fat}</div>
+                      </div>
+                      <div className="bg-gradient-to-b from-green-50 to-green-100/50 rounded-2xl p-3 text-center border border-green-100 shadow-sm">
+                        <div className="w-10 h-10 mx-auto bg-green-100 rounded-xl flex items-center justify-center mb-2">
+                          <Leaf className="h-5 w-5 text-green-500" />
+                        </div>
+                        <div className="text-xl font-bold text-green-600">{result.nutrition.fiber || 0}g</div>
+                        <div className="text-[10px] text-green-500 font-semibold mt-0.5">{t.fiber}</div>
+                      </div>
                     </div>
                   </div>
                 )}
 
                 {/* Foods Identified */}
                 {result.foods_identified && result.foods_identified.length > 0 && (
-                  <div className="bg-white rounded-2xl p-4 shadow-sm">
-                    <div className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">{t.foods}</div>
+                  <div className="bg-white rounded-3xl p-5 shadow-md border border-border/50">
+                    <div className="text-xs font-bold text-muted-foreground mb-3 uppercase tracking-wider">{t.foods}</div>
                     <div className="flex flex-wrap gap-2">
                       {result.foods_identified.map((food, idx) => (
                         <motion.span 
@@ -357,7 +371,7 @@ export function FoodScanner({ open, onOpenChange }: FoodScannerProps) {
                           initial={{ opacity: 0, scale: 0.8 }}
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ delay: idx * 0.05 }}
-                          className="bg-primary/10 text-primary text-sm px-3 py-1.5 rounded-full font-medium"
+                          className="bg-gradient-to-r from-primary/15 to-primary/10 text-primary text-sm px-4 py-2 rounded-full font-semibold border border-primary/20"
                         >
                           {food}
                         </motion.span>
@@ -368,19 +382,23 @@ export function FoodScanner({ open, onOpenChange }: FoodScannerProps) {
 
                 {/* Notes */}
                 {result.notes && (
-                  <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
-                    <div className="text-xs font-semibold text-amber-700 mb-1 uppercase tracking-wide">{t.notes}</div>
-                    <div className="text-sm text-amber-800">{result.notes}</div>
+                  <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/50 rounded-3xl p-5 shadow-sm">
+                    <div className="text-xs font-bold text-amber-700 mb-2 uppercase tracking-wider">{t.notes}</div>
+                    <div className="text-sm text-amber-800 leading-relaxed">{result.notes}</div>
                   </div>
                 )}
 
                 {/* Action Buttons */}
-                <div className="flex gap-3 pt-2">
+                <div className="flex gap-3 pt-3">
                   <Button 
                     onClick={handleSave} 
                     disabled={isSaving || saved}
                     size="lg"
-                    className={`flex-1 gap-2 rounded-xl shadow-md text-base ${saved ? 'bg-green-500 hover:bg-green-500' : ''}`}
+                    className={`flex-1 gap-2 rounded-2xl shadow-lg text-base h-14 font-semibold transition-all ${
+                      saved 
+                        ? 'bg-green-500 hover:bg-green-500 shadow-green-200' 
+                        : 'shadow-primary/30'
+                    }`}
                   >
                     {isSaving ? (
                       <>
@@ -403,9 +421,9 @@ export function FoodScanner({ open, onOpenChange }: FoodScannerProps) {
                     onClick={handleNewScan} 
                     variant="outline" 
                     size="lg"
-                    className="gap-2 rounded-xl border-2"
+                    className="gap-2 rounded-2xl border-2 h-14 w-14 p-0 hover:bg-muted/50"
                   >
-                    <Camera className="h-5 w-5" />
+                    <Camera className="h-6 w-6" />
                   </Button>
                 </div>
               </motion.div>
@@ -417,11 +435,14 @@ export function FoodScanner({ open, onOpenChange }: FoodScannerProps) {
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center"
+              className="bg-gradient-to-br from-red-50 to-red-100/50 border border-red-200 rounded-3xl p-8 text-center shadow-sm"
             >
-              <p className="text-red-600 text-sm mb-4">{result.error}</p>
-              <Button onClick={handleNewScan} variant="outline" className="gap-2 rounded-xl">
-                <Camera className="h-4 w-4" />
+              <div className="w-16 h-16 mx-auto bg-red-100 rounded-full flex items-center justify-center mb-4">
+                <Utensils className="h-8 w-8 text-red-400" />
+              </div>
+              <p className="text-red-600 text-sm mb-5 font-medium">{result.error}</p>
+              <Button onClick={handleNewScan} className="gap-2 rounded-2xl px-6 h-12">
+                <Camera className="h-5 w-5" />
                 {t.scanAgain}
               </Button>
             </motion.div>
