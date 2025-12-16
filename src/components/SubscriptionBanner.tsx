@@ -10,7 +10,6 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 interface SubscriptionBannerProps {
   userId: string;
-  trialExpiresAt?: string;
 }
 
 export const SubscriptionBanner = ({ userId }: SubscriptionBannerProps) => {
