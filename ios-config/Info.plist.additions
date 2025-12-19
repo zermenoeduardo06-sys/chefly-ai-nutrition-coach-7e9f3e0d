@@ -1,0 +1,63 @@
+<!-- 
+  Privacy Descriptions for iOS App Store
+  ======================================
+  
+  Add these entries to your ios/App/App/Info.plist file in Xcode.
+  These are REQUIRED for App Store submission when using camera/photos.
+-->
+
+<!-- Camera Permission - Required for Food Scanner -->
+<key>NSCameraUsageDescription</key>
+<string>Chefly AI necesita acceso a tu cámara para escanear alimentos y analizar su información nutricional con inteligencia artificial.</string>
+
+<!-- Photo Library Read Permission - Required for selecting photos -->
+<key>NSPhotoLibraryUsageDescription</key>
+<string>Chefly AI necesita acceso a tu galería para seleccionar fotos de alimentos y analizar su información nutricional.</string>
+
+<!-- Photo Library Add Permission - For saving scanned images -->
+<key>NSPhotoLibraryAddUsageDescription</key>
+<string>Chefly AI necesita permiso para guardar las imágenes de tus escaneos de alimentos.</string>
+
+<!-- Face ID Permission (optional - for secure login) -->
+<key>NSFaceIDUsageDescription</key>
+<string>Chefly AI puede usar Face ID para un inicio de sesión más rápido y seguro.</string>
+
+<!-- 
+  App Transport Security - Allow loading from Lovable preview during development
+  Remove or modify for production if needed
+-->
+<key>NSAppTransportSecurity</key>
+<dict>
+    <key>NSAllowsArbitraryLoads</key>
+    <true/>
+</dict>
+
+<!-- 
+  App Display Name (shorter version for home screen)
+-->
+<key>CFBundleDisplayName</key>
+<string>Chefly AI</string>
+
+<!--
+  Supported Interface Orientations
+-->
+<key>UISupportedInterfaceOrientations</key>
+<array>
+    <string>UIInterfaceOrientationPortrait</string>
+</array>
+
+<key>UISupportedInterfaceOrientations~ipad</key>
+<array>
+    <string>UIInterfaceOrientationPortrait</string>
+    <string>UIInterfaceOrientationPortraitUpsideDown</string>
+    <string>UIInterfaceOrientationLandscapeLeft</string>
+    <string>UIInterfaceOrientationLandscapeRight</string>
+</array>
+
+<!--
+  Status Bar Style
+-->
+<key>UIViewControllerBasedStatusBarAppearance</key>
+<true/>
+<key>UIStatusBarStyle</key>
+<string>UIStatusBarStyleLightContent</string>
