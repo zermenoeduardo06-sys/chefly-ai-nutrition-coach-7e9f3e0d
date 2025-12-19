@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Capacitor } from "@capacitor/core";
@@ -30,14 +30,17 @@ interface SubscriptionPlan {
   coming_soon?: boolean;
   is_active: boolean;
 }
+
 const Index = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const [isNativeRedirecting, setIsNativeRedirecting] = useState(false);
   
-  // Redirect to auth for native mobile apps (skip landing page)
+  // Redirect to auth for native mobile apps (skip landing page completely)
   useEffect(() => {
     const checkNativeAndAuth = async () => {
       if (Capacitor.isNativePlatform()) {
+        setIsNativeRedirecting(true);
         // Check if already logged in
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
@@ -49,6 +52,18 @@ const Index = () => {
     };
     checkNativeAndAuth();
   }, [navigate]);
+
+  // Don't render anything for native mobile - show loading while redirecting
+  if (Capacitor.isNativePlatform() || isNativeRedirecting) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-muted-foreground">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Activar tracking de afiliados
   useAffiliateTracking();
