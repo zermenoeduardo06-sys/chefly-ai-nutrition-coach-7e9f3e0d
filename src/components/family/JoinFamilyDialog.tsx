@@ -34,11 +34,12 @@ export const JoinFamilyDialog = ({ open, onOpenChange, onSuccess }: JoinFamilyDi
   } | null>(null);
 
   const handleCodeChange = async (code: string) => {
-    const formattedCode = code.toUpperCase().replace(/[^A-Z0-9-]/g, "");
+    // Allow alphanumeric characters, preserve original case for validation
+    const formattedCode = code.replace(/[^A-Za-z0-9-]/g, "");
     setInviteCode(formattedCode);
     setValidationResult(null);
 
-    if (formattedCode.length >= 10) {
+    if (formattedCode.length >= 8) {
       setValidating(true);
       try {
         const { data } = await supabase.functions.invoke("family-management", {
@@ -104,9 +105,9 @@ export const JoinFamilyDialog = ({ open, onOpenChange, onSuccess }: JoinFamilyDi
             <Input
               value={inviteCode}
               onChange={(e) => handleCodeChange(e.target.value)}
-              placeholder="FAM-XXXXXX"
+              placeholder="XXXXXXXXXX"
               className="text-center font-mono text-lg tracking-widest pr-10"
-              maxLength={10}
+              maxLength={12}
             />
             {validating && (
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
