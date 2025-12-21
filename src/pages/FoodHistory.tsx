@@ -183,7 +183,9 @@ const FoodHistory = () => {
             transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
             className="h-14 w-14 rounded-full border-[3px] border-primary/20 border-t-primary"
           />
-          <span className="text-muted-foreground text-sm font-medium">Cargando historial...</span>
+          <span className="text-muted-foreground text-sm font-medium">
+            {language === 'es' ? 'Cargando historial...' : 'Loading history...'}
+          </span>
         </div>
       </div>
     );
@@ -271,12 +273,12 @@ const FoodHistory = () => {
               
               {/* Calories Hero */}
               <div className="flex items-center gap-4 mb-4">
-                <div className="p-2.5 bg-white/20 rounded-xl">
+              <div className="p-2.5 bg-white/20 rounded-xl">
                   <Flame className="h-6 w-6 text-white" />
                 </div>
                 <div>
                   <div className="text-3xl font-black text-white">{todayStats.calories}</div>
-                  <div className="text-white/60 text-xs">kcal consumidas</div>
+                  <div className="text-white/60 text-xs">{language === 'es' ? 'kcal consumidas' : 'kcal consumed'}</div>
                 </div>
               </div>
 
