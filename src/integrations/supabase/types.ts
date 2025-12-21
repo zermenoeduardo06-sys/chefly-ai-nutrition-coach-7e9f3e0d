@@ -726,10 +726,53 @@ export type Database = {
           },
         ]
       }
+      meal_member_adaptations: {
+        Row: {
+          adaptation_notes: string | null
+          adaptation_score: number
+          created_at: string
+          id: string
+          is_best_match: boolean | null
+          meal_id: string
+          member_user_id: string
+          variant_instructions: string | null
+        }
+        Insert: {
+          adaptation_notes?: string | null
+          adaptation_score?: number
+          created_at?: string
+          id?: string
+          is_best_match?: boolean | null
+          meal_id: string
+          member_user_id: string
+          variant_instructions?: string | null
+        }
+        Update: {
+          adaptation_notes?: string | null
+          adaptation_score?: number
+          created_at?: string
+          id?: string
+          is_best_match?: boolean | null
+          meal_id?: string
+          member_user_id?: string
+          variant_instructions?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meal_member_adaptations_meal_id_fkey"
+            columns: ["meal_id"]
+            isOneToOne: false
+            referencedRelation: "meals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meal_plans: {
         Row: {
           created_at: string | null
+          family_id: string | null
           id: string
+          is_family_plan: boolean | null
           preferences_hash: string | null
           updated_at: string | null
           user_id: string
@@ -737,7 +780,9 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          family_id?: string | null
           id?: string
+          is_family_plan?: boolean | null
           preferences_hash?: string | null
           updated_at?: string | null
           user_id: string
@@ -745,13 +790,23 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          family_id?: string | null
           id?: string
+          is_family_plan?: boolean | null
           preferences_hash?: string | null
           updated_at?: string | null
           user_id?: string
           week_start_date?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "meal_plans_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       meals: {
         Row: {
