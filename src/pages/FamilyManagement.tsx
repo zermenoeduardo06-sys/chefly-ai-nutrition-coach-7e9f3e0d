@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useFamily } from "@/hooks/useFamily";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useFamilyMealPlan } from "@/hooks/useFamilyMealPlan";
 import { motion } from "framer-motion";
 import { 
   ArrowLeft, 
@@ -27,6 +28,9 @@ import {
   Heart,
   Star,
   ChefHat,
+  CheckCircle2,
+  RefreshCw,
+  Calendar,
 } from "lucide-react";
 import ModularAvatar from "@/components/avatar/ModularAvatar";
 import {
@@ -40,6 +44,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { JoinFamilyDialog } from "@/components/family/JoinFamilyDialog";
+import confetti from "canvas-confetti";
 
 const FamilyManagement = () => {
   const navigate = useNavigate();
@@ -64,6 +69,41 @@ const FamilyManagement = () => {
     leaveFamily,
     updateFamilyName,
   } = useFamily(userId);
+
+  const {
+    hasFamilyMealPlan,
+    generating,
+    generateFamilyMealPlan,
+    mealPlan,
+    loading: planLoading,
+  } = useFamilyMealPlan(userId);
+
+  const handleGenerateFamilyPlan = async () => {
+    const result = await generateFamilyMealPlan(language);
+    
+    if (result.success) {
+      // Celebration confetti
+      confetti({
+        particleCount: 150,
+        spread: 100,
+        origin: { y: 0.6 },
+        colors: ['#8B5CF6', '#D946EF', '#F59E0B', '#10B981'],
+      });
+      
+      toast({
+        title: language === "es" ? "¡Plan familiar generado!" : "Family plan generated!",
+        description: language === "es" 
+          ? "El plan considera las preferencias de todos los miembros" 
+          : "The plan considers all members' preferences",
+      });
+    } else {
+      toast({
+        variant: "destructive",
+        title: language === "es" ? "Error" : "Error",
+        description: result.error,
+      });
+    }
+  };
 
   useEffect(() => {
     checkAuth();
@@ -372,7 +412,130 @@ const FamilyManagement = () => {
           )}
         </motion.div>
 
-        {/* Invite Code Card - Only for owner */}
+        {/* Generate Family Meal Plan Card - Prominent Action */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 rounded-2xl p-5 text-white shadow-lg"
+        >
+          <div className="flex items-center gap-3 mb-3">
+            <div className="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center">
+              <Utensils className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h3 className="font-bold text-lg">
+                {language === "es" ? "Plan de Comidas Familiar" : "Family Meal Plan"}
+              </h3>
+              <p className="text-white/80 text-sm">
+                {language === "es" 
+                  ? "Genera un plan para toda la familia" 
+                  : "Generate a plan for the whole family"}
+              </p>
+            </div>
+          </div>
+
+          {/* Status or Generation */}
+          {planLoading ? (
+            <div className="flex items-center justify-center py-4">
+              <Loader2 className="h-6 w-6 animate-spin text-white" />
+            </div>
+          ) : hasFamilyMealPlan ? (
+            <div className="space-y-3">
+              <div className="bg-white/20 rounded-xl p-3 flex items-center gap-3">
+                <CheckCircle2 className="h-5 w-5 text-white flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="font-medium text-sm">
+                    {language === "es" ? "Plan activo" : "Active plan"}
+                  </p>
+                  <p className="text-white/70 text-xs">
+                    {mealPlan?.meals?.length || 0} {language === "es" ? "comidas generadas" : "meals generated"}
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="bg-white/20 hover:bg-white/30 text-white border-0"
+                  onClick={() => navigate("/dashboard")}
+                >
+                  <Calendar className="h-4 w-4 mr-1" />
+                  {language === "es" ? "Ver" : "View"}
+                </Button>
+              </div>
+              
+              <Button
+                className="w-full bg-white/20 hover:bg-white/30 text-white border-0"
+                onClick={handleGenerateFamilyPlan}
+                disabled={generating}
+              >
+                {generating ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    {language === "es" ? "Generando nuevo plan..." : "Generating new plan..."}
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    {language === "es" ? "Regenerar plan" : "Regenerate plan"}
+                  </>
+                )}
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="bg-white/10 rounded-xl p-3">
+                <p className="text-sm text-white/90 mb-2">
+                  {language === "es" 
+                    ? "Este plan considera automáticamente:" 
+                    : "This plan automatically considers:"}
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="flex items-center gap-1.5 text-xs text-white/80">
+                    <div className="h-1.5 w-1.5 rounded-full bg-white" />
+                    <span>{language === "es" ? "Alergias de todos" : "Everyone's allergies"}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs text-white/80">
+                    <div className="h-1.5 w-1.5 rounded-full bg-white" />
+                    <span>{language === "es" ? "Tipos de dieta" : "Diet types"}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs text-white/80">
+                    <div className="h-1.5 w-1.5 rounded-full bg-white" />
+                    <span>{language === "es" ? "Gustos y disgustos" : "Likes and dislikes"}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs text-white/80">
+                    <div className="h-1.5 w-1.5 rounded-full bg-white" />
+                    <span>{language === "es" ? "Metas nutricionales" : "Nutritional goals"}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <Button
+                className="w-full bg-white text-emerald-600 hover:bg-white/90 font-bold text-base py-6"
+                onClick={handleGenerateFamilyPlan}
+                disabled={generating}
+              >
+                {generating ? (
+                  <>
+                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                    {language === "es" ? "Generando plan..." : "Generating plan..."}
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-5 w-5 mr-2" />
+                    {language === "es" ? "Generar Plan Familiar" : "Generate Family Plan"}
+                  </>
+                )}
+              </Button>
+              
+              <p className="text-center text-xs text-white/60">
+                {language === "es" 
+                  ? `Se generarán comidas para ${members.length} miembro${members.length > 1 ? 's' : ''}` 
+                  : `Will generate meals for ${members.length} member${members.length > 1 ? 's' : ''}`}
+              </p>
+            </div>
+          )}
+        </motion.div>
+
         {isOwner && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
