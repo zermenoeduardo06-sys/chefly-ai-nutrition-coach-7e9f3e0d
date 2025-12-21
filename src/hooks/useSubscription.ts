@@ -23,10 +23,10 @@ export const SUBSCRIPTION_TIERS = {
     price: 150, // ~7.99 USD
   },
   CHEFLY_FAMILY: {
-    product_id: "prod_TeACPacM8HQ5tu",
-    price_id: "price_1SgrsTRXGCRSzpK7xebQQWUE",
+    product_id: "prod_Te9zehdPjvu5Yg",
+    price_id: "price_1SgrfqRXGCRSzpK7qigQi8y0",
     name: "Chefly Familiar",
-    price: 400, // $400 MXN
+    price: 400, // ~20 USD
     maxMembers: 5,
   },
 };
