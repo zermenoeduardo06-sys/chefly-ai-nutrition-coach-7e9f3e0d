@@ -2,23 +2,27 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Check, Loader2, Crown, Sparkles, Star, ArrowLeft, Zap, Gift, Users } from "lucide-react";
+import { Check, Crown, Sparkles, Star, ArrowLeft, Zap, Gift, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { SUBSCRIPTION_TIERS } from "@/hooks/useSubscription";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "framer-motion";
 import mascotFlexing from "@/assets/mascot-flexing.png";
 import mascotFire from "@/assets/mascot-fire.png";
+import { InAppCheckout } from "@/components/InAppCheckout";
 
 const Pricing = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t, language } = useLanguage();
-  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<{
+    priceId: string;
+    name: string;
+    price: string;
+  } | null>(null);
 
-  const handleSelectPlan = async (priceId: string, planKey: string) => {
-    setCheckoutLoading(planKey);
-    
+  const handleSelectPlan = async (priceId: string, planKey: string, planName: string, planPrice: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -26,31 +30,16 @@ const Pricing = () => {
         return;
       }
 
-      const affiliateCode = localStorage.getItem("affiliate_code");
-      const endorselyReferral = (window as any).endorsely_referral;
-
-      const { data, error } = await supabase.functions.invoke("create-checkout", {
-        body: { 
-          priceId,
-          affiliateCode: affiliateCode || null,
-          endorselyReferral: endorselyReferral || null,
-        },
-      });
-
-      if (error) throw error;
-
-      if (data.url) {
-        window.location.href = data.url;
-      }
+      // Open in-app checkout dialog
+      setSelectedPlan({ priceId, name: planName, price: planPrice });
+      setCheckoutOpen(true);
     } catch (error) {
-      console.error("Error creating checkout:", error);
+      console.error("Error:", error);
       toast({
         variant: "destructive",
         title: t("common.error"),
         description: language === "es" ? "No se pudo iniciar el proceso de pago. Intenta de nuevo." : "Could not start payment process. Please try again.",
       });
-    } finally {
-      setCheckoutLoading(null);
     }
   };
 
@@ -263,24 +252,15 @@ const Pricing = () => {
                 whileTap={{ scale: 0.98 }}
               >
                 <Button
-                  onClick={() => handleSelectPlan(SUBSCRIPTION_TIERS.CHEFLY_FAMILY.price_id, "family")}
-                  disabled={checkoutLoading !== null}
+                  onClick={() => handleSelectPlan(SUBSCRIPTION_TIERS.CHEFLY_FAMILY.price_id, "family", "Chefly Familiar", "$20")}
+                  disabled={checkoutOpen}
                   className="w-full h-12 text-base font-bold bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 hover:from-violet-600 hover:via-purple-600 hover:to-fuchsia-600 text-white border-0"
                 >
-                  {checkoutLoading === "family" ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      {language === "es" ? "Procesando..." : "Processing..."}
-                    </>
-                  ) : (
-                    <>
-                      <Users className="mr-2 h-5 w-5" />
-                      {language === "es" 
-                        ? "COMENZAR PLAN FAMILIAR"
-                        : "START FAMILY PLAN"
-                      }
-                    </>
-                  )}
+                  <Users className="mr-2 h-5 w-5" />
+                  {language === "es" 
+                    ? "COMENZAR PLAN FAMILIAR"
+                    : "START FAMILY PLAN"
+                  }
                 </Button>
               </motion.div>
             </div>
@@ -357,25 +337,16 @@ const Pricing = () => {
                 whileTap={{ scale: 0.98 }}
               >
                 <Button
-                  onClick={() => handleSelectPlan(SUBSCRIPTION_TIERS.CHEFLY_PLUS.price_id, "plus")}
-                  disabled={checkoutLoading !== null}
+                  onClick={() => handleSelectPlan(SUBSCRIPTION_TIERS.CHEFLY_PLUS.price_id, "plus", "Chefly Plus", "$7.99")}
+                  disabled={checkoutOpen}
                   variant="duolingo"
                   className="w-full h-12 text-base font-bold"
                 >
-                  {checkoutLoading === "plus" ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      {language === "es" ? "Procesando..." : "Processing..."}
-                    </>
-                  ) : (
-                    <>
-                      <Zap className="mr-2 h-5 w-5" />
-                      {language === "es" 
-                        ? "COMENZAR POR $7.99/MES"
-                        : "START FOR $7.99/MONTH"
-                      }
-                    </>
-                  )}
+                  <Zap className="mr-2 h-5 w-5" />
+                  {language === "es" 
+                    ? "COMENZAR POR $7.99/MES"
+                    : "START FOR $7.99/MONTH"
+                  }
                 </Button>
               </motion.div>
             </div>
@@ -461,6 +432,17 @@ const Pricing = () => {
           </p>
         </motion.div>
       </div>
+
+      {/* In-App Checkout Dialog */}
+      {selectedPlan && (
+        <InAppCheckout
+          open={checkoutOpen}
+          onOpenChange={setCheckoutOpen}
+          priceId={selectedPlan.priceId}
+          planName={selectedPlan.name}
+          planPrice={selectedPlan.price}
+        />
+      )}
     </div>
   );
 };
