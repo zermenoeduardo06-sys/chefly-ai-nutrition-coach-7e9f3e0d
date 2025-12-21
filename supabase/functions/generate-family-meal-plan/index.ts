@@ -6,8 +6,33 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Static meal images from Unsplash (free to use)
+const mealImages = {
+  oatmeal: 'https://images.unsplash.com/photo-1517673400267-0251440c45dc?w=800&q=80',
+  chicken_rice: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=800&q=80',
+  lentil_soup: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=800&q=80',
+  scrambled_eggs: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?w=800&q=80',
+  fish_tacos: 'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=800&q=80',
+  caesar_salad: 'https://images.unsplash.com/photo-1550304943-4f24f54ddde9?w=800&q=80',
+  berry_smoothie: 'https://images.unsplash.com/photo-1553530666-ba11a7da3888?w=800&q=80',
+  pasta: 'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=800&q=80',
+  pumpkin_soup: 'https://images.unsplash.com/photo-1476718406336-bb5a9690ee2a?w=800&q=80',
+  pancakes: 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=800&q=80',
+  quinoa_bowl: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&q=80',
+  spanish_omelette: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&q=80',
+  avocado_toast: 'https://images.unsplash.com/photo-1541519227354-08fa5d50c44d?w=800&q=80',
+  shrimp_rice: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=800&q=80',
+  veggie_pizza: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&q=80',
+  chilaquiles: 'https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=800&q=80',
+  steak: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=800&q=80',
+  tortilla_soup: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=800&q=80',
+  french_toast: 'https://images.unsplash.com/photo-1484723091739-30a097e8f929?w=800&q=80',
+  lasagna: 'https://images.unsplash.com/photo-1574894709920-11b28e7367e3?w=800&q=80',
+  quesadillas: 'https://images.unsplash.com/photo-1618040996337-56904b7850b9?w=800&q=80',
+};
+
 // Cached family meals data - 100% offline, no AI calls
-const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
+const getCachedFamilyMeals = (language: string) => {
   const mealsES = [
     // Day 0 - Lunes
     {
@@ -16,7 +41,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Rica en fibra y energía sostenida para toda la familia',
       ingredients: ['avena', 'leche', 'manzana', 'plátano', 'miel', 'canela', 'nueces'],
       steps: ['Cocinar la avena con leche', 'Cortar las frutas en trozos', 'Servir la avena caliente', 'Decorar con frutas, miel y nueces'],
-      calories: 380, protein: 12, carbs: 65, fats: 10
+      calories: 380, protein: 12, carbs: 65, fats: 10,
+      image_url: mealImages.oatmeal
     },
     {
       day_of_week: 0, meal_type: 'lunch', name: 'Pollo al Limón con Arroz Integral',
@@ -24,7 +50,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Alto en proteínas y carbohidratos complejos, ideal para energía duradera',
       ingredients: ['pechuga de pollo', 'limón', 'arroz integral', 'brócoli', 'zanahoria', 'ajo', 'aceite de oliva'],
       steps: ['Marinar el pollo con limón y ajo', 'Cocinar el arroz integral', 'Saltear las verduras', 'Asar el pollo hasta dorar', 'Servir todo junto'],
-      calories: 520, protein: 38, carbs: 55, fats: 14
+      calories: 520, protein: 38, carbs: 55, fats: 14,
+      image_url: mealImages.chicken_rice
     },
     {
       day_of_week: 0, meal_type: 'dinner', name: 'Sopa de Lentejas Casera',
@@ -32,7 +59,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Rica en proteínas vegetales y hierro, perfecta para toda la familia',
       ingredients: ['lentejas', 'zanahoria', 'apio', 'cebolla', 'tomate', 'comino', 'cilantro'],
       steps: ['Sofreír la cebolla y verduras', 'Agregar las lentejas y agua', 'Cocinar a fuego lento 30 min', 'Sazonar y servir con cilantro'],
-      calories: 320, protein: 18, carbs: 48, fats: 6
+      calories: 320, protein: 18, carbs: 48, fats: 6,
+      image_url: mealImages.lentil_soup
     },
     // Day 1 - Martes
     {
@@ -41,7 +69,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Proteína de alta calidad y grasas saludables para comenzar el día',
       ingredients: ['huevos', 'pan integral', 'aguacate', 'tomate', 'sal', 'pimienta', 'mantequilla'],
       steps: ['Batir los huevos', 'Revolver a fuego bajo con mantequilla', 'Tostar el pan', 'Servir con aguacate y tomate'],
-      calories: 420, protein: 22, carbs: 35, fats: 24
+      calories: 420, protein: 22, carbs: 35, fats: 24,
+      image_url: mealImages.scrambled_eggs
     },
     {
       day_of_week: 1, meal_type: 'lunch', name: 'Tacos de Pescado',
@@ -49,7 +78,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Omega-3 del pescado y probióticos del yogurt para la salud digestiva',
       ingredients: ['filete de pescado', 'tortillas de maíz', 'col morada', 'yogurt natural', 'limón', 'cilantro', 'chile'],
       steps: ['Sazonar y cocinar el pescado', 'Preparar la salsa de yogurt', 'Picar la col y cilantro', 'Armar los tacos', 'Servir con limón'],
-      calories: 450, protein: 32, carbs: 42, fats: 16
+      calories: 450, protein: 32, carbs: 42, fats: 16,
+      image_url: mealImages.fish_tacos
     },
     {
       day_of_week: 1, meal_type: 'dinner', name: 'Ensalada César con Pollo',
@@ -57,7 +87,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Ligera pero satisfactoria, perfecta para la cena familiar',
       ingredients: ['lechuga romana', 'pollo', 'parmesano', 'pan', 'anchoas', 'ajo', 'aceite de oliva'],
       steps: ['Preparar el aderezo César', 'Asar el pollo', 'Hacer los crutones', 'Mezclar la ensalada', 'Servir con pollo encima'],
-      calories: 380, protein: 28, carbs: 22, fats: 20
+      calories: 380, protein: 28, carbs: 22, fats: 20,
+      image_url: mealImages.caesar_salad
     },
     // Day 2 - Miércoles
     {
@@ -66,7 +97,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Antioxidantes y probióticos para fortalecer el sistema inmune',
       ingredients: ['fresas', 'arándanos', 'frambuesas', 'yogurt griego', 'leche', 'miel', 'granola'],
       steps: ['Licuar las frutas con yogurt y leche', 'Endulzar con miel', 'Servir en vaso', 'Decorar con granola'],
-      calories: 340, protein: 15, carbs: 52, fats: 8
+      calories: 340, protein: 15, carbs: 52, fats: 8,
+      image_url: mealImages.berry_smoothie
     },
     {
       day_of_week: 2, meal_type: 'lunch', name: 'Pasta Primavera',
@@ -74,7 +106,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Carbohidratos energéticos con vitaminas de las verduras',
       ingredients: ['pasta', 'calabacín', 'pimiento', 'tomate', 'albahaca', 'ajo', 'aceite de oliva', 'queso parmesano'],
       steps: ['Cocinar la pasta al dente', 'Saltear las verduras', 'Preparar la salsa de tomate', 'Mezclar todo', 'Servir con parmesano'],
-      calories: 480, protein: 16, carbs: 72, fats: 14
+      calories: 480, protein: 16, carbs: 72, fats: 14,
+      image_url: mealImages.pasta
     },
     {
       day_of_week: 2, meal_type: 'dinner', name: 'Crema de Calabaza',
@@ -82,7 +115,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Rica en vitamina A y baja en calorías, ideal para toda la familia',
       ingredients: ['calabaza', 'cebolla', 'jengibre', 'caldo de verduras', 'crema', 'semillas de calabaza'],
       steps: ['Cocinar la calabaza con cebolla', 'Agregar caldo y jengibre', 'Licuar hasta obtener crema', 'Servir con semillas'],
-      calories: 280, protein: 8, carbs: 38, fats: 12
+      calories: 280, protein: 8, carbs: 38, fats: 12,
+      image_url: mealImages.pumpkin_soup
     },
     // Day 3 - Jueves
     {
@@ -91,7 +125,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Carbohidratos complejos para energía prolongada',
       ingredients: ['avena', 'huevo', 'leche', 'plátano', 'canela', 'miel de maple', 'fresas'],
       steps: ['Licuar la avena con huevo y leche', 'Cocinar en sartén', 'Apilar los pancakes', 'Decorar con frutas y miel'],
-      calories: 410, protein: 14, carbs: 68, fats: 10
+      calories: 410, protein: 14, carbs: 68, fats: 10,
+      image_url: mealImages.pancakes
     },
     {
       day_of_week: 3, meal_type: 'lunch', name: 'Bowl de Quinoa con Verduras',
@@ -99,7 +134,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Proteína completa y fibra para la salud digestiva',
       ingredients: ['quinoa', 'camote', 'garbanzos', 'espinaca', 'pepino', 'tahini', 'limón'],
       steps: ['Cocinar la quinoa', 'Asar el camote y garbanzos', 'Preparar el aderezo', 'Armar el bowl', 'Servir con aderezo'],
-      calories: 520, protein: 18, carbs: 68, fats: 20
+      calories: 520, protein: 18, carbs: 68, fats: 20,
+      image_url: mealImages.quinoa_bowl
     },
     {
       day_of_week: 3, meal_type: 'dinner', name: 'Tortilla Española',
@@ -107,7 +143,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Proteína económica y deliciosa para compartir en familia',
       ingredients: ['huevos', 'papas', 'cebolla', 'aceite de oliva', 'lechuga', 'tomate'],
       steps: ['Freír las papas con cebolla', 'Batir los huevos', 'Cocinar la tortilla', 'Voltear y terminar', 'Servir con ensalada'],
-      calories: 360, protein: 16, carbs: 32, fats: 18
+      calories: 360, protein: 16, carbs: 32, fats: 18,
+      image_url: mealImages.spanish_omelette
     },
     // Day 4 - Viernes
     {
@@ -116,7 +153,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Grasas saludables y proteína para un desayuno completo',
       ingredients: ['pan integral', 'aguacate', 'huevo', 'semillas de girasol', 'chile', 'limón', 'sal'],
       steps: ['Tostar el pan', 'Machacar el aguacate', 'Pochar el huevo', 'Armar la tostada', 'Decorar con semillas'],
-      calories: 380, protein: 18, carbs: 32, fats: 22
+      calories: 380, protein: 18, carbs: 32, fats: 22,
+      image_url: mealImages.avocado_toast
     },
     {
       day_of_week: 4, meal_type: 'lunch', name: 'Arroz con Camarones',
@@ -124,7 +162,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Rico en proteínas y selenio, ideal para energía',
       ingredients: ['arroz', 'camarones', 'chícharos', 'zanahoria', 'huevo', 'salsa de soya', 'jengibre'],
       steps: ['Cocinar el arroz y enfriar', 'Saltear los camarones', 'Agregar verduras', 'Incorporar el arroz', 'Sazonar y servir'],
-      calories: 490, protein: 28, carbs: 62, fats: 12
+      calories: 490, protein: 28, carbs: 62, fats: 12,
+      image_url: mealImages.shrimp_rice
     },
     {
       day_of_week: 4, meal_type: 'dinner', name: 'Pizza Casera de Vegetales',
@@ -132,7 +171,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Versión saludable del clásico favorito familiar',
       ingredients: ['harina integral', 'levadura', 'salsa de tomate', 'queso mozzarella', 'champiñones', 'pimiento', 'aceitunas'],
       steps: ['Preparar la masa', 'Dejar leudar', 'Extender y agregar toppings', 'Hornear 15 minutos', 'Servir caliente'],
-      calories: 420, protein: 18, carbs: 52, fats: 16
+      calories: 420, protein: 18, carbs: 52, fats: 16,
+      image_url: mealImages.veggie_pizza
     },
     // Day 5 - Sábado
     {
@@ -141,7 +181,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Desayuno mexicano tradicional lleno de sabor',
       ingredients: ['tortillas', 'salsa verde', 'crema', 'queso fresco', 'cebolla', 'huevo', 'cilantro'],
       steps: ['Freír las tortillas', 'Calentar la salsa verde', 'Bañar las tortillas', 'Agregar crema y queso', 'Decorar con cebolla'],
-      calories: 450, protein: 16, carbs: 48, fats: 22
+      calories: 450, protein: 16, carbs: 48, fats: 22,
+      image_url: mealImages.chilaquiles
     },
     {
       day_of_week: 5, meal_type: 'lunch', name: 'Carne Asada con Guacamole',
@@ -149,7 +190,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Alto en proteínas y hierro para toda la familia',
       ingredients: ['arrachera', 'aguacate', 'cebolla', 'cilantro', 'limón', 'frijoles', 'tortillas'],
       steps: ['Marinar la carne', 'Asar a la parrilla', 'Preparar el guacamole', 'Calentar frijoles', 'Servir con tortillas'],
-      calories: 580, protein: 42, carbs: 38, fats: 28
+      calories: 580, protein: 42, carbs: 38, fats: 28,
+      image_url: mealImages.steak
     },
     {
       day_of_week: 5, meal_type: 'dinner', name: 'Sopa de Tortilla',
@@ -157,7 +199,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Reconfortante y nutritiva, perfecta para compartir',
       ingredients: ['caldo de pollo', 'tomate', 'chile pasilla', 'tortillas', 'aguacate', 'crema', 'queso'],
       steps: ['Preparar el caldo con tomate', 'Freír las tortillas', 'Servir el caldo caliente', 'Agregar toppings'],
-      calories: 340, protein: 14, carbs: 36, fats: 16
+      calories: 340, protein: 14, carbs: 36, fats: 16,
+      image_url: mealImages.tortilla_soup
     },
     // Day 6 - Domingo
     {
@@ -166,7 +209,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Desayuno especial de fin de semana para disfrutar juntos',
       ingredients: ['pan brioche', 'huevo', 'leche', 'canela', 'vainilla', 'fresas', 'miel de maple'],
       steps: ['Batir huevo con leche y especias', 'Remojar el pan', 'Cocinar hasta dorar', 'Servir con frutas y miel'],
-      calories: 420, protein: 12, carbs: 58, fats: 16
+      calories: 420, protein: 12, carbs: 58, fats: 16,
+      image_url: mealImages.french_toast
     },
     {
       day_of_week: 6, meal_type: 'lunch', name: 'Lasaña de Carne',
@@ -174,7 +218,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Platillo familiar perfecto para el domingo',
       ingredients: ['pasta de lasaña', 'carne molida', 'ricotta', 'mozzarella', 'salsa de tomate', 'espinaca'],
       steps: ['Preparar la salsa de carne', 'Cocinar la pasta', 'Armar las capas', 'Hornear 40 minutos', 'Dejar reposar y servir'],
-      calories: 550, protein: 32, carbs: 48, fats: 26
+      calories: 550, protein: 32, carbs: 48, fats: 26,
+      image_url: mealImages.lasagna
     },
     {
       day_of_week: 6, meal_type: 'dinner', name: 'Quesadillas con Ensalada',
@@ -182,7 +227,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Cena ligera y rápida para cerrar la semana',
       ingredients: ['tortillas de harina', 'queso Oaxaca', 'champiñones', 'lechuga', 'tomate', 'aguacate', 'crema'],
       steps: ['Derretir queso en tortilla', 'Agregar champiñones', 'Doblar y dorar', 'Preparar ensalada', 'Servir juntos'],
-      calories: 380, protein: 18, carbs: 36, fats: 20
+      calories: 380, protein: 18, carbs: 36, fats: 20,
+      image_url: mealImages.quesadillas
     }
   ];
 
@@ -194,7 +240,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Rich in fiber and sustained energy for the whole family',
       ingredients: ['oats', 'milk', 'apple', 'banana', 'honey', 'cinnamon', 'walnuts'],
       steps: ['Cook oats with milk', 'Cut fruits into pieces', 'Serve warm oatmeal', 'Top with fruits, honey and walnuts'],
-      calories: 380, protein: 12, carbs: 65, fats: 10
+      calories: 380, protein: 12, carbs: 65, fats: 10,
+      image_url: mealImages.oatmeal
     },
     {
       day_of_week: 0, meal_type: 'lunch', name: 'Lemon Chicken with Brown Rice',
@@ -202,7 +249,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'High in protein and complex carbs, ideal for lasting energy',
       ingredients: ['chicken breast', 'lemon', 'brown rice', 'broccoli', 'carrot', 'garlic', 'olive oil'],
       steps: ['Marinate chicken with lemon and garlic', 'Cook brown rice', 'Sauté vegetables', 'Grill chicken until golden', 'Serve together'],
-      calories: 520, protein: 38, carbs: 55, fats: 14
+      calories: 520, protein: 38, carbs: 55, fats: 14,
+      image_url: mealImages.chicken_rice
     },
     {
       day_of_week: 0, meal_type: 'dinner', name: 'Homemade Lentil Soup',
@@ -210,7 +258,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Rich in plant protein and iron, perfect for the whole family',
       ingredients: ['lentils', 'carrot', 'celery', 'onion', 'tomato', 'cumin', 'cilantro'],
       steps: ['Sauté onion and vegetables', 'Add lentils and water', 'Simmer for 30 min', 'Season and serve with cilantro'],
-      calories: 320, protein: 18, carbs: 48, fats: 6
+      calories: 320, protein: 18, carbs: 48, fats: 6,
+      image_url: mealImages.lentil_soup
     },
     // Day 1 - Tuesday  
     {
@@ -219,7 +268,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'High quality protein and healthy fats to start the day',
       ingredients: ['eggs', 'whole wheat bread', 'avocado', 'tomato', 'salt', 'pepper', 'butter'],
       steps: ['Beat eggs', 'Scramble over low heat with butter', 'Toast bread', 'Serve with avocado and tomato'],
-      calories: 420, protein: 22, carbs: 35, fats: 24
+      calories: 420, protein: 22, carbs: 35, fats: 24,
+      image_url: mealImages.scrambled_eggs
     },
     {
       day_of_week: 1, meal_type: 'lunch', name: 'Fish Tacos',
@@ -227,7 +277,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Omega-3 from fish and probiotics from yogurt for digestive health',
       ingredients: ['fish fillet', 'corn tortillas', 'purple cabbage', 'plain yogurt', 'lime', 'cilantro', 'chili'],
       steps: ['Season and cook fish', 'Prepare yogurt sauce', 'Chop cabbage and cilantro', 'Assemble tacos', 'Serve with lime'],
-      calories: 450, protein: 32, carbs: 42, fats: 16
+      calories: 450, protein: 32, carbs: 42, fats: 16,
+      image_url: mealImages.fish_tacos
     },
     {
       day_of_week: 1, meal_type: 'dinner', name: 'Caesar Salad with Chicken',
@@ -235,7 +286,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Light but satisfying, perfect for family dinner',
       ingredients: ['romaine lettuce', 'chicken', 'parmesan', 'bread', 'anchovies', 'garlic', 'olive oil'],
       steps: ['Prepare Caesar dressing', 'Grill chicken', 'Make croutons', 'Toss salad', 'Serve with chicken on top'],
-      calories: 380, protein: 28, carbs: 22, fats: 20
+      calories: 380, protein: 28, carbs: 22, fats: 20,
+      image_url: mealImages.caesar_salad
     },
     // Day 2 - Wednesday
     {
@@ -244,7 +296,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Antioxidants and probiotics to strengthen immune system',
       ingredients: ['strawberries', 'blueberries', 'raspberries', 'Greek yogurt', 'milk', 'honey', 'granola'],
       steps: ['Blend berries with yogurt and milk', 'Sweeten with honey', 'Pour into bowl', 'Top with granola'],
-      calories: 340, protein: 15, carbs: 52, fats: 8
+      calories: 340, protein: 15, carbs: 52, fats: 8,
+      image_url: mealImages.berry_smoothie
     },
     {
       day_of_week: 2, meal_type: 'lunch', name: 'Pasta Primavera',
@@ -252,7 +305,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Energizing carbs with vitamins from vegetables',
       ingredients: ['pasta', 'zucchini', 'bell pepper', 'tomato', 'basil', 'garlic', 'olive oil', 'parmesan'],
       steps: ['Cook pasta al dente', 'Sauté vegetables', 'Prepare tomato sauce', 'Mix everything', 'Serve with parmesan'],
-      calories: 480, protein: 16, carbs: 72, fats: 14
+      calories: 480, protein: 16, carbs: 72, fats: 14,
+      image_url: mealImages.pasta
     },
     {
       day_of_week: 2, meal_type: 'dinner', name: 'Butternut Squash Soup',
@@ -260,7 +314,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Rich in vitamin A and low in calories, ideal for the whole family',
       ingredients: ['butternut squash', 'onion', 'ginger', 'vegetable broth', 'cream', 'pumpkin seeds'],
       steps: ['Cook squash with onion', 'Add broth and ginger', 'Blend until smooth', 'Serve with seeds'],
-      calories: 280, protein: 8, carbs: 38, fats: 12
+      calories: 280, protein: 8, carbs: 38, fats: 12,
+      image_url: mealImages.pumpkin_soup
     },
     // Day 3 - Thursday
     {
@@ -269,7 +324,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Complex carbohydrates for prolonged energy',
       ingredients: ['oats', 'egg', 'milk', 'banana', 'cinnamon', 'maple syrup', 'strawberries'],
       steps: ['Blend oats with egg and milk', 'Cook on skillet', 'Stack pancakes', 'Top with fruits and syrup'],
-      calories: 410, protein: 14, carbs: 68, fats: 10
+      calories: 410, protein: 14, carbs: 68, fats: 10,
+      image_url: mealImages.pancakes
     },
     {
       day_of_week: 3, meal_type: 'lunch', name: 'Quinoa Buddha Bowl',
@@ -277,7 +333,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Complete protein and fiber for digestive health',
       ingredients: ['quinoa', 'sweet potato', 'chickpeas', 'spinach', 'cucumber', 'tahini', 'lemon'],
       steps: ['Cook quinoa', 'Roast sweet potato and chickpeas', 'Prepare dressing', 'Assemble bowl', 'Drizzle with dressing'],
-      calories: 520, protein: 18, carbs: 68, fats: 20
+      calories: 520, protein: 18, carbs: 68, fats: 20,
+      image_url: mealImages.quinoa_bowl
     },
     {
       day_of_week: 3, meal_type: 'dinner', name: 'Spanish Omelette',
@@ -285,7 +342,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Affordable and delicious protein to share with family',
       ingredients: ['eggs', 'potatoes', 'onion', 'olive oil', 'lettuce', 'tomato'],
       steps: ['Fry potatoes with onion', 'Beat eggs', 'Cook omelette', 'Flip and finish', 'Serve with salad'],
-      calories: 360, protein: 16, carbs: 32, fats: 18
+      calories: 360, protein: 16, carbs: 32, fats: 18,
+      image_url: mealImages.spanish_omelette
     },
     // Day 4 - Friday
     {
@@ -294,7 +352,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Healthy fats and protein for a complete breakfast',
       ingredients: ['whole grain bread', 'avocado', 'egg', 'sunflower seeds', 'chili flakes', 'lemon', 'salt'],
       steps: ['Toast bread', 'Mash avocado', 'Poach egg', 'Assemble toast', 'Top with seeds'],
-      calories: 380, protein: 18, carbs: 32, fats: 22
+      calories: 380, protein: 18, carbs: 32, fats: 22,
+      image_url: mealImages.avocado_toast
     },
     {
       day_of_week: 4, meal_type: 'lunch', name: 'Shrimp Fried Rice',
@@ -302,7 +361,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Rich in protein and selenium, ideal for energy',
       ingredients: ['rice', 'shrimp', 'peas', 'carrot', 'egg', 'soy sauce', 'ginger'],
       steps: ['Cook rice and cool', 'Sauté shrimp', 'Add vegetables', 'Add rice', 'Season and serve'],
-      calories: 490, protein: 28, carbs: 62, fats: 12
+      calories: 490, protein: 28, carbs: 62, fats: 12,
+      image_url: mealImages.shrimp_rice
     },
     {
       day_of_week: 4, meal_type: 'dinner', name: 'Homemade Veggie Pizza',
@@ -310,7 +370,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Healthy version of the family favorite',
       ingredients: ['whole wheat flour', 'yeast', 'tomato sauce', 'mozzarella', 'mushrooms', 'bell pepper', 'olives'],
       steps: ['Prepare dough', 'Let rise', 'Roll out and add toppings', 'Bake 15 minutes', 'Serve hot'],
-      calories: 420, protein: 18, carbs: 52, fats: 16
+      calories: 420, protein: 18, carbs: 52, fats: 16,
+      image_url: mealImages.veggie_pizza
     },
     // Day 5 - Saturday
     {
@@ -319,7 +380,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Traditional Mexican breakfast full of flavor',
       ingredients: ['tortillas', 'green salsa', 'cream', 'fresh cheese', 'onion', 'egg', 'cilantro'],
       steps: ['Fry tortillas', 'Heat green salsa', 'Coat tortillas', 'Add cream and cheese', 'Garnish with onion'],
-      calories: 450, protein: 16, carbs: 48, fats: 22
+      calories: 450, protein: 16, carbs: 48, fats: 22,
+      image_url: mealImages.chilaquiles
     },
     {
       day_of_week: 5, meal_type: 'lunch', name: 'Grilled Steak with Guacamole',
@@ -327,7 +389,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'High in protein and iron for the whole family',
       ingredients: ['skirt steak', 'avocado', 'onion', 'cilantro', 'lime', 'beans', 'tortillas'],
       steps: ['Marinate meat', 'Grill to preference', 'Prepare guacamole', 'Heat beans', 'Serve with tortillas'],
-      calories: 580, protein: 42, carbs: 38, fats: 28
+      calories: 580, protein: 42, carbs: 38, fats: 28,
+      image_url: mealImages.steak
     },
     {
       day_of_week: 5, meal_type: 'dinner', name: 'Tortilla Soup',
@@ -335,7 +398,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Comforting and nutritious, perfect for sharing',
       ingredients: ['chicken broth', 'tomato', 'pasilla chili', 'tortillas', 'avocado', 'cream', 'cheese'],
       steps: ['Prepare broth with tomato', 'Fry tortillas', 'Serve hot broth', 'Add toppings'],
-      calories: 340, protein: 14, carbs: 36, fats: 16
+      calories: 340, protein: 14, carbs: 36, fats: 16,
+      image_url: mealImages.tortilla_soup
     },
     // Day 6 - Sunday
     {
@@ -344,7 +408,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Special weekend breakfast to enjoy together',
       ingredients: ['brioche bread', 'egg', 'milk', 'cinnamon', 'vanilla', 'strawberries', 'maple syrup'],
       steps: ['Beat egg with milk and spices', 'Soak bread', 'Cook until golden', 'Serve with berries and syrup'],
-      calories: 420, protein: 12, carbs: 58, fats: 16
+      calories: 420, protein: 12, carbs: 58, fats: 16,
+      image_url: mealImages.french_toast
     },
     {
       day_of_week: 6, meal_type: 'lunch', name: 'Beef Lasagna',
@@ -352,7 +417,8 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Perfect family dish for Sunday',
       ingredients: ['lasagna noodles', 'ground beef', 'ricotta', 'mozzarella', 'tomato sauce', 'spinach'],
       steps: ['Prepare meat sauce', 'Cook pasta', 'Layer ingredients', 'Bake 40 minutes', 'Rest and serve'],
-      calories: 550, protein: 32, carbs: 48, fats: 26
+      calories: 550, protein: 32, carbs: 48, fats: 26,
+      image_url: mealImages.lasagna
     },
     {
       day_of_week: 6, meal_type: 'dinner', name: 'Quesadillas with Salad',
@@ -360,26 +426,12 @@ const getCachedFamilyMeals = (language: string, memberNames: string[]) => {
       benefits: 'Light and quick dinner to close the week',
       ingredients: ['flour tortillas', 'Oaxaca cheese', 'mushrooms', 'lettuce', 'tomato', 'avocado', 'cream'],
       steps: ['Melt cheese in tortilla', 'Add mushrooms', 'Fold and brown', 'Prepare salad', 'Serve together'],
-      calories: 380, protein: 18, carbs: 36, fats: 20
+      calories: 380, protein: 18, carbs: 36, fats: 20,
+      image_url: mealImages.quesadillas
     }
   ];
 
-  const meals = language === 'es' ? mealsES : mealsEN;
-
-  // Add adaptations for each meal based on member names
-  return meals.map(meal => ({
-    ...meal,
-    adaptations: memberNames.map((name, index) => ({
-      member_name: name,
-      score: 75 + Math.floor(Math.random() * 20), // 75-94
-      notes: language === 'es' 
-        ? `Adecuado para ${name} según sus preferencias`
-        : `Suitable for ${name} based on preferences`,
-      variant: language === 'es'
-        ? 'Sin modificaciones necesarias'
-        : 'No modifications needed'
-    }))
-  }));
+  return language === 'es' ? mealsES : mealsEN;
 };
 
 const getCachedShoppingList = (language: string) => {
@@ -483,14 +535,15 @@ serve(async (req) => {
       .select('id, display_name, email')
       .in('id', memberIds);
 
-    const memberNames = (profiles || []).map(p => 
-      p.display_name || p.email?.split('@')[0] || 'Miembro'
-    );
+    const memberData = (profiles || []).map(p => ({
+      id: p.id,
+      name: p.display_name || p.email?.split('@')[0] || 'Miembro'
+    }));
 
-    console.log('Member names:', memberNames);
+    console.log('Member data:', memberData.map(m => m.name));
 
-    // Get cached meals with adaptations
-    const cachedMeals = getCachedFamilyMeals(language, memberNames);
+    // Get cached meals
+    const cachedMeals = getCachedFamilyMeals(language);
     const shoppingList = getCachedShoppingList(language);
 
     console.log(`Using ${cachedMeals.length} cached meals`);
@@ -514,7 +567,7 @@ serve(async (req) => {
 
     console.log('Family meal plan created with ID:', mealPlan.id);
 
-    // Insert meals
+    // Insert meals with images
     const mealsToInsert = cachedMeals.map((meal: any) => ({
       meal_plan_id: mealPlan.id,
       day_of_week: meal.day_of_week,
@@ -528,7 +581,7 @@ serve(async (req) => {
       protein: meal.protein || 0,
       carbs: meal.carbs || 0,
       fats: meal.fats || 0,
-      image_url: null, // No images for cached version
+      image_url: meal.image_url || null,
     }));
 
     const { data: insertedMeals, error: mealsError } = await supabaseClient
@@ -544,35 +597,36 @@ serve(async (req) => {
 
     console.log(`Inserted ${insertedMeals.length} meals`);
 
-    // Insert member adaptations
+    // Insert member adaptations - assign best match to first member randomly per meal
     const adaptationsToInsert: any[] = [];
     
-    for (const meal of cachedMeals) {
-      const insertedMeal = insertedMeals.find(
-        (m: any) => m.day_of_week === meal.day_of_week && m.meal_type === meal.meal_type
-      );
+    for (const insertedMeal of insertedMeals) {
+      // Create adaptations for each member
+      const mealIndex = insertedMeals.indexOf(insertedMeal);
+      // Rotate best match among members based on meal index
+      const bestMatchIndex = mealIndex % memberData.length;
       
-      if (!insertedMeal || !meal.adaptations) continue;
-
-      // Find the best match (highest score)
-      const sortedAdaptations = [...meal.adaptations].sort((a: any, b: any) => b.score - a.score);
-      
-      for (const adaptation of meal.adaptations) {
-        // Match member name to user_id
-        const memberIndex = memberNames.findIndex(
-          name => name.toLowerCase() === adaptation.member_name.toLowerCase()
-        );
+      for (let i = 0; i < memberData.length; i++) {
+        const member = memberData[i];
+        const isBestMatch = i === bestMatchIndex;
+        const score = isBestMatch ? 92 + Math.floor(Math.random() * 8) : 70 + Math.floor(Math.random() * 20);
         
-        if (memberIndex !== -1 && profiles && profiles[memberIndex]) {
-          adaptationsToInsert.push({
-            meal_id: insertedMeal.id,
-            member_user_id: profiles[memberIndex].id,
-            adaptation_score: adaptation.score || 80,
-            adaptation_notes: adaptation.notes || '',
-            variant_instructions: adaptation.variant || '',
-            is_best_match: sortedAdaptations[0]?.member_name === adaptation.member_name,
-          });
-        }
+        adaptationsToInsert.push({
+          meal_id: insertedMeal.id,
+          member_user_id: member.id,
+          adaptation_score: score,
+          adaptation_notes: language === 'es' 
+            ? (isBestMatch 
+                ? `Esta receta es perfecta para ${member.name} por su perfil nutricional`
+                : `Adecuado para ${member.name} según sus preferencias`)
+            : (isBestMatch 
+                ? `This recipe is perfect for ${member.name} based on their nutritional profile`
+                : `Suitable for ${member.name} based on their preferences`),
+          variant_instructions: language === 'es'
+            ? 'Sin modificaciones necesarias'
+            : 'No modifications needed',
+          is_best_match: isBestMatch,
+        });
       }
     }
 
@@ -598,14 +652,14 @@ serve(async (req) => {
         });
     }
 
-    console.log('✅ Family meal plan complete (CACHED)!');
+    console.log('✅ Family meal plan complete (CACHED with images)!');
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         mealPlanId: mealPlan.id,
         mealsCount: insertedMeals.length,
-        membersCount: memberNames.length,
+        membersCount: memberData.length,
         adaptationsCount: adaptationsToInsert.length,
         cached: true,
       }), {
