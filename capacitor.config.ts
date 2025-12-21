@@ -4,10 +4,11 @@ const config: CapacitorConfig = {
   appId: 'com.cheflyai.app',
   appName: 'Chefly AI',
   webDir: 'dist',
-  server: {
-    url: 'https://833b3131-01b5-463f-bcf8-2a92aa5adcfc.lovableproject.com?forceHideBadge=true',
-    cleartext: true
-  },
+  // Para desarrollo con hot-reload, descomenta el bloque server:
+  // server: {
+  //   url: 'https://833b3131-01b5-463f-bcf8-2a92aa5adcfc.lovableproject.com?forceHideBadge=true',
+  //   cleartext: true
+  // },
   ios: {
     contentInset: 'automatic',
     backgroundColor: '#0a0a0a',
