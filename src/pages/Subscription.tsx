@@ -10,12 +10,19 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "framer-motion";
 import mascotFlexing from "@/assets/mascot-flexing.png";
 import mascotFire from "@/assets/mascot-fire.png";
+import { InAppCheckout } from "@/components/InAppCheckout";
+import { Browser } from "@capacitor/browser";
 
 const Subscription = () => {
   const [loading, setLoading] = useState(true);
   const [portalLoading, setPortalLoading] = useState(false);
-  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | undefined>(undefined);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<{
+    priceId: string;
+    name: string;
+    price: string;
+  } | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { language } = useLanguage();
@@ -44,7 +51,8 @@ const Subscription = () => {
       if (error) throw error;
 
       if (data.url) {
-        window.location.href = data.url;
+        // Use Capacitor Browser for in-app experience on iOS/Android
+        await Browser.open({ url: data.url, presentationStyle: 'popover' });
       }
     } catch (error) {
       console.error("Error opening customer portal:", error);
@@ -60,35 +68,16 @@ const Subscription = () => {
     }
   };
 
-  const handleSelectPlan = async (priceId: string, planKey: string) => {
-    setCheckoutLoading(planKey);
-    
-    try {
-      const affiliateCode = localStorage.getItem("affiliate_code");
-      const endorselyReferral = (window as any).endorsely_referral;
+  const handleSelectPlan = (priceId: string, planName: string, planPrice: string) => {
+    setSelectedPlan({ priceId, name: planName, price: planPrice });
+    setCheckoutOpen(true);
+  };
 
-      const { data, error } = await supabase.functions.invoke("create-checkout", {
-        body: { 
-          priceId,
-          affiliateCode: affiliateCode || null,
-          endorselyReferral: endorselyReferral || null,
-        },
-      });
-
-      if (error) throw error;
-
-      if (data.url) {
-        window.location.href = data.url;
-      }
-    } catch (error) {
-      console.error("Error creating checkout:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: language === "es" ? "No se pudo iniciar el proceso de pago." : "Could not start payment process.",
-      });
-    } finally {
-      setCheckoutLoading(null);
+  const handleCheckoutClose = (open: boolean) => {
+    setCheckoutOpen(open);
+    if (!open) {
+      // Refresh subscription status after checkout closes
+      subscription.checkSubscription();
     }
   };
 
@@ -322,15 +311,10 @@ const Subscription = () => {
                       </div>
                     ) : (
                       <Button
-                        onClick={() => handleSelectPlan(plan.priceId!, "family")}
-                        disabled={checkoutLoading !== null}
+                        onClick={() => handleSelectPlan(plan.priceId!, "Chefly Familiar", "$20")}
                         className="w-full h-11 text-sm font-bold bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 hover:from-violet-600 hover:via-purple-600 hover:to-fuchsia-600 text-white border-0"
                       >
-                        {checkoutLoading === "family" ? (
-                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        ) : (
-                          <Users className="mr-2 h-4 w-4" />
-                        )}
+                        <Users className="mr-2 h-4 w-4" />
                         {language === "es" ? "COMENZAR PLAN FAMILIAR" : "START FAMILY PLAN"}
                       </Button>
                     )
@@ -356,16 +340,11 @@ const Subscription = () => {
                       </Button>
                     ) : (
                       <Button
-                        onClick={() => handleSelectPlan(plan.priceId!, "plus")}
-                        disabled={checkoutLoading !== null}
+                        onClick={() => handleSelectPlan(plan.priceId!, "Chefly Plus", "$7.99")}
                         variant="duolingo"
                         className="w-full h-11 text-sm font-bold"
                       >
-                        {checkoutLoading === "plus" ? (
-                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        ) : (
-                          <Zap className="mr-2 h-4 w-4" />
-                        )}
+                        <Zap className="mr-2 h-4 w-4" />
                         {language === "es" ? "MEJORAR A CHEFLY PLUS" : "UPGRADE TO CHEFLY PLUS"}
                       </Button>
                     )
@@ -425,6 +404,17 @@ const Subscription = () => {
             : "Need help? Manage your subscription anytime."}
         </motion.p>
       </div>
+
+      {/* In-App Checkout Modal */}
+      {selectedPlan && (
+        <InAppCheckout
+          open={checkoutOpen}
+          onOpenChange={handleCheckoutClose}
+          priceId={selectedPlan.priceId}
+          planName={selectedPlan.name}
+          planPrice={selectedPlan.price}
+        />
+      )}
     </div>
   );
 };
