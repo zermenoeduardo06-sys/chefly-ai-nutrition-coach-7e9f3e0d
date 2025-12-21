@@ -209,11 +209,11 @@ serve(async (req) => {
           throw new Error("User already belongs to a family");
         }
 
-        // Find family by invite code
+        // Find family by invite code (case-insensitive)
         const { data: family, error: familyError } = await supabaseClient
           .from("families")
           .select("*")
-          .eq("invite_code", inviteCode.toUpperCase())
+          .ilike("invite_code", inviteCode)
           .single();
 
         if (familyError || !family) {
@@ -257,10 +257,11 @@ serve(async (req) => {
 
         if (!inviteCode) throw new Error("Invite code is required");
 
+        // Case-insensitive search
         const { data: family, error } = await supabaseClient
           .from("families")
           .select("id, name, max_members")
-          .eq("invite_code", inviteCode.toUpperCase())
+          .ilike("invite_code", inviteCode)
           .single();
 
         if (error || !family) {
