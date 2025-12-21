@@ -40,6 +40,17 @@ import { FoodScanner } from "@/components/FoodScanner";
 import { CalendarDayWidget } from "@/components/CalendarDayWidget";
 import { useWeeklyCheckIn } from "@/hooks/useWeeklyCheckIn";
 import { FamilyStatusBanner } from "@/components/family/FamilyStatusBanner";
+import { MealBestMatchBadge } from "@/components/family/MealMemberAdaptations";
+
+interface MealAdaptation {
+  id: string;
+  member_user_id: string;
+  member_name?: string;
+  adaptation_score: number;
+  adaptation_notes: string;
+  variant_instructions: string;
+  is_best_match: boolean;
+}
 
 interface Meal {
   id: string;
@@ -55,11 +66,14 @@ interface Meal {
   carbs?: number;
   fats?: number;
   image_url?: string;
+  adaptations?: MealAdaptation[];
 }
 
 interface MealPlan {
   id: string;
   week_start_date: string;
+  is_family_plan?: boolean;
+  family_id?: string;
   meals: Meal[];
 }
 
@@ -618,7 +632,9 @@ const Dashboard = () => {
       }
 
       if (plans && plans.length > 0) {
-        const planId = plans[0].id;
+        const plan = plans[0];
+        const planId = plan.id;
+        const isFamilyPlan = plan.is_family_plan === true;
         
         // Get meals for this plan
         const { data: meals, error: mealsError } = await supabase
@@ -642,16 +658,62 @@ const Dashboard = () => {
           return;
         }
 
+        // Load adaptations if family plan
+        let mealsWithAdaptations = meals;
+        if (isFamilyPlan) {
+          const mealIds = meals.map(m => m.id);
+          const { data: adaptationsData } = await supabase
+            .from("meal_member_adaptations")
+            .select("*")
+            .in("meal_id", mealIds);
+
+          if (adaptationsData && adaptationsData.length > 0) {
+            // Get member profiles to get names
+            const memberIds = [...new Set(adaptationsData.map(a => a.member_user_id))];
+            const { data: profiles } = await supabase
+              .from("profiles")
+              .select("id, display_name, email")
+              .in("id", memberIds);
+
+            const profileMap = new Map<string, string>();
+            profiles?.forEach(p => {
+              profileMap.set(p.id, p.display_name || p.email?.split('@')[0] || 'Miembro');
+            });
+
+            const adaptationsMap = new Map<string, MealAdaptation[]>();
+            for (const adaptation of adaptationsData) {
+              const mealAdaptations = adaptationsMap.get(adaptation.meal_id) || [];
+              mealAdaptations.push({
+                id: adaptation.id,
+                member_user_id: adaptation.member_user_id,
+                member_name: profileMap.get(adaptation.member_user_id) || 'Miembro',
+                adaptation_score: adaptation.adaptation_score,
+                adaptation_notes: adaptation.adaptation_notes || '',
+                variant_instructions: adaptation.variant_instructions || '',
+                is_best_match: adaptation.is_best_match || false,
+              });
+              adaptationsMap.set(adaptation.meal_id, mealAdaptations);
+            }
+
+            mealsWithAdaptations = meals.map(meal => ({
+              ...meal,
+              adaptations: adaptationsMap.get(meal.id) || [],
+            }));
+          }
+        }
+
         const mealPlanData = {
           id: planId,
-          week_start_date: plans[0].week_start_date,
-          meals: meals,
+          week_start_date: plan.week_start_date,
+          is_family_plan: isFamilyPlan,
+          family_id: plan.family_id,
+          meals: mealsWithAdaptations,
         };
 
         setMealPlan(mealPlanData);
         
         // Cache meals for offline use
-        cacheMeals({ id: planId, week_start_date: plans[0].week_start_date }, meals);
+        cacheMeals({ id: planId, week_start_date: plan.week_start_date }, mealsWithAdaptations);
         
         // Load completed meals for today
         await loadCompletedMeals(userId);
@@ -1400,6 +1462,7 @@ const Dashboard = () => {
                             setMealDialogOpen(true);
                           }}
                           isFirstMeal={isFirstMealOfFirstDay}
+                          isFamilyPlan={mealPlan?.is_family_plan || false}
                         />
                       );
                     })}
@@ -1491,6 +1554,14 @@ const Dashboard = () => {
                                 </h4>
                                 <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">{meal.description}</p>
                               </div>
+                              
+                              {/* Family adaptation badge */}
+                              {mealPlan?.is_family_plan && meal.adaptations && meal.adaptations.length > 0 && (
+                                <div className="pb-1">
+                                  <MealBestMatchBadge adaptations={meal.adaptations} />
+                                </div>
+                              )}
+                              
                               <Separator />
                               <div className="flex items-start gap-2 mb-3">
                                 {isCompleted ? (
@@ -1615,6 +1686,7 @@ const Dashboard = () => {
         onOpenChange={setMealDialogOpen}
         onSwapMeal={handleSwapMeal}
         canSwap={limits.canSwapMeals}
+        isFamilyPlan={mealPlan?.is_family_plan || false}
       />
 
       <SwapMealDialog
