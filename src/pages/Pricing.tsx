@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Check, Loader2, Crown, Sparkles, Star, ArrowLeft, Zap, Gift } from "lucide-react";
+import { Check, Loader2, Crown, Sparkles, Star, ArrowLeft, Zap, Gift, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { SUBSCRIPTION_TIERS } from "@/hooks/useSubscription";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -14,10 +14,10 @@ const Pricing = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t, language } = useLanguage();
-  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
 
-  const handleSelectCheflyPlus = async () => {
-    setCheckoutLoading(true);
+  const handleSelectPlan = async (priceId: string, planKey: string) => {
+    setCheckoutLoading(planKey);
     
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -31,7 +31,7 @@ const Pricing = () => {
 
       const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: { 
-          priceId: SUBSCRIPTION_TIERS.CHEFLY_PLUS.price_id,
+          priceId,
           affiliateCode: affiliateCode || null,
           endorselyReferral: endorselyReferral || null,
         },
@@ -50,7 +50,7 @@ const Pricing = () => {
         description: language === "es" ? "No se pudo iniciar el proceso de pago. Intenta de nuevo." : "Could not start payment process. Please try again.",
       });
     } finally {
-      setCheckoutLoading(false);
+      setCheckoutLoading(null);
     }
   };
 
@@ -63,7 +63,6 @@ const Pricing = () => {
     "Sistema de amigos y comparación",
     "Lista de compras con cantidades reales",
     "Exportar recetas a PDF",
-    "Modo offline disponible",
   ] : [
     "Generate unlimited weekly plans",
     "Swap meals between days",
@@ -73,7 +72,24 @@ const Pricing = () => {
     "Friends & comparison system",
     "Shopping list with real quantities",
     "Export recipes to PDF",
-    "Offline mode available",
+  ];
+
+  const familyFeatures = language === "es" ? [
+    "Todo de Chefly Plus incluido",
+    "Hasta 5 perfiles familiares",
+    "Cada miembro con sus propias metas",
+    "Preferencias individuales por persona",
+    "Panel de administración familiar",
+    "Sistema de invitación por código",
+    "Ahorra 50% vs 5 suscripciones",
+  ] : [
+    "Everything in Chefly Plus included",
+    "Up to 5 family profiles",
+    "Individual goals per member",
+    "Individual preferences per person",
+    "Family admin panel",
+    "Code-based invitation system",
+    "Save 50% vs 5 subscriptions",
   ];
 
   const freeFeatures = language === "es" ? [
@@ -171,7 +187,107 @@ const Pricing = () => {
 
       {/* Plans */}
       <div className="px-4 -mt-4 space-y-4 max-w-lg mx-auto">
-        {/* Chefly Plus - Main CTA */}
+        {/* Chefly Family - Best Value */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+        >
+          <div className="bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 rounded-t-2xl px-4 py-2">
+            <span className="text-white font-bold text-sm uppercase tracking-wide flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              {language === "es" ? "MEJOR VALOR" : "BEST VALUE"}
+            </span>
+          </div>
+          
+          <div className="bg-card border-2 rounded-2xl rounded-t-none border-t-0 border-violet-500 overflow-hidden">
+            <div className="p-5">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-foreground mb-1">Chefly Familiar</h3>
+                  <p className="text-muted-foreground text-sm mb-3">
+                    {language === "es" ? "Nutrición para toda la familia" : "Nutrition for the whole family"}
+                  </p>
+
+                  {/* Price */}
+                  <div className="flex items-baseline gap-1 mb-4">
+                    <span className="text-3xl font-bold text-foreground">$20</span>
+                    <span className="text-muted-foreground text-sm">
+                      USD/{language === "es" ? "mes" : "month"}
+                    </span>
+                    <span className="ml-2 text-xs bg-violet-500/10 text-violet-600 dark:text-violet-400 px-2 py-0.5 rounded-full font-medium">
+                      {language === "es" ? "5 personas" : "5 people"}
+                    </span>
+                  </div>
+
+                  {/* Features */}
+                  <ul className="space-y-2">
+                    {familyFeatures.map((feature, i) => (
+                      <motion.li 
+                        key={i}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.3 + i * 0.05 }}
+                        className="flex items-center gap-2"
+                      >
+                        <div className="p-0.5 rounded-full bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500">
+                          <Check className="h-3 w-3 text-white" />
+                        </div>
+                        <span className="text-sm text-foreground">{feature}</span>
+                      </motion.li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Mascot */}
+                <motion.div 
+                  className="flex-shrink-0"
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 rounded-full blur-xl" />
+                    <img 
+                      src={mascotFlexing} 
+                      alt="Chefly Family" 
+                      className="h-24 w-24 object-contain relative"
+                    />
+                  </div>
+                </motion.div>
+              </div>
+
+              {/* CTA Button */}
+              <motion.div 
+                className="mt-5"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Button
+                  onClick={() => handleSelectPlan(SUBSCRIPTION_TIERS.CHEFLY_FAMILY.price_id, "family")}
+                  disabled={checkoutLoading !== null}
+                  className="w-full h-12 text-base font-bold bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 hover:from-violet-600 hover:via-purple-600 hover:to-fuchsia-600 text-white border-0"
+                >
+                  {checkoutLoading === "family" ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      {language === "es" ? "Procesando..." : "Processing..."}
+                    </>
+                  ) : (
+                    <>
+                      <Users className="mr-2 h-5 w-5" />
+                      {language === "es" 
+                        ? "COMENZAR PLAN FAMILIAR"
+                        : "START FAMILY PLAN"
+                      }
+                    </>
+                  )}
+                </Button>
+              </motion.div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Chefly Plus - Individual */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -180,7 +296,7 @@ const Pricing = () => {
           <div className="bg-gradient-to-r from-emerald-400 via-teal-500 to-cyan-500 rounded-t-2xl px-4 py-2">
             <span className="text-white font-bold text-sm uppercase tracking-wide flex items-center gap-2">
               <Crown className="h-4 w-4" />
-              {language === "es" ? "RECOMENDADO" : "RECOMMENDED"}
+              {language === "es" ? "POPULAR" : "POPULAR"}
             </span>
           </div>
           
@@ -241,12 +357,12 @@ const Pricing = () => {
                 whileTap={{ scale: 0.98 }}
               >
                 <Button
-                  onClick={handleSelectCheflyPlus}
-                  disabled={checkoutLoading}
+                  onClick={() => handleSelectPlan(SUBSCRIPTION_TIERS.CHEFLY_PLUS.price_id, "plus")}
+                  disabled={checkoutLoading !== null}
                   variant="duolingo"
                   className="w-full h-12 text-base font-bold"
                 >
-                  {checkoutLoading ? (
+                  {checkoutLoading === "plus" ? (
                     <>
                       <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                       {language === "es" ? "Procesando..." : "Processing..."}

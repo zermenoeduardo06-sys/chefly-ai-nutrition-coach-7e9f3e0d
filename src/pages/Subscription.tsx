@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ArrowLeft, Check, ExternalLink, Crown, Zap, Gift } from "lucide-react";
-import { useSubscription } from "@/hooks/useSubscription";
+import { Loader2, ArrowLeft, Check, ExternalLink, Crown, Zap, Gift, Users } from "lucide-react";
+import { useSubscription, SUBSCRIPTION_TIERS } from "@/hooks/useSubscription";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "framer-motion";
@@ -14,6 +14,7 @@ import mascotFire from "@/assets/mascot-fire.png";
 const Subscription = () => {
   const [loading, setLoading] = useState(true);
   const [portalLoading, setPortalLoading] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | undefined>(undefined);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -59,6 +60,38 @@ const Subscription = () => {
     }
   };
 
+  const handleSelectPlan = async (priceId: string, planKey: string) => {
+    setCheckoutLoading(planKey);
+    
+    try {
+      const affiliateCode = localStorage.getItem("affiliate_code");
+      const endorselyReferral = (window as any).endorsely_referral;
+
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: { 
+          priceId,
+          affiliateCode: affiliateCode || null,
+          endorselyReferral: endorselyReferral || null,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      console.error("Error creating checkout:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: language === "es" ? "No se pudo iniciar el proceso de pago." : "Could not start payment process.",
+      });
+    } finally {
+      setCheckoutLoading(null);
+    }
+  };
+
   if (loading || subscription.isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-primary/20 via-background to-background">
@@ -68,6 +101,28 @@ const Subscription = () => {
   }
 
   const plans = [
+    {
+      id: "chefly-family",
+      name: "Chefly Familiar",
+      subtitle: language === "es" ? "Nutrición para toda la familia" : "Nutrition for the whole family",
+      price: "$400 MXN",
+      priceUsd: "$20",
+      period: language === "es" ? "/mes" : "/month",
+      badge: language === "es" ? "5 personas" : "5 people",
+      features: [
+        language === "es" ? "Todo de Chefly Plus incluido" : "Everything in Chefly Plus included",
+        language === "es" ? "Hasta 5 perfiles familiares" : "Up to 5 family profiles",
+        language === "es" ? "Cada miembro con sus propias metas" : "Individual goals per member",
+        language === "es" ? "Panel de administración familiar" : "Family admin panel",
+        language === "es" ? "Sistema de invitación por código" : "Code-based invitation system",
+        language === "es" ? "Ahorra 50% vs 5 suscripciones" : "Save 50% vs 5 subscriptions",
+      ],
+      recommended: true,
+      mascot: mascotFlexing,
+      gradient: "from-violet-500 via-purple-500 to-fuchsia-500",
+      isCurrentPlan: subscription.is_chefly_family,
+      priceId: SUBSCRIPTION_TIERS.CHEFLY_FAMILY.price_id,
+    },
     {
       id: "chefly-plus",
       name: "Chefly Plus",
@@ -84,12 +139,12 @@ const Subscription = () => {
         language === "es" ? "Sistema de amigos y comparación" : "Friends & comparison system",
         language === "es" ? "Lista de compras con cantidades reales" : "Shopping list with real quantities",
         language === "es" ? "Exportar recetas a PDF" : "Export recipes to PDF",
-        language === "es" ? "Modo offline disponible" : "Offline mode available",
       ],
-      recommended: true,
+      recommended: false,
       mascot: mascotFlexing,
       gradient: "from-emerald-400 via-teal-500 to-cyan-500",
-      isCurrentPlan: limits.isCheflyPlus,
+      isCurrentPlan: limits.isCheflyPlus && !subscription.is_chefly_family,
+      priceId: SUBSCRIPTION_TIERS.CHEFLY_PLUS.price_id,
     },
     {
       id: "free",
@@ -154,8 +209,8 @@ const Subscription = () => {
             {plan.recommended && (
               <div className={`bg-gradient-to-r ${plan.gradient} rounded-t-2xl px-4 py-2`}>
                 <span className="text-white font-bold text-sm uppercase tracking-wide flex items-center gap-2">
-                  <Crown className="h-4 w-4" />
-                  {language === "es" ? "RECOMENDADO" : "RECOMMENDED"}
+                  <Users className="h-4 w-4" />
+                  {language === "es" ? "MEJOR VALOR" : "BEST VALUE"}
                 </span>
               </div>
             )}
@@ -169,11 +224,16 @@ const Subscription = () => {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     {/* Plan name */}
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <h3 className="text-xl font-bold text-foreground">{plan.name}</h3>
                       {plan.isCurrentPlan && (
                         <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-semibold">
                           {language === "es" ? "Tu plan" : "Your plan"}
+                        </span>
+                      )}
+                      {plan.badge && (
+                        <span className="text-xs bg-violet-500/10 text-violet-600 dark:text-violet-400 px-2 py-0.5 rounded-full font-medium">
+                          {plan.badge}
                         </span>
                       )}
                     </div>
@@ -235,7 +295,46 @@ const Subscription = () => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  {plan.id === "chefly-plus" ? (
+                  {plan.id === "chefly-family" ? (
+                    plan.isCurrentPlan ? (
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => navigate("/family")}
+                          variant="duolingoOutline"
+                          className="flex-1 h-11 text-sm font-bold"
+                        >
+                          <Users className="mr-2 h-4 w-4" />
+                          {language === "es" ? "GESTIONAR FAMILIA" : "MANAGE FAMILY"}
+                        </Button>
+                        <Button
+                          onClick={handleManageSubscription}
+                          disabled={portalLoading}
+                          variant="outline"
+                          size="icon"
+                          className="h-11 w-11"
+                        >
+                          {portalLoading ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <ExternalLink className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button
+                        onClick={() => handleSelectPlan(plan.priceId!, "family")}
+                        disabled={checkoutLoading !== null}
+                        className="w-full h-11 text-sm font-bold bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 hover:from-violet-600 hover:via-purple-600 hover:to-fuchsia-600 text-white border-0"
+                      >
+                        {checkoutLoading === "family" ? (
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        ) : (
+                          <Users className="mr-2 h-4 w-4" />
+                        )}
+                        {language === "es" ? "COMENZAR PLAN FAMILIAR" : "START FAMILY PLAN"}
+                      </Button>
+                    )
+                  ) : plan.id === "chefly-plus" ? (
                     plan.isCurrentPlan ? (
                       <Button
                         onClick={handleManageSubscription}
@@ -257,11 +356,16 @@ const Subscription = () => {
                       </Button>
                     ) : (
                       <Button
-                        onClick={() => navigate("/pricing")}
+                        onClick={() => handleSelectPlan(plan.priceId!, "plus")}
+                        disabled={checkoutLoading !== null}
                         variant="duolingo"
                         className="w-full h-11 text-sm font-bold"
                       >
-                        <Zap className="mr-2 h-4 w-4" />
+                        {checkoutLoading === "plus" ? (
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        ) : (
+                          <Zap className="mr-2 h-4 w-4" />
+                        )}
                         {language === "es" ? "MEJORAR A CHEFLY PLUS" : "UPGRADE TO CHEFLY PLUS"}
                       </Button>
                     )
