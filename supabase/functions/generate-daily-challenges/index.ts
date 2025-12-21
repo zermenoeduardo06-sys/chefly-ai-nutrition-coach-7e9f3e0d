@@ -104,7 +104,7 @@ Debes responder SOLO con JSON válido (sin markdown, sin comillas extras) con es
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-2.5-flash-lite',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: 'Genera 3 desafíos diarios personalizados para este usuario.' }

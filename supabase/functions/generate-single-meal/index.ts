@@ -74,6 +74,73 @@ serve(async (req) => {
       throw new Error("User preferences not found");
     }
 
+    // ============================================
+    // OPTIMIZATION: Try cache first (recipe_library)
+    // ============================================
+    console.log(`Looking for cached recipe: type=${mealType}, diet=${preferences.diet_type}`);
+    
+    // Build query for recipe_library
+    let recipeQuery = supabaseClient
+      .from("recipe_library")
+      .select("*")
+      .eq("meal_type", mealType)
+      .eq("language", "es");
+    
+    // Filter by diet type if not omnívora
+    if (preferences.diet_type && preferences.diet_type !== "omnívora") {
+      recipeQuery = recipeQuery.eq("diet_type", preferences.diet_type);
+    }
+    
+    // Get all matching recipes and pick a random one
+    const { data: cachedRecipes, error: cacheError } = await recipeQuery;
+    
+    if (!cacheError && cachedRecipes && cachedRecipes.length > 0) {
+      // Pick a random recipe from cache
+      const randomIndex = Math.floor(Math.random() * cachedRecipes.length);
+      const cachedRecipe = cachedRecipes[randomIndex];
+      
+      console.log(`Found cached recipe: ${cachedRecipe.name} (from ${cachedRecipes.length} options)`);
+      
+      // Delete old meal if provided
+      if (mealId) {
+        await supabaseClient.from("meals").delete().eq("id", mealId);
+      }
+
+      // Insert cached recipe as new meal
+      const { data: newMeal, error: insertError } = await supabaseClient
+        .from("meals")
+        .insert({
+          meal_plan_id: mealPlanId,
+          day_of_week: dayOfWeek,
+          meal_type: mealType,
+          name: cachedRecipe.name,
+          description: cachedRecipe.description,
+          benefits: cachedRecipe.benefits || "Nutritivo y delicioso",
+          calories: cachedRecipe.calories,
+          protein: cachedRecipe.protein,
+          carbs: cachedRecipe.carbs,
+          fats: cachedRecipe.fats,
+          ingredients: cachedRecipe.ingredients,
+          steps: cachedRecipe.steps,
+          image_url: cachedRecipe.image_url,
+        })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      console.log("Meal created from cache successfully");
+      return new Response(JSON.stringify({ meal: newMeal, fromCache: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    // ============================================
+    // No cache hit - Generate with AI
+    // ============================================
+    console.log("No cached recipe found, generating with AI...");
+
     // Prepare meal type label
     const mealTypeLabels: Record<string, string> = {
       breakfast: "desayuno",
@@ -82,7 +149,7 @@ serve(async (req) => {
     };
     const mealTypeLabel = mealTypeLabels[mealType] || mealType;
 
-    // Generate meal with AI
+    // Generate meal with AI using the economical model
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -90,7 +157,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "openai/gpt-5-mini",
+        model: "google/gemini-2.5-flash-lite",
         messages: [
           {
             role: "system",
@@ -122,6 +189,18 @@ Responde SOLO con un objeto JSON válido sin markdown ni texto adicional:
     });
 
     if (!response.ok) {
+      if (response.status === 429) {
+        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again later." }), {
+          status: 429,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ error: "Payment required. Please add credits." }), {
+          status: 402,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       const errorText = await response.text();
       console.error("AI API error:", response.status, errorText);
       throw new Error(`AI API error: ${response.status} - ${errorText}`);
@@ -140,39 +219,27 @@ Responde SOLO con un objeto JSON válido sin markdown ni texto adicional:
     mealData = mealData.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
     const meal = JSON.parse(mealData);
 
-    // Generate image for the meal
-    const imageResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "openai/gpt-5-mini",
-        messages: [
-          {
-            role: "user",
-            content: `Generate a high-quality, appetizing food photography image URL for: ${meal.name}. The image should look professional and make the food look delicious. Return ONLY the image URL, nothing else.`,
-          },
-        ],
-      }),
-    });
-
-    if (!imageResponse.ok) {
-      console.error("Image generation API error:", imageResponse.status);
-      // Continue without image if image generation fails
-    }
-
-    let imageUrl = "";
-    try {
-      const imageData = await imageResponse.json();
-      if (imageData.choices && imageData.choices[0] && imageData.choices[0].message) {
-        imageUrl = imageData.choices[0].message.content.trim();
-      }
-    } catch (error) {
-      console.error("Error parsing image response:", error);
-      // Continue without image
-    }
+    // Use a static Unsplash image based on meal type instead of generating with AI
+    const unsplashImages: Record<string, string[]> = {
+      breakfast: [
+        "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1525351484163-7529414344d8?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=400&h=300&fit=crop",
+      ],
+      lunch: [
+        "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400&h=300&fit=crop",
+      ],
+      dinner: [
+        "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1574484284002-952d92456975?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1559847844-5315695dadae?w=400&h=300&fit=crop",
+      ],
+    };
+    
+    const mealImages = unsplashImages[mealType] || unsplashImages.lunch;
+    const imageUrl = mealImages[Math.floor(Math.random() * mealImages.length)];
 
     // Delete old meal if provided
     if (mealId) {
@@ -202,7 +269,30 @@ Responde SOLO con un objeto JSON válido sin markdown ni texto adicional:
 
     if (insertError) throw insertError;
 
-    return new Response(JSON.stringify({ meal: newMeal }), {
+    // Save to recipe library for future cache hits
+    await supabaseClient
+      .from("recipe_library")
+      .insert({
+        name: meal.name,
+        description: meal.description,
+        benefits: meal.benefits,
+        calories: meal.calories,
+        protein: meal.protein,
+        carbs: meal.carbs,
+        fats: meal.fats,
+        ingredients: meal.ingredients,
+        steps: meal.steps,
+        image_url: imageUrl,
+        meal_type: mealType,
+        diet_type: preferences.diet_type,
+        language: "es",
+        has_image: true,
+      })
+      .select()
+      .single();
+
+    console.log("Meal generated with AI and saved to cache");
+    return new Response(JSON.stringify({ meal: newMeal, fromCache: false }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
