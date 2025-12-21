@@ -229,16 +229,8 @@ export function FoodScanner({ open, onOpenChange }: FoodScannerProps) {
             />
           </div>
           
-          {/* Close button */}
-          <button 
-            onClick={handleClose}
-            className="absolute top-4 right-4 z-20 p-2 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-colors"
-          >
-            <X className="h-5 w-5 text-white" />
-          </button>
-
           {/* Header content */}
-          <div className="relative z-10 px-6 pt-6 pb-8">
+          <div className="relative z-10 px-6 pt-8 pb-8">
             <div className="flex items-start gap-4">
               <motion.div 
                 className="relative"
