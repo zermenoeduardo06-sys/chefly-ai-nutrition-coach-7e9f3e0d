@@ -33,6 +33,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { JoinFamilyDialog } from "@/components/family/JoinFamilyDialog";
 
 const FamilyManagement = () => {
   const navigate = useNavigate();
@@ -44,6 +45,7 @@ const FamilyManagement = () => {
   const [newFamilyName, setNewFamilyName] = useState("");
   const [memberToRemove, setMemberToRemove] = useState<string | null>(null);
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
+  const [showJoinDialog, setShowJoinDialog] = useState(false);
 
   const subscription = useSubscription(userId);
   const {
@@ -51,6 +53,7 @@ const FamilyManagement = () => {
     members,
     isOwner,
     isLoading: familyLoading,
+    loadFamily,
     removeMember,
     leaveFamily,
     updateFamilyName,
@@ -173,12 +176,30 @@ const FamilyManagement = () => {
         </h2>
         <p className="text-muted-foreground text-center mb-6">
           {language === "es" 
-            ? "Suscríbete al Plan Familiar para crear tu familia" 
-            : "Subscribe to Family Plan to create your family"}
+            ? "Únete a una familia existente o suscríbete al Plan Familiar" 
+            : "Join an existing family or subscribe to Family Plan"}
         </p>
-        <Button onClick={() => navigate("/pricing")}>
-          {language === "es" ? "Ver planes" : "View plans"}
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Button 
+            onClick={() => setShowJoinDialog(true)}
+            className="gap-2"
+          >
+            <UserPlus className="h-4 w-4" />
+            {language === "es" ? "Tengo un código" : "I have a code"}
+          </Button>
+          <Button variant="outline" onClick={() => navigate("/pricing")}>
+            {language === "es" ? "Ver planes" : "View plans"}
+          </Button>
+        </div>
+
+        <JoinFamilyDialog
+          open={showJoinDialog}
+          onOpenChange={setShowJoinDialog}
+          onSuccess={() => {
+            loadFamily();
+            subscription.checkSubscription();
+          }}
+        />
       </div>
     );
   }
