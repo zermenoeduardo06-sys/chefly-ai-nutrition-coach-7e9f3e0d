@@ -39,6 +39,7 @@ import { Capacitor } from "@capacitor/core";
 import { FoodScanner } from "@/components/FoodScanner";
 import { CalendarDayWidget } from "@/components/CalendarDayWidget";
 import { useWeeklyCheckIn } from "@/hooks/useWeeklyCheckIn";
+import { FamilyStatusBanner } from "@/components/family/FamilyStatusBanner";
 
 interface Meal {
   id: string;
@@ -941,6 +942,11 @@ const Dashboard = () => {
         {/* Subscription Banner */}
         {profile && (
           <SubscriptionBanner userId={profile.id} />
+        )}
+
+        {/* Family Status Banner */}
+        {userId && (
+          <FamilyStatusBanner userId={userId} />
         )}
 
         {/* Calendar Day Widget */}
