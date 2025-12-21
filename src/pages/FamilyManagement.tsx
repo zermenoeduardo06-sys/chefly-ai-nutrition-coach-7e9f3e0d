@@ -21,6 +21,12 @@ import {
   Edit2,
   Check,
   X,
+  Sparkles,
+  Utensils,
+  ShoppingCart,
+  Heart,
+  Star,
+  ChefHat,
 } from "lucide-react";
 import ModularAvatar from "@/components/avatar/ModularAvatar";
 import {
@@ -275,11 +281,103 @@ const FamilyManagement = () => {
       </div>
 
       <div className="px-4 pt-6 space-y-6 max-w-lg mx-auto">
+        {/* Welcome/Benefits Banner */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-br from-violet-500/10 via-purple-500/10 to-fuchsia-500/10 border border-violet-500/20 rounded-2xl p-4"
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles className="h-5 w-5 text-violet-500" />
+            <h3 className="font-semibold text-foreground">
+              {language === "es" ? "¿Qué es el Plan Familiar?" : "What is the Family Plan?"}
+            </h3>
+          </div>
+          
+          <p className="text-sm text-muted-foreground mb-4">
+            {language === "es" 
+              ? "El Plan Familiar te permite compartir todos los beneficios premium con hasta 5 personas. El dueño paga y todos disfrutan." 
+              : "The Family Plan lets you share all premium benefits with up to 5 people. The owner pays, everyone enjoys."}
+          </p>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex items-start gap-2">
+              <div className="h-8 w-8 rounded-lg bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                <Utensils className="h-4 w-4 text-emerald-600" />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-foreground">
+                  {language === "es" ? "Planes de comida" : "Meal plans"}
+                </p>
+                <p className="text-[10px] text-muted-foreground">
+                  {language === "es" ? "Personalizados para cada miembro" : "Personalized for each member"}
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-start gap-2">
+              <div className="h-8 w-8 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                <ShoppingCart className="h-4 w-4 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-foreground">
+                  {language === "es" ? "Lista de compras" : "Shopping list"}
+                </p>
+                <p className="text-[10px] text-muted-foreground">
+                  {language === "es" ? "Unificada para toda la familia" : "Unified for the whole family"}
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-start gap-2">
+              <div className="h-8 w-8 rounded-lg bg-rose-500/20 flex items-center justify-center flex-shrink-0">
+                <Heart className="h-4 w-4 text-rose-600" />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-foreground">
+                  {language === "es" ? "Preferencias" : "Preferences"}
+                </p>
+                <p className="text-[10px] text-muted-foreground">
+                  {language === "es" ? "Alergias y gustos respetados" : "Allergies and tastes respected"}
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-start gap-2">
+              <div className="h-8 w-8 rounded-lg bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                <ChefHat className="h-4 w-4 text-amber-600" />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-foreground">
+                  {language === "es" ? "Recetas adaptadas" : "Adapted recipes"}
+                </p>
+                <p className="text-[10px] text-muted-foreground">
+                  {language === "es" ? "Variantes para cada quien" : "Variants for everyone"}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {!isOwner && (
+            <div className="mt-4 pt-3 border-t border-violet-500/20">
+              <div className="flex items-center gap-2">
+                <Star className="h-4 w-4 text-amber-500" />
+                <p className="text-xs text-foreground">
+                  {language === "es" 
+                    ? "¡Ya eres parte de esta familia! Tienes acceso a todos los beneficios premium." 
+                    : "You're part of this family! You have access to all premium benefits."}
+                </p>
+              </div>
+            </div>
+          )}
+        </motion.div>
+
         {/* Invite Code Card - Only for owner */}
         {isOwner && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
             className="bg-card border rounded-2xl p-4"
           >
             <div className="flex items-center gap-2 mb-3">
@@ -323,14 +421,20 @@ const FamilyManagement = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ delay: 0.2 }}
         >
           <div className="flex items-center gap-2 mb-3">
             <Users className="h-5 w-5 text-primary" />
             <h3 className="font-semibold text-foreground">
-              {language === "es" ? "Miembros" : "Members"}
+              {language === "es" ? "Miembros de la familia" : "Family members"}
             </h3>
           </div>
+          
+          <p className="text-xs text-muted-foreground mb-3">
+            {language === "es" 
+              ? "Todos los miembros comparten los beneficios del plan del administrador." 
+              : "All members share the benefits of the admin's plan."}
+          </p>
 
           <div className="space-y-2">
             {members.map((member, index) => (
