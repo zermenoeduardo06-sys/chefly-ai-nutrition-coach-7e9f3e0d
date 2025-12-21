@@ -56,3 +56,6 @@ verify_jwt = true
 
 [functions.verify-apple-receipt]
 verify_jwt = true
+
+[functions.create-subscription-intent]
+verify_jwt = true
