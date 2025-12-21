@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useFamily } from "./useFamily";
 
@@ -45,13 +45,13 @@ export const useFamilyMealPlan = (userId: string | undefined) => {
   
   const { family, members, isLoading: familyLoading } = useFamily(userId);
 
-  // Create a map of member names by user_id
-  const memberNameMap = new Map(
+  // Memoize member name map to prevent infinite re-renders
+  const memberNameMap = useMemo(() => new Map(
     members.map(m => [
       m.user_id, 
       m.profile?.display_name || m.profile?.email?.split('@')[0] || 'Miembro'
     ])
-  );
+  ), [members]);
 
   const loadFamilyMealPlan = useCallback(async () => {
     if (!userId || !family) {
@@ -128,7 +128,7 @@ export const useFamilyMealPlan = (userId: string | undefined) => {
     } finally {
       setLoading(false);
     }
-  }, [userId, family, memberNameMap]);
+  }, [userId, family]);
 
   useEffect(() => {
     if (!familyLoading && family) {
