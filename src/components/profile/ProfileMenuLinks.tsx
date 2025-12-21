@@ -97,7 +97,7 @@ export function ProfileMenuLinks() {
       title: t("profile.menuSection.account"),
       items: [
         { icon: CreditCard, labelKey: "sidebar.subscription", path: "/subscription", iconColor: "text-purple-500", iconBg: "bg-purple-500/10" },
-        ...(subscription.is_chefly_family || subscription.is_family_member ? [{ 
+        ...(subscription.is_chefly_family || subscription.is_family_member || subscription.has_family ? [{ 
           icon: Home, 
           labelKey: "sidebar.family", 
           path: "/family", 

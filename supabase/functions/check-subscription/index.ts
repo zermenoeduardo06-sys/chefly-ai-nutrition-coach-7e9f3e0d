@@ -64,6 +64,18 @@ serve(async (req) => {
       .eq("user_id", user.id)
       .single();
 
+    // Also check if user owns a family directly
+    const { data: ownedFamily } = await supabaseClient
+      .from("families")
+      .select("id, name")
+      .eq("owner_id", user.id)
+      .single();
+
+    const hasFamily = !!familyMembership || !!ownedFamily;
+    const familyId = familyMembership?.family_id || ownedFamily?.id;
+    const familyName = (familyMembership?.families as any)?.name || ownedFamily?.name;
+    const isOwner = !!ownedFamily || familyMembership?.role === "owner";
+
     if (familyMembership) {
       logStep("User belongs to a family", { familyId: familyMembership.family_id, role: familyMembership.role });
       
@@ -117,6 +129,7 @@ serve(async (req) => {
                 is_family_owner: familyMembership.role === "owner",
                 family_id: familyMembership.family_id,
                 family_name: family.name,
+                has_family: true,
               }), {
                 headers: { ...corsHeaders, "Content-Type": "application/json" },
                 status: 200,
@@ -131,7 +144,7 @@ serve(async (req) => {
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     
     if (customers.data.length === 0) {
-      logStep("No Stripe customer found - user is on Free plan");
+      logStep("No Stripe customer found - user is on Free plan", { hasFamily });
       
       await supabaseClient
         .from("profiles")
@@ -143,6 +156,11 @@ serve(async (req) => {
         plan: "free",
         is_chefly_plus: false,
         is_chefly_family: false,
+        has_family: hasFamily,
+        is_family_owner: isOwner,
+        is_family_member: !!familyMembership && familyMembership.role === "member",
+        family_id: familyId,
+        family_name: familyName,
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
@@ -216,14 +234,12 @@ serve(async (req) => {
       plan: isCheflyFamily ? "chefly_family" : (isCheflyPlus ? "chefly_plus" : "free"),
       is_chefly_plus: isCheflyPlus || isCheflyFamily,
       is_chefly_family: isCheflyFamily,
+      has_family: hasFamily,
+      is_family_owner: isOwner,
+      is_family_member: !!familyMembership && familyMembership.role === "member",
+      family_id: familyId,
+      family_name: familyName,
     };
-
-    // Add family info if user has family subscription
-    if (isCheflyFamily && familyMembership) {
-      response.is_family_owner = familyMembership.role === "owner";
-      response.family_id = familyMembership.family_id;
-      response.family_name = (familyMembership.families as any).name;
-    }
 
     return new Response(JSON.stringify(response), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
