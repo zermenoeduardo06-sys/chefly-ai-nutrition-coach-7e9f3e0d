@@ -113,7 +113,7 @@ export const useFamilyMealPlan = (userId: string | undefined) => {
             const mealAdaptations = adaptationsMap.get(adaptation.meal_id) || [];
             mealAdaptations.push({
               ...adaptation,
-              member_name: undefined, // Will be resolved later
+              member_name: memberNameMap.get(adaptation.member_user_id) || 'Miembro',
             });
             adaptationsMap.set(adaptation.meal_id, mealAdaptations);
           }
