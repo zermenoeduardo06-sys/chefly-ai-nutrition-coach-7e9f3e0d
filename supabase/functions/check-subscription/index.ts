@@ -9,7 +9,7 @@ const corsHeaders = {
 
 // Subscription tiers
 const CHEFLY_PLUS_PRODUCT_ID = "prod_TUMZx1BcskL9rK";
-const CHEFLY_FAMILY_PRODUCT_ID = "prod_Te9zehdPjvu5Yg";
+const CHEFLY_FAMILY_PRODUCT_ID = "prod_TeACPacM8HQ5tu";
 
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
