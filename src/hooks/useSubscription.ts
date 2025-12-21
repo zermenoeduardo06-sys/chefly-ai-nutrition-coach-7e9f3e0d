@@ -6,15 +6,28 @@ interface SubscriptionStatus {
   product_id: string | null;
   subscription_end: string | null;
   isLoading: boolean;
+  plan: string | null;
+  is_chefly_family: boolean;
+  is_family_owner: boolean;
+  is_family_member: boolean;
+  family_id: string | null;
+  family_name: string | null;
 }
 
-// Chefly Plus es el único plan de pago
+// Subscription tiers
 export const SUBSCRIPTION_TIERS = {
   CHEFLY_PLUS: {
     product_id: "prod_TUMZx1BcskL9rK",
     price_id: "price_1SXNqfRXGCRSzpK7WyaN4yij",
     name: "Chefly Plus",
     price: 150, // ~7.99 USD
+  },
+  CHEFLY_FAMILY: {
+    product_id: "prod_Te9zehdPjvu5Yg",
+    price_id: "price_1SgrfqRXGCRSzpK7qigQi8y0",
+    name: "Chefly Familiar",
+    price: 400, // ~20 USD
+    maxMembers: 5,
   },
 };
 
@@ -24,6 +37,12 @@ export const useSubscription = (userId: string | undefined) => {
     product_id: null,
     subscription_end: null,
     isLoading: true,
+    plan: null,
+    is_chefly_family: false,
+    is_family_owner: false,
+    is_family_member: false,
+    family_id: null,
+    family_name: null,
   });
 
   const checkSubscription = async () => {
@@ -44,6 +63,12 @@ export const useSubscription = (userId: string | undefined) => {
           product_id: null,
           subscription_end: null,
           isLoading: false,
+          plan: "free",
+          is_chefly_family: false,
+          is_family_owner: false,
+          is_family_member: false,
+          family_id: null,
+          family_name: null,
         });
         return;
       }
@@ -53,6 +78,12 @@ export const useSubscription = (userId: string | undefined) => {
         product_id: data.product_id || null,
         subscription_end: data.subscription_end || null,
         isLoading: false,
+        plan: data.plan || "free",
+        is_chefly_family: data.is_chefly_family || false,
+        is_family_owner: data.is_family_owner || false,
+        is_family_member: data.is_family_member || false,
+        family_id: data.family_id || null,
+        family_name: data.family_name || null,
       });
     } catch (error) {
       console.error("Error in checkSubscription:", error);
@@ -61,6 +92,12 @@ export const useSubscription = (userId: string | undefined) => {
         product_id: null,
         subscription_end: null,
         isLoading: false,
+        plan: "free",
+        is_chefly_family: false,
+        is_family_owner: false,
+        is_family_member: false,
+        family_id: null,
+        family_name: null,
       });
     }
   };
@@ -72,19 +109,27 @@ export const useSubscription = (userId: string | undefined) => {
   const getPlanName = () => {
     if (!status.product_id) return null;
     
+    if (status.product_id === SUBSCRIPTION_TIERS.CHEFLY_FAMILY.product_id) {
+      return SUBSCRIPTION_TIERS.CHEFLY_FAMILY.name;
+    }
     if (status.product_id === SUBSCRIPTION_TIERS.CHEFLY_PLUS.product_id) {
       return SUBSCRIPTION_TIERS.CHEFLY_PLUS.name;
     }
-    // Fallback for any other product
     return "Chefly Plus";
   };
 
-  const isCheflyPlus = status.subscribed && status.product_id === SUBSCRIPTION_TIERS.CHEFLY_PLUS.product_id;
+  const isCheflyPlus = status.subscribed && (
+    status.product_id === SUBSCRIPTION_TIERS.CHEFLY_PLUS.product_id ||
+    status.product_id === SUBSCRIPTION_TIERS.CHEFLY_FAMILY.product_id
+  );
+
+  const isCheflyFamily = status.subscribed && status.product_id === SUBSCRIPTION_TIERS.CHEFLY_FAMILY.product_id;
 
   return {
     ...status,
     checkSubscription,
     planName: getPlanName(),
     isCheflyPlus,
+    isCheflyFamily,
   };
 };

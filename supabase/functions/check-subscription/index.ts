@@ -7,8 +7,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Chefly Plus es el único plan de pago en el modelo freemium
+// Subscription tiers
 const CHEFLY_PLUS_PRODUCT_ID = "prod_TUMZx1BcskL9rK";
+const CHEFLY_FAMILY_PRODUCT_ID = "prod_Te9zehdPjvu5Yg";
 
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
@@ -27,7 +28,7 @@ serve(async (req) => {
   );
 
   try {
-    logStep("Function started - Freemium model (Chefly Plus only)");
+    logStep("Function started");
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
@@ -47,12 +48,91 @@ serve(async (req) => {
     logStep("User authenticated", { userId: user.id, email: user.email });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+
+    // First, check if user belongs to a family with active subscription
+    const { data: familyMembership } = await supabaseClient
+      .from("family_memberships")
+      .select(`
+        family_id,
+        role,
+        families!inner (
+          id,
+          name,
+          owner_id
+        )
+      `)
+      .eq("user_id", user.id)
+      .single();
+
+    if (familyMembership) {
+      logStep("User belongs to a family", { familyId: familyMembership.family_id, role: familyMembership.role });
+      
+      // Get owner's email to check their subscription
+      const family = familyMembership.families as any;
+      const { data: ownerProfile } = await supabaseClient
+        .from("profiles")
+        .select("email")
+        .eq("id", family.owner_id)
+        .single();
+
+      if (ownerProfile?.email) {
+        const ownerCustomers = await stripe.customers.list({ email: ownerProfile.email, limit: 1 });
+        
+        if (ownerCustomers.data.length > 0) {
+          const ownerCustomerId = ownerCustomers.data[0].id;
+          const ownerSubscriptions = await stripe.subscriptions.list({
+            customer: ownerCustomerId,
+            status: "active",
+            limit: 1,
+          });
+
+          if (ownerSubscriptions.data.length > 0) {
+            const subscription = ownerSubscriptions.data[0];
+            const productId = subscription.items?.data?.[0]?.price?.product as string;
+            
+            if (productId === CHEFLY_FAMILY_PRODUCT_ID) {
+              logStep("User inherits Family plan benefits", { ownerId: family.owner_id });
+              
+              let subscriptionEnd = null;
+              if (subscription.current_period_end && typeof subscription.current_period_end === 'number') {
+                const date = new Date(subscription.current_period_end * 1000);
+                if (!isNaN(date.getTime())) {
+                  subscriptionEnd = date.toISOString();
+                }
+              }
+
+              await supabaseClient
+                .from("profiles")
+                .update({ is_subscribed: true })
+                .eq("id", user.id);
+
+              return new Response(JSON.stringify({
+                subscribed: true,
+                product_id: productId,
+                subscription_end: subscriptionEnd,
+                plan: "chefly_family",
+                is_chefly_plus: true,
+                is_chefly_family: true,
+                is_family_member: familyMembership.role === "member",
+                is_family_owner: familyMembership.role === "owner",
+                family_id: familyMembership.family_id,
+                family_name: family.name,
+              }), {
+                headers: { ...corsHeaders, "Content-Type": "application/json" },
+                status: 200,
+              });
+            }
+          }
+        }
+      }
+    }
+
+    // Check direct subscription
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     
     if (customers.data.length === 0) {
       logStep("No Stripe customer found - user is on Free plan");
       
-      // Update profile to reflect no paid subscription (Free plan)
       await supabaseClient
         .from("profiles")
         .update({ is_subscribed: false })
@@ -61,7 +141,8 @@ serve(async (req) => {
       return new Response(JSON.stringify({ 
         subscribed: false,
         plan: "free",
-        is_chefly_plus: false
+        is_chefly_plus: false,
+        is_chefly_family: false,
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
@@ -81,46 +162,40 @@ serve(async (req) => {
     let productId = null;
     let subscriptionEnd = null;
     let isCheflyPlus = false;
+    let isCheflyFamily = false;
 
     if (hasActiveSub) {
       const subscription = subscriptions.data[0];
       
       logStep("Processing subscription", { 
         current_period_end: subscription.current_period_end,
-        current_period_end_type: typeof subscription.current_period_end 
       });
       
-      // Safely convert timestamp to ISO string
       if (subscription.current_period_end && typeof subscription.current_period_end === 'number') {
         const timestamp = subscription.current_period_end * 1000;
         const date = new Date(timestamp);
         
         if (!isNaN(date.getTime())) {
           subscriptionEnd = date.toISOString();
-        } else {
-          logStep("Invalid date created from timestamp", { timestamp, current_period_end: subscription.current_period_end });
-          subscriptionEnd = null;
         }
       }
       
-      // Safely get product ID
       if (subscription.items?.data?.[0]?.price?.product) {
         productId = subscription.items.data[0].price.product as string;
         isCheflyPlus = productId === CHEFLY_PLUS_PRODUCT_ID;
+        isCheflyFamily = productId === CHEFLY_FAMILY_PRODUCT_ID;
         logStep("Subscription product identified", { 
           productId, 
           isCheflyPlus,
-          expectedCheflyPlusId: CHEFLY_PLUS_PRODUCT_ID
+          isCheflyFamily,
         });
       }
       
-      logStep("Active Chefly Plus subscription found", { 
+      logStep("Active subscription found", { 
         subscriptionId: subscription.id, 
         endDate: subscriptionEnd,
-        isCheflyPlus 
       });
       
-      // Update profile with subscription status
       await supabaseClient
         .from("profiles")
         .update({ is_subscribed: true })
@@ -128,20 +203,29 @@ serve(async (req) => {
     } else {
       logStep("No active paid subscription - user is on Free plan");
       
-      // Update profile to reflect no subscription (Free plan)
       await supabaseClient
         .from("profiles")
         .update({ is_subscribed: false })
         .eq("id", user.id);
     }
 
-    return new Response(JSON.stringify({
+    const response: any = {
       subscribed: hasActiveSub,
       product_id: productId,
       subscription_end: subscriptionEnd,
-      plan: hasActiveSub ? "chefly_plus" : "free",
-      is_chefly_plus: isCheflyPlus
-    }), {
+      plan: isCheflyFamily ? "chefly_family" : (isCheflyPlus ? "chefly_plus" : "free"),
+      is_chefly_plus: isCheflyPlus || isCheflyFamily,
+      is_chefly_family: isCheflyFamily,
+    };
+
+    // Add family info if user has family subscription
+    if (isCheflyFamily && familyMembership) {
+      response.is_family_owner = familyMembership.role === "owner";
+      response.family_id = familyMembership.family_id;
+      response.family_name = (familyMembership.families as any).name;
+    }
+
+    return new Response(JSON.stringify(response), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
