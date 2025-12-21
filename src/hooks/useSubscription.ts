@@ -12,6 +12,7 @@ interface SubscriptionStatus {
   is_family_member: boolean;
   family_id: string | null;
   family_name: string | null;
+  has_family: boolean;
 }
 
 // Subscription tiers
@@ -43,6 +44,7 @@ export const useSubscription = (userId: string | undefined) => {
     is_family_member: false,
     family_id: null,
     family_name: null,
+    has_family: false,
   });
 
   const checkSubscription = async () => {
@@ -69,6 +71,7 @@ export const useSubscription = (userId: string | undefined) => {
           is_family_member: false,
           family_id: null,
           family_name: null,
+          has_family: false,
         });
         return;
       }
@@ -84,6 +87,7 @@ export const useSubscription = (userId: string | undefined) => {
         is_family_member: data.is_family_member || false,
         family_id: data.family_id || null,
         family_name: data.family_name || null,
+        has_family: data.has_family || false,
       });
     } catch (error) {
       console.error("Error in checkSubscription:", error);
@@ -98,6 +102,7 @@ export const useSubscription = (userId: string | undefined) => {
         is_family_member: false,
         family_id: null,
         family_name: null,
+        has_family: false,
       });
     }
   };

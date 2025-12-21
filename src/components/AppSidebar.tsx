@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { Home, TrendingUp, Trophy, Target, MessageCircle, Users, CreditCard, LogOut, DollarSign, Settings, UserPlus, User, ShoppingCart } from "lucide-react";
+import { Home, TrendingUp, Trophy, Target, MessageCircle, Users, CreditCard, LogOut, DollarSign, Settings, UserPlus, User, ShoppingCart, UsersRound } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useSubscription } from "@/hooks/useSubscription";
 import {
   Sidebar,
   SidebarContent,
@@ -27,11 +28,15 @@ export function AppSidebar() {
   const { t } = useLanguage();
   const { hasRole: isAdmin } = useUserRole("admin");
   const [isAffiliate, setIsAffiliate] = useState(false);
+  const [userId, setUserId] = useState<string | undefined>();
+  const { isCheflyFamily, is_family_owner, is_family_member, has_family } = useSubscription(userId);
 
   useEffect(() => {
-    const checkAffiliateStatus = async () => {
+    const checkUserStatus = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+
+      setUserId(user.id);
 
       const { data } = await supabase
         .from("affiliate_profiles")
@@ -42,8 +47,10 @@ export function AppSidebar() {
       setIsAffiliate(!!data);
     };
 
-    checkAffiliateStatus();
+    checkUserStatus();
   }, []);
+
+  const hasFamilyAccess = isCheflyFamily || is_family_owner || is_family_member || has_family;
 
   const baseMenuItems = [
     { title: t("sidebar.dashboard"), url: "/dashboard", icon: Home, tourId: "" },
@@ -58,9 +65,15 @@ export function AppSidebar() {
     { title: t("sidebar.subscription"), url: "/subscription", icon: CreditCard, tourId: "" },
   ];
 
-  const menuItems = isAffiliate 
-    ? [...baseMenuItems, { title: t("sidebar.affiliates"), url: "/affiliates", icon: DollarSign, tourId: "" }]
-    : baseMenuItems;
+  let menuItems = [...baseMenuItems];
+  
+  if (hasFamilyAccess) {
+    menuItems.push({ title: t("sidebar.family") || "Familia", url: "/family", icon: UsersRound, tourId: "family" });
+  }
+  
+  if (isAffiliate) {
+    menuItems.push({ title: t("sidebar.affiliates"), url: "/affiliates", icon: DollarSign, tourId: "" });
+  }
 
   const handleLogout = async () => {
     try {
