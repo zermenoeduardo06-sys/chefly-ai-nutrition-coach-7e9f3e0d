@@ -11,7 +11,8 @@ import {
   LogOut,
   HelpCircle,
   UtensilsCrossed,
-  Shield
+  Shield,
+  Home
 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
@@ -20,6 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useSubscription } from "@/hooks/useSubscription";
 import { motion } from "framer-motion";
 
 interface MenuItem {
@@ -34,16 +36,20 @@ interface MenuItem {
 }
 
 export function ProfileMenuLinks() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { hasRole: isAdmin } = useUserRole("admin");
   const [isAffiliate, setIsAffiliate] = useState(false);
+  const [userId, setUserId] = useState<string | undefined>(undefined);
+  const subscription = useSubscription(userId);
 
   useEffect(() => {
-    const checkAffiliateStatus = async () => {
+    const checkStatus = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+
+      setUserId(user.id);
 
       const { data } = await supabase
         .from("affiliate_profiles")
@@ -54,7 +60,7 @@ export function ProfileMenuLinks() {
       setIsAffiliate(!!data);
     };
 
-    checkAffiliateStatus();
+    checkStatus();
   }, []);
 
   const handleLogout = async () => {
@@ -91,6 +97,16 @@ export function ProfileMenuLinks() {
       title: t("profile.menuSection.account"),
       items: [
         { icon: CreditCard, labelKey: "sidebar.subscription", path: "/subscription", iconColor: "text-purple-500", iconBg: "bg-purple-500/10" },
+        ...(subscription.is_chefly_family || subscription.is_family_member ? [{ 
+          icon: Home, 
+          labelKey: "sidebar.family", 
+          path: "/family", 
+          iconColor: "text-violet-500", 
+          iconBg: "bg-violet-500/10",
+          badge: subscription.is_family_owner 
+            ? (language === "es" ? "Admin" : "Admin")
+            : (language === "es" ? "Miembro" : "Member")
+        }] : []),
         { icon: UtensilsCrossed, labelKey: "sidebar.preferences", path: "/preferences", iconColor: "text-cyan-500", iconBg: "bg-cyan-500/10" },
         { icon: Settings, labelKey: "sidebar.settings", path: "/dashboard/settings", iconColor: "text-slate-500", iconBg: "bg-slate-500/10" },
         ...(isAffiliate ? [{ icon: DollarSign, labelKey: "sidebar.affiliates", path: "/affiliates", iconColor: "text-emerald-500", iconBg: "bg-emerald-500/10" }] : []),
