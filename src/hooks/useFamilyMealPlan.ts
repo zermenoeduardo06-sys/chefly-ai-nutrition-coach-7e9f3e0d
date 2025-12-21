@@ -46,12 +46,16 @@ export const useFamilyMealPlan = (userId: string | undefined) => {
   const { family, members, isLoading: familyLoading } = useFamily(userId);
 
   // Memoize member name map to prevent infinite re-renders
-  const memberNameMap = useMemo(() => new Map(
-    members.map(m => [
-      m.user_id, 
-      m.profile?.display_name || m.profile?.email?.split('@')[0] || 'Miembro'
-    ])
-  ), [members]);
+  const memberNameMap = useMemo(() => {
+    const map = new Map<string, string>();
+    members.forEach(m => {
+      map.set(
+        m.user_id, 
+        m.profile?.display_name || m.profile?.email?.split('@')[0] || 'Miembro'
+      );
+    });
+    return map;
+  }, [members]);
 
   const loadFamilyMealPlan = useCallback(async () => {
     if (!userId || !family) {
@@ -71,9 +75,13 @@ export const useFamilyMealPlan = (userId: string | undefined) => {
         .eq('is_family_plan', true)
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
-      if (planError || !planData) {
+      if (planError) {
+        throw planError;
+      }
+
+      if (!planData) {
         setMealPlan(null);
         setLoading(false);
         return;
@@ -105,7 +113,7 @@ export const useFamilyMealPlan = (userId: string | undefined) => {
             const mealAdaptations = adaptationsMap.get(adaptation.meal_id) || [];
             mealAdaptations.push({
               ...adaptation,
-              member_name: memberNameMap.get(adaptation.member_user_id),
+              member_name: undefined, // Will be resolved later
             });
             adaptationsMap.set(adaptation.meal_id, mealAdaptations);
           }
@@ -193,6 +201,7 @@ export const useFamilyMealPlan = (userId: string | undefined) => {
     hasFamilyMealPlan,
     hasFamily: !!family,
     membersCount: members.length,
+    memberNameMap,
     loadFamilyMealPlan,
     generateFamilyMealPlan,
     getBestMatchForMeal,
