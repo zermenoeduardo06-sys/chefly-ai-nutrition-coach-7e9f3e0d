@@ -12,7 +12,8 @@ import {
   HelpCircle,
   UtensilsCrossed,
   Shield,
-  Home
+  Home,
+  UsersRound
 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
@@ -23,6 +24,7 @@ import { useEffect, useState } from "react";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useSubscription } from "@/hooks/useSubscription";
 import { motion } from "framer-motion";
+import { JoinFamilyDialog } from "@/components/family/JoinFamilyDialog";
 
 interface MenuItem {
   icon: React.ElementType;
@@ -42,6 +44,7 @@ export function ProfileMenuLinks() {
   const { hasRole: isAdmin } = useUserRole("admin");
   const [isAffiliate, setIsAffiliate] = useState(false);
   const [userId, setUserId] = useState<string | undefined>(undefined);
+  const [showJoinFamilyDialog, setShowJoinFamilyDialog] = useState(false);
   const subscription = useSubscription(userId);
 
   useEffect(() => {
@@ -83,6 +86,8 @@ export function ProfileMenuLinks() {
     }
   };
 
+  const hasFamily = subscription.is_chefly_family || subscription.is_family_member || subscription.has_family;
+
   const menuSections: { title: string; items: MenuItem[] }[] = [
     {
       title: t("profile.menuSection.activity"),
@@ -97,7 +102,7 @@ export function ProfileMenuLinks() {
       title: t("profile.menuSection.account"),
       items: [
         { icon: CreditCard, labelKey: "sidebar.subscription", path: "/subscription", iconColor: "text-purple-500", iconBg: "bg-purple-500/10" },
-        ...(subscription.is_chefly_family || subscription.is_family_member || subscription.has_family ? [{ 
+        ...(hasFamily ? [{ 
           icon: Home, 
           labelKey: "sidebar.family", 
           path: "/family", 
@@ -106,7 +111,13 @@ export function ProfileMenuLinks() {
           badge: subscription.is_family_owner 
             ? (language === "es" ? "Admin" : "Admin")
             : (language === "es" ? "Miembro" : "Member")
-        }] : []),
+        }] : [{ 
+          icon: UsersRound, 
+          labelKey: "sidebar.joinFamily",
+          onClick: () => setShowJoinFamilyDialog(true),
+          iconColor: "text-violet-500", 
+          iconBg: "bg-violet-500/10"
+        }]),
         { icon: UtensilsCrossed, labelKey: "sidebar.preferences", path: "/preferences", iconColor: "text-cyan-500", iconBg: "bg-cyan-500/10" },
         { icon: Settings, labelKey: "sidebar.settings", path: "/dashboard/settings", iconColor: "text-slate-500", iconBg: "bg-slate-500/10" },
         ...(isAffiliate ? [{ icon: DollarSign, labelKey: "sidebar.affiliates", path: "/affiliates", iconColor: "text-emerald-500", iconBg: "bg-emerald-500/10" }] : []),
@@ -123,79 +134,89 @@ export function ProfileMenuLinks() {
   ];
 
   return (
-    <div className="space-y-5">
-      {menuSections.map((section, sectionIndex) => (
-        <motion.div 
-          key={sectionIndex} 
-          className="space-y-2"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 + sectionIndex * 0.1 }}
-        >
-          <h3 className="text-sm font-semibold text-muted-foreground px-1 uppercase tracking-wide">
-            {section.title}
-          </h3>
-          <div className="bg-card rounded-2xl border-2 border-border overflow-hidden divide-y divide-border">
-            {section.items.map((item, itemIndex) => {
-              const content = (
-                <motion.div
-                  whileHover={{ x: 4 }}
-                  whileTap={{ scale: 0.98 }}
-                  className={cn(
-                    "flex items-center justify-between px-4 py-4 transition-all",
-                    item.variant === "destructive" 
-                      ? "hover:bg-destructive/5" 
-                      : "hover:bg-muted/50"
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={cn(
-                      "p-2.5 rounded-xl",
-                      item.iconBg || "bg-muted"
-                    )}>
-                      <item.icon className={cn("h-5 w-5", item.iconColor || "text-foreground")} />
-                    </div>
-                    <span className={cn(
-                      "font-medium text-base",
-                      item.variant === "destructive" && "text-destructive"
-                    )}>
-                      {t(item.labelKey as any)}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {item.badge && (
-                      <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded-full font-semibold">
-                        {item.badge}
+    <>
+      <div className="space-y-5">
+        {menuSections.map((section, sectionIndex) => (
+          <motion.div 
+            key={sectionIndex} 
+            className="space-y-2"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 + sectionIndex * 0.1 }}
+          >
+            <h3 className="text-sm font-semibold text-muted-foreground px-1 uppercase tracking-wide">
+              {section.title}
+            </h3>
+            <div className="bg-card rounded-2xl border-2 border-border overflow-hidden divide-y divide-border">
+              {section.items.map((item, itemIndex) => {
+                const content = (
+                  <motion.div
+                    whileHover={{ x: 4 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={cn(
+                      "flex items-center justify-between px-4 py-4 transition-all",
+                      item.variant === "destructive" 
+                        ? "hover:bg-destructive/5" 
+                        : "hover:bg-muted/50"
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={cn(
+                        "p-2.5 rounded-xl",
+                        item.iconBg || "bg-muted"
+                      )}>
+                        <item.icon className={cn("h-5 w-5", item.iconColor || "text-foreground")} />
+                      </div>
+                      <span className={cn(
+                        "font-medium text-base",
+                        item.variant === "destructive" && "text-destructive"
+                      )}>
+                        {t(item.labelKey as any)}
                       </span>
-                    )}
-                    {item.path && (
-                      <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                    )}
-                  </div>
-                </motion.div>
-              );
-
-              if (item.path) {
-                return (
-                  <Link key={itemIndex} to={item.path} className="block">
-                    {content}
-                  </Link>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {item.badge && (
+                        <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded-full font-semibold">
+                          {item.badge}
+                        </span>
+                      )}
+                      {(item.path || item.onClick) && (
+                        <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                      )}
+                    </div>
+                  </motion.div>
                 );
-              }
 
-              return (
-                <button 
-                  key={itemIndex} 
-                  onClick={item.onClick} 
-                  className="w-full text-left"
-                >
-                  {content}
-                </button>
-              );
-            })}
-          </div>
-        </motion.div>
-      ))}
-    </div>
+                if (item.path) {
+                  return (
+                    <Link key={itemIndex} to={item.path} className="block">
+                      {content}
+                    </Link>
+                  );
+                }
+
+                return (
+                  <button 
+                    key={itemIndex} 
+                    onClick={item.onClick} 
+                    className="w-full text-left"
+                  >
+                    {content}
+                  </button>
+                );
+              })}
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      <JoinFamilyDialog
+        open={showJoinFamilyDialog}
+        onOpenChange={setShowJoinFamilyDialog}
+        onSuccess={() => {
+          subscription.checkSubscription();
+        }}
+      />
+    </>
   );
 }
