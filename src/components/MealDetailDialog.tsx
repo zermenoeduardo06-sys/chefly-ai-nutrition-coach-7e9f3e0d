@@ -9,6 +9,17 @@ import jsPDF from "jspdf";
 import { useToast } from "@/hooks/use-toast";
 import { usePDFExport } from "@/hooks/usePDFExport";
 import { StepByStepDialog } from "./StepByStepDialog";
+import { MealMemberAdaptations } from "./family/MealMemberAdaptations";
+
+interface MealAdaptation {
+  id: string;
+  member_user_id: string;
+  member_name?: string;
+  adaptation_score: number;
+  adaptation_notes: string;
+  variant_instructions: string;
+  is_best_match: boolean;
+}
 
 interface Meal {
   id: string;
@@ -23,6 +34,7 @@ interface Meal {
   carbs?: number;
   fats?: number;
   image_url?: string;
+  adaptations?: MealAdaptation[];
 }
 
 interface MealDetailDialogProps {
@@ -31,6 +43,7 @@ interface MealDetailDialogProps {
   onOpenChange: (open: boolean) => void;
   onSwapMeal?: (mealId: string) => void;
   canSwap?: boolean;
+  isFamilyPlan?: boolean;
 }
 
 export function MealDetailDialog({ 
@@ -38,7 +51,8 @@ export function MealDetailDialog({
   open, 
   onOpenChange, 
   onSwapMeal,
-  canSwap = true
+  canSwap = true,
+  isFamilyPlan = false
 }: MealDetailDialogProps) {
   const { t, language } = useLanguage();
   const { toast } = useToast();
@@ -403,6 +417,14 @@ export function MealDetailDialog({
           </div>
 
           <Separator className="my-4" />
+
+          {/* Family Adaptations */}
+          {isFamilyPlan && meal.adaptations && meal.adaptations.length > 0 && (
+            <>
+              <MealMemberAdaptations adaptations={meal.adaptations} />
+              <Separator className="my-4" />
+            </>
+          )}
 
           {/* Beneficios */}
           <div className="bg-primary/5 border border-primary/10 rounded-xl p-3">

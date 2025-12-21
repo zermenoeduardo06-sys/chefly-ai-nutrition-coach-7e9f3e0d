@@ -9,6 +9,17 @@ import { MealImageWithSkeleton } from "@/components/MealImageWithSkeleton";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
 import { useHaptics } from "@/hooks/useHaptics";
+import { MealBestMatchBadge } from "@/components/family/MealMemberAdaptations";
+
+interface MealAdaptation {
+  id: string;
+  member_user_id: string;
+  member_name?: string;
+  adaptation_score: number;
+  adaptation_notes: string;
+  variant_instructions: string;
+  is_best_match: boolean;
+}
 
 interface Meal {
   id: string;
@@ -24,6 +35,7 @@ interface Meal {
   carbs?: number;
   fats?: number;
   image_url?: string;
+  adaptations?: MealAdaptation[];
 }
 
 interface SwipeableMealCardProps {
@@ -33,6 +45,7 @@ interface SwipeableMealCardProps {
   onComplete: (mealId: string) => void;
   onClick: () => void;
   isFirstMeal?: boolean;
+  isFamilyPlan?: boolean;
 }
 
 const SWIPE_THRESHOLD = 100;
@@ -44,6 +57,7 @@ export const SwipeableMealCard = ({
   onComplete,
   onClick,
   isFirstMeal = false,
+  isFamilyPlan = false,
 }: SwipeableMealCardProps) => {
   const { t } = useLanguage();
   const { mediumImpact } = useHaptics();
@@ -169,6 +183,14 @@ export const SwipeableMealCard = ({
               <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-1" />
             </div>
             <Separator />
+            
+            {/* Family adaptation badge */}
+            {isFamilyPlan && meal.adaptations && meal.adaptations.length > 0 && (
+              <div className="pb-1">
+                <MealBestMatchBadge adaptations={meal.adaptations} />
+              </div>
+            )}
+            
             <div className="flex items-start gap-2 mb-3">
               {isCompleted ? (
                 <>
