@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Trash2, Flame, Beef, Wheat, Droplets, Calendar, Camera, Sparkles, Leaf } from 'lucide-react';
+import { ArrowLeft, Trash2, Flame, Beef, Wheat, Droplets, Calendar, Camera, Sparkles, Leaf, ChevronDown, Clock, TrendingUp, Utensils, Plus, Zap } from 'lucide-react';
 import { format } from 'date-fns';
 import { es, enUS } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -19,6 +19,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { FoodScanner } from '@/components/FoodScanner';
+import cheflyMascot from '@/assets/chefly-mascot.png';
 
 interface FoodScan {
   id: string;
@@ -46,14 +47,14 @@ const FoodHistory = () => {
   const { toast } = useToast();
 
   const t = {
-    title: language === 'es' ? 'Historial de Escaneos' : 'Scan History',
-    subtitle: language === 'es' ? 'Tu registro nutricional diario' : 'Your daily nutrition log',
+    title: language === 'es' ? 'Mi Historial' : 'My History',
+    subtitle: language === 'es' ? 'Registro nutricional' : 'Nutrition log',
     back: language === 'es' ? 'Volver' : 'Back',
     noScans: language === 'es' ? '¡Comienza a escanear!' : 'Start scanning!',
     noScansDesc: language === 'es' 
-      ? 'Escanea tu comida para llevar un registro de tus calorías y nutrientes'
-      : 'Scan your food to track your calories and nutrients',
-    scanNow: language === 'es' ? 'Escanear Comida' : 'Scan Food',
+      ? 'Escanea tu comida para llevar un registro de tus calorías y macros'
+      : 'Scan your food to track your calories and macros',
+    scanNow: language === 'es' ? 'Escanear Ahora' : 'Scan Now',
     delete: language === 'es' ? 'Eliminar' : 'Delete',
     deleteTitle: language === 'es' ? '¿Eliminar escaneo?' : 'Delete scan?',
     deleteDesc: language === 'es' 
@@ -63,7 +64,13 @@ const FoodHistory = () => {
     deleted: language === 'es' ? 'Escaneo eliminado' : 'Scan deleted',
     today: language === 'es' ? 'Hoy' : 'Today',
     yesterday: language === 'es' ? 'Ayer' : 'Yesterday',
-    totalToday: language === 'es' ? 'Total de Hoy' : "Today's Total",
+    totalToday: language === 'es' ? 'Consumo de Hoy' : "Today's Intake",
+    meals: language === 'es' ? 'comidas' : 'meals',
+    protein: language === 'es' ? 'Proteína' : 'Protein',
+    carbs: language === 'es' ? 'Carbos' : 'Carbs',
+    fat: language === 'es' ? 'Grasa' : 'Fat',
+    fiber: language === 'es' ? 'Fibra' : 'Fiber',
+    viewMore: language === 'es' ? 'Ver más' : 'View more',
   };
 
   useEffect(() => {
@@ -156,68 +163,136 @@ const FoodHistory = () => {
     return groups;
   };
 
+  const getConfidenceBadge = (confidence: string) => {
+    switch (confidence) {
+      case 'high': return { color: 'bg-emerald-500', text: language === 'es' ? 'Alta' : 'High' };
+      case 'medium': return { color: 'bg-amber-500', text: language === 'es' ? 'Media' : 'Medium' };
+      case 'low': return { color: 'bg-red-500', text: language === 'es' ? 'Baja' : 'Low' };
+      default: return { color: 'bg-muted', text: confidence };
+    }
+  };
+
   const todayStats = getTodayStats();
 
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-12 w-12 rounded-full border-4 border-primary/30 border-t-primary animate-spin" />
-          <span className="text-muted-foreground text-sm">Cargando...</span>
+        <div className="flex flex-col items-center gap-4">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+            className="h-14 w-14 rounded-full border-[3px] border-primary/20 border-t-primary"
+          />
+          <span className="text-muted-foreground text-sm font-medium">Cargando historial...</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary/5 via-background to-background pb-28">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-gradient-to-br from-primary via-primary to-orange-500 pt-safe-top">
-        <div className="p-4 pb-6">
-          <div className="flex items-center gap-3 mb-4">
+    <div className="min-h-screen bg-background pb-28">
+      {/* Premium Header */}
+      <div className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/95 to-orange-500">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.15),transparent_50%)]" />
+          <motion.div 
+            className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"
+            animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.4, 0.2] }}
+            transition={{ duration: 4, repeat: Infinity }}
+          />
+          <motion.div 
+            className="absolute bottom-0 left-10 w-32 h-32 bg-orange-400/20 rounded-full blur-2xl"
+            animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.5, 0.3] }}
+            transition={{ duration: 3, repeat: Infinity, delay: 1 }}
+          />
+        </div>
+        
+        {/* Wave decoration */}
+        <div className="absolute bottom-0 left-0 right-0 h-6 z-10">
+          <svg viewBox="0 0 1440 54" fill="none" preserveAspectRatio="none" className="w-full h-full">
+            <path d="M0 54V0C240 40 480 50 720 45C960 40 1200 20 1440 0V54H0Z" className="fill-background" />
+          </svg>
+        </div>
+
+        <div className="relative z-10 pt-safe-top px-4 pb-8">
+          {/* Nav */}
+          <div className="flex items-center justify-between py-3">
             <Button 
               variant="ghost" 
               size="icon" 
               onClick={() => navigate(-1)}
-              className="text-white hover:bg-white/20"
+              className="text-white hover:bg-white/20 rounded-xl"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-white/80 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 font-medium flex items-center gap-1">
+                <Zap className="h-3 w-3" />
+                AI Scanner
+              </span>
+            </div>
+          </div>
+
+          {/* Title Section */}
+          <div className="flex items-center gap-4 mt-2">
+            <motion.div 
+              className="relative"
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: "spring", stiffness: 200, damping: 15 }}
+            >
+              <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
+                <img src={cheflyMascot} alt="Chefly" className="h-10 w-10 object-contain" />
+              </div>
+            </motion.div>
             <div>
-              <h1 className="text-xl font-bold text-white">{t.title}</h1>
+              <h1 className="text-2xl font-bold text-white">{t.title}</h1>
               <p className="text-white/70 text-sm">{t.subtitle}</p>
             </div>
           </div>
 
-          {/* Today's Stats Summary */}
+          {/* Today's Stats Summary Card */}
           {todayStats.count > 0 && (
             <motion.div 
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-white/10 backdrop-blur-sm rounded-2xl p-4"
+              transition={{ delay: 0.2 }}
+              className="mt-5 bg-white/15 backdrop-blur-md rounded-2xl p-4 border border-white/10"
             >
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-white/80 text-sm font-medium">{t.totalToday}</span>
-                <span className="bg-white/20 text-white text-xs px-2 py-0.5 rounded-full">
-                  {todayStats.count} {language === 'es' ? 'comidas' : 'meals'}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-white/80" />
+                  <span className="text-white/90 text-sm font-semibold">{t.totalToday}</span>
+                </div>
+                <span className="bg-white/25 text-white text-xs px-2.5 py-1 rounded-full font-medium">
+                  {todayStats.count} {t.meals}
                 </span>
               </div>
-              <div className="grid grid-cols-4 gap-3">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-white">{todayStats.calories}</div>
-                  <div className="text-white/60 text-xs">kcal</div>
+              
+              {/* Calories Hero */}
+              <div className="flex items-center gap-4 mb-4">
+                <div className="p-2.5 bg-white/20 rounded-xl">
+                  <Flame className="h-6 w-6 text-white" />
                 </div>
-                <div className="text-center">
-                  <div className="text-xl font-bold text-white">{todayStats.protein}g</div>
-                  <div className="text-white/60 text-xs">Prot</div>
+                <div>
+                  <div className="text-3xl font-black text-white">{todayStats.calories}</div>
+                  <div className="text-white/60 text-xs">kcal consumidas</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-xl font-bold text-white">{todayStats.carbs}g</div>
-                  <div className="text-white/60 text-xs">Carbs</div>
+              </div>
+
+              {/* Macros */}
+              <div className="grid grid-cols-3 gap-2">
+                <div className="bg-white/10 rounded-xl p-2.5 text-center">
+                  <div className="text-lg font-bold text-white">{todayStats.protein}g</div>
+                  <div className="text-white/50 text-[10px] uppercase tracking-wider">{t.protein}</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-xl font-bold text-white">{todayStats.fat}g</div>
-                  <div className="text-white/60 text-xs">Grasa</div>
+                <div className="bg-white/10 rounded-xl p-2.5 text-center">
+                  <div className="text-lg font-bold text-white">{todayStats.carbs}g</div>
+                  <div className="text-white/50 text-[10px] uppercase tracking-wider">{t.carbs}</div>
+                </div>
+                <div className="bg-white/10 rounded-xl p-2.5 text-center">
+                  <div className="text-lg font-bold text-white">{todayStats.fat}g</div>
+                  <div className="text-white/50 text-[10px] uppercase tracking-wider">{t.fat}</div>
                 </div>
               </div>
             </motion.div>
@@ -225,26 +300,32 @@ const FoodHistory = () => {
         </div>
       </div>
 
-      <div className="p-4 space-y-6">
+      <div className="px-4 py-2 space-y-5">
         {scans.length === 0 ? (
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             className="text-center py-16"
           >
-            <div className="w-24 h-24 mx-auto bg-gradient-to-br from-primary/20 to-orange-500/20 rounded-full flex items-center justify-center mb-6">
-              <Camera className="h-12 w-12 text-primary" />
-            </div>
-            <h2 className="text-xl font-bold mb-2">{t.noScans}</h2>
-            <p className="text-muted-foreground text-sm mb-8 max-w-xs mx-auto">{t.noScansDesc}</p>
-            <Button 
-              onClick={() => setShowScanner(true)} 
-              size="lg"
-              className="gap-2 rounded-xl shadow-lg"
+            <motion.div 
+              className="w-28 h-28 mx-auto bg-gradient-to-br from-primary/20 via-primary/10 to-orange-500/20 rounded-3xl flex items-center justify-center mb-6 shadow-inner"
+              animate={{ y: [0, -8, 0] }}
+              transition={{ duration: 2.5, repeat: Infinity }}
             >
-              <Sparkles className="h-5 w-5" />
-              {t.scanNow}
-            </Button>
+              <Camera className="h-14 w-14 text-primary" />
+            </motion.div>
+            <h2 className="text-xl font-bold mb-2 text-foreground">{t.noScans}</h2>
+            <p className="text-muted-foreground text-sm mb-8 max-w-xs mx-auto leading-relaxed">{t.noScansDesc}</p>
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button 
+                onClick={() => setShowScanner(true)} 
+                size="lg"
+                className="gap-2 rounded-2xl shadow-xl px-8 h-14 font-bold bg-gradient-to-r from-primary to-orange-500"
+              >
+                <Sparkles className="h-5 w-5" />
+                {t.scanNow}
+              </Button>
+            </motion.div>
           </motion.div>
         ) : (
           <AnimatePresence>
@@ -257,123 +338,176 @@ const FoodHistory = () => {
                 className="space-y-3"
               >
                 {/* Date Header */}
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 bg-primary/10 rounded-lg">
+                <div className="flex items-center gap-3 px-1">
+                  <div className="p-2 bg-primary/10 rounded-xl">
                     <Calendar className="h-4 w-4 text-primary" />
                   </div>
-                  <span className="text-sm font-semibold text-foreground capitalize">
+                  <span className="text-sm font-bold text-foreground capitalize">
                     {formatDateHeader(dateKey)}
                   </span>
-                  <div className="flex-1 h-px bg-border/50" />
+                  <div className="flex-1 h-px bg-gradient-to-r from-border/50 to-transparent" />
+                  <span className="text-xs text-muted-foreground bg-muted rounded-full px-2 py-0.5">
+                    {dateScans.length}
+                  </span>
                 </div>
                 
                 {/* Scan Cards */}
-                {dateScans.map((scan, idx) => (
-                  <motion.div
-                    key={scan.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 100 }}
-                    transition={{ delay: idx * 0.05 }}
-                    onClick={() => setExpandedId(expandedId === scan.id ? null : scan.id)}
-                    className="cursor-pointer"
-                  >
-                    <div className="bg-card rounded-2xl overflow-hidden shadow-sm border border-border/50 hover:shadow-md transition-shadow">
-                      <div className="flex gap-0">
-                        {/* Image */}
-                        {scan.image_url ? (
-                          <div className="w-28 h-28 flex-shrink-0 relative">
-                            <img 
-                              src={scan.image_url} 
-                              alt={scan.dish_name}
-                              className="w-full h-full object-cover"
-                            />
-                            <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-sm text-white text-xs px-2 py-0.5 rounded-full">
+                <div className="space-y-3">
+                  {dateScans.map((scan, idx) => (
+                    <motion.div
+                      key={scan.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 100 }}
+                      transition={{ delay: idx * 0.05 }}
+                      layout
+                    >
+                      <div 
+                        className="bg-card rounded-2xl overflow-hidden shadow-sm border border-border/50 hover:shadow-lg hover:border-primary/20 transition-all duration-300"
+                        onClick={() => setExpandedId(expandedId === scan.id ? null : scan.id)}
+                      >
+                        <div className="flex gap-0">
+                          {/* Image Section */}
+                          <div className="relative w-28 h-28 flex-shrink-0">
+                            {scan.image_url ? (
+                              <>
+                                <img 
+                                  src={scan.image_url} 
+                                  alt={scan.dish_name}
+                                  className="w-full h-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                              </>
+                            ) : (
+                              <div className="w-full h-full bg-gradient-to-br from-primary/10 to-orange-500/10 flex items-center justify-center">
+                                <Utensils className="h-8 w-8 text-primary/30" />
+                              </div>
+                            )}
+                            {/* Time Badge */}
+                            <div className="absolute bottom-2 left-2 bg-black/70 backdrop-blur-sm text-white text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1">
+                              <Clock className="h-2.5 w-2.5" />
                               {format(new Date(scan.scanned_at), 'HH:mm')}
                             </div>
                           </div>
-                        ) : (
-                          <div className="w-28 h-28 flex-shrink-0 bg-gradient-to-br from-primary/10 to-orange-500/10 flex items-center justify-center">
-                            <Camera className="h-8 w-8 text-primary/40" />
-                          </div>
-                        )}
-                        
-                        {/* Content */}
-                        <div className="flex-1 p-3 min-w-0">
-                          <div className="flex justify-between items-start gap-2">
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-semibold text-sm line-clamp-1 text-card-foreground">{scan.dish_name}</h3>
-                              {scan.foods_identified && scan.foods_identified.length > 0 && (
-                                <p className="text-xs text-muted-foreground line-clamp-1">
-                                  {scan.foods_identified.slice(0, 3).join(', ')}
-                                </p>
-                              )}
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 flex-shrink-0"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setDeleteId(scan.id);
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
                           
-                          {/* Nutrition Grid */}
-                          <div className="grid grid-cols-4 gap-2 mt-3">
-                            <div className="bg-orange-500/10 dark:bg-orange-500/20 rounded-lg p-1.5 text-center">
-                              <Flame className="h-3 w-3 mx-auto text-orange-500" />
-                              <div className="text-xs font-bold text-orange-500 dark:text-orange-400">{scan.calories}</div>
+                          {/* Content Section */}
+                          <div className="flex-1 p-3 min-w-0 flex flex-col">
+                            <div className="flex justify-between items-start gap-2">
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-bold text-sm line-clamp-1 text-foreground">{scan.dish_name}</h3>
+                                {scan.foods_identified && scan.foods_identified.length > 0 && (
+                                  <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
+                                    {scan.foods_identified.slice(0, 3).join(' • ')}
+                                  </p>
+                                )}
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 flex-shrink-0 rounded-lg"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeleteId(scan.id);
+                                }}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
                             </div>
-                            <div className="bg-red-500/10 dark:bg-red-500/20 rounded-lg p-1.5 text-center">
-                              <Beef className="h-3 w-3 mx-auto text-red-500" />
-                              <div className="text-xs font-bold text-red-500 dark:text-red-400">{scan.protein}g</div>
-                            </div>
-                            <div className="bg-amber-500/10 dark:bg-amber-500/20 rounded-lg p-1.5 text-center">
-                              <Wheat className="h-3 w-3 mx-auto text-amber-500" />
-                              <div className="text-xs font-bold text-amber-500 dark:text-amber-400">{scan.carbs}g</div>
-                            </div>
-                            <div className="bg-blue-500/10 dark:bg-blue-500/20 rounded-lg p-1.5 text-center">
-                              <Droplets className="h-3 w-3 mx-auto text-blue-500" />
-                              <div className="text-xs font-bold text-blue-500 dark:text-blue-400">{scan.fat}g</div>
+                            
+                            {/* Nutrition Pills */}
+                            <div className="flex items-center gap-1.5 mt-auto pt-2">
+                              <div className="flex items-center gap-1 bg-orange-500/15 text-orange-600 dark:text-orange-400 rounded-lg px-2 py-1">
+                                <Flame className="h-3 w-3" />
+                                <span className="text-xs font-bold">{scan.calories}</span>
+                              </div>
+                              <div className="flex items-center gap-1 bg-red-500/15 text-red-600 dark:text-red-400 rounded-lg px-2 py-1">
+                                <span className="text-xs font-bold">{scan.protein}g</span>
+                              </div>
+                              <div className="flex items-center gap-1 bg-amber-500/15 text-amber-600 dark:text-amber-400 rounded-lg px-2 py-1">
+                                <span className="text-xs font-bold">{scan.carbs}g</span>
+                              </div>
+                              <div className="flex items-center gap-1 bg-blue-500/15 text-blue-600 dark:text-blue-400 rounded-lg px-2 py-1">
+                                <span className="text-xs font-bold">{scan.fat}g</span>
+                              </div>
+                              <motion.div
+                                animate={{ rotate: expandedId === scan.id ? 180 : 0 }}
+                                className="ml-auto"
+                              >
+                                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                              </motion.div>
                             </div>
                           </div>
                         </div>
-                      </div>
 
-                      {/* Expanded Details */}
-                      <AnimatePresence>
-                        {expandedId === scan.id && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            className="overflow-hidden"
-                          >
-                            <div className="px-4 pb-4 pt-2 border-t border-border/50 space-y-3">
-                              {scan.fiber > 0 && (
-                                <div className="flex items-center gap-2">
-                                  <Leaf className="h-4 w-4 text-green-500" />
-                                  <span className="text-sm text-muted-foreground">
-                                    {language === 'es' ? 'Fibra' : 'Fiber'}: <strong>{scan.fiber}g</strong>
-                                  </span>
-                                </div>
-                              )}
-                              {scan.notes && (
-                                <div className="bg-amber-500/10 dark:bg-amber-500/20 rounded-xl p-3 text-sm text-amber-700 dark:text-amber-300">
-                                  {scan.notes}
-                                </div>
-                              )}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  </motion.div>
-                ))}
+                        {/* Expanded Details */}
+                        <AnimatePresence>
+                          {expandedId === scan.id && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="px-4 pb-4 pt-2 border-t border-border/50 space-y-3">
+                                {/* Confidence Badge */}
+                                {scan.confidence && (
+                                  <div className="flex items-center gap-2">
+                                    <span className={`text-[10px] text-white font-bold px-2 py-0.5 rounded-full ${getConfidenceBadge(scan.confidence).color}`}>
+                                      {getConfidenceBadge(scan.confidence).text}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {language === 'es' ? 'Precisión del análisis' : 'Analysis accuracy'}
+                                    </span>
+                                  </div>
+                                )}
+
+                                {/* Fiber */}
+                                {scan.fiber > 0 && (
+                                  <div className="flex items-center gap-2 bg-green-500/10 rounded-xl p-2.5">
+                                    <Leaf className="h-4 w-4 text-green-500" />
+                                    <span className="text-sm text-green-700 dark:text-green-400">
+                                      {t.fiber}: <strong>{scan.fiber}g</strong>
+                                    </span>
+                                  </div>
+                                )}
+
+                                {/* Notes */}
+                                {scan.notes && (
+                                  <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 rounded-xl p-3 border border-amber-200/50 dark:border-amber-800/50">
+                                    <div className="text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider mb-1">
+                                      {language === 'es' ? 'Notas del análisis' : 'Analysis notes'}
+                                    </div>
+                                    <p className="text-sm text-amber-800 dark:text-amber-200 leading-relaxed">{scan.notes}</p>
+                                  </div>
+                                )}
+
+                                {/* All Foods */}
+                                {scan.foods_identified && scan.foods_identified.length > 0 && (
+                                  <div>
+                                    <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">
+                                      {language === 'es' ? 'Ingredientes detectados' : 'Detected ingredients'}
+                                    </div>
+                                    <div className="flex flex-wrap gap-1.5">
+                                      {scan.foods_identified.map((food, i) => (
+                                        <span 
+                                          key={i}
+                                          className="bg-primary/10 text-primary text-xs px-2.5 py-1 rounded-full font-medium"
+                                        >
+                                          {food}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
               </motion.div>
             ))}
           </AnimatePresence>
@@ -383,29 +517,37 @@ const FoodHistory = () => {
       {/* FAB for new scan */}
       {scans.length > 0 && (
         <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
+          initial={{ scale: 0, rotate: -180 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.3 }}
           className="fixed bottom-24 right-4 z-20"
         >
-          <Button
-            onClick={() => setShowScanner(true)}
-            className="h-14 w-14 rounded-full shadow-lg bg-gradient-to-br from-primary to-orange-500 hover:from-primary/90 hover:to-orange-500/90"
-            size="icon"
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            <Camera className="h-6 w-6" />
-          </Button>
+            <Button
+              onClick={() => setShowScanner(true)}
+              className="h-14 w-14 rounded-2xl shadow-2xl bg-gradient-to-br from-primary to-orange-500 hover:from-primary/90 hover:to-orange-500/90 border-0"
+              size="icon"
+            >
+              <Plus className="h-7 w-7" />
+            </Button>
+          </motion.div>
+          {/* Pulse ring */}
+          <div className="absolute inset-0 rounded-2xl bg-primary/30 animate-ping pointer-events-none" style={{ animationDuration: '2s' }} />
         </motion.div>
       )}
 
       {/* Delete Dialog */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent className="rounded-2xl">
+        <AlertDialogContent className="rounded-2xl border-0 shadow-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>{t.deleteTitle}</AlertDialogTitle>
+            <AlertDialogTitle className="text-lg">{t.deleteTitle}</AlertDialogTitle>
             <AlertDialogDescription>{t.deleteDesc}</AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-xl">{t.cancel}</AlertDialogCancel>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel className="rounded-xl border-2">{t.cancel}</AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleDelete} 
               className="bg-destructive text-destructive-foreground rounded-xl"
