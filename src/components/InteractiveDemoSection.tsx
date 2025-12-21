@@ -7,44 +7,49 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { ChevronRight, Sparkles, Loader2, Check, User, Target, Clock, Calendar, ChefHat, MessageCircle, RefreshCw } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
-const FLOW_STEPS = [
+const getFlowSteps = (language: string) => [
   {
     id: 'welcome',
-    title: 'Paso 1: Bienvenida',
-    description: 'Comenzamos conociendo tus objetivos',
+    title: language === 'es' ? 'Paso 1: Bienvenida' : 'Step 1: Welcome',
+    description: language === 'es' ? 'Comenzamos conociendo tus objetivos' : 'We start by knowing your goals',
     icon: User
   },
   {
     id: 'preferences',
-    title: 'Paso 2: Preferencias',
-    description: 'Personalizamos tu experiencia',
+    title: language === 'es' ? 'Paso 2: Preferencias' : 'Step 2: Preferences',
+    description: language === 'es' ? 'Personalizamos tu experiencia' : 'We personalize your experience',
     icon: Target
   },
   {
     id: 'generating',
-    title: 'Paso 3: Generación IA',
-    description: 'Creamos tu plan personalizado',
+    title: language === 'es' ? 'Paso 3: Generación IA' : 'Step 3: AI Generation',
+    description: language === 'es' ? 'Creamos tu plan personalizado' : 'We create your personalized plan',
     icon: Sparkles
   },
   {
     id: 'dashboard',
-    title: 'Paso 4: Tu Dashboard',
-    description: 'Accede a tu plan y características',
+    title: language === 'es' ? 'Paso 4: Tu Dashboard' : 'Step 4: Your Dashboard',
+    description: language === 'es' ? 'Accede a tu plan y características' : 'Access your plan and features',
     icon: ChefHat
   }
 ];
 
-const DEMO_MEALS = [
-  { name: "Avena con Frutos Rojos", calories: 320, time: "10 min", icon: "🌅" },
-  { name: "Pechuga a la Plancha con Quinoa", calories: 480, time: "25 min", icon: "🌞" },
-  { name: "Salmón al Horno con Vegetales", calories: 420, time: "30 min", icon: "🌙" }
+const getDemoMeals = (language: string) => [
+  { name: language === 'es' ? "Avena con Frutos Rojos" : "Oatmeal with Berries", calories: 320, time: "10 min", icon: "🌅" },
+  { name: language === 'es' ? "Pechuga a la Plancha con Quinoa" : "Grilled Chicken with Quinoa", calories: 480, time: "25 min", icon: "🌞" },
+  { name: language === 'es' ? "Salmón al Horno con Vegetales" : "Baked Salmon with Vegetables", calories: 420, time: "30 min", icon: "🌙" }
 ];
 
 export const InteractiveDemoSection = () => {
+  const { language } = useLanguage();
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
+  
+  const FLOW_STEPS = getFlowSteps(language);
+  const DEMO_MEALS = getDemoMeals(language);
 
   // Auto-advance the demo
   useEffect(() => {
@@ -92,16 +97,20 @@ export const InteractiveDemoSection = () => {
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-12 space-y-4">
           <Badge variant="secondary" className="px-4 py-2 text-sm">
-            Demo interactiva
+            {language === 'es' ? 'Demo interactiva' : 'Interactive Demo'}
           </Badge>
           <h2 className="text-4xl lg:text-5xl font-bold">
-            Descubre cómo funciona{" "}
+            {language === 'es' ? 'Descubre cómo funciona' : 'Discover how'}{" "}
             <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               Chefly.AI
             </span>
+            {language !== 'es' && ' works'}
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Sigue el flujo completo desde tu registro hasta tu primer plan de comidas personalizado
+            {language === 'es' 
+              ? 'Sigue el flujo completo desde tu registro hasta tu primer plan de comidas personalizado'
+              : 'Follow the complete flow from registration to your first personalized meal plan'
+            }
           </p>
         </div>
 
@@ -179,9 +188,14 @@ export const InteractiveDemoSection = () => {
                       <User className="w-10 h-10 text-primary-foreground" />
                     </div>
                     <div className="space-y-2">
-                      <h3 className="text-3xl font-bold">¡Bienvenido a Chefly.AI! 👋</h3>
+                      <h3 className="text-3xl font-bold">
+                        {language === 'es' ? '¡Bienvenido a Chefly.AI! 👋' : 'Welcome to Chefly.AI! 👋'}
+                      </h3>
                       <p className="text-muted-foreground text-lg">
-                        Tu asistente personal de nutrición con inteligencia artificial
+                        {language === 'es' 
+                          ? 'Tu asistente personal de nutrición con inteligencia artificial'
+                          : 'Your personal nutrition assistant powered by AI'
+                        }
                       </p>
                     </div>
                     <div className="w-full max-w-md space-y-4">
@@ -190,15 +204,15 @@ export const InteractiveDemoSection = () => {
                           <div className="space-y-3">
                             <div className="flex items-center gap-3">
                               <Check className="w-5 h-5 text-primary" />
-                              <span>Planes personalizados con IA</span>
+                              <span>{language === 'es' ? 'Planes personalizados con IA' : 'AI-personalized plans'}</span>
                             </div>
                             <div className="flex items-center gap-3">
                               <Check className="w-5 h-5 text-primary" />
-                              <span>Recetas adaptadas a tus gustos</span>
+                              <span>{language === 'es' ? 'Recetas adaptadas a tus gustos' : 'Recipes tailored to your tastes'}</span>
                             </div>
                             <div className="flex items-center gap-3">
                               <Check className="w-5 h-5 text-primary" />
-                              <span>Lista de compras automática</span>
+                              <span>{language === 'es' ? 'Lista de compras automática' : 'Automatic shopping list'}</span>
                             </div>
                           </div>
                         </CardContent>
@@ -219,65 +233,69 @@ export const InteractiveDemoSection = () => {
                 >
                   <div className="space-y-6">
                     <div className="text-center space-y-2">
-                      <h3 className="text-2xl font-bold">Personaliza tu experiencia</h3>
+                      <h3 className="text-2xl font-bold">
+                        {language === 'es' ? 'Personaliza tu experiencia' : 'Personalize your experience'}
+                      </h3>
                       <p className="text-muted-foreground">
-                        Cuéntanos sobre ti para crear el plan perfecto
+                        {language === 'es' ? 'Cuéntanos sobre ti para crear el plan perfecto' : 'Tell us about yourself to create the perfect plan'}
                       </p>
                     </div>
                     
                     <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
                       <div className="space-y-2">
-                        <label className="text-sm font-medium">Objetivo nutricional</label>
+                        <label className="text-sm font-medium">{language === 'es' ? 'Objetivo nutricional' : 'Nutrition goal'}</label>
                         <Select value="weight_loss" disabled>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecciona tu objetivo" />
+                            <SelectValue placeholder={language === 'es' ? 'Selecciona tu objetivo' : 'Select your goal'} />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="weight_loss">Pérdida de peso</SelectItem>
-                            <SelectItem value="muscle_gain">Ganancia muscular</SelectItem>
-                            <SelectItem value="maintenance">Mantenimiento</SelectItem>
+                            <SelectItem value="weight_loss">{language === 'es' ? 'Pérdida de peso' : 'Weight loss'}</SelectItem>
+                            <SelectItem value="muscle_gain">{language === 'es' ? 'Ganancia muscular' : 'Muscle gain'}</SelectItem>
+                            <SelectItem value="maintenance">{language === 'es' ? 'Mantenimiento' : 'Maintenance'}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-sm font-medium">Dieta preferida</label>
+                        <label className="text-sm font-medium">{language === 'es' ? 'Dieta preferida' : 'Preferred diet'}</label>
                         <Select value="balanced" disabled>
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="balanced">Balanceada</SelectItem>
-                            <SelectItem value="vegetarian">Vegetariana</SelectItem>
-                            <SelectItem value="vegan">Vegana</SelectItem>
+                            <SelectItem value="balanced">{language === 'es' ? 'Balanceada' : 'Balanced'}</SelectItem>
+                            <SelectItem value="vegetarian">{language === 'es' ? 'Vegetariana' : 'Vegetarian'}</SelectItem>
+                            <SelectItem value="vegan">{language === 'es' ? 'Vegana' : 'Vegan'}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-sm font-medium">Calorías diarias objetivo</label>
+                        <label className="text-sm font-medium">{language === 'es' ? 'Calorías diarias objetivo' : 'Daily calorie goal'}</label>
                         <Input type="number" value="2000" disabled />
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-sm font-medium">Nivel de actividad</label>
+                        <label className="text-sm font-medium">{language === 'es' ? 'Nivel de actividad' : 'Activity level'}</label>
                         <Select value="moderate" disabled>
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="sedentary">Sedentario</SelectItem>
-                            <SelectItem value="moderate">Moderado</SelectItem>
-                            <SelectItem value="active">Activo</SelectItem>
+                            <SelectItem value="sedentary">{language === 'es' ? 'Sedentario' : 'Sedentary'}</SelectItem>
+                            <SelectItem value="moderate">{language === 'es' ? 'Moderado' : 'Moderate'}</SelectItem>
+                            <SelectItem value="active">{language === 'es' ? 'Activo' : 'Active'}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
 
                       <div className="space-y-2 md:col-span-2">
-                        <label className="text-sm font-medium">Tiempo disponible para cocinar</label>
+                        <label className="text-sm font-medium">{language === 'es' ? 'Tiempo disponible para cocinar' : 'Available cooking time'}</label>
                         <div className="px-3">
                           <Slider value={[30]} max={120} disabled className="py-4" />
-                          <p className="text-xs text-muted-foreground text-center">30 minutos por comida</p>
+                          <p className="text-xs text-muted-foreground text-center">
+                            {language === 'es' ? '30 minutos por comida' : '30 minutes per meal'}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -310,18 +328,20 @@ export const InteractiveDemoSection = () => {
                     </motion.div>
                     
                     <div className="space-y-2">
-                      <h3 className="text-2xl font-bold">¡La magia está ocurriendo! ✨</h3>
+                      <h3 className="text-2xl font-bold">
+                        {language === 'es' ? '¡La magia está ocurriendo! ✨' : 'The magic is happening! ✨'}
+                      </h3>
                       <p className="text-muted-foreground">
-                        Nuestra IA está creando tu plan personalizado
+                        {language === 'es' ? 'Nuestra IA está creando tu plan personalizado' : 'Our AI is creating your personalized plan'}
                       </p>
                     </div>
 
                     <div className="w-full max-w-md space-y-4">
                       {[
-                        { text: "Analizando tus preferencias", delay: 0 },
-                        { text: "Calculando macronutrientes", delay: 0.5 },
-                        { text: "Seleccionando recetas perfectas", delay: 1 },
-                        { text: "Generando lista de compras", delay: 1.5 }
+                        { text: language === 'es' ? "Analizando tus preferencias" : "Analyzing your preferences", delay: 0 },
+                        { text: language === 'es' ? "Calculando macronutrientes" : "Calculating macros", delay: 0.5 },
+                        { text: language === 'es' ? "Seleccionando recetas perfectas" : "Selecting perfect recipes", delay: 1 },
+                        { text: language === 'es' ? "Generando lista de compras" : "Generating shopping list", delay: 1.5 }
                       ].map((item, idx) => (
                         <motion.div
                           key={idx}
@@ -355,9 +375,11 @@ export const InteractiveDemoSection = () => {
                 >
                   <div className="space-y-6">
                     <div className="text-center space-y-2">
-                      <h3 className="text-2xl font-bold">¡Tu plan está listo! 🎉</h3>
+                      <h3 className="text-2xl font-bold">
+                        {language === 'es' ? '¡Tu plan está listo! 🎉' : 'Your plan is ready! 🎉'}
+                      </h3>
                       <p className="text-muted-foreground">
-                        Aquí está tu dashboard personalizado
+                        {language === 'es' ? 'Aquí está tu dashboard personalizado' : 'Here is your personalized dashboard'}
                       </p>
                     </div>
 
@@ -367,10 +389,12 @@ export const InteractiveDemoSection = () => {
                       <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
                         <CardHeader>
                           <div className="flex items-center justify-between">
-                            <CardTitle className="text-lg">Plan de hoy - Lunes</CardTitle>
+                            <CardTitle className="text-lg">
+                              {language === 'es' ? 'Plan de hoy - Lunes' : "Today's Plan - Monday"}
+                            </CardTitle>
                             <Badge variant="outline" className="bg-primary/10">
                               <Calendar className="w-3 h-3 mr-1" />
-                              Día 1 de 7
+                              {language === 'es' ? 'Día 1 de 7' : 'Day 1 of 7'}
                             </Badge>
                           </div>
                         </CardHeader>
@@ -407,9 +431,9 @@ export const InteractiveDemoSection = () => {
                             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
                               <MessageCircle className="w-6 h-6 text-primary" />
                             </div>
-                            <h4 className="font-semibold">Chat con IA</h4>
+                            <h4 className="font-semibold">{language === 'es' ? 'Chat con IA' : 'AI Chat'}</h4>
                             <p className="text-xs text-muted-foreground">
-                              Pregunta sobre nutrición
+                              {language === 'es' ? 'Pregunta sobre nutrición' : 'Ask about nutrition'}
                             </p>
                           </CardContent>
                         </Card>
@@ -419,9 +443,9 @@ export const InteractiveDemoSection = () => {
                             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
                               <RefreshCw className="w-6 h-6 text-primary" />
                             </div>
-                            <h4 className="font-semibold">Cambiar comidas</h4>
+                            <h4 className="font-semibold">{language === 'es' ? 'Cambiar comidas' : 'Swap meals'}</h4>
                             <p className="text-xs text-muted-foreground">
-                              Intercambia recetas fácilmente
+                              {language === 'es' ? 'Intercambia recetas fácilmente' : 'Easily swap recipes'}
                             </p>
                           </CardContent>
                         </Card>
@@ -431,9 +455,9 @@ export const InteractiveDemoSection = () => {
                             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
                               <Target className="w-6 h-6 text-primary" />
                             </div>
-                            <h4 className="font-semibold">Progreso</h4>
+                            <h4 className="font-semibold">{language === 'es' ? 'Progreso' : 'Progress'}</h4>
                             <p className="text-xs text-muted-foreground">
-                              Sigue tus objetivos
+                              {language === 'es' ? 'Sigue tus objetivos' : 'Track your goals'}
                             </p>
                           </CardContent>
                         </Card>
@@ -464,7 +488,7 @@ export const InteractiveDemoSection = () => {
                       size="sm"
                       onClick={() => goToStep(currentStep - 1)}
                     >
-                      ← Anterior
+                      {language === 'es' ? '← Anterior' : '← Previous'}
                     </Button>
                   )}
                   {currentStep < FLOW_STEPS.length - 1 && (
@@ -473,7 +497,7 @@ export const InteractiveDemoSection = () => {
                       size="sm"
                       onClick={() => goToStep(currentStep + 1)}
                     >
-                      Siguiente →
+                      {language === 'es' ? 'Siguiente →' : 'Next →'}
                     </Button>
                   )}
                 </div>
@@ -489,12 +513,15 @@ export const InteractiveDemoSection = () => {
                       <>
                         <span className="w-2 h-2 bg-current" />
                         <span className="w-2 h-2 bg-current" />
-                        Pausar
+                        {language === 'es' ? 'Pausar' : 'Pause'}
                       </>
                     ) : (
                       <>
                         <Sparkles className="w-4 h-4" />
-                        {currentStep === 0 ? 'Iniciar Demo' : 'Reanudar'}
+                        {currentStep === 0 
+                          ? (language === 'es' ? 'Iniciar Demo' : 'Start Demo')
+                          : (language === 'es' ? 'Reanudar' : 'Resume')
+                        }
                       </>
                     )}
                   </Button>
@@ -504,7 +531,7 @@ export const InteractiveDemoSection = () => {
                     onClick={() => window.location.href = '/auth'}
                     className="gap-2"
                   >
-                    Empezar ahora
+                    {language === 'es' ? 'Empezar ahora' : 'Start now'}
                     <ChevronRight className="w-4 h-4" />
                   </Button>
                 </div>

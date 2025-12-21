@@ -412,7 +412,7 @@ const Chat = () => {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "No se pudo enviar el mensaje",
+        description: error.message || (language === "es" ? "No se pudo enviar el mensaje" : "Could not send message"),
       });
     } finally {
       setLoading(false);

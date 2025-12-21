@@ -474,7 +474,7 @@ export function FoodScanner({ open, onOpenChange }: FoodScannerProps) {
                           <Flame className="h-6 w-6 text-white" />
                         </div>
                         <div>
-                          <div className="text-white/80 text-xs font-medium uppercase tracking-wider">Calorías</div>
+                          <div className="text-white/80 text-xs font-medium uppercase tracking-wider">{language === 'es' ? 'Calorías' : 'Calories'}</div>
                           <div className="text-3xl font-black text-white">{result.nutrition.calories}</div>
                         </div>
                       </div>
