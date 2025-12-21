@@ -607,13 +607,50 @@ const Dashboard = () => {
         }
       }
 
-      // Get the most recent meal plan
-      const { data: plans, error: planError } = await supabase
-        .from("meal_plans")
-        .select("*")
+      // First check if user belongs to a family and has a family plan
+      const { data: familyMembership } = await supabase
+        .from("family_memberships")
+        .select("family_id")
         .eq("user_id", userId)
-        .order("created_at", { ascending: false })
-        .limit(1);
+        .maybeSingle();
+
+      let plans = null;
+      let planError = null;
+
+      if (familyMembership?.family_id) {
+        // Try to get family plan first
+        const familyPlanResult = await supabase
+          .from("meal_plans")
+          .select("*")
+          .eq("family_id", familyMembership.family_id)
+          .eq("is_family_plan", true)
+          .order("created_at", { ascending: false })
+          .limit(1);
+        
+        if (familyPlanResult.data && familyPlanResult.data.length > 0) {
+          plans = familyPlanResult.data;
+        } else {
+          // Fall back to personal plan
+          const personalResult = await supabase
+            .from("meal_plans")
+            .select("*")
+            .eq("user_id", userId)
+            .order("created_at", { ascending: false })
+            .limit(1);
+          plans = personalResult.data;
+          planError = personalResult.error;
+        }
+      } else {
+        // No family, get personal plan
+        const result = await supabase
+          .from("meal_plans")
+          .select("*")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false })
+          .limit(1);
+        plans = result.data;
+        planError = result.error;
+      }
 
       if (planError) {
         console.error("Error loading meal plans:", planError);
