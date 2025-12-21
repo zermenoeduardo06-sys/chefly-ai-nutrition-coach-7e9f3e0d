@@ -63,11 +63,16 @@ serve(async (req) => {
     console.log('Generating family meal plan for user:', user.id);
 
     // Get user's family
-    const { data: membership } = await supabaseClient
+    const { data: membership, error: membershipError } = await supabaseClient
       .from('family_memberships')
       .select('family_id')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
+
+    if (membershipError) {
+      console.error('Error fetching membership:', membershipError);
+      throw new Error('Error fetching family membership');
+    }
 
     if (!membership) {
       throw new Error(language === 'es' ? 'No perteneces a ninguna familia' : 'You are not part of any family');
