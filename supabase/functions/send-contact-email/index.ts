@@ -17,7 +17,6 @@ interface ContactEmailRequest {
   language?: "es" | "en";
 }
 
-const LOGO_URL = "https://ppprnzkuivsnhrntkbyj.supabase.co/storage/v1/object/public/assets/chefly-logo.png";
 
 const emailTemplates = {
   es: {
@@ -71,10 +70,19 @@ const generateUserEmailHTML = (name: string, message: string, t: typeof emailTem
           <!-- Header with Logo -->
           <tr>
             <td style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); border-radius: 16px 16px 0 0; padding: 40px 30px; text-align: center;">
-              <img src="${LOGO_URL}" alt="Chefly.AI" style="height: 60px; width: auto; margin-bottom: 16px;" />
-              <h1 style="color: #ffffff; font-size: 28px; font-weight: 700; margin: 0; letter-spacing: -0.5px;">
+              <!-- Text-based Logo for email compatibility -->
+              <div style="display: inline-block; background: rgba(255,255,255,0.15); border-radius: 16px; padding: 12px 24px; margin-bottom: 16px;">
+                <span style="font-size: 32px; margin-right: 8px;">🍳</span>
+                <span style="color: #ffffff; font-size: 28px; font-weight: 700; letter-spacing: -1px;">Chefly.AI</span>
+              </div>
+              <h1 style="color: #ffffff; font-size: 26px; font-weight: 700; margin: 16px 0 0 0; letter-spacing: -0.5px;">
                 ${t.userGreeting} ${name}! 👋
               </h1>
+              <p style="color: rgba(255,255,255,0.9); font-size: 16px; margin: 12px 0 0 0;">
+                ${t.userTagline}
+              </p>
+            </td>
+          </tr>
               <p style="color: rgba(255,255,255,0.9); font-size: 16px; margin: 12px 0 0 0;">
                 ${t.userTagline}
               </p>
