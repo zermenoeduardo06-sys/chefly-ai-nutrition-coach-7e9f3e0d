@@ -1287,6 +1287,9 @@ export type Database = {
           level: number
           longest_streak: number
           meals_completed: number
+          streak_freeze_available: number | null
+          streak_freeze_used_at: string | null
+          streak_frozen_at: string | null
           total_points: number
           updated_at: string
           user_id: string
@@ -1299,6 +1302,9 @@ export type Database = {
           level?: number
           longest_streak?: number
           meals_completed?: number
+          streak_freeze_available?: number | null
+          streak_freeze_used_at?: string | null
+          streak_frozen_at?: string | null
           total_points?: number
           updated_at?: string
           user_id: string
@@ -1311,6 +1317,9 @@ export type Database = {
           level?: number
           longest_streak?: number
           meals_completed?: number
+          streak_freeze_available?: number | null
+          streak_freeze_used_at?: string | null
+          streak_frozen_at?: string | null
           total_points?: number
           updated_at?: string
           user_id?: string
