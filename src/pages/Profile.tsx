@@ -8,8 +8,7 @@ import { Button } from "@/components/ui/button";
 import ModularAvatar from "@/components/avatar/ModularAvatar";
 import { AvatarConfig, defaultAvatarConfig } from "@/components/avatar/AvatarParts";
 import { ProfileMenuLinks } from "@/components/profile/ProfileMenuLinks";
-import { ContactForm } from "@/components/ContactForm";
-import { Loader2, Settings, UserPlus, Pencil, Crown, Zap, ChevronRight, Sparkles, MessageCircle } from "lucide-react";
+import { Loader2, Settings, UserPlus, Pencil, Crown, Zap, ChevronRight, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { es, enUS } from "date-fns/locale";
@@ -269,22 +268,6 @@ const Profile = () => {
         className="px-4"
       >
         <ProfileMenuLinks />
-      </motion.div>
-
-      {/* Contact Us Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="px-4 mt-6"
-      >
-        <div className="flex items-center gap-2 mb-4">
-          <MessageCircle className="h-5 w-5 text-primary" />
-          <h2 className="text-lg font-semibold text-foreground">
-            {language === "es" ? "Contáctanos" : "Contact Us"}
-          </h2>
-        </div>
-        <ContactForm />
       </motion.div>
     </div>
   );
