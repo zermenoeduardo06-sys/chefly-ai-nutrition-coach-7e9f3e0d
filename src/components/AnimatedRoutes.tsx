@@ -44,15 +44,15 @@ import Contact from '@/pages/Contact';
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
   <SidebarProvider>
-    <div className="flex min-h-screen w-full">
+    <div className="flex min-h-screen w-full bg-background">
       <div className="hidden md:block">
         <AppSidebar />
       </div>
-      <div className="flex-1 flex flex-col min-w-0">
-        <header className="hidden md:flex h-14 border-b bg-card/95 backdrop-blur-lg sticky top-0 z-40 items-center px-4">
+      <div className="flex-1 flex flex-col min-w-0 bg-background">
+        <header className="hidden md:flex h-14 border-b bg-card sticky top-0 z-40 items-center px-4">
           <SidebarTrigger />
         </header>
-        <main className="flex-1 pb-mobile-nav md:pb-0 scroll-touch">{children}</main>
+        <main className="flex-1 pb-mobile-nav md:pb-0 scroll-touch bg-background">{children}</main>
       </div>
     </div>
     <MobileBottomNav />

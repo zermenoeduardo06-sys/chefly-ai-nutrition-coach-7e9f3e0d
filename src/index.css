@@ -143,9 +143,17 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  html {
+    /* Prevent black line artifacts during scroll on iOS */
+    background-color: hsl(var(--background));
+  }
+
   body {
     @apply bg-background text-foreground;
     -webkit-tap-highlight-color: transparent;
+    /* Prevent rendering gaps during scroll */
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
   }
 
   /* Safe area support for notched devices */
