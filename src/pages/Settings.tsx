@@ -35,7 +35,7 @@ interface SettingsItem {
 
 const Settings = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { toast } = useToast();
   const { hasRole: isAdmin } = useUserRole("admin");
   const [isAffiliate, setIsAffiliate] = useState(false);
@@ -94,7 +94,7 @@ const Settings = () => {
 
   const supportItems: SettingsItem[] = [
     { icon: HelpCircle, label: t("settings.helpCenter"), path: "/faq" },
-    { icon: MessageSquare, label: t("settings.suggestions"), path: "/faq" },
+    { icon: MessageSquare, label: language === "es" ? "Contáctanos" : "Contact Us", path: "/dashboard/settings/contact" },
   ];
 
   const renderItem = (item: SettingsItem, index: number) => {
