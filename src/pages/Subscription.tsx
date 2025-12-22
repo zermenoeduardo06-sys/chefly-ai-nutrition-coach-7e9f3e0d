@@ -392,16 +392,64 @@ const Subscription = () => {
           </motion.div>
         )}
 
+        {/* Apple Required: Subscription Terms Disclosure */}
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7 }}
+          className="bg-muted/30 rounded-xl p-4 border border-border space-y-3"
+        >
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            {language === "es" 
+              ? "• El pago se cargará a tu cuenta al confirmar la compra."
+              : "• Payment will be charged to your account upon confirmation of purchase."}
+          </p>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            {language === "es" 
+              ? "• La suscripción se renueva automáticamente a menos que se cancele al menos 24 horas antes del final del período actual."
+              : "• Subscription automatically renews unless cancelled at least 24 hours before the end of the current period."}
+          </p>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            {language === "es" 
+              ? "• El cargo por renovación se realizará dentro de las 24 horas previas al final del período actual."
+              : "• Renewal charge will be made within 24 hours before the end of the current period."}
+          </p>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            {language === "es" 
+              ? "• Puedes gestionar y cancelar tu suscripción en cualquier momento desde la configuración de tu cuenta."
+              : "• You can manage and cancel your subscription anytime from your account settings."}
+          </p>
+        </motion.div>
+
+        {/* Restore Purchases Button - Apple Required */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8 }}
+          className="pt-2"
+        >
+          <Button
+            variant="link"
+            className="w-full text-sm text-muted-foreground hover:text-primary"
+            onClick={() => {
+              // For Stripe-based subscriptions, this refreshes the subscription status
+              subscription.checkSubscription();
+            }}
+          >
+            {language === "es" ? "Restaurar Compras" : "Restore Purchases"}
+          </Button>
+        </motion.div>
+
         {/* Help text */}
         <motion.p 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.7 }}
+          transition={{ delay: 0.9 }}
           className="text-xs text-center text-muted-foreground pb-4"
         >
           {language === "es" 
-            ? "¿Necesitas ayuda? Gestiona tu suscripción en cualquier momento."
-            : "Need help? Manage your subscription anytime."}
+            ? "¿Necesitas ayuda? Contacta soporte desde Configuración."
+            : "Need help? Contact support from Settings."}
         </motion.p>
       </div>
 

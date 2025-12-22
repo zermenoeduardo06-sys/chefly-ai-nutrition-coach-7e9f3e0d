@@ -11,6 +11,7 @@ import { getAvatarColorById } from "@/components/profile/AvatarEditor";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
+import { DeleteAccountDialog } from "@/components/DeleteAccountDialog";
 
 const ProfileEdit = () => {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ const ProfileEdit = () => {
   const [avatarBgColor, setAvatarBgColor] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -261,12 +263,19 @@ const ProfileEdit = () => {
         >
           <Button
             variant="outline"
+            onClick={() => setDeleteDialogOpen(true)}
             className="w-full h-14 rounded-2xl text-base font-semibold text-destructive border-2 border-border hover:bg-destructive/10"
           >
             {t("profile.deleteAccount")}
           </Button>
         </motion.div>
       </div>
+
+      {/* Delete Account Dialog */}
+      <DeleteAccountDialog 
+        open={deleteDialogOpen} 
+        onOpenChange={setDeleteDialogOpen} 
+      />
     </div>
   );
 };
