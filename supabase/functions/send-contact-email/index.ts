@@ -17,6 +17,8 @@ interface ContactEmailRequest {
   language?: "es" | "en";
 }
 
+const LOGO_URL = "https://ppprnzkuivsnhrntkbyj.supabase.co/storage/v1/object/public/assets/chefly-logo.png";
+
 const emailTemplates = {
   es: {
     adminSubjectPrefix: "[Contacto Chefly]",
@@ -28,10 +30,11 @@ const emailTemplates = {
     adminFooter: "Este mensaje fue enviado desde el formulario de contacto de Chefly.AI",
     userSubject: "¡Recibimos tu mensaje! - Chefly.AI",
     userGreeting: "¡Hola",
-    userThanks: "Gracias por contactarnos. Hemos recibido tu mensaje y te responderemos lo antes posible.",
+    userThanks: "Gracias por contactarnos. Hemos recibido tu mensaje y nuestro equipo te responderá lo antes posible.",
     userMessageLabel: "Tu mensaje:",
-    userExplore: "Mientras tanto, puedes explorar nuestros planes de nutrición personalizados en nuestra plataforma.",
-    userSignature: "— El equipo de Chefly.AI"
+    userExplore: "Mientras tanto, puedes seguir explorando tus planes de nutrición personalizados en la app.",
+    userSignature: "El equipo de Chefly.AI",
+    userTagline: "Tu coach de nutrición con IA"
   },
   en: {
     adminSubjectPrefix: "[Contact Chefly]",
@@ -43,12 +46,194 @@ const emailTemplates = {
     adminFooter: "This message was sent from the Chefly.AI contact form",
     userSubject: "We received your message! - Chefly.AI",
     userGreeting: "Hello",
-    userThanks: "Thank you for contacting us. We have received your message and will get back to you as soon as possible.",
+    userThanks: "Thank you for contacting us. We have received your message and our team will get back to you as soon as possible.",
     userMessageLabel: "Your message:",
-    userExplore: "In the meantime, you can explore our personalized nutrition plans on our platform.",
-    userSignature: "— The Chefly.AI Team"
+    userExplore: "In the meantime, you can continue exploring your personalized nutrition plans in the app.",
+    userSignature: "The Chefly.AI Team",
+    userTagline: "Your AI nutrition coach"
   }
 };
+
+const generateUserEmailHTML = (name: string, message: string, t: typeof emailTemplates.es) => `
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chefly.AI</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" style="width: 100%; max-width: 600px; border-collapse: collapse;">
+          
+          <!-- Header with Logo -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); border-radius: 16px 16px 0 0; padding: 40px 30px; text-align: center;">
+              <img src="${LOGO_URL}" alt="Chefly.AI" style="height: 60px; width: auto; margin-bottom: 16px;" />
+              <h1 style="color: #ffffff; font-size: 28px; font-weight: 700; margin: 0; letter-spacing: -0.5px;">
+                ${t.userGreeting} ${name}! 👋
+              </h1>
+              <p style="color: rgba(255,255,255,0.9); font-size: 16px; margin: 12px 0 0 0;">
+                ${t.userTagline}
+              </p>
+            </td>
+          </tr>
+          
+          <!-- Main Content -->
+          <tr>
+            <td style="background-color: #ffffff; padding: 40px 30px;">
+              
+              <!-- Thank you message -->
+              <p style="color: #374151; font-size: 16px; line-height: 1.7; margin: 0 0 24px 0;">
+                ${t.userThanks}
+              </p>
+              
+              <!-- Message Box -->
+              <div style="background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border-left: 4px solid #22c55e; border-radius: 0 12px 12px 0; padding: 24px; margin: 24px 0;">
+                <p style="color: #166534; font-size: 14px; font-weight: 600; margin: 0 0 12px 0; text-transform: uppercase; letter-spacing: 0.5px;">
+                  📝 ${t.userMessageLabel}
+                </p>
+                <p style="color: #374151; font-size: 15px; line-height: 1.6; margin: 0; white-space: pre-wrap;">
+                  ${message}
+                </p>
+              </div>
+              
+              <!-- Explore CTA -->
+              <p style="color: #6b7280; font-size: 15px; line-height: 1.6; margin: 24px 0;">
+                ${t.userExplore}
+              </p>
+              
+              <!-- Button -->
+              <table role="presentation" style="width: 100%; margin: 32px 0;">
+                <tr>
+                  <td align="center">
+                    <a href="https://cheflyai.com/dashboard" style="display: inline-block; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: #ffffff; font-size: 16px; font-weight: 600; text-decoration: none; padding: 16px 40px; border-radius: 12px; box-shadow: 0 4px 14px rgba(34, 197, 94, 0.4);">
+                      Ir a la App 🚀
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #1f2937; border-radius: 0 0 16px 16px; padding: 32px 30px; text-align: center;">
+              <p style="color: #d1d5db; font-size: 14px; margin: 0 0 8px 0; font-weight: 500;">
+                ${t.userSignature}
+              </p>
+              <p style="color: #9ca3af; font-size: 13px; margin: 0;">
+                © ${new Date().getFullYear()} Chefly.AI - Todos los derechos reservados
+              </p>
+              
+              <!-- Social Links -->
+              <div style="margin-top: 20px;">
+                <a href="https://cheflyai.com" style="display: inline-block; margin: 0 8px; color: #9ca3af; text-decoration: none; font-size: 13px;">
+                  🌐 cheflyai.com
+                </a>
+              </div>
+            </td>
+          </tr>
+          
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+`;
+
+const generateAdminEmailHTML = (name: string, email: string, subject: string, message: string, t: typeof emailTemplates.es) => `
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f1f5f9;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" style="width: 100%; max-width: 600px; border-collapse: collapse;">
+          
+          <!-- Header -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); border-radius: 12px 12px 0 0; padding: 30px; text-align: center;">
+              <h1 style="color: #ffffff; font-size: 24px; font-weight: 700; margin: 0;">
+                📬 ${t.adminTitle}
+              </h1>
+            </td>
+          </tr>
+          
+          <!-- Content -->
+          <tr>
+            <td style="background-color: #ffffff; padding: 30px;">
+              
+              <!-- Contact Info Grid -->
+              <table role="presentation" style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
+                <tr>
+                  <td style="padding: 12px 16px; background-color: #f8fafc; border-radius: 8px; margin-bottom: 8px;">
+                    <span style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase;">${t.adminName}</span>
+                    <p style="color: #1e293b; font-size: 16px; font-weight: 500; margin: 4px 0 0 0;">${name}</p>
+                  </td>
+                </tr>
+                <tr><td style="height: 8px;"></td></tr>
+                <tr>
+                  <td style="padding: 12px 16px; background-color: #f8fafc; border-radius: 8px;">
+                    <span style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase;">${t.adminEmail}</span>
+                    <p style="color: #1e293b; font-size: 16px; font-weight: 500; margin: 4px 0 0 0;">
+                      <a href="mailto:${email}" style="color: #3b82f6; text-decoration: none;">${email}</a>
+                    </p>
+                  </td>
+                </tr>
+                <tr><td style="height: 8px;"></td></tr>
+                <tr>
+                  <td style="padding: 12px 16px; background-color: #f8fafc; border-radius: 8px;">
+                    <span style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase;">${t.adminSubject}</span>
+                    <p style="color: #1e293b; font-size: 16px; font-weight: 500; margin: 4px 0 0 0;">${subject}</p>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Message -->
+              <div style="border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px;">
+                <p style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase; margin: 0 0 12px 0;">${t.adminMessage}</p>
+                <p style="color: #374151; font-size: 15px; line-height: 1.7; margin: 0; white-space: pre-wrap;">${message}</p>
+              </div>
+              
+              <!-- Reply Button -->
+              <table role="presentation" style="width: 100%; margin-top: 24px;">
+                <tr>
+                  <td align="center">
+                    <a href="mailto:${email}?subject=Re: ${subject}" style="display: inline-block; background: #3b82f6; color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; padding: 12px 32px; border-radius: 8px;">
+                      Responder →
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #f8fafc; border-radius: 0 0 12px 12px; padding: 20px; text-align: center;">
+              <p style="color: #94a3b8; font-size: 12px; margin: 0;">
+                ${t.adminFooter}
+              </p>
+            </td>
+          </tr>
+          
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+`;
 
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
@@ -82,23 +267,7 @@ const handler = async (req: Request): Promise<Response> => {
       from: "Chefly.AI <contacto@cheflyai.com>",
       to: ["chefly.ai.mx@gmail.com"],
       subject: `${t.adminSubjectPrefix} ${subject}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #22c55e;">${t.adminTitle}</h2>
-          <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <p><strong>${t.adminName}:</strong> ${name}</p>
-            <p><strong>${t.adminEmail}:</strong> ${email}</p>
-            <p><strong>${t.adminSubject}:</strong> ${subject}</p>
-          </div>
-          <div style="background: #fff; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
-            <h3 style="margin-top: 0;">${t.adminMessage}:</h3>
-            <p style="white-space: pre-wrap;">${message}</p>
-          </div>
-          <p style="color: #6b7280; font-size: 12px; margin-top: 20px;">
-            ${t.adminFooter}
-          </p>
-        </div>
-      `,
+      html: generateAdminEmailHTML(name, email, subject, message, t),
     });
 
     console.log("Admin email sent:", adminEmailResponse);
@@ -107,18 +276,7 @@ const handler = async (req: Request): Promise<Response> => {
       from: "Chefly.AI <contacto@cheflyai.com>",
       to: [email],
       subject: t.userSubject,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #22c55e;">${t.userGreeting} ${name}!</h2>
-          <p>${t.userThanks}</p>
-          <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #22c55e;">
-            <p style="margin: 0;"><strong>${t.userMessageLabel}</strong></p>
-            <p style="margin: 10px 0 0 0; white-space: pre-wrap;">${message}</p>
-          </div>
-          <p>${t.userExplore}</p>
-          <p style="color: #6b7280;">${t.userSignature}</p>
-        </div>
-      `,
+      html: generateUserEmailHTML(name, message, t),
     });
 
     console.log("User confirmation email sent:", userEmailResponse);
