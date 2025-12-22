@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Bell, Clock, Flame, Smartphone } from "lucide-react";
+import { ArrowLeft, Bell, Clock, Flame, Smartphone, Calendar, Trophy, Heart } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const NotificationSettings = () => {
   const navigate = useNavigate();
-  const { language, t } = useLanguage();
+  const { language } = useLanguage();
   const { toast } = useToast();
   const {
     isNative,
@@ -20,6 +20,7 @@ const NotificationSettings = () => {
     settings,
     requestPermissions,
     scheduleMealReminders,
+    scheduleWeeklyCheckInReminder,
     updateSettings,
   } = useNotifications();
 
@@ -39,10 +40,11 @@ const NotificationSettings = () => {
       toast({
         title: language === 'es' ? '✅ Notificaciones activadas' : '✅ Notifications enabled',
         description: language === 'es' 
-          ? 'Recibirás recordatorios de comidas' 
-          : 'You will receive meal reminders',
+          ? 'Recibirás recordatorios personalizados' 
+          : 'You will receive personalized reminders',
       });
       await scheduleMealReminders(language);
+      await scheduleWeeklyCheckInReminder(language);
     } else {
       toast({
         variant: 'destructive',
@@ -54,20 +56,9 @@ const NotificationSettings = () => {
     }
   };
 
-  const handleToggleMealReminders = async (enabled: boolean) => {
-    setLocalSettings(prev => ({ ...prev, mealReminders: enabled }));
-    await updateSettings({ mealReminders: enabled }, language);
-    
-    toast({
-      title: enabled 
-        ? (language === 'es' ? '🔔 Recordatorios activados' : '🔔 Reminders enabled')
-        : (language === 'es' ? '🔕 Recordatorios desactivados' : '🔕 Reminders disabled'),
-    });
-  };
-
-  const handleToggleStreakAlerts = async (enabled: boolean) => {
-    setLocalSettings(prev => ({ ...prev, streakAlerts: enabled }));
-    await updateSettings({ streakAlerts: enabled }, language);
+  const handleToggle = async (key: keyof typeof settings, enabled: boolean) => {
+    setLocalSettings(prev => ({ ...prev, [key]: enabled }));
+    await updateSettings({ [key]: enabled }, language);
   };
 
   const handleTimeChange = async (meal: 'breakfastTime' | 'lunchTime' | 'dinnerTime', time: string) => {
@@ -83,14 +74,21 @@ const NotificationSettings = () => {
       mealRemindersDesc: 'Recibe notificaciones a la hora de cada comida',
       streakAlerts: 'Alertas de racha',
       streakAlertsDesc: 'Te avisamos cuando tu racha está en riesgo',
+      weeklyCheckIn: 'Recordatorio semanal',
+      weeklyCheckInDesc: 'Domingos a las 10 AM para tu check-in',
+      streakMilestones: 'Celebrar logros',
+      streakMilestonesDesc: 'Notificación al alcanzar hitos de racha',
+      reEngagement: 'Recordatorios suaves',
+      reEngagementDesc: 'Solo después de 3+ días sin actividad',
       breakfast: 'Desayuno',
       lunch: 'Almuerzo',
       dinner: 'Cena',
       customTimes: 'Horarios personalizados',
       notNativeTitle: 'Disponible en la app móvil',
-      notNativeDesc: 'Las notificaciones push están disponibles cuando instalas Chefly como app nativa en tu dispositivo móvil.',
+      notNativeDesc: 'Las notificaciones push están disponibles cuando instalas Chefly como app nativa.',
       enableNotifications: 'Activar notificaciones',
       permissionRequired: 'Se requiere permiso para enviar notificaciones',
+      smartNotifications: 'Notificaciones inteligentes',
     },
     en: {
       title: 'Notifications',
@@ -98,22 +96,67 @@ const NotificationSettings = () => {
       mealRemindersDesc: 'Receive notifications at meal times',
       streakAlerts: 'Streak alerts',
       streakAlertsDesc: 'Get notified when your streak is at risk',
+      weeklyCheckIn: 'Weekly reminder',
+      weeklyCheckInDesc: 'Sundays at 10 AM for your check-in',
+      streakMilestones: 'Celebrate milestones',
+      streakMilestonesDesc: 'Notification when reaching streak milestones',
+      reEngagement: 'Gentle reminders',
+      reEngagementDesc: 'Only after 3+ days of inactivity',
       breakfast: 'Breakfast',
       lunch: 'Lunch',
       dinner: 'Dinner',
       customTimes: 'Custom times',
       notNativeTitle: 'Available in mobile app',
-      notNativeDesc: 'Push notifications are available when you install Chefly as a native app on your mobile device.',
+      notNativeDesc: 'Push notifications are available when you install Chefly as a native app.',
       enableNotifications: 'Enable notifications',
       permissionRequired: 'Permission required to send notifications',
+      smartNotifications: 'Smart notifications',
     },
   };
 
   const t2 = texts[language];
 
+  const NotificationToggle = ({ 
+    icon: Icon, 
+    iconColor, 
+    title, 
+    description, 
+    settingKey, 
+    delay = 0 
+  }: { 
+    icon: React.ElementType; 
+    iconColor: string; 
+    title: string; 
+    description: string; 
+    settingKey: keyof typeof settings;
+    delay?: number;
+  }) => (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay }}
+      className="bg-card border border-border rounded-2xl p-4"
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className={`w-10 h-10 ${iconColor} rounded-full flex items-center justify-center`}>
+            <Icon className="h-5 w-5" />
+          </div>
+          <div className="flex-1">
+            <p className="font-semibold">{title}</p>
+            <p className="text-sm text-muted-foreground">{description}</p>
+          </div>
+        </div>
+        <Switch
+          checked={localSettings[settingKey] as boolean}
+          onCheckedChange={(enabled) => handleToggle(settingKey, enabled)}
+        />
+      </div>
+    </motion.div>
+  );
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -129,7 +172,6 @@ const NotificationSettings = () => {
 
       <div className="px-4 py-6 space-y-6 pb-24">
         {!isNative ? (
-          /* Non-native platform message */
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -142,7 +184,6 @@ const NotificationSettings = () => {
             <p className="text-muted-foreground text-sm">{t2.notNativeDesc}</p>
           </motion.div>
         ) : !permissionGranted ? (
-          /* Permission request */
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -161,61 +202,71 @@ const NotificationSettings = () => {
             </Button>
           </motion.div>
         ) : (
-          /* Notification settings */
           <>
-            {/* Meal Reminders Toggle */}
+            {/* Core notifications */}
+            <NotificationToggle
+              icon={Bell}
+              iconColor="bg-primary/10 text-primary"
+              title={t2.mealReminders}
+              description={t2.mealRemindersDesc}
+              settingKey="mealReminders"
+              delay={0}
+            />
+
+            <NotificationToggle
+              icon={Flame}
+              iconColor="bg-orange-500/10 text-orange-500"
+              title={t2.streakAlerts}
+              description={t2.streakAlertsDesc}
+              settingKey="streakAlerts"
+              delay={0.05}
+            />
+
+            {/* Smart notifications section */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-card border border-border rounded-2xl p-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.1 }}
+              className="pt-2"
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                    <Bell className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-semibold">{t2.mealReminders}</p>
-                    <p className="text-sm text-muted-foreground">{t2.mealRemindersDesc}</p>
-                  </div>
-                </div>
-                <Switch
-                  checked={localSettings.mealReminders}
-                  onCheckedChange={handleToggleMealReminders}
-                />
-              </div>
+              <p className="text-sm font-medium text-muted-foreground mb-3 px-1">
+                {t2.smartNotifications}
+              </p>
             </motion.div>
 
-            {/* Streak Alerts Toggle */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="bg-card border border-border rounded-2xl p-4"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-orange-500/10 rounded-full flex items-center justify-center">
-                    <Flame className="h-5 w-5 text-orange-500" />
-                  </div>
-                  <div>
-                    <p className="font-semibold">{t2.streakAlerts}</p>
-                    <p className="text-sm text-muted-foreground">{t2.streakAlertsDesc}</p>
-                  </div>
-                </div>
-                <Switch
-                  checked={localSettings.streakAlerts}
-                  onCheckedChange={handleToggleStreakAlerts}
-                />
-              </div>
-            </motion.div>
+            <NotificationToggle
+              icon={Calendar}
+              iconColor="bg-violet-500/10 text-violet-500"
+              title={t2.weeklyCheckIn}
+              description={t2.weeklyCheckInDesc}
+              settingKey="weeklyCheckInReminders"
+              delay={0.15}
+            />
+
+            <NotificationToggle
+              icon={Trophy}
+              iconColor="bg-yellow-500/10 text-yellow-500"
+              title={t2.streakMilestones}
+              description={t2.streakMilestonesDesc}
+              settingKey="streakMilestones"
+              delay={0.2}
+            />
+
+            <NotificationToggle
+              icon={Heart}
+              iconColor="bg-emerald-500/10 text-emerald-500"
+              title={t2.reEngagement}
+              description={t2.reEngagementDesc}
+              settingKey="reEngagement"
+              delay={0.25}
+            />
 
             {/* Custom Times */}
             {localSettings.mealReminders && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
+                transition={{ delay: 0.3 }}
                 className="bg-card border border-border rounded-2xl p-4 space-y-4"
               >
                 <div className="flex items-center gap-2 mb-2">

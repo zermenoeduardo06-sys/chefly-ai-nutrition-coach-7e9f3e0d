@@ -6,14 +6,20 @@ import { supabase } from '@/integrations/supabase/client';
 interface NotificationSettings {
   mealReminders: boolean;
   streakAlerts: boolean;
-  breakfastTime: string; // "08:00"
-  lunchTime: string; // "13:00"
-  dinnerTime: string; // "19:00"
+  weeklyCheckInReminders: boolean;
+  streakMilestones: boolean;
+  reEngagement: boolean;
+  breakfastTime: string;
+  lunchTime: string;
+  dinnerTime: string;
 }
 
 const DEFAULT_SETTINGS: NotificationSettings = {
   mealReminders: true,
   streakAlerts: true,
+  weeklyCheckInReminders: true,
+  streakMilestones: true,
+  reEngagement: true,
   breakfastTime: "08:00",
   lunchTime: "13:00",
   dinnerTime: "19:00",
@@ -24,7 +30,13 @@ const NOTIFICATION_IDS = {
   LUNCH: 2,
   DINNER: 3,
   STREAK_RISK: 4,
+  WEEKLY_CHECKIN: 5,
+  STREAK_MILESTONE: 6,
+  RE_ENGAGEMENT: 7,
 };
+
+// Streak milestones to celebrate (less frequent = less annoying)
+const STREAK_MILESTONES = [7, 14, 21, 30, 50, 75, 100, 150, 200, 365];
 
 export const useNotifications = () => {
   const [permissionGranted, setPermissionGranted] = useState(false);
@@ -44,7 +56,13 @@ export const useNotifications = () => {
   const loadSettings = () => {
     const saved = localStorage.getItem('notification_settings');
     if (saved) {
-      setSettings(JSON.parse(saved));
+      try {
+        const parsed = JSON.parse(saved);
+        // Merge with defaults for new settings
+        setSettings({ ...DEFAULT_SETTINGS, ...parsed });
+      } catch {
+        setSettings(DEFAULT_SETTINGS);
+      }
     }
   };
 
@@ -88,12 +106,10 @@ export const useNotifications = () => {
     const scheduledDate = new Date();
     scheduledDate.setHours(hour, minute, 0, 0);
     
-    // If time has passed today, schedule for tomorrow
     if (scheduledDate <= now) {
       scheduledDate.setDate(scheduledDate.getDate() + 1);
     }
 
-    // Calculate day of week for deep linking (0 = Saturday start)
     const dayOfWeek = scheduledDate.getDay() === 0 ? 6 : scheduledDate.getDay() - 1;
 
     await LocalNotifications.schedule({
@@ -120,7 +136,6 @@ export const useNotifications = () => {
     if (!isNative || !permissionGranted || !settings.mealReminders) return;
 
     try {
-      // Cancel existing meal reminders first
       await LocalNotifications.cancel({
         notifications: [
           { id: NOTIFICATION_IDS.BREAKFAST },
@@ -200,7 +215,6 @@ export const useNotifications = () => {
       
       const diffDays = Math.floor((today.getTime() - lastActivity.getTime()) / (1000 * 60 * 60 * 24));
       
-      // Only schedule if user hasn't completed any meal today
       if (diffDays >= 1) {
         const messages = {
           es: {
@@ -213,7 +227,6 @@ export const useNotifications = () => {
           },
         };
 
-        // Schedule for 6 PM if not completed
         const alertTime = new Date();
         alertTime.setHours(18, 0, 0, 0);
         
@@ -239,6 +252,159 @@ export const useNotifications = () => {
     }
   };
 
+  // Schedule weekly check-in reminder (Sundays at 10 AM)
+  const scheduleWeeklyCheckInReminder = async (language: 'es' | 'en' = 'es') => {
+    if (!isNative || !permissionGranted || !settings.weeklyCheckInReminders) return;
+
+    try {
+      await LocalNotifications.cancel({
+        notifications: [{ id: NOTIFICATION_IDS.WEEKLY_CHECKIN }],
+      });
+
+      const messages = {
+        es: {
+          title: '📊 Check-in semanal disponible',
+          body: 'Cuéntanos cómo te fue esta semana. Tu feedback mejora tu plan.',
+        },
+        en: {
+          title: '📊 Weekly check-in available',
+          body: 'Tell us how your week went. Your feedback improves your plan.',
+        },
+      };
+
+      // Schedule for Sunday at 10 AM
+      const now = new Date();
+      const sunday = new Date();
+      const daysUntilSunday = (7 - now.getDay()) % 7 || 7;
+      sunday.setDate(now.getDate() + daysUntilSunday);
+      sunday.setHours(10, 0, 0, 0);
+
+      await LocalNotifications.schedule({
+        notifications: [
+          {
+            id: NOTIFICATION_IDS.WEEKLY_CHECKIN,
+            title: messages[language].title,
+            body: messages[language].body,
+            schedule: {
+              at: sunday,
+              repeats: true,
+              every: 'week',
+            },
+            sound: 'default',
+            smallIcon: 'ic_stat_icon_config_sample',
+            iconColor: '#8B5CF6',
+            extra: { type: 'weekly_checkin' },
+          },
+        ],
+      });
+      console.log('Weekly check-in reminder scheduled');
+    } catch (error) {
+      console.error('Error scheduling weekly check-in:', error);
+    }
+  };
+
+  // Celebrate streak milestones (triggered when milestone is reached)
+  const celebrateStreakMilestone = async (
+    streak: number,
+    language: 'es' | 'en' = 'es'
+  ) => {
+    if (!isNative || !permissionGranted || !settings.streakMilestones) return;
+    if (!STREAK_MILESTONES.includes(streak)) return;
+
+    try {
+      const messages = {
+        es: {
+          title: `🎉 ¡${streak} días de racha!`,
+          body: streak >= 30 
+            ? `¡Increíble! ${streak} días seguidos. Eres imparable.`
+            : `¡Felicidades! Has completado ${streak} días seguidos. ¡Sigue así!`,
+        },
+        en: {
+          title: `🎉 ${streak}-day streak!`,
+          body: streak >= 30
+            ? `Amazing! ${streak} days in a row. You're unstoppable.`
+            : `Congrats! You've completed ${streak} days straight. Keep it up!`,
+        },
+      };
+
+      // Schedule immediately
+      await LocalNotifications.schedule({
+        notifications: [
+          {
+            id: NOTIFICATION_IDS.STREAK_MILESTONE,
+            title: messages[language].title,
+            body: messages[language].body,
+            schedule: { at: new Date(Date.now() + 1000) },
+            sound: 'default',
+            smallIcon: 'ic_stat_icon_config_sample',
+            iconColor: '#F97316',
+            extra: { type: 'streak_milestone', streak },
+          },
+        ],
+      });
+      console.log(`Streak milestone ${streak} celebrated`);
+    } catch (error) {
+      console.error('Error celebrating streak milestone:', error);
+    }
+  };
+
+  // Schedule re-engagement notification (only after 3 days of inactivity)
+  const scheduleReEngagement = async (
+    lastActivityDate: string | null,
+    language: 'es' | 'en' = 'es'
+  ) => {
+    if (!isNative || !permissionGranted || !settings.reEngagement) return;
+
+    try {
+      await LocalNotifications.cancel({
+        notifications: [{ id: NOTIFICATION_IDS.RE_ENGAGEMENT }],
+      });
+
+      if (!lastActivityDate) return;
+
+      const lastActivity = new Date(lastActivityDate);
+      const now = new Date();
+      const diffDays = Math.floor((now.getTime() - lastActivity.getTime()) / (1000 * 60 * 60 * 24));
+
+      // Only schedule if inactive for 3+ days
+      if (diffDays >= 3) {
+        const messages = {
+          es: {
+            title: '👋 Te extrañamos',
+            body: 'Tu plan de comidas te espera. ¡Retoma tu camino hacia una vida más saludable!',
+          },
+          en: {
+            title: '👋 We miss you',
+            body: 'Your meal plan is waiting. Get back on track to a healthier life!',
+          },
+        };
+
+        // Schedule for tomorrow at 11 AM (less intrusive)
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(11, 0, 0, 0);
+
+        await LocalNotifications.schedule({
+          notifications: [
+            {
+              id: NOTIFICATION_IDS.RE_ENGAGEMENT,
+              title: messages[language].title,
+              body: messages[language].body,
+              schedule: { at: tomorrow },
+              sound: 'default',
+              smallIcon: 'ic_stat_icon_config_sample',
+              iconColor: '#10B981',
+              extra: { type: 're_engagement' },
+            },
+          ],
+        });
+        console.log('Re-engagement notification scheduled');
+      }
+    } catch (error) {
+      console.error('Error scheduling re-engagement:', error);
+    }
+  };
+
   const cancelAllNotifications = async () => {
     if (!isNative) return;
     
@@ -249,6 +415,9 @@ export const useNotifications = () => {
           { id: NOTIFICATION_IDS.LUNCH },
           { id: NOTIFICATION_IDS.DINNER },
           { id: NOTIFICATION_IDS.STREAK_RISK },
+          { id: NOTIFICATION_IDS.WEEKLY_CHECKIN },
+          { id: NOTIFICATION_IDS.STREAK_MILESTONE },
+          { id: NOTIFICATION_IDS.RE_ENGAGEMENT },
         ],
       });
     } catch (error) {
@@ -260,6 +429,7 @@ export const useNotifications = () => {
     const updated = { ...settings, ...newSettings };
     saveSettings(updated);
     
+    // Reschedule based on new settings
     if (updated.mealReminders) {
       await scheduleMealReminders(language);
     } else {
@@ -271,6 +441,20 @@ export const useNotifications = () => {
         ],
       });
     }
+
+    if (updated.weeklyCheckInReminders) {
+      await scheduleWeeklyCheckInReminder(language);
+    } else {
+      await LocalNotifications.cancel({
+        notifications: [{ id: NOTIFICATION_IDS.WEEKLY_CHECKIN }],
+      });
+    }
+
+    if (!updated.reEngagement) {
+      await LocalNotifications.cancel({
+        notifications: [{ id: NOTIFICATION_IDS.RE_ENGAGEMENT }],
+      });
+    }
   };
 
   return {
@@ -280,6 +464,9 @@ export const useNotifications = () => {
     requestPermissions,
     scheduleMealReminders,
     scheduleStreakRiskAlert,
+    scheduleWeeklyCheckInReminder,
+    celebrateStreakMilestone,
+    scheduleReEngagement,
     cancelAllNotifications,
     updateSettings,
   };
