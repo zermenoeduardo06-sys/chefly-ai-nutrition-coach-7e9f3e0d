@@ -41,6 +41,8 @@ import { CalendarDayWidget } from "@/components/CalendarDayWidget";
 import { useWeeklyCheckIn } from "@/hooks/useWeeklyCheckIn";
 import { FamilyStatusBanner } from "@/components/family/FamilyStatusBanner";
 import { MealBestMatchBadge } from "@/components/family/MealMemberAdaptations";
+import { StreakCounter, StreakRiskAlert } from "@/components/streaks";
+import { useStreakSystem } from "@/hooks/useStreakSystem";
 
 interface MealAdaptation {
   id: string;
@@ -133,6 +135,10 @@ const Dashboard = () => {
   const { scheduleMealReminders, scheduleStreakRiskAlert, permissionGranted, isNative } = useNotifications();
   const { successNotification, celebrationPattern, errorNotification, selectionChanged } = useHaptics();
   const { isOnline, isSyncing, pendingCount, cacheMeals, getCachedMeals, addPendingCompletion } = useOfflineMode(userId);
+  const [showStreakRiskAlert, setShowStreakRiskAlert] = useState(false);
+  
+  // Enhanced streak system
+  const streakSystem = useStreakSystem(userId, subscription.isCheflyPlus);
 
   // Deep linking handler for opening specific meals from notifications
   const handleDeepLinkMealOpen = (mealType: string, dayOfWeek: number) => {
@@ -284,6 +290,13 @@ const Dashboard = () => {
       scheduleMealReminders(language);
     }
   }, [isNative, permissionGranted, userId, language]);
+
+  // Show streak risk alert when streak is at risk
+  useEffect(() => {
+    if (streakSystem.isStreakAtRisk && streakSystem.currentStreak >= 2) {
+      setShowStreakRiskAlert(true);
+    }
+  }, [streakSystem.isStreakAtRisk, streakSystem.currentStreak]);
 
   const loadCompletedMeals = async (userId: string) => {
     const today = new Date().toISOString().split('T')[0];
@@ -1061,6 +1074,31 @@ const Dashboard = () => {
           />
         )}
 
+        {/* Enhanced Streak Counter */}
+        <StreakCounter
+          streak={streakSystem.currentStreak}
+          longestStreak={streakSystem.longestStreak}
+          streakFreezeAvailable={streakSystem.streakFreezeAvailable}
+          isFreezed={!!streakSystem.streakFrozenAt}
+          isPremium={subscription.isCheflyPlus}
+          onUseFreeze={streakSystem.useStreakFreeze}
+          showMilestoneAnimation={streakSystem.isNewMilestone}
+          onMilestoneShown={streakSystem.clearMilestoneFlag}
+        />
+
+        {/* Streak Risk Alert */}
+        <StreakRiskAlert
+          currentStreak={streakSystem.currentStreak}
+          hoursRemaining={streakSystem.hoursUntilStreakLoss}
+          isVisible={showStreakRiskAlert}
+          onDismiss={() => setShowStreakRiskAlert(false)}
+          onTakeAction={() => {
+            setShowStreakRiskAlert(false);
+            // Scroll to meals section
+            document.getElementById('meals-section')?.scrollIntoView({ behavior: 'smooth' });
+          }}
+        />
+
         {/* Mascot and Gamification Section */}
         <Card data-tour="gamification" className="border-border/50 shadow-lg bg-gradient-to-br from-card to-muted/20">
           <CardHeader className="pb-2">
@@ -1452,7 +1490,7 @@ const Dashboard = () => {
         <Separator />
 
         {/* Weekly Meal Plan */}
-        <Card className="border-border/50 shadow-lg">
+        <Card id="meals-section" className="border-border/50 shadow-lg">
           <CardHeader className="pb-3">
             <div data-tour="meal-plan" className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
