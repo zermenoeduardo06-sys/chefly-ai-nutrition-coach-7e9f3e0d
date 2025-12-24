@@ -9,12 +9,7 @@ interface StreakData {
   lastActivityDate: string | null;
   streakFreezeAvailable: number;
   streakFrozenAt: string | null;
-  isStreakAtRisk: boolean;
-  hoursUntilStreakLoss: number;
-  isNewMilestone: boolean;
 }
-
-const STREAK_MILESTONES = [7, 14, 30, 50, 100, 365];
 
 export function useStreakSystem(userId: string | undefined, isPremium: boolean) {
   const [streakData, setStreakData] = useState<StreakData>({
@@ -23,35 +18,47 @@ export function useStreakSystem(userId: string | undefined, isPremium: boolean) 
     lastActivityDate: null,
     streakFreezeAvailable: 0,
     streakFrozenAt: null,
-    isStreakAtRisk: false,
-    hoursUntilStreakLoss: 24,
-    isNewMilestone: false,
   });
   const [isLoading, setIsLoading] = useState(true);
-  const [previousStreak, setPreviousStreak] = useState<number>(0);
   const { toast } = useToast();
   const { language } = useLanguage();
 
-  const texts = {
-    es: {
-      freezeSuccess: "Racha congelada",
-      freezeSuccessDesc: "Tu racha de {streak} días está protegida por hoy",
-      freezeError: "Error al congelar racha",
-      noFreezeAvailable: "No tienes congelaciones disponibles",
-      streakRecovered: "¡Racha recuperada!",
-      streakRecoveredDesc: "Tu racha de {streak} días continúa gracias al Streak Freeze",
-    },
-    en: {
-      freezeSuccess: "Streak frozen",
-      freezeSuccessDesc: "Your {streak}-day streak is protected for today",
-      freezeError: "Error freezing streak",
-      noFreezeAvailable: "No freezes available",
-      streakRecovered: "Streak recovered!",
-      streakRecoveredDesc: "Your {streak}-day streak continues thanks to Streak Freeze",
-    },
-  };
+  // Check if user has any calories logged for a specific date
+  const checkDailyCalories = useCallback(async (date: string): Promise<number> => {
+    if (!userId) return 0;
 
-  const t = texts[language];
+    let totalCalories = 0;
+
+    // Get meal completions for the date
+    const { data: completions } = await supabase
+      .from("meal_completions")
+      .select(`
+        meals (calories)
+      `)
+      .eq("user_id", userId)
+      .gte("completed_at", date)
+      .lt("completed_at", new Date(new Date(date).getTime() + 86400000).toISOString().split('T')[0]);
+
+    completions?.forEach((completion: any) => {
+      if (completion.meals?.calories) {
+        totalCalories += completion.meals.calories;
+      }
+    });
+
+    // Get food scans for the date
+    const { data: scans } = await supabase
+      .from("food_scans")
+      .select("calories")
+      .eq("user_id", userId)
+      .gte("scanned_at", date)
+      .lt("scanned_at", new Date(new Date(date).getTime() + 86400000).toISOString().split('T')[0]);
+
+    scans?.forEach((scan) => {
+      totalCalories += scan.calories || 0;
+    });
+
+    return totalCalories;
+  }, [userId]);
 
   const loadStreakData = useCallback(async () => {
     if (!userId) return;
@@ -73,138 +80,131 @@ export function useStreakSystem(userId: string | undefined, isPremium: boolean) 
         return;
       }
 
-      const now = new Date();
-      const today = now.toISOString().split("T")[0];
+      const today = new Date().toISOString().split("T")[0];
       const lastActivity = data.last_activity_date;
-
-      // Calculate hours until streak loss
-      let hoursUntilLoss = 24;
-      let isAtRisk = false;
-
-      if (lastActivity) {
-        const lastActivityDate = new Date(lastActivity + "T23:59:59");
-        const timeDiff = lastActivityDate.getTime() - now.getTime() + 24 * 60 * 60 * 1000;
-        hoursUntilLoss = Math.max(0, timeDiff / (1000 * 60 * 60));
+      
+      // Check yesterday's calories to see if streak should be reset
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split("T")[0];
+      
+      let currentStreak = data.current_streak || 0;
+      let longestStreak = data.longest_streak || 0;
+      
+      // If last activity was before yesterday, check if we need to reset streak
+      if (lastActivity && lastActivity < yesterdayStr) {
+        // Check if yesterday had 0 calories
+        const yesterdayCalories = await checkDailyCalories(yesterdayStr);
         
-        // Streak is at risk if less than 8 hours remain and there's activity today
-        isAtRisk = hoursUntilLoss <= 8 && hoursUntilLoss > 0 && lastActivity !== today && data.current_streak >= 2;
+        if (yesterdayCalories === 0 && currentStreak > 0) {
+          // Reset streak - no calories logged yesterday
+          currentStreak = 0;
+          
+          await supabase
+            .from("user_stats")
+            .update({
+              current_streak: 0,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("user_id", userId);
+          
+          if (language === 'es') {
+            toast({
+              variant: "destructive",
+              title: "Racha reiniciada",
+              description: "No registraste calorías ayer. ¡Empieza de nuevo hoy!",
+            });
+          } else {
+            toast({
+              variant: "destructive",
+              title: "Streak reset",
+              description: "You didn't log any calories yesterday. Start fresh today!",
+            });
+          }
+        }
       }
 
-      // Check if this is a new milestone
-      const isNewMilestone = STREAK_MILESTONES.includes(data.current_streak) && 
-        data.current_streak > previousStreak;
-
       setStreakData({
-        currentStreak: data.current_streak || 0,
-        longestStreak: data.longest_streak || 0,
+        currentStreak,
+        longestStreak,
         lastActivityDate: lastActivity,
         streakFreezeAvailable: data.streak_freeze_available || 0,
         streakFrozenAt: data.streak_frozen_at,
-        isStreakAtRisk: isAtRisk,
-        hoursUntilStreakLoss: hoursUntilLoss,
-        isNewMilestone,
       });
-
-      setPreviousStreak(data.current_streak || 0);
     } catch (error) {
       console.error("Error in loadStreakData:", error);
     } finally {
       setIsLoading(false);
     }
-  }, [userId, previousStreak]);
+  }, [userId, checkDailyCalories, language, toast]);
 
-  const useStreakFreeze = useCallback(async () => {
-    if (!userId || !isPremium) return false;
+  // Update streak when user logs calories
+  const updateStreakOnCalorieLog = useCallback(async () => {
+    if (!userId) return;
 
-    if (streakData.streakFreezeAvailable <= 0) {
-      toast({
-        variant: "destructive",
-        title: t.noFreezeAvailable,
-      });
-      return false;
-    }
+    const today = new Date().toISOString().split("T")[0];
+    const todayCalories = await checkDailyCalories(today);
 
-    try {
-      const today = new Date().toISOString().split("T")[0];
-      
-      const { error } = await supabase
+    if (todayCalories > 0) {
+      const { data: stats } = await supabase
         .from("user_stats")
-        .update({
-          streak_freeze_available: streakData.streakFreezeAvailable - 1,
-          streak_freeze_used_at: today,
-          streak_frozen_at: today,
-        })
-        .eq("user_id", userId);
+        .select("*")
+        .eq("user_id", userId)
+        .single();
 
-      if (error) throw error;
+      if (stats) {
+        const lastActivity = stats.last_activity_date;
+        let newStreak = stats.current_streak || 0;
 
-      toast({
-        title: t.freezeSuccess,
-        description: t.freezeSuccessDesc.replace("{streak}", String(streakData.currentStreak)),
-      });
+        // If this is the first activity today
+        if (lastActivity !== today) {
+          const yesterday = new Date();
+          yesterday.setDate(yesterday.getDate() - 1);
+          const yesterdayStr = yesterday.toISOString().split("T")[0];
 
-      await loadStreakData();
-      return true;
-    } catch (error) {
-      console.error("Error using streak freeze:", error);
-      toast({
-        variant: "destructive",
-        title: t.freezeError,
-      });
-      return false;
-    }
-  }, [userId, isPremium, streakData, t, toast, loadStreakData]);
+          if (lastActivity === yesterdayStr) {
+            // Consecutive day - increment streak
+            newStreak += 1;
+          } else if (!lastActivity) {
+            // First ever activity
+            newStreak = 1;
+          } else {
+            // Gap in days - start new streak
+            newStreak = 1;
+          }
 
-  const grantMonthlyFreeze = useCallback(async () => {
-    if (!userId || !isPremium) return;
+          const newLongestStreak = Math.max(newStreak, stats.longest_streak || 0);
 
-    // Check if we're on the first of the month and haven't granted this month's freeze
-    const now = new Date();
-    const isFirstOfMonth = now.getDate() === 1;
-    
-    if (!isFirstOfMonth) return;
+          await supabase
+            .from("user_stats")
+            .update({
+              current_streak: newStreak,
+              longest_streak: newLongestStreak,
+              last_activity_date: today,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("user_id", userId);
 
-    // Check last freeze used date to avoid double grants
-    if (streakData.streakFrozenAt) {
-      const lastFreeze = new Date(streakData.streakFrozenAt);
-      if (lastFreeze.getMonth() === now.getMonth() && lastFreeze.getFullYear() === now.getFullYear()) {
-        return; // Already granted this month
+          setStreakData(prev => ({
+            ...prev,
+            currentStreak: newStreak,
+            longestStreak: newLongestStreak,
+            lastActivityDate: today,
+          }));
+        }
       }
     }
-
-    try {
-      await supabase
-        .from("user_stats")
-        .update({ streak_freeze_available: 1 })
-        .eq("user_id", userId);
-
-      await loadStreakData();
-    } catch (error) {
-      console.error("Error granting monthly freeze:", error);
-    }
-  }, [userId, isPremium, streakData.streakFrozenAt, loadStreakData]);
-
-  const clearMilestoneFlag = useCallback(() => {
-    setStreakData(prev => ({ ...prev, isNewMilestone: false }));
-  }, []);
+  }, [userId, checkDailyCalories]);
 
   // Load data on mount and when userId changes
   useEffect(() => {
     loadStreakData();
   }, [loadStreakData]);
 
-  // Grant monthly freeze for premium users
-  useEffect(() => {
-    if (isPremium) {
-      grantMonthlyFreeze();
-    }
-  }, [isPremium, grantMonthlyFreeze]);
-
   return {
     ...streakData,
     isLoading,
-    useStreakFreeze,
     refreshStreak: loadStreakData,
-    clearMilestoneFlag,
+    updateStreakOnCalorieLog,
   };
 }
