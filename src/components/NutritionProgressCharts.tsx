@@ -130,8 +130,14 @@ export const NutritionProgressCharts = () => {
 
       let totalCalories = 0, totalProtein = 0, totalCarbs = 0, totalFats = 0, totalMeals = 0;
 
+      // Helper to convert UTC timestamp to local date key
+      const toLocalDateKey = (utcTimestamp: string) => {
+        const date = new Date(utcTimestamp);
+        return format(date, "yyyy-MM-dd");
+      };
+
       completions?.forEach((completion: any) => {
-        const dateKey = completion.completed_at.split('T')[0];
+        const dateKey = toLocalDateKey(completion.completed_at);
         const existing = dailyMap.get(dateKey);
         if (existing && completion.meals) {
           existing.mealsCompleted += 1;
@@ -159,7 +165,7 @@ export const NutritionProgressCharts = () => {
 
       // Process food scans
       foodScans?.forEach((scan: any) => {
-        const dateKey = scan.scanned_at.split('T')[0];
+        const dateKey = toLocalDateKey(scan.scanned_at);
         const existing = dailyMap.get(dateKey);
         if (existing) {
           existing.scansCount += 1;

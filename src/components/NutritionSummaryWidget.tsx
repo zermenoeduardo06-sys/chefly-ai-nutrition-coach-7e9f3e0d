@@ -39,7 +39,10 @@ export const NutritionSummaryWidget = ({ userId }: NutritionSummaryWidgetProps) 
     if (!userId) return;
 
     try {
-      const today = new Date().toISOString().split('T')[0];
+      // Use local timezone for "today"
+      const now = new Date();
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const tomorrowStart = new Date(todayStart.getTime() + 86400000);
       
       // Get meal completions for today with meal details
       const { data: completions } = await supabase
@@ -47,6 +50,7 @@ export const NutritionSummaryWidget = ({ userId }: NutritionSummaryWidgetProps) 
         .select(`
           id,
           meal_id,
+          completed_at,
           meals (
             calories,
             protein,
@@ -55,14 +59,16 @@ export const NutritionSummaryWidget = ({ userId }: NutritionSummaryWidgetProps) 
           )
         `)
         .eq("user_id", userId)
-        .gte("completed_at", today);
+        .gte("completed_at", todayStart.toISOString())
+        .lt("completed_at", tomorrowStart.toISOString());
 
       // Get food scans for today
       const { data: scans } = await supabase
         .from("food_scans")
         .select("calories, protein, carbs, fat")
         .eq("user_id", userId)
-        .gte("scanned_at", today);
+        .gte("scanned_at", todayStart.toISOString())
+        .lt("scanned_at", tomorrowStart.toISOString());
 
       // Get total meals for today
       const { data: mealPlan } = await supabase
