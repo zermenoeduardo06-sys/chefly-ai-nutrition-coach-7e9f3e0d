@@ -1045,6 +1045,9 @@ const Dashboard = () => {
           level={userStats.level}
         />
 
+        {/* TODAY'S PROGRESS - HERO WIDGET (First position) */}
+        {userId && <NutritionSummaryWidget userId={userId} />}
+
         {/* Subscription Banner */}
         {profile && (
           <SubscriptionBanner userId={profile.id} />
@@ -1067,9 +1070,6 @@ const Dashboard = () => {
             onPlanGenerated={() => loadMealPlan(userId)}
           />
         )}
-
-        {/* Nutrition Summary Widget - Top position */}
-        {userId && <NutritionSummaryWidget userId={userId} />}
 
         {/* Mascot and Gamification Section */}
         <Card data-tour="gamification" className="border-border/50 shadow-lg bg-gradient-to-br from-card to-muted/20">

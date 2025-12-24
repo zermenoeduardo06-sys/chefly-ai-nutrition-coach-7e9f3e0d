@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Flame, Beef, Wheat, Droplet, Utensils } from "lucide-react";
+import { Flame, Beef, Wheat, Droplet } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 
@@ -129,146 +129,176 @@ export const NutritionSummaryWidget = ({ userId }: NutritionSummaryWidgetProps) 
 
   if (loading) {
     return (
-      <Card className="border-0 shadow-xl bg-gradient-to-br from-card via-card to-muted/30 overflow-hidden">
-        <CardContent className="p-5">
-          <div className="flex items-center justify-center h-40">
-            <Skeleton className="h-32 w-32 rounded-full" />
+      <Card className="border-0 shadow-2xl bg-card overflow-hidden">
+        <CardContent className="p-6">
+          <div className="flex flex-col items-center justify-center gap-4">
+            <Skeleton className="h-36 w-36 rounded-full" />
+            <div className="w-full grid grid-cols-3 gap-4">
+              <Skeleton className="h-16 rounded-xl" />
+              <Skeleton className="h-16 rounded-xl" />
+              <Skeleton className="h-16 rounded-xl" />
+            </div>
           </div>
         </CardContent>
       </Card>
     );
   }
 
-  const caloriePercentage = Math.min((nutrition?.calories || 0) / dailyGoals.calories * 100, 100);
+  const caloriesConsumed = nutrition?.calories || 0;
+  const caloriesRemaining = Math.max(dailyGoals.calories - caloriesConsumed, 0);
+  const caloriePercentage = Math.min(caloriesConsumed / dailyGoals.calories * 100, 100);
   const proteinPercentage = Math.min((nutrition?.protein || 0) / dailyGoals.protein * 100, 100);
   const carbsPercentage = Math.min((nutrition?.carbs || 0) / dailyGoals.carbs * 100, 100);
   const fatsPercentage = Math.min((nutrition?.fats || 0) / dailyGoals.fats * 100, 100);
   
   // Calculate stroke dasharray for circular progress
-  const radius = 52;
+  const radius = 62;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (caloriePercentage / 100) * circumference;
+
+  // Determine progress color based on percentage
+  const getProgressColor = () => {
+    if (caloriePercentage >= 100) return "stroke-destructive";
+    if (caloriePercentage >= 80) return "stroke-amber-500";
+    return "stroke-primary";
+  };
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
+      transition={{ duration: 0.5 }}
     >
-      <Card className="border-0 shadow-xl bg-gradient-to-br from-card via-card to-primary/5 overflow-hidden">
-        <CardContent className="p-5">
-          <div className="flex items-center gap-5">
-            {/* Circular Calorie Progress */}
-            <div className="relative flex-shrink-0">
-              <svg className="w-32 h-32 transform -rotate-90">
+      <Card className="border-0 shadow-2xl bg-card overflow-hidden">
+        <CardContent className="p-6">
+          {/* Main circular progress with remaining calories */}
+          <div className="flex flex-col items-center mb-6">
+            <div className="relative">
+              <svg className="w-40 h-40 transform -rotate-90">
                 {/* Background circle */}
                 <circle
-                  cx="64"
-                  cy="64"
+                  cx="80"
+                  cy="80"
                   r={radius}
-                  className="fill-none stroke-muted/30"
-                  strokeWidth="10"
+                  className="fill-none stroke-muted/20"
+                  strokeWidth="12"
                 />
                 {/* Progress circle */}
                 <motion.circle
-                  cx="64"
-                  cy="64"
+                  cx="80"
+                  cy="80"
                   r={radius}
-                  className="fill-none stroke-primary"
-                  strokeWidth="10"
+                  className={`fill-none ${getProgressColor()}`}
+                  strokeWidth="12"
                   strokeLinecap="round"
                   initial={{ strokeDashoffset: circumference }}
                   animate={{ strokeDashoffset }}
-                  transition={{ duration: 1, ease: "easeOut" }}
+                  transition={{ duration: 1.2, ease: "easeOut" }}
                   style={{
                     strokeDasharray: circumference,
                   }}
                 />
               </svg>
-              {/* Center content */}
+              {/* Center content - Show remaining calories */}
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <Flame className="h-5 w-5 text-primary mb-1" />
                 <motion.span 
-                  className="text-2xl font-bold text-foreground"
-                  initial={{ scale: 0.5 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.3, type: "spring" }}
+                  className="text-4xl font-bold text-foreground"
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.4, type: "spring", stiffness: 200 }}
                 >
-                  {formatNumber(nutrition?.calories || 0)}
+                  {formatNumber(caloriesRemaining)}
                 </motion.span>
-                <span className="text-xs text-muted-foreground">
-                  / {dailyGoals.calories}
+                <span className="text-sm text-muted-foreground font-medium">
+                  {language === 'es' ? 'Restantes' : 'Remaining'}
                 </span>
               </div>
             </div>
             
-            {/* Macros Stack */}
-            <div className="flex-1 space-y-3">
-              {/* Header */}
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-semibold text-foreground">
-                  {language === 'es' ? 'Progreso de Hoy' : "Today's Progress"}
-                </h3>
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-full">
-                  <Utensils className="h-3 w-3" />
-                  <span>{nutrition?.mealsCompleted || 0}/{nutrition?.totalMeals || 3}</span>
-                </div>
-              </div>
-              
-              {/* Protein */}
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="p-1.5 rounded-lg bg-rose-500/15">
-                      <Beef className="h-3.5 w-3.5 text-rose-500" />
-                    </div>
-                    <span className="text-xs font-medium text-muted-foreground">
-                      {language === 'es' ? 'Proteína' : 'Protein'}
-                    </span>
-                  </div>
-                  <span className="text-sm font-bold text-foreground">
-                    {formatNumber(nutrition?.protein || 0)}g
-                  </span>
-                </div>
-                <Progress value={proteinPercentage} className="h-2" />
-              </div>
-              
-              {/* Carbs */}
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="p-1.5 rounded-lg bg-amber-500/15">
-                      <Wheat className="h-3.5 w-3.5 text-amber-500" />
-                    </div>
-                    <span className="text-xs font-medium text-muted-foreground">
-                      {language === 'es' ? 'Carbos' : 'Carbs'}
-                    </span>
-                  </div>
-                  <span className="text-sm font-bold text-foreground">
-                    {formatNumber(nutrition?.carbs || 0)}g
-                  </span>
-                </div>
-                <Progress value={carbsPercentage} className="h-2" />
-              </div>
-              
-              {/* Fats */}
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="p-1.5 rounded-lg bg-sky-500/15">
-                      <Droplet className="h-3.5 w-3.5 text-sky-500" />
-                    </div>
-                    <span className="text-xs font-medium text-muted-foreground">
-                      {language === 'es' ? 'Grasas' : 'Fats'}
-                    </span>
-                  </div>
-                  <span className="text-sm font-bold text-foreground">
-                    {formatNumber(nutrition?.fats || 0)}g
-                  </span>
-                </div>
-                <Progress value={fatsPercentage} className="h-2" />
-              </div>
+            {/* Consumed / Goal indicator below circle */}
+            <div className="flex items-center gap-2 mt-3">
+              <Flame className="h-4 w-4 text-primary" />
+              <span className="text-sm text-muted-foreground">
+                <span className="font-semibold text-foreground">{formatNumber(caloriesConsumed)}</span>
+                {" / "}
+                {formatNumber(dailyGoals.calories)} kcal
+              </span>
             </div>
+          </div>
+
+          {/* Macros Grid */}
+          <div className="grid grid-cols-3 gap-3">
+            {/* Protein */}
+            <motion.div 
+              className="bg-muted/30 rounded-2xl p-4 text-center"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <div className="flex items-center justify-center gap-1.5 mb-2">
+                <div className="p-1.5 rounded-lg bg-rose-500/15">
+                  <Beef className="h-4 w-4 text-rose-500" />
+                </div>
+                <span className="text-xs font-medium text-muted-foreground">
+                  {language === 'es' ? 'Proteína' : 'Protein'}
+                </span>
+              </div>
+              <p className="text-lg font-bold text-foreground mb-1">
+                {formatNumber(nutrition?.protein || 0)}
+                <span className="text-xs font-normal text-muted-foreground ml-0.5">
+                  / {dailyGoals.protein}g
+                </span>
+              </p>
+              <Progress value={proteinPercentage} className="h-1.5 bg-rose-500/10 [&>div]:bg-rose-500" />
+            </motion.div>
+
+            {/* Carbs */}
+            <motion.div 
+              className="bg-muted/30 rounded-2xl p-4 text-center"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <div className="flex items-center justify-center gap-1.5 mb-2">
+                <div className="p-1.5 rounded-lg bg-amber-500/15">
+                  <Wheat className="h-4 w-4 text-amber-500" />
+                </div>
+                <span className="text-xs font-medium text-muted-foreground">
+                  {language === 'es' ? 'Carbos' : 'Carbs'}
+                </span>
+              </div>
+              <p className="text-lg font-bold text-foreground mb-1">
+                {formatNumber(nutrition?.carbs || 0)}
+                <span className="text-xs font-normal text-muted-foreground ml-0.5">
+                  / {dailyGoals.carbs}g
+                </span>
+              </p>
+              <Progress value={carbsPercentage} className="h-1.5 bg-amber-500/10 [&>div]:bg-amber-500" />
+            </motion.div>
+
+            {/* Fats */}
+            <motion.div 
+              className="bg-muted/30 rounded-2xl p-4 text-center"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <div className="flex items-center justify-center gap-1.5 mb-2">
+                <div className="p-1.5 rounded-lg bg-sky-500/15">
+                  <Droplet className="h-4 w-4 text-sky-500" />
+                </div>
+                <span className="text-xs font-medium text-muted-foreground">
+                  {language === 'es' ? 'Grasas' : 'Fats'}
+                </span>
+              </div>
+              <p className="text-lg font-bold text-foreground mb-1">
+                {formatNumber(nutrition?.fats || 0)}
+                <span className="text-xs font-normal text-muted-foreground ml-0.5">
+                  / {dailyGoals.fats}g
+                </span>
+              </p>
+              <Progress value={fatsPercentage} className="h-1.5 bg-sky-500/10 [&>div]:bg-sky-500" />
+            </motion.div>
           </div>
         </CardContent>
       </Card>
