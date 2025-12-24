@@ -23,11 +23,15 @@ export function useStreakSystem(userId: string | undefined, isPremium: boolean) 
   const { toast } = useToast();
   const { language } = useLanguage();
 
-  // Check if user has any calories logged for a specific date
-  const checkDailyCalories = useCallback(async (date: string): Promise<number> => {
+  // Check if user has any calories logged for a specific date (using local timezone)
+  const checkDailyCalories = useCallback(async (localDate: Date): Promise<number> => {
     if (!userId) return 0;
 
     let totalCalories = 0;
+
+    // Create start and end of day in local timezone
+    const dayStart = new Date(localDate.getFullYear(), localDate.getMonth(), localDate.getDate());
+    const dayEnd = new Date(dayStart.getTime() + 86400000);
 
     // Get meal completions for the date
     const { data: completions } = await supabase
@@ -36,8 +40,8 @@ export function useStreakSystem(userId: string | undefined, isPremium: boolean) 
         meals (calories)
       `)
       .eq("user_id", userId)
-      .gte("completed_at", date)
-      .lt("completed_at", new Date(new Date(date).getTime() + 86400000).toISOString().split('T')[0]);
+      .gte("completed_at", dayStart.toISOString())
+      .lt("completed_at", dayEnd.toISOString());
 
     completions?.forEach((completion: any) => {
       if (completion.meals?.calories) {
@@ -50,8 +54,8 @@ export function useStreakSystem(userId: string | undefined, isPremium: boolean) 
       .from("food_scans")
       .select("calories")
       .eq("user_id", userId)
-      .gte("scanned_at", date)
-      .lt("scanned_at", new Date(new Date(date).getTime() + 86400000).toISOString().split('T')[0]);
+      .gte("scanned_at", dayStart.toISOString())
+      .lt("scanned_at", dayEnd.toISOString());
 
     scans?.forEach((scan) => {
       totalCalories += scan.calories || 0;
@@ -80,11 +84,12 @@ export function useStreakSystem(userId: string | undefined, isPremium: boolean) 
         return;
       }
 
-      const today = new Date().toISOString().split("T")[0];
+      const now = new Date();
+      const todayStr = now.toISOString().split("T")[0];
       const lastActivity = data.last_activity_date;
       
-      // Check yesterday's calories to see if streak should be reset
-      const yesterday = new Date();
+      // Calculate yesterday in local time
+      const yesterday = new Date(now);
       yesterday.setDate(yesterday.getDate() - 1);
       const yesterdayStr = yesterday.toISOString().split("T")[0];
       
@@ -94,7 +99,7 @@ export function useStreakSystem(userId: string | undefined, isPremium: boolean) 
       // If last activity was before yesterday, check if we need to reset streak
       if (lastActivity && lastActivity < yesterdayStr) {
         // Check if yesterday had 0 calories
-        const yesterdayCalories = await checkDailyCalories(yesterdayStr);
+        const yesterdayCalories = await checkDailyCalories(yesterday);
         
         if (yesterdayCalories === 0 && currentStreak > 0) {
           // Reset streak - no calories logged yesterday
@@ -142,8 +147,9 @@ export function useStreakSystem(userId: string | undefined, isPremium: boolean) 
   const updateStreakOnCalorieLog = useCallback(async () => {
     if (!userId) return;
 
-    const today = new Date().toISOString().split("T")[0];
-    const todayCalories = await checkDailyCalories(today);
+    const now = new Date();
+    const todayStr = now.toISOString().split("T")[0];
+    const todayCalories = await checkDailyCalories(now);
 
     if (todayCalories > 0) {
       const { data: stats } = await supabase
@@ -157,8 +163,8 @@ export function useStreakSystem(userId: string | undefined, isPremium: boolean) 
         let newStreak = stats.current_streak || 0;
 
         // If this is the first activity today
-        if (lastActivity !== today) {
-          const yesterday = new Date();
+        if (lastActivity !== todayStr) {
+          const yesterday = new Date(now);
           yesterday.setDate(yesterday.getDate() - 1);
           const yesterdayStr = yesterday.toISOString().split("T")[0];
 
@@ -180,7 +186,7 @@ export function useStreakSystem(userId: string | undefined, isPremium: boolean) 
             .update({
               current_streak: newStreak,
               longest_streak: newLongestStreak,
-              last_activity_date: today,
+              last_activity_date: todayStr,
               updated_at: new Date().toISOString(),
             })
             .eq("user_id", userId);
@@ -189,7 +195,7 @@ export function useStreakSystem(userId: string | undefined, isPremium: boolean) 
             ...prev,
             currentStreak: newStreak,
             longestStreak: newLongestStreak,
-            lastActivityDate: today,
+            lastActivityDate: todayStr,
           }));
         }
       }
