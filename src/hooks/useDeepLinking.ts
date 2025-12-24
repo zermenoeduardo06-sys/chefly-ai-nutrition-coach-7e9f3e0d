@@ -1,5 +1,5 @@
 import { useEffect, useCallback } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { LocalNotifications, LocalNotificationSchema } from '@capacitor/local-notifications';
 import { Capacitor } from '@capacitor/core';
 
@@ -25,7 +25,6 @@ export const getPendingDeepLink = (): DeepLinkData | null => {
 
 export const useDeepLinking = (onMealOpen?: (mealType: string, dayOfWeek: number) => void) => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
 
   const handleDeepLink = useCallback((data: DeepLinkData) => {
     console.log('Handling deep link:', data);
@@ -55,20 +54,6 @@ export const useDeepLinking = (onMealOpen?: (mealType: string, dayOfWeek: number
         navigate('/dashboard');
     }
   }, [navigate, onMealOpen]);
-
-  // Handle URL-based deep links
-  useEffect(() => {
-    const openMeal = searchParams.get('openMeal');
-    const day = searchParams.get('day');
-
-    if (openMeal && day !== null) {
-      handleDeepLink({
-        type: 'meal',
-        mealType: openMeal as 'breakfast' | 'lunch' | 'dinner',
-        dayOfWeek: parseInt(day, 10),
-      });
-    }
-  }, [searchParams, handleDeepLink]);
 
   // Setup notification click listener
   useEffect(() => {
