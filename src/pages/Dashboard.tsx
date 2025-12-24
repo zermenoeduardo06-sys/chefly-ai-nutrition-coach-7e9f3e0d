@@ -43,6 +43,7 @@ import { FamilyStatusBanner } from "@/components/family/FamilyStatusBanner";
 import { MealBestMatchBadge } from "@/components/family/MealMemberAdaptations";
 import { StreakCounter, StreakRiskAlert } from "@/components/streaks";
 import { useStreakSystem } from "@/hooks/useStreakSystem";
+import { NutritionSummaryWidget } from "@/components/NutritionSummaryWidget";
 
 interface MealAdaptation {
   id: string;
@@ -1248,179 +1249,83 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Quick Actions */}
+        {/* Nutrition Summary Widget */}
+        {userId && <NutritionSummaryWidget userId={userId} />}
+
+        {/* Generate Plan & Language */}
         <Card data-tour="quick-actions" className="border-border/50 shadow-lg">
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
-              <Settings className="h-5 w-5 text-primary" />
-              <CardTitle className="text-lg">{t("dashboard.quickActions")}</CardTitle>
+              <RefreshCw className="h-5 w-5 text-primary" />
+              <CardTitle className="text-lg">{t("dashboard.generateNewPlan")}</CardTitle>
             </div>
-            <CardDescription>{t("dashboard.quickActionsDesc")}</CardDescription>
+            <CardDescription>
+              {language === 'es' 
+                ? 'Genera un nuevo plan semanal personalizado' 
+                : 'Generate a new personalized weekly plan'}
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    data-tour="chat"
-                    onClick={() => navigate("/chat")}
-                    variant="duolingoOutline"
-                    className="h-auto py-4 flex-col gap-2 relative"
-                  >
-                    <MessageCircle className="h-5 w-5" />
-                    <span className="text-sm">{t("dashboard.chatCoach")}</span>
-                    {limits.isFreePlan && (
-                      <Badge variant="secondary" className="absolute -top-2 -right-2 text-xs">
-                        {limits.chatMessagesUsed}/{limits.dailyChatLimit}
-                      </Badge>
-                    )}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-xs max-w-[200px]">{t("tooltip.chatCoach")}</p>
-                </TooltipContent>
-              </Tooltip>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    onClick={() => navigate("/onboarding")}
-                    variant="duolingoOutline"
-                    className="h-auto py-4 flex-col gap-2"
-                  >
-                    <Settings className="h-5 w-5" />
-                    <span className="text-sm">{t("dashboard.editPreferences")}</span>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-xs max-w-[200px]">{t("tooltip.editPreferences")}</p>
-                </TooltipContent>
-              </Tooltip>
-
-              {subscription.subscribed && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      onClick={handleManageSubscription}
-                      disabled={portalLoading}
-                      variant="duolingoOutline"
-                      className="h-auto py-4 flex-col gap-2"
-                    >
-                      {portalLoading ? (
-                        <>
-                          <Loader2 className="h-5 w-5 animate-spin" />
-                          <span className="text-sm">{t("dashboard.opening")}</span>
-                        </>
-                      ) : (
-                        <>
-                          <CreditCard className="h-5 w-5" />
-                          <span className="text-sm">{t("dashboard.manageSubscription")}</span>
-                        </>
+          <CardContent className="space-y-4">
+            {/* Generate button */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={initiateGenerateMealPlan}
+                  disabled={generating || !limits.canGeneratePlans}
+                  variant="duolingo"
+                  className="w-full relative"
+                >
+                  {generating ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      <span>{t("dashboard.generating")}</span>
+                    </>
+                  ) : (
+                    <>
+                      {!limits.canGeneratePlans && <Lock className="h-4 w-4 mr-2" />}
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      <span>{t("dashboard.generateNewPlan")}</span>
+                      {!limits.canGeneratePlans && (
+                        <Badge variant="outline" className="ml-2 text-xs bg-primary/10 text-primary border-primary/30">
+                          Chefly Plus
+                        </Badge>
                       )}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-xs max-w-[200px]">{t("tooltip.manageSubscription")}</p>
-                  </TooltipContent>
-                </Tooltip>
-              )}
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    onClick={() => setShowFoodScanner(true)}
-                    variant="duolingoOutline"
-                    className="h-auto py-4 flex-col gap-2"
-                  >
-                    <Camera className="h-5 w-5" />
-                    <span className="text-sm">{language === 'es' ? 'Escanear Comida' : 'Scan Food'}</span>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-xs max-w-[200px]">{language === 'es' ? 'Toma una foto de tu comida y obtén información nutricional' : 'Take a photo of your food and get nutritional info'}</p>
-                </TooltipContent>
-              </Tooltip>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    onClick={() => navigate('/dashboard/food-history')}
-                    variant="duolingoOutline"
-                    className="h-auto py-4 flex-col gap-2"
-                  >
-                    <Utensils className="h-5 w-5" />
-                    <span className="text-sm">{language === 'es' ? 'Historial' : 'History'}</span>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-xs max-w-[200px]">{language === 'es' ? 'Ver historial de comidas escaneadas' : 'View scanned food history'}</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
+                    </>
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs max-w-[200px]">{t("tooltip.generatePlan")}</p>
+              </TooltipContent>
+            </Tooltip>
             
-            {/* Generate new plan button */}
-            <div className="mt-4 pt-4 border-t border-border/30">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    onClick={initiateGenerateMealPlan}
-                    disabled={generating || !limits.canGeneratePlans}
-                    variant="ghost"
-                    size="sm"
-                    className="w-full text-muted-foreground hover:text-foreground relative"
-                  >
-                    {generating ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        <span className="text-xs">{t("dashboard.generating")}</span>
-                      </>
-                    ) : (
-                      <>
-                        {!limits.canGeneratePlans && <Lock className="h-3 w-3 mr-2" />}
-                        <RefreshCw className="h-4 w-4 mr-2" />
-                        <span className="text-xs">{t("dashboard.generateNewPlan")}</span>
-                        {!limits.canGeneratePlans && (
-                          <Badge variant="outline" className="ml-2 text-xs bg-primary/10 text-primary border-primary/30">
-                            Chefly Plus
-                          </Badge>
-                        )}
-                      </>
-                    )}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-xs max-w-[200px]">{t("tooltip.generatePlan")}</p>
-                </TooltipContent>
-              </Tooltip>
-              
-              {/* Language selector for generation */}
-              <div className="flex items-center justify-center gap-2 mt-3 p-2 rounded-lg bg-muted/30 border border-border/30">
-                <Languages className="h-4 w-4 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">{t("dashboard.planLanguage")}:</span>
-                <div className="flex gap-1">
-                  <Button
-                    variant={language === "es" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setLanguage("es")}
-                    className="h-6 px-2 text-xs"
-                  >
-                    ES
-                  </Button>
-                  <Button
-                    variant={language === "en" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setLanguage("en")}
-                    className="h-6 px-2 text-xs"
-                  >
-                    EN
-                  </Button>
-                </div>
+            {/* Language selector */}
+            <div className="flex items-center justify-center gap-2 p-3 rounded-lg bg-muted/30 border border-border/30">
+              <Languages className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">{t("dashboard.planLanguage")}:</span>
+              <div className="flex gap-1">
+                <Button
+                  variant={language === "es" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setLanguage("es")}
+                  className="h-7 px-3 text-sm"
+                >
+                  ES
+                </Button>
+                <Button
+                  variant={language === "en" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setLanguage("en")}
+                  className="h-7 px-3 text-sm"
+                >
+                  EN
+                </Button>
               </div>
             </div>
 
             {/* Plan limitations info for basic users */}
             {limits.isFreePlan && (
-              <div className="mt-4 p-4 bg-muted/50 rounded-lg border border-border/50">
+              <div className="p-4 bg-muted/50 rounded-lg border border-border/50">
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center flex-shrink-0">
                     <Sparkles className="h-5 w-5 text-primary" />
