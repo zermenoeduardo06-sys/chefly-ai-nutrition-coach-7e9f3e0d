@@ -43,6 +43,7 @@ import { FamilyStatusBanner } from "@/components/family/FamilyStatusBanner";
 import { MealBestMatchBadge } from "@/components/family/MealMemberAdaptations";
 import { useStreakSystem } from "@/hooks/useStreakSystem";
 import { NutritionSummaryWidget } from "@/components/NutritionSummaryWidget";
+import { DashboardHeader } from "@/components/DashboardHeader";
 
 interface MealAdaptation {
   id: string;
@@ -1037,10 +1038,10 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* Mobile Stats Bar - Duolingo Style */}
-        <MobileStatsBar 
-          streak={userStats.current_streak}
-          points={userStats.total_points}
+        {/* Dashboard Header */}
+        <DashboardHeader 
+          displayName={profile?.display_name}
+          currentStreak={userStats.current_streak}
           level={userStats.level}
         />
 

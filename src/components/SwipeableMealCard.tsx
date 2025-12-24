@@ -59,7 +59,7 @@ export const SwipeableMealCard = ({
   isFirstMeal = false,
   isFamilyPlan = false,
 }: SwipeableMealCardProps) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { mediumImpact } = useHaptics();
   const [isSwipedComplete, setIsSwipedComplete] = useState(false);
   const x = useMotionValue(0);
@@ -97,18 +97,20 @@ export const SwipeableMealCard = ({
   };
 
   return (
-    <div className="relative overflow-hidden rounded-2xl">
+    <div className="relative overflow-hidden rounded-3xl">
       {/* Background action indicator */}
       <motion.div 
-        className="absolute inset-0 bg-secondary flex items-center pl-4 rounded-2xl"
+        className="absolute inset-0 bg-gradient-to-r from-secondary to-secondary/80 flex items-center pl-5 rounded-3xl"
         style={{ opacity: backgroundOpacity }}
       >
         <motion.div 
           className="flex items-center gap-2 text-secondary-foreground"
           style={{ scale: checkScale }}
         >
-          <Check className="h-6 w-6" />
-          <span className="font-semibold text-sm">{t("dashboard.finishMeal")}</span>
+          <div className="p-2 rounded-full bg-white/20">
+            <Check className="h-6 w-6" />
+          </div>
+          <span className="font-bold text-sm">{t("dashboard.finishMeal")}</span>
         </motion.div>
       </motion.div>
 
@@ -124,96 +126,141 @@ export const SwipeableMealCard = ({
       >
         <Card 
           className={cn(
-            "border-2 border-border/50 bg-gradient-to-br from-card to-muted/20 hover:shadow-md hover:border-primary/30 transition-all overflow-hidden rounded-2xl",
-            isCompleted && "ring-2 ring-secondary border-secondary/30"
+            "border-0 bg-card shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden rounded-3xl",
+            isCompleted && "ring-2 ring-secondary/50 bg-secondary/5"
           )}
         >
           {meal.image_url && (
-            <div className="relative h-32 sm:h-40 w-full overflow-hidden">
+            <div className="relative h-36 sm:h-44 w-full overflow-hidden">
               <MealImageWithSkeleton
                 src={meal.image_url}
                 alt={meal.name}
                 containerClassName="h-full w-full"
-                className={cn("w-full h-full object-cover", isCompleted && "opacity-60")}
+                className={cn("w-full h-full object-cover", isCompleted && "opacity-50")}
               />
-              <div className="absolute top-2 right-2">
-                <Badge variant="secondary" className="backdrop-blur-sm bg-background/80 text-xs rounded-xl">
+              {/* Gradient overlay for better text contrast */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+              
+              {/* Top badges */}
+              <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
+                {/* Complete button */}
+                <Button
+                  size="icon"
+                  variant={isCompleted ? "secondary" : "default"}
+                  data-tour={isFirstMeal ? "complete-meal" : undefined}
+                  className={cn(
+                    "h-10 w-10 shadow-xl rounded-2xl transition-all duration-300",
+                    isCompleted 
+                      ? "bg-secondary text-secondary-foreground" 
+                      : "bg-white/90 text-primary hover:bg-white hover:scale-105"
+                  )}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!isCompleted) {
+                      mediumImpact();
+                      onComplete(meal.id);
+                    }
+                  }}
+                >
+                  <Check className={cn("h-5 w-5", isCompleted && "text-secondary-foreground")} />
+                </Button>
+                
+                {/* Meal type badge */}
+                <Badge 
+                  variant="secondary" 
+                  className="backdrop-blur-md bg-white/90 text-foreground font-semibold px-3 py-1 rounded-2xl shadow-lg"
+                >
                   {mealTypeLabel}
                 </Badge>
               </div>
-              {/* Complete indicator on image - clickable */}
-              <Button
-                size="icon"
-                variant={isCompleted ? "duolingoSecondary" : "duolingo"}
-                data-tour={isFirstMeal ? "complete-meal" : undefined}
-                className="absolute top-2 left-2 h-9 w-9 shadow-lg rounded-xl"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (!isCompleted) {
-                    mediumImpact();
-                    onComplete(meal.id);
-                  }
-                }}
-              >
-                <Check className="h-5 w-5" />
-              </Button>
+              
+              {/* Bottom info overlay */}
+              <div className="absolute bottom-0 left-0 right-0 p-4">
+                <h4 className={cn(
+                  "font-bold text-lg text-white drop-shadow-lg line-clamp-2",
+                  isCompleted && "line-through opacity-70"
+                )}>
+                  {meal.name}
+                </h4>
+              </div>
             </div>
           )}
+          
           <CardContent 
-            className="p-3 sm:p-4 space-y-2 sm:space-y-3 cursor-pointer"
+            className="p-4 space-y-3 cursor-pointer"
             onClick={onClick}
           >
             {!meal.image_url && (
               <div className="flex items-center justify-between gap-2 mb-2">
-                <Badge variant="secondary" className="shrink-0 text-xs rounded-xl">
+                <Badge variant="secondary" className="shrink-0 font-semibold rounded-xl px-3">
                   {mealTypeLabel}
                 </Badge>
+                <Button
+                  size="icon"
+                  variant={isCompleted ? "secondary" : "default"}
+                  className="h-8 w-8 rounded-xl"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!isCompleted) {
+                      mediumImpact();
+                      onComplete(meal.id);
+                    }
+                  }}
+                >
+                  <Check className="h-4 w-4" />
+                </Button>
               </div>
             )}
-            <div className="min-w-0 flex items-start justify-between gap-2">
-              <div className="flex-1 min-w-0">
-                <h4 className={cn(
-                  "font-semibold text-sm sm:text-base mb-1 line-clamp-2",
-                  isCompleted && "line-through opacity-60"
-                )}>
-                  {meal.name}
-                </h4>
-                <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">{meal.description}</p>
-              </div>
-              <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-1" />
-            </div>
-            <Separator />
+            
+            {!meal.image_url && (
+              <h4 className={cn(
+                "font-bold text-base line-clamp-2",
+                isCompleted && "line-through opacity-60"
+              )}>
+                {meal.name}
+              </h4>
+            )}
+            
+            <p className="text-sm text-muted-foreground line-clamp-2">{meal.description}</p>
             
             {/* Family adaptation badge */}
             {isFamilyPlan && meal.adaptations && meal.adaptations.length > 0 && (
-              <div className="pb-1">
+              <div className="pt-1">
                 <MealBestMatchBadge adaptations={meal.adaptations} />
               </div>
             )}
             
-            <div className="flex items-start gap-2 mb-3">
+            {/* Benefits / Completion status */}
+            <div className={cn(
+              "flex items-center gap-2 p-3 rounded-2xl",
+              isCompleted 
+                ? "bg-secondary/10 border border-secondary/20" 
+                : "bg-primary/5 border border-primary/10"
+            )}>
               {isCompleted ? (
                 <>
-                  <Check className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 shrink-0 mt-0.5" />
-                  <p className="text-xs text-green-600 font-medium leading-relaxed line-clamp-2">
-                    {t("dashboard.completed")} {t("dashboard.pointsEarned")}
+                  <div className="p-1.5 rounded-full bg-secondary/20">
+                    <Check className="w-4 h-4 text-secondary" />
+                  </div>
+                  <p className="text-sm text-secondary font-medium">
+                    {t("dashboard.completed")} · {t("dashboard.pointsEarned")}
                   </p>
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-primary shrink-0 mt-0.5" />
-                  <p className="text-xs text-primary font-medium leading-relaxed line-clamp-2">{meal.benefits}</p>
+                  <div className="p-1.5 rounded-full bg-primary/20">
+                    <Sparkles className="w-4 h-4 text-primary" />
+                  </div>
+                  <p className="text-sm text-primary font-medium line-clamp-1">{meal.benefits}</p>
                 </>
               )}
             </div>
             
-            {/* Swipe hint for mobile */}
-            {!isCompleted && !meal.image_url && (
-              <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground pt-1 md:hidden">
-                <ChevronRight className="h-3 w-3 animate-pulse" />
-                <span>{t("dashboard.swipeToComplete")}</span>
-              </div>
-            )}
+            {/* Tap to view hint */}
+            <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground pt-1">
+              <ChevronRight className="h-3 w-3" />
+              <span>{language === 'es' ? 'Toca para ver receta' : 'Tap to view recipe'}</span>
+            </div>
           </CardContent>
         </Card>
       </motion.div>
