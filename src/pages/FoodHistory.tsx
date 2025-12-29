@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Trash2, Flame, Beef, Wheat, Droplets, Calendar, Camera, Sparkles, Leaf, ChevronDown, Clock, TrendingUp, Utensils, Plus, Zap } from 'lucide-react';
+import { ArrowLeft, Trash2, Flame, Beef, Wheat, Droplets, Calendar, Camera, Sparkles, Leaf, ChevronDown, Clock, TrendingUp, Utensils, Plus, Zap, Filter, SunMedium, Moon, Coffee } from 'lucide-react';
 import { format } from 'date-fns';
 import { es, enUS } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -34,7 +34,11 @@ interface FoodScan {
   notes: string | null;
   image_url: string | null;
   scanned_at: string;
+  portion_estimate?: string | null;
 }
+
+type MealTypeFilter = 'all' | 'breakfast' | 'lunch' | 'dinner';
+type SourceFilter = 'all' | 'scanned' | 'meal_plan';
 
 const FoodHistory = () => {
   const [scans, setScans] = useState<FoodScan[]>([]);
@@ -42,6 +46,9 @@ const FoodHistory = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showScanner, setShowScanner] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [mealTypeFilter, setMealTypeFilter] = useState<MealTypeFilter>('all');
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
+  const [showFilters, setShowFilters] = useState(false);
   const navigate = useNavigate();
   const { language } = useLanguage();
   const { toast } = useToast();
@@ -71,6 +78,19 @@ const FoodHistory = () => {
     fat: language === 'es' ? 'Grasa' : 'Fat',
     fiber: language === 'es' ? 'Fibra' : 'Fiber',
     viewMore: language === 'es' ? 'Ver más' : 'View more',
+    filters: language === 'es' ? 'Filtros' : 'Filters',
+    all: language === 'es' ? 'Todos' : 'All',
+    breakfast: language === 'es' ? 'Desayuno' : 'Breakfast',
+    lunch: language === 'es' ? 'Comida' : 'Lunch',
+    dinner: language === 'es' ? 'Cena' : 'Dinner',
+    scanned: language === 'es' ? 'Escaneado' : 'Scanned',
+    mealPlan: language === 'es' ? 'Del Plan' : 'From Plan',
+    mealType: language === 'es' ? 'Tipo' : 'Type',
+    source: language === 'es' ? 'Origen' : 'Source',
+    noResults: language === 'es' ? 'No hay resultados' : 'No results',
+    noResultsDesc: language === 'es' 
+      ? 'Prueba cambiando los filtros'
+      : 'Try changing the filters',
   };
 
   useEffect(() => {
@@ -153,9 +173,40 @@ const FoodHistory = () => {
     return format(date, 'EEEE, d MMMM', { locale: language === 'es' ? es : enUS });
   };
 
+  // Determine if scan is from meal plan based on notes
+  const isFromMealPlan = (scan: FoodScan) => {
+    return scan.notes?.includes('plan') || scan.notes?.includes('Plan');
+  };
+
+  // Guess meal type based on time of day
+  const getMealType = (scan: FoodScan): 'breakfast' | 'lunch' | 'dinner' => {
+    const hour = new Date(scan.scanned_at).getHours();
+    if (hour >= 5 && hour < 11) return 'breakfast';
+    if (hour >= 11 && hour < 16) return 'lunch';
+    return 'dinner';
+  };
+
+  // Filter scans based on selected filters
+  const filteredScans = scans.filter(scan => {
+    // Filter by meal type
+    if (mealTypeFilter !== 'all') {
+      const scanMealType = getMealType(scan);
+      if (scanMealType !== mealTypeFilter) return false;
+    }
+    
+    // Filter by source
+    if (sourceFilter !== 'all') {
+      const fromPlan = isFromMealPlan(scan);
+      if (sourceFilter === 'meal_plan' && !fromPlan) return false;
+      if (sourceFilter === 'scanned' && fromPlan) return false;
+    }
+    
+    return true;
+  });
+
   const groupScansByDate = () => {
     const groups: { [key: string]: FoodScan[] } = {};
-    scans.forEach(scan => {
+    filteredScans.forEach(scan => {
       const dateKey = new Date(scan.scanned_at).toDateString();
       if (!groups[dateKey]) groups[dateKey] = [];
       groups[dateKey].push(scan);
@@ -171,6 +222,8 @@ const FoodHistory = () => {
       default: return { color: 'bg-muted', text: confidence };
     }
   };
+
+  const activeFiltersCount = (mealTypeFilter !== 'all' ? 1 : 0) + (sourceFilter !== 'all' ? 1 : 0);
 
   const todayStats = getTodayStats();
 
@@ -303,6 +356,123 @@ const FoodHistory = () => {
       </div>
 
       <div className="px-4 py-2 space-y-5">
+        {/* Filters Section */}
+        {scans.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-3"
+          >
+            {/* Filter Toggle Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className="w-full justify-between rounded-xl border-border/50 bg-card/50 backdrop-blur-sm"
+            >
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-primary" />
+                <span className="font-medium">{t.filters}</span>
+                {activeFiltersCount > 0 && (
+                  <span className="bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
+                    {activeFiltersCount}
+                  </span>
+                )}
+              </div>
+              <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+            </Button>
+
+            {/* Filter Options */}
+            <AnimatePresence>
+              {showFilters && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="bg-card rounded-2xl border border-border/50 p-4 space-y-4">
+                    {/* Meal Type Filter */}
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t.mealType}</label>
+                      <div className="flex gap-2 flex-wrap">
+                        <Button
+                          size="sm"
+                          variant={mealTypeFilter === 'all' ? 'default' : 'outline'}
+                          onClick={() => setMealTypeFilter('all')}
+                          className="rounded-xl text-xs h-9"
+                        >
+                          {t.all}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={mealTypeFilter === 'breakfast' ? 'default' : 'outline'}
+                          onClick={() => setMealTypeFilter('breakfast')}
+                          className="rounded-xl text-xs h-9 gap-1.5"
+                        >
+                          <Coffee className="h-3.5 w-3.5" />
+                          {t.breakfast}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={mealTypeFilter === 'lunch' ? 'default' : 'outline'}
+                          onClick={() => setMealTypeFilter('lunch')}
+                          className="rounded-xl text-xs h-9 gap-1.5"
+                        >
+                          <SunMedium className="h-3.5 w-3.5" />
+                          {t.lunch}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={mealTypeFilter === 'dinner' ? 'default' : 'outline'}
+                          onClick={() => setMealTypeFilter('dinner')}
+                          className="rounded-xl text-xs h-9 gap-1.5"
+                        >
+                          <Moon className="h-3.5 w-3.5" />
+                          {t.dinner}
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Source Filter */}
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t.source}</label>
+                      <div className="flex gap-2 flex-wrap">
+                        <Button
+                          size="sm"
+                          variant={sourceFilter === 'all' ? 'default' : 'outline'}
+                          onClick={() => setSourceFilter('all')}
+                          className="rounded-xl text-xs h-9"
+                        >
+                          {t.all}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={sourceFilter === 'scanned' ? 'default' : 'outline'}
+                          onClick={() => setSourceFilter('scanned')}
+                          className="rounded-xl text-xs h-9 gap-1.5"
+                        >
+                          <Camera className="h-3.5 w-3.5" />
+                          {t.scanned}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={sourceFilter === 'meal_plan' ? 'default' : 'outline'}
+                          onClick={() => setSourceFilter('meal_plan')}
+                          className="rounded-xl text-xs h-9 gap-1.5"
+                        >
+                          <Utensils className="h-3.5 w-3.5" />
+                          {t.mealPlan}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        )}
+
         {scans.length === 0 ? (
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
@@ -328,6 +498,29 @@ const FoodHistory = () => {
                 {t.scanNow}
               </Button>
             </motion.div>
+          </motion.div>
+        ) : filteredScans.length === 0 ? (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-center py-12"
+          >
+            <div className="w-20 h-20 mx-auto bg-muted/50 rounded-2xl flex items-center justify-center mb-4">
+              <Filter className="h-10 w-10 text-muted-foreground/50" />
+            </div>
+            <h3 className="text-lg font-semibold text-foreground mb-1">{t.noResults}</h3>
+            <p className="text-muted-foreground text-sm mb-4">{t.noResultsDesc}</p>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                setMealTypeFilter('all');
+                setSourceFilter('all');
+              }}
+              className="rounded-xl"
+            >
+              {language === 'es' ? 'Limpiar filtros' : 'Clear filters'}
+            </Button>
           </motion.div>
         ) : (
           <AnimatePresence>
@@ -389,6 +582,20 @@ const FoodHistory = () => {
                             <div className="absolute bottom-2 left-2 bg-black/70 backdrop-blur-sm text-white text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1">
                               <Clock className="h-2.5 w-2.5" />
                               {format(new Date(scan.scanned_at), 'HH:mm')}
+                            </div>
+                            {/* Source Badge */}
+                            <div className={`absolute top-2 left-2 text-white text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1 ${isFromMealPlan(scan) ? 'bg-secondary/90' : 'bg-primary/90'}`}>
+                              {isFromMealPlan(scan) ? (
+                                <>
+                                  <Utensils className="h-2.5 w-2.5" />
+                                  <span>{language === 'es' ? 'Plan' : 'Plan'}</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Camera className="h-2.5 w-2.5" />
+                                  <span>{language === 'es' ? 'AI' : 'AI'}</span>
+                                </>
+                              )}
                             </div>
                           </div>
                           
