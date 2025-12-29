@@ -42,7 +42,7 @@ interface SwipeableMealCardProps {
   meal: Meal;
   isCompleted: boolean;
   mealTypeLabel: string;
-  onComplete: (mealId: string) => void;
+  onComplete: (meal: Meal) => void;
   onClick: () => void;
   isFirstMeal?: boolean;
   isFamilyPlan?: boolean;
@@ -75,14 +75,14 @@ export const SwipeableMealCard = ({
     if (offset > SWIPE_THRESHOLD && !isCompleted) {
       // Haptic feedback when swipe completes
       mediumImpact();
-      // Swipe right to complete
+      // Swipe right to complete - trigger photo dialog
       animate(x, 200, { 
         type: "spring", 
         stiffness: 300, 
         damping: 30,
         onComplete: () => {
           setIsSwipedComplete(true);
-          onComplete(meal.id);
+          onComplete(meal);
           // Reset after a short delay
           setTimeout(() => {
             animate(x, 0, { duration: 0.3 });
@@ -158,7 +158,7 @@ export const SwipeableMealCard = ({
                     e.stopPropagation();
                     if (!isCompleted) {
                       mediumImpact();
-                      onComplete(meal.id);
+                      onComplete(meal);
                     }
                   }}
                 >
@@ -203,7 +203,7 @@ export const SwipeableMealCard = ({
                     e.stopPropagation();
                     if (!isCompleted) {
                       mediumImpact();
-                      onComplete(meal.id);
+                      onComplete(meal);
                     }
                   }}
                 >

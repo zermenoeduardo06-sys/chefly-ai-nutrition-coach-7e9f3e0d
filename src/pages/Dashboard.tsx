@@ -44,6 +44,7 @@ import { MealBestMatchBadge } from "@/components/family/MealMemberAdaptations";
 import { useStreakSystem } from "@/hooks/useStreakSystem";
 import { NutritionSummaryWidget } from "@/components/NutritionSummaryWidget";
 import { DashboardHeader } from "@/components/DashboardHeader";
+import { MealPhotoDialog } from "@/components/MealPhotoDialog";
 
 interface MealAdaptation {
   id: string;
@@ -123,6 +124,8 @@ const Dashboard = () => {
   const [showInAppTour, setShowInAppTour] = useState(false);
   const [showMobileWelcome, setShowMobileWelcome] = useState(false);
   const [showFoodScanner, setShowFoodScanner] = useState(false);
+  const [showMealPhotoDialog, setShowMealPhotoDialog] = useState(false);
+  const [mealToComplete, setMealToComplete] = useState<Meal | null>(null);
   const [currentMobileDay, setCurrentMobileDay] = useState(0);
   const isNativePlatform = Capacitor.isNativePlatform();
   const isMobile = useIsMobile();
@@ -305,16 +308,26 @@ const Dashboard = () => {
     }
   };
 
+  // Opens photo dialog before completing meal
+  const handleMealComplete = (meal: Meal) => {
+    if (completedMeals.has(meal.id)) {
+      toast({
+        title: t("dashboard.mealCompleted"),
+        description: t("dashboard.keepStreak"),
+      });
+      return;
+    }
+    setMealToComplete(meal);
+    setShowMealPhotoDialog(true);
+  };
+
+  // Actually completes the meal after photo is taken
   const completeMeal = async (mealId: string) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
     // Check if already completed
     if (completedMeals.has(mealId)) {
-      toast({
-        title: t("dashboard.mealCompleted"),
-        description: t("dashboard.keepStreak"),
-      });
       return;
     }
 
@@ -1405,7 +1418,7 @@ const Dashboard = () => {
                           meal={meal}
                           isCompleted={isCompleted}
                           mealTypeLabel={mealTypes[meal.meal_type]}
-                          onComplete={completeMeal}
+                          onComplete={handleMealComplete}
                           onClick={() => {
                             setSelectedMeal(meal);
                             setMealDialogOpen(true);
@@ -1471,7 +1484,7 @@ const Dashboard = () => {
                                       className="absolute top-2 left-2 h-9 w-9 shadow-lg rounded-xl"
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        completeMeal(meal.id);
+                                        handleMealComplete(meal);
                                       }}
                                     >
                                       <Check className="h-5 w-5" />
@@ -1534,7 +1547,7 @@ const Dashboard = () => {
                                   className="w-full text-xs gap-1.5 rounded-xl"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    completeMeal(meal.id);
+                                    handleMealComplete(meal);
                                   }}
                                 >
                                   <Check className="h-3.5 w-3.5" />
@@ -1682,6 +1695,16 @@ const Dashboard = () => {
       <FoodScanner
         open={showFoodScanner}
         onOpenChange={setShowFoodScanner}
+      />
+
+      <MealPhotoDialog
+        open={showMealPhotoDialog}
+        onOpenChange={setShowMealPhotoDialog}
+        meal={mealToComplete}
+        onPhotoSaved={(mealId) => {
+          completeMeal(mealId);
+          setMealToComplete(null);
+        }}
       />
 
     </div>
