@@ -91,6 +91,12 @@ const FoodHistory = () => {
     noResultsDesc: language === 'es' 
       ? 'Prueba cambiando los filtros'
       : 'Try changing the filters',
+    analysisAccuracy: language === 'es' ? 'Precisión del análisis' : 'Analysis accuracy',
+    analysisNotes: language === 'es' ? 'Notas del análisis' : 'Analysis notes',
+    detectedIngredients: language === 'es' ? 'Ingredientes detectados' : 'Detected ingredients',
+    confidenceHigh: language === 'es' ? 'Alta' : 'High',
+    confidenceMedium: language === 'es' ? 'Media' : 'Medium',
+    confidenceLow: language === 'es' ? 'Baja' : 'Low',
   };
 
   useEffect(() => {
@@ -222,9 +228,9 @@ const FoodHistory = () => {
 
   const getConfidenceBadge = (confidence: string) => {
     switch (confidence) {
-      case 'high': return { color: 'bg-emerald-500', text: language === 'es' ? 'Alta' : 'High' };
-      case 'medium': return { color: 'bg-amber-500', text: language === 'es' ? 'Media' : 'Medium' };
-      case 'low': return { color: 'bg-red-500', text: language === 'es' ? 'Baja' : 'Low' };
+      case 'high': return { color: 'bg-emerald-500', text: t.confidenceHigh };
+      case 'medium': return { color: 'bg-amber-500', text: t.confidenceMedium };
+      case 'low': return { color: 'bg-red-500', text: t.confidenceLow };
       default: return { color: 'bg-muted', text: confidence };
     }
   };
@@ -686,7 +692,7 @@ const FoodHistory = () => {
                                       {getConfidenceBadge(scan.confidence).text}
                                     </span>
                                     <span className="text-xs text-muted-foreground">
-                                      {language === 'es' ? 'Precisión del análisis' : 'Analysis accuracy'}
+                                      {t.analysisAccuracy}
                                     </span>
                                   </div>
                                 )}
@@ -705,7 +711,7 @@ const FoodHistory = () => {
                                 {scan.notes && (
                                   <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 rounded-xl p-3 border border-amber-200/50 dark:border-amber-800/50">
                                     <div className="text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider mb-1">
-                                      {language === 'es' ? 'Notas del análisis' : 'Analysis notes'}
+                                      {t.analysisNotes}
                                     </div>
                                     <p className="text-sm text-amber-800 dark:text-amber-200 leading-relaxed">{scan.notes}</p>
                                   </div>
@@ -715,7 +721,7 @@ const FoodHistory = () => {
                                 {scan.foods_identified && scan.foods_identified.length > 0 && (
                                   <div>
                                     <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">
-                                      {language === 'es' ? 'Ingredientes detectados' : 'Detected ingredients'}
+                                      {t.detectedIngredients}
                                     </div>
                                     <div className="flex flex-wrap gap-1.5">
                                       {scan.foods_identified.map((food, i) => (
