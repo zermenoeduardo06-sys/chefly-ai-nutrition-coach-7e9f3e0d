@@ -4,10 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Target, Trophy, Loader2, RefreshCw, Flame, Droplets, Clock, Apple, TrendingUp, Zap, Star, Sparkles, Check } from "lucide-react";
+import { Target, Trophy, Loader2, RefreshCw, Flame, Droplets, Clock, Apple, TrendingUp, Zap, Star, Sparkles, Check, Camera } from "lucide-react";
 import confetti from "canvas-confetti";
 import { motion } from "framer-motion";
 import mascotFire from "@/assets/mascot-fire.png";
+import { ChallengePhotoDialog } from "./ChallengePhotoDialog";
+import { useHaptics } from "@/hooks/useHaptics";
 
 interface Challenge {
   id: string;
@@ -49,8 +51,11 @@ export const DailyChallenges = () => {
   const [progress, setProgress] = useState<Map<string, ChallengeProgress>>(new Map());
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [photoDialogOpen, setPhotoDialogOpen] = useState(false);
+  const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
   const { toast } = useToast();
   const { language } = useLanguage();
+  const { lightImpact } = useHaptics();
 
   useEffect(() => {
     loadChallenges();
@@ -111,7 +116,7 @@ export const DailyChallenges = () => {
     setGenerating(true);
     try {
       const { data, error } = await supabase.functions.invoke("generate-daily-challenges", {
-        body: { userId: user.id },
+        body: { userId: user.id, language },
       });
 
       if (error) throw error;
@@ -119,8 +124,8 @@ export const DailyChallenges = () => {
       if (data?.challenges) {
         setChallenges(data.challenges);
         toast({
-          title: language === "es" ? "¡Desafíos generados!" : "Challenges generated!",
-          description: language === "es" ? "Tienes 3 nuevos desafíos diarios" : "You have 3 new daily challenges",
+          title: language === "es" ? "¡Desafío del día listo!" : "Today's challenge ready!",
+          description: language === "es" ? "Tienes un nuevo desafío diario" : "You have a new daily challenge",
         });
       }
     } catch (error: any) {
@@ -128,87 +133,42 @@ export const DailyChallenges = () => {
       toast({
         variant: "destructive",
         title: "Error",
-        description: language === "es" ? "No se pudieron generar los desafíos" : "Could not generate challenges",
+        description: language === "es" ? "No se pudo generar el desafío" : "Could not generate challenge",
       });
     } finally {
       setGenerating(false);
     }
   };
 
-  const completeChallenge = async (challenge: Challenge) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+  // Open photo dialog instead of directly completing
+  const openPhotoDialog = (challenge: Challenge) => {
+    lightImpact();
+    setSelectedChallenge(challenge);
+    setPhotoDialogOpen(true);
+  };
 
-    const currentProgress = progress.get(challenge.id);
-    if (currentProgress?.is_completed) {
-      toast({
-        title: language === "es" ? "Ya completaste este desafío" : "You already completed this challenge",
-        description: "🎉",
+  // Called after photo is uploaded and challenge completed
+  const handleChallengeCompleted = () => {
+    if (!selectedChallenge) return;
+
+    setProgress(prev => {
+      const newMap = new Map(prev);
+      newMap.set(selectedChallenge.id, {
+        challenge_id: selectedChallenge.id,
+        progress: selectedChallenge.target_value,
+        is_completed: true,
       });
-      return;
-    }
+      return newMap;
+    });
 
-    try {
-      const { error: progressError } = await supabase
-        .from("user_daily_challenges")
-        .upsert({
-          user_id: user.id,
-          challenge_id: challenge.id,
-          progress: challenge.target_value,
-          is_completed: true,
-        });
+    confetti({
+      particleCount: 150,
+      spread: 100,
+      origin: { y: 0.6 },
+      colors: ['#FFD700', '#FFA500', '#FF6347'],
+    });
 
-      if (progressError) throw progressError;
-
-      const { data: stats } = await supabase
-        .from("user_stats")
-        .select("*")
-        .eq("user_id", user.id)
-        .single();
-
-      if (stats) {
-        const newPoints = stats.total_points + challenge.points_reward;
-        const newLevel = Math.floor(newPoints / 100) + 1;
-
-        await supabase
-          .from("user_stats")
-          .update({
-            total_points: newPoints,
-            level: newLevel,
-          })
-          .eq("user_id", user.id);
-      }
-
-      setProgress(prev => {
-        const newMap = new Map(prev);
-        newMap.set(challenge.id, {
-          challenge_id: challenge.id,
-          progress: challenge.target_value,
-          is_completed: true,
-        });
-        return newMap;
-      });
-
-      confetti({
-        particleCount: 150,
-        spread: 100,
-        origin: { y: 0.6 },
-        colors: ['#FFD700', '#FFA500', '#FF6347'],
-      });
-
-      toast({
-        title: language === "es" ? "🎉 ¡Desafío Completado!" : "🎉 Challenge Completed!",
-        description: `+${challenge.points_reward} ${language === "es" ? "puntos" : "points"}`,
-        duration: 5000,
-      });
-    } catch (error: any) {
-      console.error("Error completing challenge:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: language === "es" ? "No se pudo completar el desafío" : "Could not complete challenge",
-      });
-    }
+    setSelectedChallenge(null);
   };
 
   const completedCount = Array.from(progress.values()).filter(p => p.is_completed).length;
@@ -256,10 +216,10 @@ export const DailyChallenges = () => {
               </div>
             </div>
             <h1 className="text-2xl font-bold text-white mb-1">
-              {language === "es" ? "Desafíos Diarios" : "Daily Challenges"}
+              {language === "es" ? "Desafío del Día" : "Daily Challenge"}
             </h1>
             <p className="text-white/80 text-sm">
-              {language === "es" ? "Completa desafíos para ganar puntos" : "Complete challenges to earn points"}
+              {language === "es" ? "Toma una foto para completar" : "Take a photo to complete"}
             </p>
           </motion.div>
 
@@ -397,14 +357,14 @@ export const DailyChallenges = () => {
                                 <Progress value={progressPercent} variant="gamified" className="h-2.5" />
                               </div>
 
-                              {/* Complete button */}
+                              {/* Complete button - opens photo dialog */}
                               <Button 
-                                onClick={() => completeChallenge(challenge)}
+                                onClick={() => openPhotoDialog(challenge)}
                                 variant="duolingo"
                                 className="w-full h-10 text-sm font-bold"
                               >
-                                <Trophy className="h-4 w-4 mr-2" />
-                                {language === "es" ? "COMPLETAR" : "COMPLETE"}
+                                <Camera className="h-4 w-4 mr-2" />
+                                {language === "es" ? "TOMAR FOTO" : "TAKE PHOTO"}
                               </Button>
                             </>
                           ) : (
@@ -469,6 +429,14 @@ export const DailyChallenges = () => {
       >
         <img src={mascotFire} alt="" className="h-20 w-20 opacity-50" />
       </motion.div>
+
+      {/* Photo dialog for challenge completion */}
+      <ChallengePhotoDialog
+        open={photoDialogOpen}
+        onOpenChange={setPhotoDialogOpen}
+        challenge={selectedChallenge}
+        onComplete={handleChallengeCompleted}
+      />
     </div>
   );
 };
