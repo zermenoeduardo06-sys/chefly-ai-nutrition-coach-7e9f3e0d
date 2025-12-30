@@ -143,24 +143,24 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
-  html {
+  html, body {
     /* Prevent black line artifacts during scroll on iOS - extend background */
     background-color: hsl(var(--background));
     /* Extend background color to overscroll areas */
     overscroll-behavior: none;
-  }
-
-  body {
-    @apply bg-background text-foreground;
-    -webkit-tap-highlight-color: transparent;
-    /* Prevent rendering gaps during scroll */
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
     /* Prevent overscroll to avoid black areas */
     overscroll-behavior-y: none;
     /* Ensure minimum height fills viewport */
     min-height: 100vh;
     min-height: 100dvh;
+    /* Prevent rendering gaps during scroll */
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+
+  body {
+    @apply text-foreground;
+    -webkit-tap-highlight-color: transparent;
   }
 
   /* Safe area support for notched devices */
