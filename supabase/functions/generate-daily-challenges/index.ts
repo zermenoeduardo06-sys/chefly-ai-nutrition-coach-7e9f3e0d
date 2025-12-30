@@ -6,44 +6,126 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// 5 static challenges to save AI credits - one random per day
+const STATIC_CHALLENGES = {
+  es: [
+    {
+      title: "Desayuno Saludable",
+      description: "Toma una foto de tu desayuno antes de comerlo. Asegúrate de incluir proteína y fibra.",
+      challenge_type: "meal_variety",
+      target_value: 1,
+      points_reward: 50,
+      bonus_description: "Un buen desayuno te da energía para todo el día"
+    },
+    {
+      title: "Almuerzo Balanceado",
+      description: "Fotografía tu almuerzo. Debe incluir verduras, proteína y carbohidratos complejos.",
+      challenge_type: "protein_goal",
+      target_value: 1,
+      points_reward: 60,
+      bonus_description: "Mantén tu metabolismo activo con un almuerzo nutritivo"
+    },
+    {
+      title: "Snack Inteligente",
+      description: "Toma una foto de un snack saludable entre comidas. Evita los ultraprocesados.",
+      challenge_type: "calorie_target",
+      target_value: 1,
+      points_reward: 40,
+      bonus_description: "Los snacks saludables evitan que llegues con hambre a la siguiente comida"
+    },
+    {
+      title: "Cena Ligera",
+      description: "Fotografía tu cena. Debe ser más ligera que el almuerzo para una mejor digestión.",
+      challenge_type: "meal_timing",
+      target_value: 1,
+      points_reward: 55,
+      bonus_description: "Una cena ligera mejora tu calidad de sueño"
+    },
+    {
+      title: "Hidratación del Día",
+      description: "Toma una foto de tu botella de agua o bebida saludable. Mantente hidratado.",
+      challenge_type: "hydration",
+      target_value: 1,
+      points_reward: 45,
+      bonus_description: "Beber suficiente agua mejora tu energía y concentración"
+    }
+  ],
+  en: [
+    {
+      title: "Healthy Breakfast",
+      description: "Take a photo of your breakfast before eating. Make sure to include protein and fiber.",
+      challenge_type: "meal_variety",
+      target_value: 1,
+      points_reward: 50,
+      bonus_description: "A good breakfast gives you energy for the whole day"
+    },
+    {
+      title: "Balanced Lunch",
+      description: "Photograph your lunch. It should include vegetables, protein and complex carbs.",
+      challenge_type: "protein_goal",
+      target_value: 1,
+      points_reward: 60,
+      bonus_description: "Keep your metabolism active with a nutritious lunch"
+    },
+    {
+      title: "Smart Snack",
+      description: "Take a photo of a healthy snack between meals. Avoid ultra-processed foods.",
+      challenge_type: "calorie_target",
+      target_value: 1,
+      points_reward: 40,
+      bonus_description: "Healthy snacks prevent you from arriving hungry to the next meal"
+    },
+    {
+      title: "Light Dinner",
+      description: "Photograph your dinner. It should be lighter than lunch for better digestion.",
+      challenge_type: "meal_timing",
+      target_value: 1,
+      points_reward: 55,
+      bonus_description: "A light dinner improves your sleep quality"
+    },
+    {
+      title: "Daily Hydration",
+      description: "Take a photo of your water bottle or healthy drink. Stay hydrated.",
+      challenge_type: "hydration",
+      target_value: 1,
+      points_reward: 45,
+      bonus_description: "Drinking enough water improves your energy and focus"
+    }
+  ]
+};
+
+// Get deterministic challenge index based on date (same challenge all day)
+function getDailyChallengeIndex(userId: string): number {
+  const today = new Date();
+  const dateStr = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+  // Create a simple hash from date + userId for variety between users
+  let hash = 0;
+  const combined = dateStr + userId;
+  for (let i = 0; i < combined.length; i++) {
+    hash = ((hash << 5) - hash) + combined.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash) % 5;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { userId } = await req.json();
+    const { userId, language = 'es' } = await req.json();
     
-    // Validate userId
     if (!userId || typeof userId !== 'string') {
       throw new Error('Invalid userId');
-    }
-    
-    if (!userId) {
-      throw new Error("userId is required");
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')!;
     
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    console.log(`Generating daily challenges for user: ${userId}`);
-
-    // Get user preferences
-    const { data: preferences } = await supabase
-      .from('user_preferences')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
-
-    // Get user stats
-    const { data: stats } = await supabase
-      .from('user_stats')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
+    console.log(`Getting daily challenge for user: ${userId}`);
 
     // Delete expired challenges
     await supabase
@@ -52,144 +134,62 @@ serve(async (req) => {
       .eq('user_id', userId)
       .lt('expires_at', new Date().toISOString());
 
-    // Check if user already has active challenges for today
-    const today = new Date();
-    today.setHours(23, 59, 59, 999);
-    
+    // Check if user already has active challenge for today
     const { data: existingChallenges } = await supabase
       .from('daily_challenges')
       .select('*')
       .eq('user_id', userId)
       .gte('expires_at', new Date().toISOString());
 
-    if (existingChallenges && existingChallenges.length >= 3) {
-      console.log("User already has active challenges");
+    if (existingChallenges && existingChallenges.length > 0) {
+      console.log("User already has active challenge");
       return new Response(
         JSON.stringify({ 
-          message: "User already has active challenges",
+          message: "User already has active challenge",
           challenges: existingChallenges 
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Generate personalized challenges using Lovable AI
-    const systemPrompt = `Eres un experto en nutrición y motivación. Tu trabajo es generar 3 desafíos diarios personalizados y motivadores para usuarios.
+    // Get deterministic challenge for today
+    const challengeIndex = getDailyChallengeIndex(userId);
+    const lang = language === 'en' ? 'en' : 'es';
+    const todayChallenge = STATIC_CHALLENGES[lang][challengeIndex];
 
-Considera:
-- Dieta del usuario: ${preferences?.diet_type || 'No especificada'}
-- Objetivo: ${preferences?.goal || 'No especificado'}
-- Nivel actual: ${stats?.level || 1}
-- Comidas completadas: ${stats?.meals_completed || 0}
-- Racha actual: ${stats?.current_streak || 0} días
+    console.log(`Selected challenge index: ${challengeIndex}, title: ${todayChallenge.title}`);
 
-Debes responder SOLO con JSON válido (sin markdown, sin comillas extras) con este formato exacto:
-{
-  "challenges": [
-    {
-      "title": "Título corto y motivador",
-      "description": "Descripción clara del desafío",
-      "challenge_type": "meal_variety|protein_goal|hydration|meal_timing|calorie_target|streak_bonus",
-      "target_value": número_entero,
-      "points_reward": puntos_entre_30_y_100,
-      "bonus_description": "Descripción del beneficio"
-    }
-  ]
-}`;
-
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: 'Genera 3 desafíos diarios personalizados para este usuario.' }
-        ],
-        temperature: 0.8,
-      }),
-    });
-
-    if (!aiResponse.ok) {
-      if (aiResponse.status === 429) {
-        console.error('Rate limit exceeded');
-        return new Response(
-          JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      if (aiResponse.status === 402) {
-        console.error('Payment required');
-        return new Response(
-          JSON.stringify({ error: 'Payment required. Please add credits to your workspace.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      const errorText = await aiResponse.text();
-      console.error('AI API error:', aiResponse.status, errorText);
-      throw new Error(`AI API error: ${aiResponse.status}`);
-    }
-
-    const aiData = await aiResponse.json();
-    const aiContent = aiData.choices[0].message.content;
-    
-    console.log('AI Response:', aiContent);
-    
-    // Parse the AI response
-    let challenges;
-    try {
-      // Try to parse as JSON directly
-      const parsed = JSON.parse(aiContent);
-      challenges = parsed.challenges;
-    } catch (e) {
-      // If it fails, try to extract JSON from markdown code blocks
-      const jsonMatch = aiContent.match(/```json\n([\s\S]*?)\n```/) || aiContent.match(/```([\s\S]*?)```/);
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[1]);
-        challenges = parsed.challenges;
-      } else {
-        throw new Error('Failed to parse AI response');
-      }
-    }
-
-    if (!challenges || !Array.isArray(challenges)) {
-      throw new Error('Invalid challenges format from AI');
-    }
-
-    // Insert challenges into database
+    // Set expiration to end of today
     const expiresAt = new Date();
     expiresAt.setHours(23, 59, 59, 999);
 
-    const challengesToInsert = challenges.map(challenge => ({
-      user_id: userId,
-      title: challenge.title,
-      description: challenge.description,
-      challenge_type: challenge.challenge_type,
-      target_value: challenge.target_value,
-      points_reward: challenge.points_reward,
-      bonus_description: challenge.bonus_description,
-      expires_at: expiresAt.toISOString(),
-    }));
-
-    const { data: insertedChallenges, error: insertError } = await supabase
+    // Insert challenge into database
+    const { data: insertedChallenge, error: insertError } = await supabase
       .from('daily_challenges')
-      .insert(challengesToInsert)
-      .select();
+      .insert({
+        user_id: userId,
+        title: todayChallenge.title,
+        description: todayChallenge.description,
+        challenge_type: todayChallenge.challenge_type,
+        target_value: todayChallenge.target_value,
+        points_reward: todayChallenge.points_reward,
+        bonus_description: todayChallenge.bonus_description,
+        expires_at: expiresAt.toISOString(),
+      })
+      .select()
+      .single();
 
     if (insertError) {
-      console.error('Error inserting challenges:', insertError);
+      console.error('Error inserting challenge:', insertError);
       throw insertError;
     }
 
-    console.log('Successfully generated challenges:', insertedChallenges?.length);
+    console.log('Successfully assigned daily challenge:', insertedChallenge?.title);
 
     return new Response(
       JSON.stringify({ 
         success: true,
-        challenges: insertedChallenges 
+        challenges: [insertedChallenge]
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
