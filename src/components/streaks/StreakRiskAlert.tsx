@@ -2,6 +2,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AlertTriangle, Clock, Flame, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useHaptics } from "@/hooks/useHaptics";
+import { useEffect } from "react";
 
 interface StreakRiskAlertProps {
   currentStreak: number;
@@ -19,6 +21,14 @@ export function StreakRiskAlert({
   onTakeAction,
 }: StreakRiskAlertProps) {
   const { language } = useLanguage();
+  const { warningNotification } = useHaptics();
+
+  // Trigger warning haptic when alert becomes visible
+  useEffect(() => {
+    if (isVisible) {
+      warningNotification();
+    }
+  }, [isVisible, warningNotification]);
 
   const texts = {
     es: {
