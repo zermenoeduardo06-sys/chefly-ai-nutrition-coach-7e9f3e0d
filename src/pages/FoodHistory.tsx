@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Trash2, Flame, Beef, Wheat, Droplets, Calendar, Camera, Sparkles, Leaf, ChevronDown, Clock, TrendingUp, Utensils, Plus, Zap, Filter, SunMedium, Moon, Coffee } from 'lucide-react';
+import { ArrowLeft, Trash2, Flame, Beef, Wheat, Droplets, Calendar, Camera, Sparkles, Leaf, ChevronDown, Clock, TrendingUp, Utensils, Plus, Zap, Filter, SunMedium, Moon, Coffee, Target } from 'lucide-react';
 import { format } from 'date-fns';
 import { es, enUS } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -173,8 +173,14 @@ const FoodHistory = () => {
     return format(date, 'EEEE, d MMMM', { locale: language === 'es' ? es : enUS });
   };
 
+  // Determine if scan is from daily challenge
+  const isFromDailyChallenge = (scan: FoodScan) => {
+    return scan.notes?.includes('[DAILY_CHALLENGE]');
+  };
+
   // Determine if scan is from meal plan based on notes
   const isFromMealPlan = (scan: FoodScan) => {
+    if (isFromDailyChallenge(scan)) return false;
     return scan.notes?.includes('plan') || scan.notes?.includes('Plan');
   };
 
@@ -587,8 +593,19 @@ const FoodHistory = () => {
                               {format(new Date(scan.scanned_at), 'HH:mm')}
                             </div>
                             {/* Source Badge */}
-                            <div className={`absolute top-2 left-2 text-white text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1 ${isFromMealPlan(scan) ? 'bg-secondary/90' : 'bg-primary/90'}`}>
-                              {isFromMealPlan(scan) ? (
+                            <div className={`absolute top-2 left-2 text-white text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1 ${
+                              isFromDailyChallenge(scan) 
+                                ? 'bg-gradient-to-r from-purple-500 to-pink-500' 
+                                : isFromMealPlan(scan) 
+                                  ? 'bg-secondary/90' 
+                                  : 'bg-primary/90'
+                            }`}>
+                              {isFromDailyChallenge(scan) ? (
+                                <>
+                                  <Target className="h-2.5 w-2.5" />
+                                  <span>{language === 'es' ? 'Desafío' : 'Challenge'}</span>
+                                </>
+                              ) : isFromMealPlan(scan) ? (
                                 <>
                                   <Utensils className="h-2.5 w-2.5" />
                                   <span>{language === 'es' ? 'Plan' : 'Plan'}</span>

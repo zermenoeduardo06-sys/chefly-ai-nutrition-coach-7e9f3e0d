@@ -138,13 +138,13 @@ export function ChallengePhotoDialog({
         .from("food-scans")
         .getPublicUrl(filePath);
 
-      // Save to food_scans table
+      // Save to food_scans table with daily challenge marker
       const { error: insertError } = await supabase
         .from("food_scans")
         .insert({
           user_id: user.id,
           dish_name: challenge.title,
-          notes: challenge.description,
+          notes: `[DAILY_CHALLENGE] ${challenge.description}`,
           image_url: urlData.publicUrl,
           scanned_at: new Date().toISOString(),
         });
