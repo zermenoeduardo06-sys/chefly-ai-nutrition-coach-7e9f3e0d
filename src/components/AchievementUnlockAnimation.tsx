@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, Sparkles, Star } from "lucide-react";
 import { useEffect } from "react";
 import confetti from "canvas-confetti";
+import { useHaptics } from "@/hooks/useHaptics";
 
 interface AchievementUnlockAnimationProps {
   isOpen: boolean;
@@ -19,8 +20,14 @@ export const AchievementUnlockAnimation = ({
   achievement, 
   onClose 
 }: AchievementUnlockAnimationProps) => {
+  const { celebrationPattern, heavyImpact } = useHaptics();
+
   useEffect(() => {
     if (isOpen && achievement) {
+      // Trigger haptic celebration
+      heavyImpact();
+      setTimeout(() => celebrationPattern(), 300);
+      
       // Trigger confetti explosion
       const duration = 3000;
       const animationEnd = Date.now() + duration;

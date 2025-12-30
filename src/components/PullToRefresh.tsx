@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, ReactNode } from "react";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useHaptics } from "@/hooks/useHaptics";
 
 interface PullToRefreshProps {
   onRefresh: () => Promise<void>;
@@ -21,6 +22,7 @@ export function PullToRefresh({
   const containerRef = useRef<HTMLDivElement>(null);
   const startY = useRef(0);
   const currentY = useRef(0);
+  const { lightImpact, mediumImpact } = useHaptics();
 
   const PULL_THRESHOLD = 80;
   const MAX_PULL = 120;
@@ -61,11 +63,15 @@ export function PullToRefresh({
     setIsPulling(false);
 
     if (pullDistance >= PULL_THRESHOLD && !isRefreshing) {
+      // Haptic feedback when pull threshold is met
+      mediumImpact();
       setIsRefreshing(true);
       setPullDistance(PULL_THRESHOLD);
       
       try {
         await onRefresh();
+        // Light haptic when refresh completes
+        lightImpact();
       } finally {
         setIsRefreshing(false);
         setPullDistance(0);
@@ -73,7 +79,7 @@ export function PullToRefresh({
     } else {
       setPullDistance(0);
     }
-  }, [isPulling, pullDistance, isRefreshing, onRefresh, disabled]);
+  }, [isPulling, pullDistance, isRefreshing, onRefresh, disabled, mediumImpact, lightImpact]);
 
   const progress = Math.min((pullDistance / PULL_THRESHOLD) * 100, 100);
   const rotation = (pullDistance / PULL_THRESHOLD) * 360;

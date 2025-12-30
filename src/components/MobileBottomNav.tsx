@@ -3,6 +3,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useHaptics } from "@/hooks/useHaptics";
 
 const navItems = [
   { icon: Home, path: "/dashboard", color: "text-primary", tourId: "nav-home", labelEs: "Inicio", labelEn: "Home" },
@@ -16,6 +17,7 @@ const navItems = [
 export function MobileBottomNav() {
   const location = useLocation();
   const { language } = useLanguage();
+  const { lightImpact } = useHaptics();
 
   const isActive = (path: string) => {
     if (path === "/dashboard") {
@@ -39,6 +41,7 @@ export function MobileBottomNav() {
               to={item.path}
               data-tour={item.tourId}
               className="flex items-center justify-center flex-1 h-full"
+              onClick={() => lightImpact()}
             >
               <motion.div
                 className={cn(

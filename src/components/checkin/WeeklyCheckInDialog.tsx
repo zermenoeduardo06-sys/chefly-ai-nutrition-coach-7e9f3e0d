@@ -9,6 +9,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import confetti from "canvas-confetti";
+import { useHaptics } from "@/hooks/useHaptics";
 
 interface WeeklyCheckInDialogProps {
   open: boolean;
@@ -35,6 +36,7 @@ const WeeklyCheckInDialog = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const { language, t: translate } = useLanguage();
+  const { lightImpact, successNotification, celebrationPattern } = useHaptics();
 
   const t = {
     es: {
@@ -120,12 +122,14 @@ const WeeklyCheckInDialog = ({
 
   const handleNext = () => {
     if (step < TOTAL_STEPS) {
+      lightImpact();
       setStep(step + 1);
     }
   };
 
   const handleBack = () => {
     if (step > 1) {
+      lightImpact();
       setStep(step - 1);
     }
   };
@@ -136,6 +140,10 @@ const WeeklyCheckInDialog = ({
     setIsSubmitting(false);
     
     if (success) {
+      // Haptic celebration
+      successNotification();
+      setTimeout(() => celebrationPattern(), 200);
+      
       confetti({
         particleCount: 100,
         spread: 70,
