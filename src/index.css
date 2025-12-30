@@ -144,8 +144,10 @@ All colors MUST be HSL.
   }
 
   html {
-    /* Prevent black line artifacts during scroll on iOS */
+    /* Prevent black line artifacts during scroll on iOS - extend background */
     background-color: hsl(var(--background));
+    /* Extend background color to overscroll areas */
+    overscroll-behavior: none;
   }
 
   body {
@@ -154,6 +156,11 @@ All colors MUST be HSL.
     /* Prevent rendering gaps during scroll */
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
+    /* Prevent overscroll to avoid black areas */
+    overscroll-behavior-y: none;
+    /* Ensure minimum height fills viewport */
+    min-height: 100vh;
+    min-height: 100dvh;
   }
 
   /* Safe area support for notched devices */

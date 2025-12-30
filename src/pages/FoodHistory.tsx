@@ -248,6 +248,9 @@ const FoodHistory = () => {
     <div className="min-h-screen bg-background pb-28">
       {/* Premium Header */}
       <div className="relative overflow-hidden">
+        {/* Safe area background extension for notch - extends primary color to top */}
+        <div className="absolute top-0 left-0 right-0 h-[env(safe-area-inset-top,0px)] bg-primary z-20" />
+        
         <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/95 to-orange-500">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.15),transparent_50%)]" />
           <motion.div 
