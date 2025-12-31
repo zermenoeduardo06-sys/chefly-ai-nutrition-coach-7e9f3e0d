@@ -2078,8 +2078,22 @@ export const translations = {
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>(() => {
+    // 1. First check if user has a saved language preference
     const saved = localStorage.getItem("language");
-    return (saved === "en" || saved === "es") ? saved : "es";
+    if (saved === "en" || saved === "es") {
+      return saved;
+    }
+    
+    // 2. Detect device/browser language for new users
+    const browserLanguage = navigator.language || (navigator.languages && navigator.languages[0]) || "";
+    
+    // 3. If device language is Spanish (es, es-ES, es-MX, es-AR, etc.), use Spanish
+    if (browserLanguage.toLowerCase().startsWith("es")) {
+      return "es";
+    }
+    
+    // 4. For all other languages (English, French, Portuguese, etc.), default to English
+    return "en";
   });
 
   useEffect(() => {
