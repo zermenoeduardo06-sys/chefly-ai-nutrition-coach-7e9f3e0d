@@ -41,6 +41,7 @@ import NotificationSettings from '@/pages/NotificationSettings';
 import FoodHistory from '@/pages/FoodHistory';
 import FamilyManagement from '@/pages/FamilyManagement';
 import Contact from '@/pages/Contact';
+import AppStoreDemo from '@/pages/AppStoreDemo';
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
   <SidebarProvider>
@@ -77,6 +78,7 @@ export const AnimatedRoutes = () => {
         <Route path="/blog" element={<PageTransition><Blog /></PageTransition>} />
         <Route path="/blog/:articleId" element={<PageTransition><BlogArticle /></PageTransition>} />
         <Route path="/programa-afiliados" element={<PageTransition><AffiliatesLanding /></PageTransition>} />
+        <Route path="/app-store-demo" element={<AppStoreDemo />} />
         
         {/* Dashboard pages */}
         <Route path="/dashboard" element={<DashboardLayout><PageTransition><Dashboard /></PageTransition></DashboardLayout>} />
