@@ -6,9 +6,10 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// 5 static challenges to save AI credits - one random per day
+// 15 static challenges to save AI credits - one random per day
 const STATIC_CHALLENGES = {
   es: [
+    // Meal challenges
     {
       title: "Desayuno Saludable",
       description: "Toma una foto de tu desayuno antes de comerlo. Asegúrate de incluir proteína y fibra.",
@@ -41,6 +42,7 @@ const STATIC_CHALLENGES = {
       points_reward: 55,
       bonus_description: "Una cena ligera mejora tu calidad de sueño"
     },
+    // Hydration challenges
     {
       title: "Hidratación del Día",
       description: "Toma una foto de tu botella de agua o bebida saludable. Mantente hidratado.",
@@ -48,9 +50,93 @@ const STATIC_CHALLENGES = {
       target_value: 1,
       points_reward: 45,
       bonus_description: "Beber suficiente agua mejora tu energía y concentración"
+    },
+    {
+      title: "Reto de 8 Vasos",
+      description: "Fotografía tu vaso de agua. Intenta tomar al menos 8 vasos durante el día.",
+      challenge_type: "hydration",
+      target_value: 1,
+      points_reward: 55,
+      bonus_description: "La hidratación adecuada mejora tu piel y metabolismo"
+    },
+    {
+      title: "Agua con Limón",
+      description: "Prepara y fotografía un vaso de agua con limón. Ideal para comenzar el día.",
+      challenge_type: "hydration",
+      target_value: 1,
+      points_reward: 40,
+      bonus_description: "El agua con limón ayuda a la digestión y aporta vitamina C"
+    },
+    // Exercise challenges
+    {
+      title: "Caminata Activa",
+      description: "Sal a caminar por al menos 15 minutos y toma una foto del paisaje.",
+      challenge_type: "exercise",
+      target_value: 1,
+      points_reward: 65,
+      bonus_description: "Caminar mejora tu circulación y estado de ánimo"
+    },
+    {
+      title: "Estiramientos Matutinos",
+      description: "Haz una rutina de estiramientos y toma una foto de tu espacio de ejercicio.",
+      challenge_type: "exercise",
+      target_value: 1,
+      points_reward: 50,
+      bonus_description: "Estirar reduce tensión muscular y mejora flexibilidad"
+    },
+    {
+      title: "Ejercicio en Casa",
+      description: "Realiza 10 minutos de ejercicio en casa y documéntalo con una foto.",
+      challenge_type: "exercise",
+      target_value: 1,
+      points_reward: 60,
+      bonus_description: "Pequeños ejercicios suman grandes beneficios"
+    },
+    // Wellness challenges
+    {
+      title: "Momento de Calma",
+      description: "Tómate 5 minutos para meditar o respirar profundo. Fotografía tu espacio tranquilo.",
+      challenge_type: "wellness",
+      target_value: 1,
+      points_reward: 55,
+      bonus_description: "La meditación reduce el estrés y mejora el enfoque"
+    },
+    {
+      title: "Descanso Visual",
+      description: "Aléjate de pantallas por 10 minutos. Fotografía algo natural que veas.",
+      challenge_type: "wellness",
+      target_value: 1,
+      points_reward: 45,
+      bonus_description: "Descansar la vista reduce fatiga ocular"
+    },
+    {
+      title: "Gratitud Diaria",
+      description: "Escribe 3 cosas por las que estés agradecido y fotografía tu nota.",
+      challenge_type: "wellness",
+      target_value: 1,
+      points_reward: 50,
+      bonus_description: "Practicar gratitud mejora tu bienestar mental"
+    },
+    // Food prep challenges
+    {
+      title: "Preparación Saludable",
+      description: "Prepara tus comidas del día y fotografía tu preparación.",
+      challenge_type: "meal_prep",
+      target_value: 1,
+      points_reward: 70,
+      bonus_description: "Planificar tus comidas te ayuda a comer mejor"
+    },
+    {
+      title: "Fruta del Día",
+      description: "Come una porción de fruta fresca y toma una foto antes de comerla.",
+      challenge_type: "nutrition",
+      target_value: 1,
+      points_reward: 40,
+      bonus_description: "Las frutas aportan vitaminas y fibra esencial"
     }
   ],
   en: [
+    // Meal challenges
     {
       title: "Healthy Breakfast",
       description: "Take a photo of your breakfast before eating. Make sure to include protein and fiber.",
@@ -83,6 +169,7 @@ const STATIC_CHALLENGES = {
       points_reward: 55,
       bonus_description: "A light dinner improves your sleep quality"
     },
+    // Hydration challenges
     {
       title: "Daily Hydration",
       description: "Take a photo of your water bottle or healthy drink. Stay hydrated.",
@@ -90,6 +177,89 @@ const STATIC_CHALLENGES = {
       target_value: 1,
       points_reward: 45,
       bonus_description: "Drinking enough water improves your energy and focus"
+    },
+    {
+      title: "8 Glasses Challenge",
+      description: "Photograph your glass of water. Try to drink at least 8 glasses during the day.",
+      challenge_type: "hydration",
+      target_value: 1,
+      points_reward: 55,
+      bonus_description: "Proper hydration improves your skin and metabolism"
+    },
+    {
+      title: "Lemon Water",
+      description: "Prepare and photograph a glass of lemon water. Ideal to start the day.",
+      challenge_type: "hydration",
+      target_value: 1,
+      points_reward: 40,
+      bonus_description: "Lemon water aids digestion and provides vitamin C"
+    },
+    // Exercise challenges
+    {
+      title: "Active Walk",
+      description: "Go for a walk for at least 15 minutes and take a photo of the scenery.",
+      challenge_type: "exercise",
+      target_value: 1,
+      points_reward: 65,
+      bonus_description: "Walking improves your circulation and mood"
+    },
+    {
+      title: "Morning Stretches",
+      description: "Do a stretching routine and take a photo of your exercise space.",
+      challenge_type: "exercise",
+      target_value: 1,
+      points_reward: 50,
+      bonus_description: "Stretching reduces muscle tension and improves flexibility"
+    },
+    {
+      title: "Home Workout",
+      description: "Do 10 minutes of exercise at home and document it with a photo.",
+      challenge_type: "exercise",
+      target_value: 1,
+      points_reward: 60,
+      bonus_description: "Small exercises add up to big benefits"
+    },
+    // Wellness challenges
+    {
+      title: "Calm Moment",
+      description: "Take 5 minutes to meditate or breathe deeply. Photograph your peaceful space.",
+      challenge_type: "wellness",
+      target_value: 1,
+      points_reward: 55,
+      bonus_description: "Meditation reduces stress and improves focus"
+    },
+    {
+      title: "Visual Rest",
+      description: "Step away from screens for 10 minutes. Photograph something natural you see.",
+      challenge_type: "wellness",
+      target_value: 1,
+      points_reward: 45,
+      bonus_description: "Resting your eyes reduces eye strain"
+    },
+    {
+      title: "Daily Gratitude",
+      description: "Write 3 things you're grateful for and photograph your note.",
+      challenge_type: "wellness",
+      target_value: 1,
+      points_reward: 50,
+      bonus_description: "Practicing gratitude improves your mental wellbeing"
+    },
+    // Food prep challenges
+    {
+      title: "Healthy Prep",
+      description: "Prepare your meals for the day and photograph your preparation.",
+      challenge_type: "meal_prep",
+      target_value: 1,
+      points_reward: 70,
+      bonus_description: "Planning your meals helps you eat better"
+    },
+    {
+      title: "Fruit of the Day",
+      description: "Eat a serving of fresh fruit and take a photo before eating it.",
+      challenge_type: "nutrition",
+      target_value: 1,
+      points_reward: 40,
+      bonus_description: "Fruits provide essential vitamins and fiber"
     }
   ]
 };
@@ -105,7 +275,7 @@ function getDailyChallengeIndex(userId: string): number {
     hash = ((hash << 5) - hash) + combined.charCodeAt(i);
     hash |= 0;
   }
-  return Math.abs(hash) % 5;
+  return Math.abs(hash) % 15; // Now 15 challenges
 }
 
 serve(async (req) => {
