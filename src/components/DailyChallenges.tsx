@@ -57,9 +57,12 @@ export const DailyChallenges = () => {
   const { language } = useLanguage();
   const { lightImpact } = useHaptics();
 
+  // Spanish challenge titles to detect language mismatch
+  const spanishTitles = ["Desayuno Saludable", "Almuerzo Balanceado", "Snack Inteligente", "Cena Ligera", "Hidratación del Día"];
+
   useEffect(() => {
     loadChallenges();
-  }, []);
+  }, [language]);
 
   const loadChallenges = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -75,6 +78,21 @@ export const DailyChallenges = () => {
         .order("created_at", { ascending: false });
 
       if (challengesData && challengesData.length > 0) {
+        // Check if existing challenges are in the wrong language
+        const isSpanishChallenge = spanishTitles.includes(challengesData[0].title);
+        const needsRegeneration = (language === "en" && isSpanishChallenge) || 
+                                   (language === "es" && !isSpanishChallenge);
+
+        if (needsRegeneration) {
+          // Delete old challenges and regenerate in correct language
+          await supabase
+            .from("daily_challenges")
+            .delete()
+            .eq("user_id", user.id);
+          await generateChallenges();
+          return;
+        }
+
         setChallenges(challengesData);
 
         const { data: progressData } = await supabase
