@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
-import { useMascot, MascotMood } from '@/contexts/MascotContext';
+import { useMascot, MascotMood, CelebrationType } from '@/contexts/MascotContext';
 import { useMascotMessages, PageContext } from '@/hooks/useMascotMessages';
 import { useMascotUserData } from '@/hooks/useMascotUserData';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Sparkles, Target, Flame, GripVertical } from 'lucide-react';
+import { Sparkles, Target, Flame, GripVertical, Star, Heart, Zap, Trophy, CheckCircle2, ShoppingCart } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import mascotLime from '@/assets/mascot-lime.png';
 
@@ -18,6 +18,194 @@ const moodImages: Record<MascotMood, string> = {
   proud: mascotLime,
   encouraging: mascotLime,
   celebrating: mascotLime,
+};
+
+// Celebration configs by type
+const celebrationConfigs: Record<CelebrationType, {
+  colors: string[];
+  icon: React.ReactNode;
+  glowColor: string;
+  particleCount: { small: number; medium: number; epic: number };
+}> = {
+  meal_complete: {
+    colors: ['text-green-400', 'text-emerald-400', 'text-lime-400'],
+    icon: <CheckCircle2 className="w-4 h-4" />,
+    glowColor: 'bg-green-400/40',
+    particleCount: { small: 6, medium: 10, epic: 16 },
+  },
+  challenge_complete: {
+    colors: ['text-purple-400', 'text-pink-400', 'text-fuchsia-400'],
+    icon: <Trophy className="w-4 h-4" />,
+    glowColor: 'bg-purple-400/40',
+    particleCount: { small: 8, medium: 14, epic: 22 },
+  },
+  streak_milestone: {
+    colors: ['text-orange-400', 'text-amber-400', 'text-yellow-400'],
+    icon: <Flame className="w-4 h-4" />,
+    glowColor: 'bg-orange-400/40',
+    particleCount: { small: 10, medium: 16, epic: 26 },
+  },
+  daily_goal: {
+    colors: ['text-blue-400', 'text-cyan-400', 'text-sky-400'],
+    icon: <Target className="w-4 h-4" />,
+    glowColor: 'bg-blue-400/40',
+    particleCount: { small: 8, medium: 12, epic: 20 },
+  },
+  achievement: {
+    colors: ['text-yellow-400', 'text-amber-300', 'text-orange-300'],
+    icon: <Star className="w-4 h-4" />,
+    glowColor: 'bg-yellow-400/40',
+    particleCount: { small: 12, medium: 20, epic: 30 },
+  },
+  shopping_complete: {
+    colors: ['text-teal-400', 'text-emerald-400', 'text-green-400'],
+    icon: <ShoppingCart className="w-4 h-4" />,
+    glowColor: 'bg-teal-400/40',
+    particleCount: { small: 6, medium: 10, epic: 14 },
+  },
+  generic: {
+    colors: ['text-primary', 'text-accent', 'text-secondary-foreground'],
+    icon: <Sparkles className="w-4 h-4" />,
+    glowColor: 'bg-primary/40',
+    particleCount: { small: 6, medium: 10, epic: 16 },
+  },
+};
+
+// Celebration particle component
+const CelebrationParticle: React.FC<{
+  index: number;
+  type: CelebrationType;
+  intensity: 'small' | 'medium' | 'epic';
+}> = ({ index, type, intensity }) => {
+  const config = celebrationConfigs[type];
+  const colorClass = config.colors[index % config.colors.length];
+  const angle = (index / config.particleCount[intensity]) * 360;
+  const distance = intensity === 'epic' ? 80 + Math.random() * 40 : intensity === 'medium' ? 60 + Math.random() * 30 : 40 + Math.random() * 20;
+  const duration = intensity === 'epic' ? 1.2 : intensity === 'medium' ? 0.9 : 0.7;
+  
+  const x = Math.cos((angle * Math.PI) / 180) * distance;
+  const y = Math.sin((angle * Math.PI) / 180) * distance;
+  
+  const shapes = ['star', 'circle', 'heart', 'sparkle'];
+  const shape = shapes[index % shapes.length];
+
+  return (
+    <motion.div
+      initial={{ opacity: 1, scale: 0, x: 0, y: 0, rotate: 0 }}
+      animate={{ 
+        opacity: 0, 
+        scale: intensity === 'epic' ? 1.5 : 1,
+        x, 
+        y: y - 20,
+        rotate: Math.random() * 360,
+      }}
+      transition={{ 
+        duration, 
+        delay: index * 0.03,
+        ease: 'easeOut',
+      }}
+      className={`absolute top-1/2 left-1/2 ${colorClass}`}
+    >
+      {shape === 'star' && <Star className="w-3 h-3 fill-current" />}
+      {shape === 'circle' && <div className="w-2 h-2 rounded-full bg-current" />}
+      {shape === 'heart' && <Heart className="w-3 h-3 fill-current" />}
+      {shape === 'sparkle' && <Sparkles className="w-3 h-3" />}
+    </motion.div>
+  );
+};
+
+// Ring burst animation
+const RingBurst: React.FC<{ intensity: 'small' | 'medium' | 'epic'; glowColor: string }> = ({ intensity, glowColor }) => {
+  const rings = intensity === 'epic' ? 3 : intensity === 'medium' ? 2 : 1;
+  
+  return (
+    <>
+      {[...Array(rings)].map((_, i) => (
+        <motion.div
+          key={i}
+          initial={{ scale: 0.5, opacity: 0.8 }}
+          animate={{ scale: 3 + i * 0.5, opacity: 0 }}
+          transition={{ 
+            duration: intensity === 'epic' ? 1 : 0.7, 
+            delay: i * 0.15,
+            ease: 'easeOut',
+          }}
+          className={`absolute inset-0 rounded-full border-2 border-current ${glowColor.replace('/40', '/60')}`}
+          style={{ borderColor: 'currentColor' }}
+        />
+      ))}
+    </>
+  );
+};
+
+// Floating emoji burst
+const EmojiBurst: React.FC<{ type: CelebrationType; intensity: 'small' | 'medium' | 'epic' }> = ({ type, intensity }) => {
+  const emojiMap: Record<CelebrationType, string[]> = {
+    meal_complete: ['🍽️', '✅', '🎉', '👏'],
+    challenge_complete: ['🏆', '💪', '🎯', '⭐'],
+    streak_milestone: ['🔥', '🌟', '💫', '✨'],
+    daily_goal: ['🎯', '🎊', '💯', '🙌'],
+    achievement: ['🏅', '👑', '🌟', '🎖️'],
+    shopping_complete: ['🛒', '✅', '🎉', '👍'],
+    generic: ['🎉', '✨', '🎊', '💫'],
+  };
+  
+  const emojis = emojiMap[type];
+  const count = intensity === 'epic' ? 6 : intensity === 'medium' ? 4 : 2;
+  
+  return (
+    <>
+      {[...Array(count)].map((_, i) => {
+        const angle = (i / count) * 360 + Math.random() * 30;
+        const distance = 50 + Math.random() * 30;
+        const x = Math.cos((angle * Math.PI) / 180) * distance;
+        const y = Math.sin((angle * Math.PI) / 180) * distance - 40;
+        
+        return (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, scale: 0, x: 0, y: 0 }}
+            animate={{ 
+              opacity: [0, 1, 1, 0], 
+              scale: [0, 1.2, 1, 0.8],
+              x, 
+              y,
+            }}
+            transition={{ 
+              duration: 1.2, 
+              delay: 0.1 + i * 0.08,
+              times: [0, 0.2, 0.7, 1],
+            }}
+            className="absolute top-1/2 left-1/2 text-lg"
+          >
+            {emojis[i % emojis.length]}
+          </motion.div>
+        );
+      })}
+    </>
+  );
+};
+
+// Starburst animation for epic celebrations
+const Starburst: React.FC<{ show: boolean }> = ({ show }) => {
+  if (!show) return null;
+  
+  return (
+    <>
+      {[...Array(8)].map((_, i) => (
+        <motion.div
+          key={i}
+          initial={{ scaleY: 0, opacity: 1 }}
+          animate={{ scaleY: [0, 1, 0], opacity: [1, 0.8, 0] }}
+          transition={{ duration: 0.6, delay: i * 0.02 }}
+          className="absolute top-1/2 left-1/2 w-1 h-12 bg-gradient-to-t from-accent to-transparent origin-bottom"
+          style={{ 
+            transform: `rotate(${i * 45}deg) translateY(-50%)`,
+          }}
+        />
+      ))}
+    </>
+  );
 };
 
 // Pages where the floating mascot should be hidden
@@ -63,6 +251,10 @@ const FloatingMascot: React.FC = () => {
   const [showQuickStats, setShowQuickStats] = useState(false);
   const [isWaving, setIsWaving] = useState(false);
   const [hasShownPageMessage, setHasShownPageMessage] = useState(false);
+
+  // Derived celebration state
+  const isCelebrating = state.mood === 'celebrating';
+  const celebrationType = state.celebrationType;
 
   // Double tap detection
   const lastTapRef = useRef<number>(0);
@@ -430,69 +622,133 @@ const FloatingMascot: React.FC = () => {
         onTouchEnd={handlePressEnd}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        className="relative w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 border-2 border-primary/30 shadow-lg overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary/50"
+        className="relative w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 border-2 border-primary/30 shadow-lg overflow-visible focus:outline-none focus:ring-2 focus:ring-primary/50"
       >
-        {/* Glow effect */}
+        {/* Celebration: Ring Burst */}
+        <AnimatePresence>
+          {isCelebrating && celebrationType && (
+            <RingBurst 
+              intensity={state.celebrationIntensity} 
+              glowColor={celebrationConfigs[celebrationType].glowColor} 
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Celebration: Starburst for epic */}
+        <AnimatePresence>
+          {isCelebrating && state.celebrationIntensity === 'epic' && (
+            <Starburst show={true} />
+          )}
+        </AnimatePresence>
+
+        {/* Glow effect - enhanced during celebration */}
         <motion.div
           animate={{
-            opacity: [0.3, 0.6, 0.3],
-            scale: [1, 1.1, 1],
+            opacity: isCelebrating 
+              ? [0.6, 1, 0.6] 
+              : [0.3, 0.6, 0.3],
+            scale: isCelebrating 
+              ? [1, 1.4, 1] 
+              : [1, 1.1, 1],
           }}
           transition={{
-            duration: 2,
+            duration: isCelebrating ? 0.5 : 2,
             repeat: Infinity,
             ease: 'easeInOut',
           }}
-          className="absolute inset-0 rounded-full bg-primary/20 blur-md"
+          className={`absolute inset-0 rounded-full blur-md ${
+            isCelebrating && celebrationType
+              ? celebrationConfigs[celebrationType].glowColor
+              : 'bg-primary/20'
+          }`}
         />
 
-        {/* Mascot Image */}
+        {/* Mascot Image with elaborate celebration animations */}
         <motion.img
           src={moodImages[state.mood]}
           alt="Limey"
           className="relative z-10 w-full h-full object-cover"
-          animate={{
-            scale: isBlinking ? [1, 0.98, 1] : 1,
-            rotate: state.mood === 'celebrating' 
-              ? [0, -5, 5, 0] 
-              : isWaving 
-                ? [0, -10, 10, -10, 10, 0] 
-                : 0,
-            y: isWaving ? [0, -3, 0, -3, 0] : 0,
-          }}
+          animate={
+            isCelebrating 
+              ? {
+                  scale: state.celebrationIntensity === 'epic' 
+                    ? [1, 1.2, 0.9, 1.15, 1] 
+                    : state.celebrationIntensity === 'medium'
+                      ? [1, 1.15, 0.95, 1.1, 1]
+                      : [1, 1.1, 0.98, 1.05, 1],
+                  rotate: state.celebrationIntensity === 'epic'
+                    ? [0, -15, 15, -12, 12, -8, 8, 0]
+                    : state.celebrationIntensity === 'medium'
+                      ? [0, -10, 10, -8, 8, 0]
+                      : [0, -5, 5, 0],
+                  y: state.celebrationIntensity === 'epic'
+                    ? [0, -8, 0, -6, 0, -4, 0]
+                    : [0, -4, 0, -3, 0],
+                }
+              : {
+                  scale: isBlinking ? [1, 0.98, 1] : 1,
+                  rotate: isWaving ? [0, -10, 10, -10, 10, 0] : 0,
+                  y: isWaving ? [0, -3, 0, -3, 0] : 0,
+                }
+          }
           transition={{
-            duration: state.mood === 'celebrating' ? 0.5 : isWaving ? 0.8 : 0.15,
-            repeat: state.mood === 'celebrating' ? 3 : 0,
+            duration: isCelebrating 
+              ? (state.celebrationIntensity === 'epic' ? 1.5 : state.celebrationIntensity === 'medium' ? 1 : 0.6)
+              : isWaving ? 0.8 : 0.15,
+            repeat: isCelebrating ? 2 : 0,
+            ease: 'easeInOut',
           }}
         />
 
-        {/* Celebration particles */}
+        {/* Celebration particles - type specific */}
         <AnimatePresence>
-          {state.mood === 'celebrating' && (
+          {isCelebrating && celebrationType && (
             <>
-              {[...Array(6)].map((_, i) => (
-                <motion.div
+              {[...Array(celebrationConfigs[celebrationType].particleCount[state.celebrationIntensity])].map((_, i) => (
+                <CelebrationParticle 
                   key={i}
-                  initial={{ 
-                    opacity: 1, 
-                    scale: 0,
-                    x: 0,
-                    y: 0,
-                  }}
-                  animate={{ 
-                    opacity: 0, 
-                    scale: 1,
-                    x: (Math.random() - 0.5) * 60,
-                    y: -30 - Math.random() * 40,
-                  }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.8, delay: i * 0.1 }}
-                  className="absolute top-1/2 left-1/2"
-                >
-                  <Sparkles className="w-3 h-3 text-accent" />
-                </motion.div>
+                  index={i}
+                  type={celebrationType}
+                  intensity={state.celebrationIntensity}
+                />
               ))}
             </>
+          )}
+        </AnimatePresence>
+
+        {/* Celebration: Emoji Burst */}
+        <AnimatePresence>
+          {isCelebrating && celebrationType && state.celebrationIntensity !== 'small' && (
+            <EmojiBurst type={celebrationType} intensity={state.celebrationIntensity} />
+          )}
+        </AnimatePresence>
+
+        {/* Celebration Badge/Icon overlay */}
+        <AnimatePresence>
+          {isCelebrating && celebrationType && (
+            <motion.div
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: [0, 1.3, 1], opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+              className={`absolute -bottom-2 -right-2 z-20 w-8 h-8 rounded-full flex items-center justify-center shadow-lg ${
+                celebrationType === 'meal_complete' ? 'bg-green-500' :
+                celebrationType === 'challenge_complete' ? 'bg-purple-500' :
+                celebrationType === 'streak_milestone' ? 'bg-orange-500' :
+                celebrationType === 'daily_goal' ? 'bg-blue-500' :
+                celebrationType === 'achievement' ? 'bg-yellow-500' :
+                celebrationType === 'shopping_complete' ? 'bg-teal-500' :
+                'bg-primary'
+              }`}
+            >
+              <motion.div
+                animate={{ rotate: [0, 15, -15, 0] }}
+                transition={{ duration: 0.5, repeat: 2 }}
+                className="text-white"
+              >
+                {celebrationConfigs[celebrationType].icon}
+              </motion.div>
+            </motion.div>
           )}
         </AnimatePresence>
 
@@ -510,8 +766,8 @@ const FloatingMascot: React.FC = () => {
         />
       </motion.button>
 
-      {/* Notification dot - show when there are pending challenges */}
-      {userData.pendingChallenges > 0 && (
+      {/* Notification dot - show when there are pending challenges (hide during celebration) */}
+      {userData.pendingChallenges > 0 && !isCelebrating && (
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
@@ -522,6 +778,45 @@ const FloatingMascot: React.FC = () => {
           </span>
         </motion.div>
       )}
+
+      {/* Celebration Message Bubble (special styling) */}
+      <AnimatePresence>
+        {isCelebrating && state.message && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.5, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 10 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+            className={`absolute ${isTopPosition ? 'top-full mt-3' : 'bottom-full mb-3'} ${isLeftPosition ? 'left-0' : 'right-0'} max-w-[220px]`}
+          >
+            <div className={`relative rounded-2xl p-3 shadow-xl border-2 ${
+              celebrationType === 'meal_complete' ? 'bg-gradient-to-br from-green-500/90 to-emerald-600/90 border-green-400/50' :
+              celebrationType === 'challenge_complete' ? 'bg-gradient-to-br from-purple-500/90 to-pink-600/90 border-purple-400/50' :
+              celebrationType === 'streak_milestone' ? 'bg-gradient-to-br from-orange-500/90 to-amber-600/90 border-orange-400/50' :
+              celebrationType === 'daily_goal' ? 'bg-gradient-to-br from-blue-500/90 to-cyan-600/90 border-blue-400/50' :
+              celebrationType === 'achievement' ? 'bg-gradient-to-br from-yellow-500/90 to-amber-500/90 border-yellow-400/50' :
+              celebrationType === 'shopping_complete' ? 'bg-gradient-to-br from-teal-500/90 to-emerald-600/90 border-teal-400/50' :
+              'bg-gradient-to-br from-primary/90 to-accent/90 border-primary/50'
+            }`}>
+              <motion.p 
+                className="text-sm text-white font-medium leading-snug text-center"
+                animate={{ scale: [1, 1.02, 1] }}
+                transition={{ duration: 0.5, repeat: 3 }}
+              >
+                {state.message}
+              </motion.p>
+              {/* Sparkle decorations */}
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                className="absolute -top-2 -right-2"
+              >
+                <Sparkles className="w-4 h-4 text-white/80" />
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };

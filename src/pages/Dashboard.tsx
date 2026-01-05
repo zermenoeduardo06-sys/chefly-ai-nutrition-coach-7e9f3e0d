@@ -507,6 +507,19 @@ const Dashboard = () => {
             setUnlockedAchievement(achievement);
             setShowAchievementUnlock(true);
             
+            // Trigger mascot celebration for achievement with epic intensity
+            const achievementMessage = language === 'es' 
+              ? `¡Logro desbloqueado: ${achievement.title}! 🏅`
+              : `Achievement unlocked: ${achievement.title}! 🏅`;
+            
+            // Determine if it's a streak achievement for special celebration
+            const isStreakAchievement = achievement.requirement_type === 'streak';
+            triggerMascotCelebration(
+              achievementMessage, 
+              isStreakAchievement ? 'streak_milestone' : 'achievement', 
+              'epic'
+            );
+            
             // Haptic celebration for achievement unlock
             celebrationPattern();
 
@@ -553,7 +566,9 @@ const Dashboard = () => {
       });
       setShowDailySummary(true);
 
-      // Extra celebration for completing the whole day
+      // Extra epic celebration for completing the whole day
+      triggerCelebration('daily_goal');
+      
       confetti({
         particleCount: 200,
         spread: 120,
@@ -563,27 +578,31 @@ const Dashboard = () => {
     }
   };
 
-  const triggerCelebration = () => {
+  const triggerCelebration = (celebrationType: 'meal_complete' | 'daily_goal' | 'generic' = 'meal_complete') => {
     const messages = getArray("dashboard.celebrationMessages");
     
     const randomMessage = messages[Math.floor(Math.random() * messages.length)];
     setMascotMessage(randomMessage);
     setShowCelebration(true);
 
-    // Trigger floating mascot celebration too
-    triggerMascotCelebration(randomMessage);
+    // Determine intensity based on type
+    const intensity = celebrationType === 'daily_goal' ? 'epic' : 'medium';
 
-    // Confetti
+    // Trigger floating mascot celebration with type and intensity
+    triggerMascotCelebration(randomMessage, celebrationType, intensity);
+
+    // Confetti with intensity matching
     confetti({
-      particleCount: 100,
-      spread: 70,
+      particleCount: intensity === 'epic' ? 150 : 100,
+      spread: intensity === 'epic' ? 100 : 70,
       origin: { y: 0.6 }
     });
 
+    const duration = intensity === 'epic' ? 5000 : 3000;
     setTimeout(() => {
       setShowCelebration(false);
       setMascotMessage("");
-    }, 3000);
+    }, duration);
   };
 
   const loadProfile = async (userId: string) => {

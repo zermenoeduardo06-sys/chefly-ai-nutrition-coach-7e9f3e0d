@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useMascot } from "@/contexts/MascotContext";
 import { Target, Trophy, Loader2, RefreshCw, Flame, Droplets, Clock, Apple, TrendingUp, Zap, Star, Sparkles, Check, Camera } from "lucide-react";
 import confetti from "canvas-confetti";
 import { motion } from "framer-motion";
@@ -55,7 +56,8 @@ export const DailyChallenges = () => {
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
   const { toast } = useToast();
   const { language } = useLanguage();
-  const { lightImpact } = useHaptics();
+  const { triggerCelebration } = useMascot();
+  const { lightImpact, celebrationPattern } = useHaptics();
 
   // Spanish challenge titles to detect language mismatch
   const spanishTitles = ["Desayuno Saludable", "Almuerzo Balanceado", "Snack Inteligente", "Cena Ligera", "Hidratación del Día"];
@@ -178,6 +180,13 @@ export const DailyChallenges = () => {
       });
       return newMap;
     });
+
+    // Trigger mascot celebration for challenge completion
+    const message = language === 'es' 
+      ? `¡Reto "${selectedChallenge.title}" completado! 🏆`
+      : `Challenge "${selectedChallenge.title}" completed! 🏆`;
+    triggerCelebration(message, 'challenge_complete', 'medium');
+    celebrationPattern();
 
     confetti({
       particleCount: 150,
