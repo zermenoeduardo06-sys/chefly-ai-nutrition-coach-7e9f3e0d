@@ -1,13 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-// New lime mascot with different emotions
-import mascotDefault from "@/assets/mascot-lime.png";
-import mascotHappy from "@/assets/mascot-lime-happy.png";
-import mascotSad from "@/assets/mascot-lime-sad.png";
-import mascotThinking from "@/assets/mascot-lime-thinking.png";
-import mascotCelebrating from "@/assets/mascot-lime-celebrating.png";
-import mascotMotivated from "@/assets/mascot-lime-motivated.png";
-import mascotSleepy from "@/assets/mascot-lime-sleepy.png";
+// Main lime mascot - additional emotions will be added later
+import mascotLime from "@/assets/mascot-lime.png";
 import { Sparkles, Trophy, Flame, Star, Zap, Heart } from "lucide-react";
 
 export type MascotMood = "default" | "happy" | "sad" | "thinking" | "celebrating" | "motivated" | "sleepy" | "streak" | "level-up" | "idle";
@@ -24,18 +18,10 @@ interface MascotCompanionProps {
   className?: string;
 }
 
-// Map moods to mascot images
-const moodImageMap: Record<MascotMood, string> = {
-  default: mascotDefault,
-  happy: mascotHappy,
-  sad: mascotSad,
-  thinking: mascotThinking,
-  celebrating: mascotCelebrating,
-  motivated: mascotMotivated,
-  sleepy: mascotSleepy,
-  streak: mascotMotivated,
-  "level-up": mascotCelebrating,
-  idle: mascotDefault,
+// For now, all moods use the same mascot image until more are provided
+const getMascotForMood = (_mood: MascotMood): string => {
+  // TODO: Add more mascot images as user provides them
+  return mascotLime;
 };
 
 // Size configurations
@@ -185,22 +171,9 @@ export function MascotCompanion({
   const [showParticles, setShowParticles] = useState(false);
 
   // Get mascot image based on mood and context
+  // For now uses single image, will be updated when more mascot images are provided
   const getMascotImage = () => {
-    if (showCelebration) return mascotCelebrating;
-    if (streak >= 7) return mascotMotivated;
-    if (streak >= 3) return mascotHappy;
-    
-    // Time-based moods for idle state
-    if (currentMood === "idle" || currentMood === "default") {
-      const hour = new Date().getHours();
-      if (hour >= 22 || hour < 6) return mascotSleepy;
-      if (hour >= 6 && hour < 10) return mascotHappy;
-      if (hour >= 10 && hour < 14) return mascotMotivated;
-      if (hour >= 14 && hour < 18) return mascotThinking;
-      return mascotDefault;
-    }
-    
-    return moodImageMap[currentMood] || mascotDefault;
+    return mascotLime;
   };
 
   useEffect(() => {
