@@ -89,23 +89,23 @@ interface UserStats {
   level: number;
 }
 
-// Preview: Hybrid Energy color palette (lighter version)
+// Preview: Hybrid Energy color palette
 const hybridEnergyStyles = {
-  '--primary': '82 80% 50%',           // Lime green (mascot)
+  '--primary': '82 85% 55%',           // Lime green (mascot)
   '--primary-foreground': '0 0% 5%',   // Dark text on lime
-  '--primary-hover': '82 80% 55%',     // Lighter lime hover
-  '--secondary': '188 85% 45%',        // Cyan for data
+  '--primary-hover': '82 85% 60%',     // Lighter lime hover
+  '--secondary': '188 90% 50%',        // Cyan for data
   '--secondary-foreground': '0 0% 5%', // Dark text on cyan
-  '--accent': '38 90% 50%',            // Amber for gamification
+  '--accent': '38 92% 50%',            // Amber for gamification
   '--accent-foreground': '0 0% 5%',    // Dark text on amber
-  '--background': '220 20% 16%',       // Lighter blue-grey
+  '--background': '220 25% 10%',       // Deep blue-grey
   '--foreground': '210 40% 98%',       // Light text
-  '--card': '220 20% 20%',             // Lighter card
+  '--card': '220 25% 14%',             // Slightly lighter card
   '--card-foreground': '210 40% 98%',  // Light text on card
-  '--muted': '220 18% 26%',            // Lighter muted
-  '--muted-foreground': '215 20% 70%', // Lighter muted text
-  '--border': '220 18% 28%',           // Lighter border
-  '--ring': '82 80% 50%',              // Lime ring
+  '--muted': '220 20% 20%',            // Muted background
+  '--muted-foreground': '215 20% 65%', // Muted text
+  '--border': '220 20% 22%',           // Subtle border
+  '--ring': '82 85% 55%',              // Lime ring
 } as React.CSSProperties;
 
 const Dashboard = () => {
