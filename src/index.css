@@ -8,67 +8,67 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Hybrid Energy - Light mode */
-    --background: 100 20% 97%;
-    --foreground: 220 25% 15%;
+    /* Hybrid Energy - Light mode (improved contrast) */
+    --background: 0 0% 98%;
+    --foreground: 220 30% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 25% 15%;
+    --card-foreground: 220 30% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 25% 15%;
+    --popover-foreground: 220 30% 12%;
 
-    /* Lime green primary (mascot) */
-    --primary: 82 85% 45%;
-    --primary-foreground: 0 0% 5%;
-    --primary-hover: 82 85% 50%;
+    /* Lime green primary (mascot) - darker for light mode */
+    --primary: 82 80% 38%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 82 80% 42%;
     
-    /* Cyan secondary for data/progress */
-    --secondary: 188 90% 45%;
-    --secondary-foreground: 0 0% 5%;
+    /* Cyan secondary for data/progress - darker for light mode */
+    --secondary: 188 85% 38%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 100 15% 92%;
-    --muted-foreground: 220 15% 45%;
+    --muted: 220 15% 92%;
+    --muted-foreground: 220 15% 40%;
 
     /* Amber accent for gamification */
     --accent: 38 92% 50%;
     --accent-foreground: 0 0% 5%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 84% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 100 15% 88%;
-    --input: 100 15% 88%;
-    --ring: 82 85% 45%;
+    --border: 220 15% 85%;
+    --input: 220 15% 90%;
+    --ring: 82 80% 38%;
 
     --radius: 1rem;
 
     /* 3D button shadows - light mode */
-    --button-shadow: 0 4px 0 hsl(82 85% 32%);
-    --button-shadow-secondary: 0 4px 0 hsl(188 90% 32%);
-    --button-shadow-pressed: 0 2px 0 hsl(82 85% 32%);
+    --button-shadow: 0 4px 0 hsl(82 80% 28%);
+    --button-shadow-secondary: 0 4px 0 hsl(188 85% 28%);
+    --button-shadow-pressed: 0 2px 0 hsl(82 80% 28%);
     
     /* Glow effects */
-    --glow-primary: 0 0 20px hsl(82 85% 45% / 0.4);
-    --glow-secondary: 0 0 20px hsl(188 90% 45% / 0.4);
+    --glow-primary: 0 0 20px hsl(82 80% 38% / 0.3);
+    --glow-secondary: 0 0 20px hsl(188 85% 38% / 0.3);
 
     /* Sidebar colors */
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 220 25% 15%;
-    --sidebar-primary: 82 85% 45%;
-    --sidebar-primary-foreground: 0 0% 5%;
-    --sidebar-accent: 100 15% 92%;
-    --sidebar-accent-foreground: 220 25% 15%;
-    --sidebar-border: 100 15% 88%;
-    --sidebar-ring: 82 85% 45%;
+    --sidebar-foreground: 220 30% 12%;
+    --sidebar-primary: 82 80% 38%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 15% 95%;
+    --sidebar-accent-foreground: 220 30% 12%;
+    --sidebar-border: 220 15% 85%;
+    --sidebar-ring: 82 80% 38%;
 
     /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(82 85% 45%) 0%, hsl(188 90% 45%) 100%);
-    --gradient-card: linear-gradient(to bottom, hsl(0 0% 100%) 0%, hsl(100 15% 97%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(82 80% 38%) 0%, hsl(188 85% 38%) 100%);
+    --gradient-card: linear-gradient(to bottom, hsl(0 0% 100%) 0%, hsl(220 15% 97%) 100%);
     
     /* Shadows */
-    --shadow-warm: 0 4px 20px -2px hsl(82 85% 45% / 0.15);
-    --shadow-soft: 0 2px 10px -1px hsl(220 25% 15% / 0.08);
+    --shadow-warm: 0 4px 20px -2px hsl(82 80% 38% / 0.15);
+    --shadow-soft: 0 2px 10px -1px hsl(220 30% 12% / 0.1);
 
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
