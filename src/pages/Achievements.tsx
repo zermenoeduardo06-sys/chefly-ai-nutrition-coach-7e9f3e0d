@@ -5,7 +5,7 @@ import { useTrialGuard } from "@/hooks/useTrialGuard";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Loader2, Trophy, Lock, Star, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
-import mascotMotivated from "@/assets/mascot-lime-motivated.png";
+import mascotLime from "@/assets/mascot-lime.png";
 
 interface Achievement {
   id: string;
@@ -236,7 +236,7 @@ const Achievements = () => {
           y: { delay: 1, duration: 2, repeat: Infinity, ease: "easeInOut" }
         }}
       >
-        <img src={mascotMotivated} alt="" className="h-24 w-24 drop-shadow-lg" />
+        <img src={mascotLime} alt="" className="h-24 w-24 drop-shadow-lg" />
       </motion.div>
     </div>
   );

@@ -5,7 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, Check, ChefHat, Sparkles, ShoppingBasket, Info } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import mascotThinking from "@/assets/mascot-lime-thinking.png";
+import mascotLime from "@/assets/mascot-lime.png";
 
 interface StepByStepDialogProps {
   open: boolean;
@@ -286,7 +286,7 @@ export function StepByStepDialog({
                     animate={{ y: [0, -4, 0] }}
                     transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                   >
-                    <img src={mascotThinking} alt="Limey" className="w-full h-full object-contain" />
+                    <img src={mascotLime} alt="Limey" className="w-full h-full object-contain" />
                     <motion.div
                       className="absolute -top-1 left-1/2 -translate-x-1/2"
                       animate={{ opacity: [0.5, 1, 0.5], scale: [0.9, 1.1, 0.9] }}
@@ -378,7 +378,7 @@ export function StepByStepDialog({
                     animate={{ y: [0, -4, 0] }}
                     transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                   >
-                    <img src={mascotThinking} alt="Limey" className="w-full h-full object-contain" />
+                    <img src={mascotLime} alt="Limey" className="w-full h-full object-contain" />
                     <motion.div
                       className="absolute -top-1 left-1/2 -translate-x-1/2"
                       animate={{ opacity: [0.5, 1, 0.5], scale: [0.9, 1.1, 0.9] }}

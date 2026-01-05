@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
-import mascotImage from "@/assets/mascot-lime-happy.png";
+import mascotImage from "@/assets/mascot-lime.png";
 
 interface TourStep {
   target: string;
