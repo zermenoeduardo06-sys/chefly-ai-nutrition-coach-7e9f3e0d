@@ -86,10 +86,28 @@ const Achievements = () => {
   const unlockedCount = unlockedAchievements.size;
   const totalCount = achievements.length;
 
+  // Spring Growth palette preview
+  const springGrowthStyles = {
+    '--primary': '174 72% 40%',
+    '--primary-foreground': '0 0% 100%',
+    '--secondary': '48 95% 55%',
+    '--secondary-foreground': '0 0% 10%',
+    '--accent': '174 60% 30%',
+    '--accent-foreground': '0 0% 100%',
+    '--background': '180 20% 7%',
+    '--foreground': '170 15% 95%',
+    '--card': '175 18% 11%',
+    '--card-foreground': '170 15% 95%',
+    '--muted': '175 12% 16%',
+    '--muted-foreground': '170 10% 60%',
+    '--border': '175 12% 18%',
+    '--ring': '174 72% 40%',
+  } as React.CSSProperties;
+
   return (
-    <div className="min-h-screen bg-background pb-24 md:pb-6">
+    <div className="min-h-screen bg-background pb-24 md:pb-6" style={springGrowthStyles}>
       {/* Hero Header with safe area */}
-      <div className="relative bg-gradient-to-br from-yellow-500 via-amber-500 to-orange-500 overflow-hidden pt-safe-top">
+      <div className="relative bg-gradient-to-br from-teal-500 via-teal-400 to-yellow-400 overflow-hidden pt-safe-top">
         {/* Sparkle decorations */}
         <div className="absolute inset-0 pointer-events-none">
           <motion.div 
