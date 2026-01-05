@@ -2,12 +2,23 @@ import React, { createContext, useContext, useState, useCallback, ReactNode } fr
 
 export type MascotMood = 'idle' | 'happy' | 'motivated' | 'sleepy' | 'hungry' | 'proud' | 'encouraging' | 'celebrating';
 
+export type CelebrationType = 
+  | 'meal_complete' 
+  | 'challenge_complete' 
+  | 'streak_milestone' 
+  | 'daily_goal' 
+  | 'achievement' 
+  | 'shopping_complete'
+  | 'generic';
+
 interface MascotState {
   mood: MascotMood;
   message: string | null;
   isVisible: boolean;
   isExpanded: boolean;
   lastInteraction: Date | null;
+  celebrationType: CelebrationType | null;
+  celebrationIntensity: 'small' | 'medium' | 'epic';
 }
 
 interface MascotContextType {
@@ -17,7 +28,7 @@ interface MascotContextType {
   showMascot: () => void;
   hideMascot: () => void;
   toggleExpanded: () => void;
-  triggerCelebration: (message?: string) => void;
+  triggerCelebration: (message?: string, type?: CelebrationType, intensity?: 'small' | 'medium' | 'epic') => void;
   recordInteraction: () => void;
 }
 
@@ -29,6 +40,8 @@ const initialState: MascotState = {
   isVisible: true,
   isExpanded: false,
   lastInteraction: null,
+  celebrationType: null,
+  celebrationIntensity: 'medium',
 };
 
 export const MascotProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -54,23 +67,32 @@ export const MascotProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     setState(prev => ({ ...prev, isExpanded: !prev.isExpanded }));
   }, []);
 
-  const triggerCelebration = useCallback((message?: string) => {
+  const triggerCelebration = useCallback((
+    message?: string, 
+    type: CelebrationType = 'generic',
+    intensity: 'small' | 'medium' | 'epic' = 'medium'
+  ) => {
     setState(prev => ({ 
       ...prev, 
       mood: 'celebrating',
       message: message || null,
-      isExpanded: true 
+      isExpanded: true,
+      celebrationType: type,
+      celebrationIntensity: intensity,
     }));
     
-    // Reset after animation
+    // Duration based on intensity
+    const duration = intensity === 'epic' ? 5000 : intensity === 'medium' ? 3500 : 2500;
+    
     setTimeout(() => {
       setState(prev => ({ 
         ...prev, 
         mood: 'happy',
         isExpanded: false,
-        message: null 
+        message: null,
+        celebrationType: null,
       }));
-    }, 3000);
+    }, duration);
   }, []);
 
   const recordInteraction = useCallback(() => {
