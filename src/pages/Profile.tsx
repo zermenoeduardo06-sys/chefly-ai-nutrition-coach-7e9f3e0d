@@ -26,24 +26,6 @@ interface ProfileData {
   created_at: string | null;
 }
 
-// Preview: Fresh Lime color palette (based on mascot)
-const freshLimeStyles = {
-  '--primary': '82 85% 55%',           // Lime green (mascot)
-  '--primary-foreground': '0 0% 5%',   // Dark text on lime
-  '--primary-hover': '82 85% 60%',     // Lighter lime hover
-  '--secondary': '60 70% 50%',         // Yellow accent
-  '--secondary-foreground': '0 0% 5%', // Dark text on yellow
-  '--accent': '82 70% 65%',            // Light lime accent
-  '--accent-foreground': '0 0% 5%',    // Dark text on accent
-  '--background': '120 15% 8%',        // Dark with green tint
-  '--foreground': '80 20% 95%',        // Warm light text
-  '--card': '120 15% 12%',             // Greenish card
-  '--card-foreground': '80 20% 95%',   // Light text on card
-  '--muted': '120 10% 18%',            // Muted green
-  '--muted-foreground': '80 15% 60%',  // Muted text
-  '--border': '120 10% 20%',           // Green-tinted border
-  '--ring': '82 85% 55%',              // Lime ring
-} as React.CSSProperties;
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -141,7 +123,6 @@ const Profile = () => {
     : "";
 
   return (
-    <div style={freshLimeStyles}>
     <div className="min-h-screen bg-background pb-24">
       {/* Header with Settings */}
       <div className="flex items-center justify-end px-4 py-3 pt-safe-top">
@@ -264,7 +245,6 @@ const Profile = () => {
                 <ChevronRight className="h-5 w-5 text-muted-foreground" />
               </div>
             </div>
-            
             {/* Decorative sparkles for Plus users */}
             {limits.isCheflyPlus && (
               <>
@@ -289,7 +269,6 @@ const Profile = () => {
       >
         <ProfileMenuLinks />
       </motion.div>
-    </div>
     </div>
   );
 };

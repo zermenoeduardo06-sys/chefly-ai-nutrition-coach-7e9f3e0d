@@ -37,29 +37,8 @@ const Progress = () => {
     setRefreshTrigger(prev => prev + 1);
   };
 
-  // Ocean Vitality palette preview
-  const oceanVitalityStyles = {
-    '--primary': '185 84% 45%',
-    '--primary-foreground': '0 0% 100%',
-    '--secondary': '78 70% 50%',
-    '--secondary-foreground': '0 0% 10%',
-    '--accent': '185 70% 35%',
-    '--accent-foreground': '0 0% 100%',
-    '--background': '200 25% 8%',
-    '--foreground': '180 10% 95%',
-    '--card': '195 20% 12%',
-    '--card-foreground': '180 10% 95%',
-    '--muted': '195 15% 18%',
-    '--muted-foreground': '180 10% 65%',
-    '--border': '195 15% 20%',
-    '--ring': '185 84% 45%',
-  } as React.CSSProperties;
-
   return (
-    <div 
-      className="min-h-screen bg-gradient-to-b from-background to-muted/30 pt-safe-top pb-24 md:pb-6"
-      style={oceanVitalityStyles}
-    >
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 pt-safe-top pb-24 md:pb-6">
       <main className="container mx-auto px-4 py-4 md:py-6 space-y-4 md:space-y-6">
         <div className="flex items-center gap-2 mb-4 md:mb-6">
           <TrendingDown className="h-6 w-6 md:h-8 md:w-8 text-primary" />
