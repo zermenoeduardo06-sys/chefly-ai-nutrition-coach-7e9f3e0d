@@ -7,7 +7,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Target, Trophy, Loader2, RefreshCw, Flame, Droplets, Clock, Apple, TrendingUp, Zap, Star, Sparkles, Check, Camera } from "lucide-react";
 import confetti from "canvas-confetti";
 import { motion } from "framer-motion";
-import mascotFire from "@/assets/mascot-fire.png";
+import mascotMotivated from "@/assets/mascot-lime-motivated.png";
 import { ChallengePhotoDialog } from "./ChallengePhotoDialog";
 import { useHaptics } from "@/hooks/useHaptics";
 
@@ -445,7 +445,7 @@ export const DailyChallenges = () => {
         animate={{ opacity: 0.3, scale: 1 }}
         transition={{ delay: 0.5 }}
       >
-        <img src={mascotFire} alt="" className="h-20 w-20 opacity-50" />
+        <img src={mascotMotivated} alt="" className="h-24 w-24 drop-shadow-lg" />
       </motion.div>
 
       {/* Photo dialog for challenge completion */}

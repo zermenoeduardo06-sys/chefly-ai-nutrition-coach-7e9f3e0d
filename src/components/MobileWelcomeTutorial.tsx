@@ -12,7 +12,7 @@ import {
   User,
   Camera,
 } from "lucide-react";
-import cheflyMascot from "@/assets/chefly-mascot.png";
+import mascotHappy from "@/assets/mascot-lime-happy.png";
 import { useHaptics } from "@/hooks/useHaptics";
 
 interface TourStep {
@@ -345,7 +345,7 @@ const MobileWelcomeTutorial = ({ open, onComplete }: MobileWelcomeTutorialProps)
               <div className="bg-gradient-to-r from-primary via-primary to-primary/80 p-4 flex items-center gap-4">
                 {isWelcome ? (
                   <motion.img
-                    src={cheflyMascot}
+                    src={mascotHappy}
                     alt="Chefly"
                     className="w-20 h-20 object-contain drop-shadow-lg flex-shrink-0"
                     animate={{ 

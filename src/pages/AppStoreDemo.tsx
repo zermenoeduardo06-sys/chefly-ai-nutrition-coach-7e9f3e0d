@@ -6,7 +6,7 @@ import {
   Flame, Trophy, Target, ArrowRight
 } from 'lucide-react';
 import cheflyLogo from '@/assets/chefly-logo.png';
-import mascotCooking from '@/assets/mascot-cooking.png';
+import mascotHappy from '@/assets/mascot-lime-happy.png';
 
 // App Store Preview dimensions:
 // iPhone 6.7" (Pro Max): 1290 x 2796 pixels
@@ -447,7 +447,7 @@ export default function AppStoreDemo() {
             transition={{ duration: 0.5 }}
           >
             <motion.img
-              src={mascotCooking}
+              src={mascotHappy}
               alt="Chefly Mascot"
               className="w-48 h-48 object-contain"
               initial={{ opacity: 0, y: 50 }}

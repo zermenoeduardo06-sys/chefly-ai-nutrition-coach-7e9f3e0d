@@ -8,8 +8,8 @@ import { useSubscription, SUBSCRIPTION_TIERS } from "@/hooks/useSubscription";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "framer-motion";
-import mascotFlexing from "@/assets/mascot-flexing.png";
-import mascotFire from "@/assets/mascot-fire.png";
+import mascotCelebrating from "@/assets/mascot-lime-celebrating.png";
+import mascotMotivated from "@/assets/mascot-lime-motivated.png";
 import { InAppCheckout } from "@/components/InAppCheckout";
 import { Browser } from "@capacitor/browser";
 
@@ -107,7 +107,7 @@ const Subscription = () => {
         language === "es" ? "Ahorra 50% vs 5 suscripciones" : "Save 50% vs 5 subscriptions",
       ],
       recommended: true,
-      mascot: mascotFlexing,
+      mascot: mascotCelebrating,
       gradient: "from-violet-500 via-purple-500 to-fuchsia-500",
       isCurrentPlan: subscription.is_chefly_family,
       priceId: SUBSCRIPTION_TIERS.CHEFLY_FAMILY.price_id,
@@ -130,7 +130,7 @@ const Subscription = () => {
         language === "es" ? "Exportar recetas a PDF" : "Export recipes to PDF",
       ],
       recommended: false,
-      mascot: mascotFlexing,
+      mascot: mascotCelebrating,
       gradient: "from-emerald-400 via-teal-500 to-cyan-500",
       isCurrentPlan: limits.isCheflyPlus && !subscription.is_chefly_family,
       priceId: SUBSCRIPTION_TIERS.CHEFLY_PLUS.price_id,
@@ -152,7 +152,7 @@ const Subscription = () => {
         language === "es" ? "Desafíos diarios" : "Daily challenges",
       ],
       recommended: false,
-      mascot: mascotFire,
+      mascot: mascotMotivated,
       gradient: "from-orange-400 to-amber-500",
       isCurrentPlan: limits.isFreePlan,
     },

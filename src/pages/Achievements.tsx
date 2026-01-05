@@ -5,7 +5,7 @@ import { useTrialGuard } from "@/hooks/useTrialGuard";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Loader2, Trophy, Lock, Star, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
-import mascotFlexing from "@/assets/mascot-flexing.png";
+import mascotMotivated from "@/assets/mascot-lime-motivated.png";
 
 interface Achievement {
   id: string;
@@ -228,11 +228,15 @@ const Achievements = () => {
       {/* Mascot decoration */}
       <motion.div 
         className="fixed bottom-24 right-4 md:bottom-8 md:right-8 pointer-events-none"
-        initial={{ opacity: 0, scale: 0 }}
-        animate={{ opacity: 0.3, scale: 1 }}
-        transition={{ delay: 0.5 }}
+        initial={{ opacity: 0, scale: 0, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: [0, -8, 0] }}
+        transition={{ 
+          opacity: { delay: 0.5, duration: 0.5 },
+          scale: { delay: 0.5, duration: 0.3 },
+          y: { delay: 1, duration: 2, repeat: Infinity, ease: "easeInOut" }
+        }}
       >
-        <img src={mascotFlexing} alt="" className="h-20 w-20 opacity-50" />
+        <img src={mascotMotivated} alt="" className="h-24 w-24 drop-shadow-lg" />
       </motion.div>
     </div>
   );
