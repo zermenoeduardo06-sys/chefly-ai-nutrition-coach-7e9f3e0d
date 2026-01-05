@@ -167,8 +167,8 @@ export const SwipeableMealCard = ({
                 
                 {/* Meal type badge */}
                 <Badge 
-                  variant="secondary" 
-                  className="backdrop-blur-md bg-white/90 text-foreground font-semibold px-3 py-1 rounded-2xl shadow-lg"
+                  variant="default" 
+                  className="backdrop-blur-md bg-primary text-primary-foreground font-semibold px-3 py-1.5 rounded-2xl shadow-lg"
                 >
                   {mealTypeLabel}
                 </Badge>

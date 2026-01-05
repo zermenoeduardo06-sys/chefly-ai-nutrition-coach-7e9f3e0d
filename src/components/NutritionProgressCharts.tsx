@@ -464,12 +464,12 @@ export const NutritionProgressCharts = () => {
                 {selectedDayData && (selectedDayData.mealsCompleted > 0 || selectedDayData.scansCount > 0) && (
                   <div className="flex gap-2">
                     {selectedDayData.mealsCompleted > 0 && (
-                      <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-semibold">
+                      <div className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-semibold shadow-sm">
                         {selectedDayData.mealsCompleted}/{selectedDayData.totalMeals} {language === "es" ? "comidas" : "meals"}
                       </div>
                     )}
                     {selectedDayData.scansCount > 0 && (
-                      <div className="bg-secondary/10 text-secondary px-3 py-1 rounded-full text-sm font-semibold">
+                      <div className="bg-secondary text-secondary-foreground px-3 py-1 rounded-full text-sm font-semibold shadow-sm">
                         {selectedDayData.scansCount} {language === "es" ? "escaneados" : "scanned"}
                       </div>
                     )}

@@ -727,7 +727,7 @@ const FoodHistory = () => {
                                       {scan.foods_identified.map((food, i) => (
                                         <span 
                                           key={i}
-                                          className="bg-primary/10 text-primary text-xs px-2.5 py-1 rounded-full font-medium"
+                                          className="bg-primary text-primary-foreground text-xs px-2.5 py-1 rounded-full font-medium"
                                         >
                                           {food}
                                         </span>
