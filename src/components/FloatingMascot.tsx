@@ -3,11 +3,12 @@ import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { useMascot, MascotMood, CelebrationType } from '@/contexts/MascotContext';
 import { useMascotMessages, PageContext } from '@/hooks/useMascotMessages';
 import { useMascotUserData } from '@/hooks/useMascotUserData';
+import { useCelebrationSounds } from '@/hooks/useCelebrationSounds';
+import { useHaptics } from '@/hooks/useHaptics';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Sparkles, Target, Flame, GripVertical, Star, Heart, Zap, Trophy, CheckCircle2, ShoppingCart } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import mascotLime from '@/assets/mascot-lime.png';
-
 // Map moods to images - ready for future emotional mascot images
 const moodImages: Record<MascotMood, string> = {
   idle: mascotLime,
@@ -239,6 +240,16 @@ const FloatingMascot: React.FC = () => {
   const dragControls = useDragControls();
   const containerRef = useRef<HTMLDivElement>(null);
   
+  // Celebration sounds and haptics
+  const { playCelebrationSound } = useCelebrationSounds();
+  const { 
+    heavyImpact, 
+    mediumImpact, 
+    lightImpact, 
+    successNotification, 
+    celebrationPattern 
+  } = useHaptics();
+  
   const [userId, setUserId] = useState<string | undefined>(undefined);
   const [corner, setCorner] = useState<Corner>(() => {
     const saved = localStorage.getItem('mascot_corner');
@@ -255,6 +266,27 @@ const FloatingMascot: React.FC = () => {
   // Derived celebration state
   const isCelebrating = state.mood === 'celebrating';
   const celebrationType = state.celebrationType;
+  
+  // Track previous celebration state to trigger sounds/haptics
+  const prevCelebratingRef = useRef(false);
+  
+  // Trigger sounds and haptics when celebration starts
+  useEffect(() => {
+    if (isCelebrating && !prevCelebratingRef.current && celebrationType) {
+      // Play celebration sound
+      playCelebrationSound(celebrationType, state.celebrationIntensity);
+      
+      // Trigger haptics based on intensity
+      if (state.celebrationIntensity === 'epic') {
+        celebrationPattern();
+      } else if (state.celebrationIntensity === 'medium') {
+        successNotification();
+      } else {
+        lightImpact();
+      }
+    }
+    prevCelebratingRef.current = isCelebrating;
+  }, [isCelebrating, celebrationType, state.celebrationIntensity, playCelebrationSound, celebrationPattern, successNotification, lightImpact]);
 
   // Double tap detection
   const lastTapRef = useRef<number>(0);
