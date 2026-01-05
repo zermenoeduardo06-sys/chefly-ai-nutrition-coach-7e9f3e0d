@@ -21,6 +21,7 @@ import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useTrialGuard } from "@/hooks/useTrialGuard";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useMascot } from "@/contexts/MascotContext";
 import WeeklyCheckInBanner from "@/components/checkin/WeeklyCheckInBanner";
 import confetti from "canvas-confetti";
 import DashboardTutorial from "@/components/DashboardTutorial";
@@ -137,6 +138,7 @@ const Dashboard = () => {
   const { isBlocked, isLoading: trialLoading } = useTrialGuard();
   const [searchParams] = useSearchParams();
   const { t, getArray, language, setLanguage } = useLanguage();
+  const { triggerCelebration: triggerMascotCelebration } = useMascot();
   const { scheduleMealReminders, scheduleStreakRiskAlert, permissionGranted, isNative } = useNotifications();
   const { successNotification, celebrationPattern, errorNotification, selectionChanged } = useHaptics();
   const { isOnline, isSyncing, pendingCount, cacheMeals, getCachedMeals, addPendingCompletion } = useOfflineMode(userId);
@@ -567,6 +569,9 @@ const Dashboard = () => {
     const randomMessage = messages[Math.floor(Math.random() * messages.length)];
     setMascotMessage(randomMessage);
     setShowCelebration(true);
+
+    // Trigger floating mascot celebration too
+    triggerMascotCelebration(randomMessage);
 
     // Confetti
     confetti({
