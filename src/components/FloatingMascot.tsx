@@ -262,6 +262,29 @@ const FloatingMascot: React.FC = () => {
   const [showQuickStats, setShowQuickStats] = useState(false);
   const [isWaving, setIsWaving] = useState(false);
   const [hasShownPageMessage, setHasShownPageMessage] = useState(false);
+  const [dragBounds, setDragBounds] = useState({ top: 0, left: 0, right: 0, bottom: 0 });
+
+  // Calculate drag bounds based on window size - keeps mascot visible
+  useEffect(() => {
+    const updateBounds = () => {
+      const padding = 20;
+      const mascotSize = 64;
+      const safeAreaTop = 80;
+      const safeAreaBottom = 100;
+      
+      // Calculate bounds relative to the mascot's starting corner position
+      setDragBounds({
+        top: -(window.innerHeight - safeAreaTop - safeAreaBottom - mascotSize),
+        left: -(window.innerWidth - mascotSize - padding * 2),
+        right: window.innerWidth - mascotSize - padding * 2,
+        bottom: window.innerHeight - safeAreaTop - safeAreaBottom - mascotSize,
+      });
+    };
+    
+    updateBounds();
+    window.addEventListener('resize', updateBounds);
+    return () => window.removeEventListener('resize', updateBounds);
+  }, []);
 
   // Derived celebration state
   const isCelebrating = state.mood === 'celebrating';
@@ -537,7 +560,8 @@ const FloatingMascot: React.FC = () => {
       drag
       dragControls={dragControls}
       dragMomentum={false}
-      dragElastic={0.1}
+      dragElastic={0.05}
+      dragConstraints={dragBounds}
       whileDrag={{ scale: 1.1, zIndex: 100 }}
       onDragStart={() => setIsDragging(true)}
       onDragEnd={handleDragEnd}
