@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { useMascot, MascotMood } from '@/contexts/MascotContext';
 import { useMascotMessages } from '@/hooks/useMascotMessages';
 import { useMascotUserData } from '@/hooks/useMascotUserData';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { MessageCircle, Sparkles, Target, Flame } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import mascotLime from '@/assets/mascot-lime.png';
@@ -26,6 +26,7 @@ const hiddenPages = ['/onboarding', '/auth', '/welcome', '/', '/chat'];
 const FloatingMascot: React.FC = () => {
   const { state, recordInteraction, setMood, triggerCelebration } = useMascot();
   const location = useLocation();
+  const navigate = useNavigate();
   const dragControls = useDragControls();
   
   const [userId, setUserId] = useState<string | undefined>(undefined);
@@ -34,6 +35,14 @@ const FloatingMascot: React.FC = () => {
   const [bubbleMessage, setBubbleMessage] = useState<string | null>(null);
   const [isBlinking, setIsBlinking] = useState(false);
   const [showQuickStats, setShowQuickStats] = useState(false);
+  const [isWaving, setIsWaving] = useState(false);
+
+  // Double tap detection
+  const lastTapRef = useRef<number>(0);
+  const doubleTapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Visibility change detection for welcome back animation
+  const lastVisibilityRef = useRef<number>(Date.now());
 
   // Get user data for contextual messages
   const { data: userData } = useMascotUserData(userId);
@@ -60,6 +69,35 @@ const FloatingMascot: React.FC = () => {
 
   // Hide on certain pages
   const shouldHide = hiddenPages.includes(location.pathname) || !state.isVisible;
+
+  // Welcome back animation when user returns to app
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        const now = Date.now();
+        const timeSinceHidden = now - lastVisibilityRef.current;
+        
+        // If user was away for more than 30 seconds, show welcome back
+        if (timeSinceHidden > 30000 && !shouldHide) {
+          setIsWaving(true);
+          setBubbleMessage('¡Hola de nuevo! 👋 ¿Listo para continuar?');
+          setMood('happy');
+          setShowBubble(true);
+          
+          setTimeout(() => {
+            setIsWaving(false);
+            setShowBubble(false);
+            setBubbleMessage(null);
+          }, 3500);
+        }
+      } else {
+        lastVisibilityRef.current = Date.now();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [shouldHide, setMood]);
 
   // Blink animation
   useEffect(() => {
@@ -112,28 +150,65 @@ const FloatingMascot: React.FC = () => {
     return () => clearTimeout(timer);
   }, [userId]);
 
-  const handleTap = useCallback(() => {
+  // Handle double tap to navigate to chat
+  const handleDoubleTap = useCallback(() => {
     recordInteraction();
+    setShowBubble(false);
+    setShowQuickStats(false);
+    setBubbleMessage('¡Vamos a chatear! 💬');
+    setMood('happy');
+    setShowBubble(true);
     
-    if (showBubble) {
-      setShowBubble(false);
-      setBubbleMessage(null);
-    } else if (showQuickStats) {
-      setShowQuickStats(false);
-    } else {
-      const msg = getRandomMessage();
-      setBubbleMessage(msg.text);
-      setMood(msg.mood);
-      setShowBubble(true);
+    setTimeout(() => {
+      navigate('/chat');
+    }, 500);
+  }, [navigate, recordInteraction, setMood]);
+
+  const handleTap = useCallback(() => {
+    const now = Date.now();
+    const timeSinceLastTap = now - lastTapRef.current;
+    
+    // Double tap detection (within 300ms)
+    if (timeSinceLastTap < 300) {
+      if (doubleTapTimeoutRef.current) {
+        clearTimeout(doubleTapTimeoutRef.current);
+        doubleTapTimeoutRef.current = null;
+      }
+      handleDoubleTap();
+      lastTapRef.current = 0;
+      return;
+    }
+    
+    lastTapRef.current = now;
+    
+    // Delay single tap action to check for double tap
+    doubleTapTimeoutRef.current = setTimeout(() => {
+      recordInteraction();
       
-      setTimeout(() => {
+      if (showBubble) {
         setShowBubble(false);
         setBubbleMessage(null);
-      }, 4000);
-    }
-  }, [showBubble, showQuickStats, recordInteraction, getRandomMessage, setMood]);
+      } else if (showQuickStats) {
+        setShowQuickStats(false);
+      } else {
+        const msg = getRandomMessage();
+        setBubbleMessage(msg.text);
+        setMood(msg.mood);
+        setShowBubble(true);
+        
+        setTimeout(() => {
+          setShowBubble(false);
+          setBubbleMessage(null);
+        }, 4000);
+      }
+    }, 300);
+  }, [showBubble, showQuickStats, recordInteraction, getRandomMessage, setMood, handleDoubleTap]);
 
   const handleLongPress = useCallback(() => {
+    if (doubleTapTimeoutRef.current) {
+      clearTimeout(doubleTapTimeoutRef.current);
+      doubleTapTimeoutRef.current = null;
+    }
     recordInteraction();
     setShowBubble(false);
     setShowQuickStats(true);
@@ -287,10 +362,15 @@ const FloatingMascot: React.FC = () => {
           className="relative z-10 w-full h-full object-cover"
           animate={{
             scale: isBlinking ? [1, 0.98, 1] : 1,
-            rotate: state.mood === 'celebrating' ? [0, -5, 5, 0] : 0,
+            rotate: state.mood === 'celebrating' 
+              ? [0, -5, 5, 0] 
+              : isWaving 
+                ? [0, -10, 10, -10, 10, 0] 
+                : 0,
+            y: isWaving ? [0, -3, 0, -3, 0] : 0,
           }}
           transition={{
-            duration: state.mood === 'celebrating' ? 0.5 : 0.15,
+            duration: state.mood === 'celebrating' ? 0.5 : isWaving ? 0.8 : 0.15,
             repeat: state.mood === 'celebrating' ? 3 : 0,
           }}
         />
