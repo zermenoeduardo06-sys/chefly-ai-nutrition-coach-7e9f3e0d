@@ -2,8 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { useMascot, MascotMood } from '@/contexts/MascotContext';
 import { useMascotMessages } from '@/hooks/useMascotMessages';
+import { useMascotUserData } from '@/hooks/useMascotUserData';
 import { useLocation } from 'react-router-dom';
-import { X, MessageCircle, Sparkles } from 'lucide-react';
+import { MessageCircle, Sparkles, Target, Flame } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import mascotLime from '@/assets/mascot-lime.png';
 
 // Map moods to images - ready for future emotional mascot images
@@ -22,15 +24,39 @@ const moodImages: Record<MascotMood, string> = {
 const hiddenPages = ['/onboarding', '/auth', '/welcome', '/', '/chat'];
 
 const FloatingMascot: React.FC = () => {
-  const { state, toggleExpanded, recordInteraction, setMood, setMessage } = useMascot();
-  const { getContextualMessage, getRandomMessage } = useMascotMessages();
+  const { state, recordInteraction, setMood, triggerCelebration } = useMascot();
   const location = useLocation();
   const dragControls = useDragControls();
   
+  const [userId, setUserId] = useState<string | undefined>(undefined);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [showBubble, setShowBubble] = useState(false);
   const [bubbleMessage, setBubbleMessage] = useState<string | null>(null);
   const [isBlinking, setIsBlinking] = useState(false);
+  const [showQuickStats, setShowQuickStats] = useState(false);
+
+  // Get user data for contextual messages
+  const { data: userData } = useMascotUserData(userId);
+  
+  // Pass user data to messages hook
+  const { getContextualMessage, getRandomMessage } = useMascotMessages({
+    streak: userData.streak,
+    caloriesConsumed: userData.caloriesConsumed,
+    caloriesGoal: userData.caloriesGoal,
+    mealsCompleted: userData.mealsCompleted,
+    totalMeals: userData.totalMeals,
+    pendingChallenges: userData.pendingChallenges,
+    userName: userData.userName,
+  });
+
+  // Get user ID on mount
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) setUserId(user.id);
+    };
+    getUser();
+  }, []);
 
   // Hide on certain pages
   const shouldHide = hiddenPages.includes(location.pathname) || !state.isVisible;
@@ -51,7 +77,7 @@ const FloatingMascot: React.FC = () => {
     if (shouldHide) return;
     
     const messageInterval = setInterval(() => {
-      if (!showBubble && Math.random() > 0.6) {
+      if (!showBubble && !showQuickStats && Math.random() > 0.6) {
         const msg = getContextualMessage();
         setBubbleMessage(msg.text);
         setMood(msg.mood);
@@ -62,14 +88,14 @@ const FloatingMascot: React.FC = () => {
           setBubbleMessage(null);
         }, 4000);
       }
-    }, 30000); // Every 30 seconds
+    }, 45000); // Every 45 seconds
 
     return () => clearInterval(messageInterval);
-  }, [shouldHide, showBubble, getContextualMessage, setMood]);
+  }, [shouldHide, showBubble, showQuickStats, getContextualMessage, setMood]);
 
-  // Initial greeting on mount
+  // Initial greeting on mount (delayed)
   useEffect(() => {
-    if (shouldHide) return;
+    if (shouldHide || !userId) return;
     
     const timer = setTimeout(() => {
       const msg = getRandomMessage('greetings');
@@ -80,11 +106,11 @@ const FloatingMascot: React.FC = () => {
       setTimeout(() => {
         setShowBubble(false);
         setBubbleMessage(null);
-      }, 3000);
-    }, 2000);
+      }, 3500);
+    }, 3000);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [userId]);
 
   const handleTap = useCallback(() => {
     recordInteraction();
@@ -92,6 +118,8 @@ const FloatingMascot: React.FC = () => {
     if (showBubble) {
       setShowBubble(false);
       setBubbleMessage(null);
+    } else if (showQuickStats) {
+      setShowQuickStats(false);
     } else {
       const msg = getRandomMessage();
       setBubbleMessage(msg.text);
@@ -103,9 +131,36 @@ const FloatingMascot: React.FC = () => {
         setBubbleMessage(null);
       }, 4000);
     }
-  }, [showBubble, recordInteraction, getRandomMessage, setMood]);
+  }, [showBubble, showQuickStats, recordInteraction, getRandomMessage, setMood]);
+
+  const handleLongPress = useCallback(() => {
+    recordInteraction();
+    setShowBubble(false);
+    setShowQuickStats(true);
+  }, [recordInteraction]);
+
+  // Long press detection
+  const [pressTimer, setPressTimer] = useState<NodeJS.Timeout | null>(null);
+
+  const handlePressStart = () => {
+    const timer = setTimeout(() => {
+      handleLongPress();
+    }, 500);
+    setPressTimer(timer);
+  };
+
+  const handlePressEnd = () => {
+    if (pressTimer) {
+      clearTimeout(pressTimer);
+      setPressTimer(null);
+    }
+  };
 
   if (shouldHide) return null;
+
+  const caloriesProgress = userData.caloriesGoal > 0 
+    ? Math.min(100, (userData.caloriesConsumed / userData.caloriesGoal) * 100) 
+    : 0;
 
   return (
     <motion.div
@@ -143,9 +198,70 @@ const FloatingMascot: React.FC = () => {
         )}
       </AnimatePresence>
 
+      {/* Quick Stats Panel (on long press) */}
+      <AnimatePresence>
+        {showQuickStats && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 10 }}
+            className="absolute bottom-full right-0 mb-2 w-48"
+          >
+            <div className="relative rounded-2xl bg-card border border-border p-3 shadow-lg space-y-2">
+              {/* Streak */}
+              <div className="flex items-center gap-2">
+                <Flame className="w-4 h-4 text-accent" />
+                <span className="text-xs text-muted-foreground">Racha:</span>
+                <span className="text-sm font-bold text-card-foreground">{userData.streak} días</span>
+              </div>
+              
+              {/* Calories Progress */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Target className="w-4 h-4 text-primary" />
+                    <span className="text-xs text-muted-foreground">Calorías</span>
+                  </div>
+                  <span className="text-xs font-medium text-card-foreground">
+                    {userData.caloriesConsumed}/{userData.caloriesGoal}
+                  </span>
+                </div>
+                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${caloriesProgress}%` }}
+                    className="h-full bg-primary rounded-full"
+                  />
+                </div>
+              </div>
+
+              {/* Meals & Challenges */}
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">
+                  Comidas: {userData.mealsCompleted}/{userData.totalMeals}
+                </span>
+                {userData.pendingChallenges > 0 && (
+                  <span className="text-accent font-medium">
+                    {userData.pendingChallenges} reto{userData.pendingChallenges > 1 ? 's' : ''}
+                  </span>
+                )}
+              </div>
+
+              {/* Bubble tail */}
+              <div className="absolute -bottom-2 right-6 w-4 h-4 bg-card border-r border-b border-border rotate-45 transform" />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Mascot Button */}
       <motion.button
         onClick={handleTap}
+        onMouseDown={handlePressStart}
+        onMouseUp={handlePressEnd}
+        onMouseLeave={handlePressEnd}
+        onTouchStart={handlePressStart}
+        onTouchEnd={handlePressEnd}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         className="relative w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 border-2 border-primary/30 shadow-lg overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary/50"
@@ -223,14 +339,18 @@ const FloatingMascot: React.FC = () => {
         />
       </motion.button>
 
-      {/* Notification dot for pending messages/challenges */}
-      <motion.div
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        className="absolute -top-1 -right-1 w-4 h-4 bg-accent rounded-full border-2 border-background flex items-center justify-center"
-      >
-        <MessageCircle className="w-2 h-2 text-accent-foreground" />
-      </motion.div>
+      {/* Notification dot - show when there are pending challenges */}
+      {userData.pendingChallenges > 0 && (
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          className="absolute -top-1 -right-1 w-5 h-5 bg-accent rounded-full border-2 border-background flex items-center justify-center"
+        >
+          <span className="text-[10px] font-bold text-accent-foreground">
+            {userData.pendingChallenges}
+          </span>
+        </motion.div>
+      )}
     </motion.div>
   );
 };
