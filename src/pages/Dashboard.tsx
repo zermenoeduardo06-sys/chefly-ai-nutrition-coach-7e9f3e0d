@@ -89,24 +89,6 @@ interface UserStats {
   level: number;
 }
 
-// Preview: Hybrid Energy color palette
-const hybridEnergyStyles = {
-  '--primary': '82 85% 55%',           // Lime green (mascot)
-  '--primary-foreground': '0 0% 5%',   // Dark text on lime
-  '--primary-hover': '82 85% 60%',     // Lighter lime hover
-  '--secondary': '188 90% 50%',        // Cyan for data
-  '--secondary-foreground': '0 0% 5%', // Dark text on cyan
-  '--accent': '38 92% 50%',            // Amber for gamification
-  '--accent-foreground': '0 0% 5%',    // Dark text on amber
-  '--background': '220 25% 10%',       // Deep blue-grey
-  '--foreground': '210 40% 98%',       // Light text
-  '--card': '220 25% 14%',             // Slightly lighter card
-  '--card-foreground': '210 40% 98%',  // Light text on card
-  '--muted': '220 20% 20%',            // Muted background
-  '--muted-foreground': '215 20% 65%', // Muted text
-  '--border': '220 20% 22%',           // Subtle border
-  '--ring': '82 85% 55%',              // Lime ring
-} as React.CSSProperties;
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -1041,8 +1023,6 @@ const Dashboard = () => {
 
   return (
     <TooltipProvider delayDuration={300}>
-    {/* Preview wrapper with Hybrid Energy palette */}
-    <div style={hybridEnergyStyles}>
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 overflow-x-hidden relative">
       {/* Background extension for safe area - prevents black space at top */}
       <div className="fixed top-0 left-0 right-0 h-[env(safe-area-inset-top,0px)] bg-background z-40" />
@@ -1731,7 +1711,6 @@ const Dashboard = () => {
         }}
       />
 
-    </div>
     </div>
     </TooltipProvider>
   );
