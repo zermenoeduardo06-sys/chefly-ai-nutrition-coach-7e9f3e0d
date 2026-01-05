@@ -17,6 +17,8 @@ interface UserContext {
   userName?: string;
 }
 
+export type PageContext = 'dashboard' | 'shopping' | 'progress' | 'challenges' | 'chat' | 'profile' | 'other';
+
 export const useMascotMessages = (userContext: UserContext = {}) => {
   const { language } = useLanguage();
   
@@ -137,6 +139,37 @@ export const useMascotMessages = (userContext: UserContext = {}) => {
       { text: isEs ? '¡Tú puedes con todo! 💪' : 'You can do anything! 💪', mood: 'proud' },
     ];
 
+    // Page-specific messages
+    const pageMessages: Record<PageContext, MascotMessage[]> = {
+      dashboard: [
+        { text: isEs ? '¡Este es tu centro de control! 📊' : 'This is your control center! 📊', mood: 'happy' },
+        { text: isEs ? '¡Mira todo lo que has logrado! 🌟' : 'Look at all you\'ve achieved! 🌟', mood: 'proud' },
+      ],
+      shopping: [
+        { text: isEs ? '¡A las compras! 🛒 ¿Llevas la lista?' : 'Shopping time! 🛒 Got your list?', mood: 'happy' },
+        { text: isEs ? '¡Tip! Compra primero las frutas y verduras 🥦' : 'Tip! Get fruits and veggies first 🥦', mood: 'motivated' },
+        { text: isEs ? '¡No olvides revisar las ofertas! 💰' : 'Don\'t forget to check deals! 💰', mood: 'idle' },
+        { text: isEs ? '¡Comprar saludable es invertir en ti! 💚' : 'Healthy shopping is self-investment! 💚', mood: 'encouraging' },
+      ],
+      progress: [
+        { text: isEs ? '¡Mira cuánto has avanzado! 📈' : 'Look how far you\'ve come! 📈', mood: 'proud' },
+        { text: isEs ? '¡Los datos no mienten, vas genial! 💪' : 'Numbers don\'t lie, you\'re doing great! 💪', mood: 'celebrating' },
+        { text: isEs ? '¡Cada gramo cuenta! Sigue así 🎯' : 'Every gram counts! Keep going 🎯', mood: 'motivated' },
+        { text: isEs ? '¡Tu progreso es inspirador! ✨' : 'Your progress is inspiring! ✨', mood: 'happy' },
+      ],
+      challenges: [
+        { text: isEs ? '¡Es hora de retarte! 🏆' : 'Time to challenge yourself! 🏆', mood: 'motivated' },
+        { text: isEs ? '¡Tú puedes completar este reto! 💪' : 'You can complete this challenge! 💪', mood: 'encouraging' },
+        { text: isEs ? '¡Los retos te hacen más fuerte! 🔥' : 'Challenges make you stronger! 🔥', mood: 'proud' },
+        { text: isEs ? '¡Vamos por esos puntos extra! 🌟' : 'Let\'s get those extra points! 🌟', mood: 'happy' },
+      ],
+      chat: [],
+      profile: [
+        { text: isEs ? '¡Tu perfil luce genial! 😎' : 'Your profile looks great! 😎', mood: 'happy' },
+      ],
+      other: motivational,
+    };
+
     return {
       greetings: greetings[timeOfDay] || [],
       mealTime: mealTime ? mealMessages[mealTime] : [],
@@ -144,6 +177,7 @@ export const useMascotMessages = (userContext: UserContext = {}) => {
       progress: progressMessages,
       challenges: challengeMessages,
       motivational,
+      pageMessages,
       all: [
         ...(greetings[timeOfDay] || []),
         ...(mealTime ? mealMessages[mealTime] : []),
@@ -155,12 +189,23 @@ export const useMascotMessages = (userContext: UserContext = {}) => {
     };
   }, [language, userContext]);
 
-  const getRandomMessage = (category?: keyof typeof messages): MascotMessage => {
-    const pool = category && category !== 'all' ? messages[category] : messages.all;
-    if (pool.length === 0) {
+  const getRandomMessage = (category?: keyof typeof messages | 'greetings'): MascotMessage => {
+    const pool = category && category !== 'all' ? messages[category as keyof typeof messages] : messages.all;
+    if (!pool || (Array.isArray(pool) && pool.length === 0)) {
       return { text: language === 'es' ? '¡Hola! 👋' : 'Hello! 👋', mood: 'happy' };
     }
-    return pool[Math.floor(Math.random() * pool.length)];
+    if (Array.isArray(pool)) {
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+    return { text: language === 'es' ? '¡Hola! 👋' : 'Hello! 👋', mood: 'happy' };
+  };
+
+  const getPageMessage = (page: PageContext): MascotMessage => {
+    const pagePool = messages.pageMessages[page];
+    if (pagePool && pagePool.length > 0) {
+      return pagePool[Math.floor(Math.random() * pagePool.length)];
+    }
+    return getRandomMessage('motivational');
   };
 
   const getContextualMessage = (): MascotMessage => {
@@ -187,6 +232,7 @@ export const useMascotMessages = (userContext: UserContext = {}) => {
     messages,
     getRandomMessage,
     getContextualMessage,
+    getPageMessage,
     getTimeOfDay,
     getMealTime,
   };
