@@ -1272,7 +1272,7 @@ const Dashboard = () => {
                       <RefreshCw className="h-4 w-4 mr-2" />
                       <span>{t("dashboard.generateNewPlan")}</span>
                       {!limits.canGeneratePlans && (
-                        <Badge variant="outline" className="ml-2 text-xs bg-primary/10 text-primary border-primary/30">
+                        <Badge variant="default" className="ml-2 text-xs">
                           Chefly Plus
                         </Badge>
                       )}

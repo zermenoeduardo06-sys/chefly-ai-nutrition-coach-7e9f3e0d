@@ -35,8 +35,8 @@ export const MealMemberAdaptations = ({ adaptations, compact = false }: MealMemb
         <Tooltip>
           <TooltipTrigger asChild>
             <Badge 
-              variant="secondary" 
-              className="gap-1 bg-primary/10 text-primary hover:bg-primary/20 cursor-help text-xs"
+              variant="default" 
+              className="gap-1 cursor-help text-xs"
             >
               <Star className="h-3 w-3 fill-current" />
               {language === 'es' ? 'Ideal para' : 'Best for'}: {bestMatch?.member_name}
@@ -130,7 +130,7 @@ export const MealBestMatchBadge = ({ adaptations }: { adaptations?: MealAdaptati
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-primary/20 to-primary/10 text-primary text-xs font-medium">
+          <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-xs font-semibold shadow-sm">
             <Star className="h-3 w-3 fill-current" />
             <span className="truncate max-w-[100px]">
               {language === 'es' ? 'Para' : 'For'} {bestMatch.member_name}

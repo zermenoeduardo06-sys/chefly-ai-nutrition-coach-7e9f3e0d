@@ -534,7 +534,7 @@ export function FoodScanner({ open, onOpenChange }: FoodScannerProps) {
                           initial={{ opacity: 0, scale: 0.8 }}
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ delay: 0.3 + idx * 0.05 }}
-                          className="bg-primary/10 text-primary text-xs px-3 py-1.5 rounded-full font-semibold border border-primary/20"
+                          className="bg-primary text-primary-foreground text-xs px-3 py-1.5 rounded-full font-semibold shadow-sm"
                         >
                           {food}
                         </motion.span>

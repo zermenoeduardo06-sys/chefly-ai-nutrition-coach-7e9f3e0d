@@ -206,9 +206,9 @@ const Index = () => {
             </div>
 
             <div className="space-y-4 sm:space-y-6 lg:space-y-8 animate-fade-in order-2 md:order-1 text-center md:text-left">
-              <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-primary/10 rounded-full">
-                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
-                <span className="text-primary font-semibold text-xs sm:text-sm">
+              <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-primary text-primary-foreground rounded-full shadow-md">
+                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="font-semibold text-xs sm:text-sm">
                   {t("hero.trial")}
                 </span>
               </div>

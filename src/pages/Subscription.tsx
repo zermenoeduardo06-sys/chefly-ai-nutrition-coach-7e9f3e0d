@@ -216,7 +216,7 @@ const Subscription = () => {
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <h3 className="text-xl font-bold text-foreground">{plan.name}</h3>
                       {plan.isCurrentPlan && (
-                        <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-semibold">
+                        <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full font-semibold">
                           {language === "es" ? "Tu plan" : "Your plan"}
                         </span>
                       )}
