@@ -7,8 +7,8 @@ import { useToast } from "@/hooks/use-toast";
 import { SUBSCRIPTION_TIERS } from "@/hooks/useSubscription";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "framer-motion";
-import mascotFlexing from "@/assets/mascot-flexing.png";
-import mascotFire from "@/assets/mascot-fire.png";
+import mascotCelebrating from "@/assets/mascot-lime-celebrating.png";
+import mascotMotivated from "@/assets/mascot-lime-motivated.png";
 import { InAppCheckout } from "@/components/InAppCheckout";
 
 const Pricing = () => {
@@ -164,7 +164,7 @@ const Pricing = () => {
               <div className="absolute -inset-4 bg-white/20 rounded-3xl blur-xl" />
               <div className="relative bg-white/10 backdrop-blur-sm rounded-3xl p-4 border border-white/20">
                 <img 
-                  src={mascotFlexing} 
+                  src={mascotCelebrating} 
                   alt="Chefly mascot" 
                   className="h-28 w-28 object-contain"
                 />
@@ -237,7 +237,7 @@ const Pricing = () => {
                   <div className="relative">
                     <div className="absolute inset-0 bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 rounded-full blur-xl" />
                     <img 
-                      src={mascotFlexing} 
+                      src={mascotCelebrating} 
                       alt="Chefly Family" 
                       className="h-24 w-24 object-contain relative"
                     />
@@ -323,7 +323,7 @@ const Pricing = () => {
                   transition={{ type: "spring", stiffness: 300 }}
                 >
                   <img 
-                    src={mascotFlexing} 
+                    src={mascotCelebrating} 
                     alt="Chefly Plus" 
                     className="h-24 w-24 object-contain"
                   />
@@ -399,7 +399,7 @@ const Pricing = () => {
                   transition={{ type: "spring", stiffness: 300 }}
                 >
                   <img 
-                    src={mascotFire} 
+                    src={mascotMotivated} 
                     alt="Free Plan" 
                     className="h-20 w-20 object-contain"
                   />

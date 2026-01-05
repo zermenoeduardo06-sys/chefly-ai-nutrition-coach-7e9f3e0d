@@ -1,24 +1,50 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import mascotDefault from "@/assets/chefly-mascot.png";
-import mascotFlexing from "@/assets/mascot-flexing.png";
-import mascotFire from "@/assets/mascot-fire.png";
-import mascotCooking from "@/assets/mascot-cooking.png";
-import mascotGaming from "@/assets/mascot-gaming.png";
-import mascotWorking from "@/assets/mascot-working.png";
-import mascotMoney from "@/assets/mascot-money.png";
-import { Sparkles, Trophy, Flame, Star, Zap } from "lucide-react";
+// New lime mascot with different emotions
+import mascotDefault from "@/assets/mascot-lime.png";
+import mascotHappy from "@/assets/mascot-lime-happy.png";
+import mascotSad from "@/assets/mascot-lime-sad.png";
+import mascotThinking from "@/assets/mascot-lime-thinking.png";
+import mascotCelebrating from "@/assets/mascot-lime-celebrating.png";
+import mascotMotivated from "@/assets/mascot-lime-motivated.png";
+import mascotSleepy from "@/assets/mascot-lime-sleepy.png";
+import { Sparkles, Trophy, Flame, Star, Zap, Heart } from "lucide-react";
 
-type MascotMood = "default" | "celebrating" | "cooking" | "streak" | "level-up" | "idle";
+export type MascotMood = "default" | "happy" | "sad" | "thinking" | "celebrating" | "motivated" | "sleepy" | "streak" | "level-up" | "idle";
 
 interface MascotCompanionProps {
-  points: number;
-  streak: number;
-  level: number;
+  points?: number;
+  streak?: number;
+  level?: number;
   showCelebration?: boolean;
   message?: string;
   mood?: MascotMood;
+  size?: "sm" | "md" | "lg" | "xl";
+  showStats?: boolean;
+  className?: string;
 }
+
+// Map moods to mascot images
+const moodImageMap: Record<MascotMood, string> = {
+  default: mascotDefault,
+  happy: mascotHappy,
+  sad: mascotSad,
+  thinking: mascotThinking,
+  celebrating: mascotCelebrating,
+  motivated: mascotMotivated,
+  sleepy: mascotSleepy,
+  streak: mascotMotivated,
+  "level-up": mascotCelebrating,
+  idle: mascotDefault,
+};
+
+// Size configurations
+const sizeConfig = {
+  sm: "w-12 h-12",
+  md: "w-20 h-20",
+  lg: "w-28 h-28",
+  xl: "w-36 h-36",
+};
 
 // Floating particles component
 const CelebrationParticles = () => {
@@ -29,7 +55,7 @@ const CelebrationParticles = () => {
       delay: Math.random() * 0.5,
       duration: 1 + Math.random() * 0.5,
       size: 8 + Math.random() * 8,
-      color: ['#FFD700', '#FF6B6B', '#4ECDC4', '#FF9F43', '#A55EEA'][Math.floor(Math.random() * 5)],
+      color: ['#84CC16', '#22D3EE', '#F59E0B', '#10B981', '#A855F7'][Math.floor(Math.random() * 5)],
     }))
   , []);
 
@@ -91,7 +117,7 @@ const SparkleBurst = () => (
         style={{ transformOrigin: 'center' }}
       >
         <Star 
-          className="w-5 h-5 text-yellow-400 fill-yellow-400" 
+          className="w-5 h-5 text-primary fill-primary" 
           style={{ transform: `translateX(${30 + i * 5}px) translateY(-50%)` }}
         />
       </motion.div>
@@ -100,7 +126,7 @@ const SparkleBurst = () => (
 );
 
 // Glow ring effect
-const GlowRing = ({ color = "primary" }: { color?: string }) => (
+const GlowRing = () => (
   <motion.div
     initial={{ scale: 0.8, opacity: 0 }}
     animate={{ 
@@ -112,38 +138,74 @@ const GlowRing = ({ color = "primary" }: { color?: string }) => (
       repeat: 2,
       ease: "easeOut" 
     }}
-    className={`absolute inset-0 rounded-full border-4 ${
-      color === "primary" ? "border-primary" : "border-yellow-400"
-    }`}
+    className="absolute inset-0 rounded-full border-4 border-primary"
     style={{ margin: '-10px' }}
   />
 );
 
+// Floating hearts for happy mood
+const FloatingHearts = () => (
+  <div className="absolute -top-2 -right-2 pointer-events-none">
+    {[...Array(3)].map((_, i) => (
+      <motion.div
+        key={i}
+        initial={{ y: 0, opacity: 0, scale: 0 }}
+        animate={{ 
+          y: [-10 - i * 10, -30 - i * 15],
+          opacity: [0, 1, 0],
+          scale: [0.5, 1, 0.5],
+          x: [0, (i - 1) * 15],
+        }}
+        transition={{ 
+          duration: 2,
+          delay: i * 0.3,
+          repeat: Infinity,
+          repeatDelay: 1,
+        }}
+      >
+        <Heart className="w-4 h-4 text-pink-400 fill-pink-400" />
+      </motion.div>
+    ))}
+  </div>
+);
+
 export function MascotCompanion({ 
-  points, 
-  streak, 
-  level,
+  points = 0, 
+  streak = 0, 
+  level = 1,
   showCelebration = false,
   message,
-  mood = "default"
+  mood = "default",
+  size = "lg",
+  showStats = true,
+  className = "",
 }: MascotCompanionProps) {
   const [isAnimating, setIsAnimating] = useState(false);
   const [currentMood, setCurrentMood] = useState<MascotMood>(mood);
   const [showParticles, setShowParticles] = useState(false);
 
-  // Select mascot image based on mood/context
+  // Get mascot image based on mood and context
   const getMascotImage = () => {
-    if (showCelebration) return mascotFire;
-    if (streak >= 7) return mascotFire;
-    if (currentMood === "cooking") return mascotCooking;
-    if (currentMood === "level-up") return mascotFlexing;
-    if (currentMood === "streak") return mascotFire;
+    if (showCelebration) return mascotCelebrating;
+    if (streak >= 7) return mascotMotivated;
+    if (streak >= 3) return mascotHappy;
     
-    // Rotate through idle variations
-    const idleVariations = [mascotDefault, mascotCooking, mascotGaming, mascotWorking];
-    const hourOfDay = new Date().getHours();
-    return idleVariations[hourOfDay % idleVariations.length];
+    // Time-based moods for idle state
+    if (currentMood === "idle" || currentMood === "default") {
+      const hour = new Date().getHours();
+      if (hour >= 22 || hour < 6) return mascotSleepy;
+      if (hour >= 6 && hour < 10) return mascotHappy;
+      if (hour >= 10 && hour < 14) return mascotMotivated;
+      if (hour >= 14 && hour < 18) return mascotThinking;
+      return mascotDefault;
+    }
+    
+    return moodImageMap[currentMood] || mascotDefault;
   };
+
+  useEffect(() => {
+    setCurrentMood(mood);
+  }, [mood]);
 
   useEffect(() => {
     if (showCelebration) {
@@ -163,26 +225,49 @@ export function MascotCompanion({
 
   // Idle floating animation
   const idleAnimation = {
-    y: [0, -5, 0],
-    rotate: [0, 1, -1, 0],
+    y: [0, -8, 0],
+    rotate: [0, 2, -2, 0],
   };
 
-  // Celebration animation - more elaborate
+  // Celebration animation
   const celebrationAnimation = {
     y: [0, -30, -15, -25, 0],
     rotate: [0, -10, 10, -5, 5, 0],
     scale: [1, 1.15, 1.1, 1.2, 1],
   };
 
+  // Happy bounce animation
+  const happyAnimation = {
+    y: [0, -12, 0],
+    scale: [1, 1.05, 1],
+  };
+
+  const getAnimation = () => {
+    if (isAnimating) return celebrationAnimation;
+    if (currentMood === "happy" || currentMood === "celebrating") return happyAnimation;
+    return idleAnimation;
+  };
+
+  const getTransition = (): { duration: number; ease: "easeInOut"; repeat?: number } => {
+    if (isAnimating) {
+      return { duration: 1, ease: "easeInOut" };
+    }
+    return { 
+      duration: currentMood === "happy" ? 1.5 : 3, 
+      repeat: Infinity, 
+      ease: "easeInOut" 
+    };
+  };
+
   return (
-    <div className="relative flex flex-col items-center">
+    <div className={`relative flex flex-col items-center ${className}`}>
       {/* Main mascot container */}
       <div className="relative">
         {/* Glow effect during celebration */}
         <AnimatePresence>
           {showCelebration && (
             <>
-              <GlowRing color="primary" />
+              <GlowRing />
               <SparkleBurst />
             </>
           )}
@@ -193,24 +278,22 @@ export function MascotCompanion({
           {showParticles && <CelebrationParticles />}
         </AnimatePresence>
 
+        {/* Floating hearts for happy mood */}
+        {(currentMood === "happy" || currentMood === "celebrating") && !showCelebration && (
+          <FloatingHearts />
+        )}
+
         {/* Mascot image with animation */}
         <motion.div
-          animate={isAnimating ? celebrationAnimation : idleAnimation}
-          transition={isAnimating ? {
-            duration: 1,
-            ease: "easeInOut",
-          } : {
-            duration: 3,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
+          animate={getAnimation()}
+          transition={getTransition()}
           className="relative z-10"
         >
           <motion.img 
             key={getMascotImage()}
             src={getMascotImage()} 
-            alt="Chefly mascot"
-            className="w-24 h-24 md:w-32 md:h-32 object-contain drop-shadow-xl"
+            alt="Limey mascot"
+            className={`${sizeConfig[size]} object-contain drop-shadow-xl`}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
@@ -231,7 +314,7 @@ export function MascotCompanion({
                   transition={{ duration: 0.5, repeat: 3 }}
                   className="absolute -top-2 -right-2"
                 >
-                  <Sparkles className="w-8 h-8 text-yellow-400" />
+                  <Sparkles className="w-8 h-8 text-accent" />
                 </motion.div>
                 <motion.div
                   initial={{ scale: 0, opacity: 0 }}
@@ -262,7 +345,7 @@ export function MascotCompanion({
         {streak >= 3 && !showCelebration && (
           <motion.div
             animate={{ 
-              scale: [1, 1.1, 1],
+              scale: [1, 1.2, 1],
               opacity: [0.7, 1, 0.7],
             }}
             transition={{ 
@@ -275,6 +358,51 @@ export function MascotCompanion({
             🔥
           </motion.div>
         )}
+
+        {/* Z's for sleepy mood */}
+        {currentMood === "sleepy" && (
+          <motion.div
+            className="absolute -top-2 -right-2 text-lg font-bold text-primary/60"
+            animate={{ 
+              y: [0, -10, -20],
+              opacity: [0, 1, 0],
+              x: [0, 5, 10],
+            }}
+            transition={{ 
+              duration: 2,
+              repeat: Infinity,
+            }}
+          >
+            Z
+          </motion.div>
+        )}
+
+        {/* Thinking bubbles */}
+        {currentMood === "thinking" && (
+          <div className="absolute -top-2 -right-2">
+            {[...Array(3)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute bg-primary/20 rounded-full"
+                style={{
+                  width: 6 + i * 4,
+                  height: 6 + i * 4,
+                  top: -i * 8,
+                  right: -i * 6,
+                }}
+                animate={{ 
+                  opacity: [0.3, 0.6, 0.3],
+                  scale: [1, 1.1, 1],
+                }}
+                transition={{ 
+                  duration: 1.5,
+                  delay: i * 0.2,
+                  repeat: Infinity,
+                }}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Speech bubble message */}
@@ -286,7 +414,7 @@ export function MascotCompanion({
             exit={{ scale: 0, opacity: 0, y: 10 }}
             className="absolute -bottom-14 left-1/2 transform -translate-x-1/2 z-20"
           >
-            <div className="bg-gradient-to-r from-primary to-primary-hover text-primary-foreground px-4 py-2 rounded-2xl text-sm font-bold whitespace-nowrap shadow-lg border-2 border-primary-foreground/20">
+            <div className="bg-gradient-to-r from-primary to-secondary text-primary-foreground px-4 py-2 rounded-2xl text-sm font-bold whitespace-nowrap shadow-lg border-2 border-primary-foreground/20">
               <motion.span
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -300,27 +428,49 @@ export function MascotCompanion({
         )}
       </AnimatePresence>
 
-      {/* Stats badges - Duolingo style */}
-      <div className="flex gap-2 mt-4 justify-center">
-        <motion.div 
-          className="flex items-center gap-1.5 bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 px-3 py-1.5 rounded-xl text-sm font-bold border-2 border-yellow-500/30"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <Trophy className="w-4 h-4" />
-          <span>{points}</span>
-        </motion.div>
-        <motion.div 
-          className="flex items-center gap-1.5 bg-primary/20 text-primary px-3 py-1.5 rounded-xl text-sm font-bold border-2 border-primary/30"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          animate={streak >= 3 ? { scale: [1, 1.05, 1] } : {}}
-          transition={{ duration: 1, repeat: Infinity }}
-        >
-          <Flame className="w-4 h-4" />
-          <span>{streak}</span>
-        </motion.div>
-      </div>
+      {/* Stats badges */}
+      {showStats && (
+        <div className="flex gap-2 mt-4 justify-center">
+          <motion.div 
+            className="flex items-center gap-1.5 bg-accent/20 text-accent px-3 py-1.5 rounded-xl text-sm font-bold border-2 border-accent/30"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Trophy className="w-4 h-4" />
+            <span>{points}</span>
+          </motion.div>
+          <motion.div 
+            className="flex items-center gap-1.5 bg-primary/20 text-primary px-3 py-1.5 rounded-xl text-sm font-bold border-2 border-primary/30"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            animate={streak >= 3 ? { scale: [1, 1.05, 1] } : {}}
+            transition={{ duration: 1, repeat: Infinity }}
+          >
+            <Flame className="w-4 h-4" />
+            <span>{streak}</span>
+          </motion.div>
+        </div>
+      )}
     </div>
+  );
+}
+
+// Export a simpler version for use in various places
+export function SimpleMascot({ 
+  mood = "default", 
+  size = "md",
+  className = "",
+}: { 
+  mood?: MascotMood; 
+  size?: "sm" | "md" | "lg" | "xl";
+  className?: string;
+}) {
+  return (
+    <MascotCompanion 
+      mood={mood} 
+      size={size} 
+      showStats={false} 
+      className={className}
+    />
   );
 }

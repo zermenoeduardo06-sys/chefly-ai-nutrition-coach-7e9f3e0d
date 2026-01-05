@@ -15,10 +15,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useHaptics } from "@/hooks/useHaptics";
 import { useChatSounds } from "@/hooks/useChatSounds";
 
-// Import mascots
-import mascotCooking from "@/assets/mascot-cooking.png";
-import mascotFlexing from "@/assets/mascot-flexing.png";
-import mascotFire from "@/assets/mascot-fire.png";
+// Import new lime mascots
+import mascotDefault from "@/assets/mascot-lime.png";
+import mascotHappy from "@/assets/mascot-lime-happy.png";
+import mascotThinking from "@/assets/mascot-lime-thinking.png";
 
 interface Message {
   id: string;
@@ -46,7 +46,7 @@ const TypingIndicator = () => (
       }}
       className="w-12 h-12 flex-shrink-0"
     >
-      <img src={mascotCooking} alt="Chefly thinking" className="w-full h-full object-contain" />
+      <img src={mascotThinking} alt="Limey thinking" className="w-full h-full object-contain" />
     </motion.div>
     <Card className="bg-card border-2 border-primary/20 p-3 rounded-2xl rounded-bl-sm">
       <div className="flex gap-1.5">
@@ -80,7 +80,7 @@ const CheflyAvatar = ({ isAnimating = false }: { isAnimating?: boolean }) => (
     } : {}}
     transition={{ duration: 0.5 }}
   >
-    <img src={mascotCooking} alt="Chefly" className="w-full h-full object-contain drop-shadow-md" />
+    <img src={mascotDefault} alt="Limey" className="w-full h-full object-contain drop-shadow-md" />
   </motion.div>
 );
 
@@ -164,7 +164,7 @@ const WelcomeScreen = ({ onSuggestionClick }: { onSuggestionClick: (text: string
         className="relative mb-4"
       >
         <motion.img 
-          src={mascotFlexing}
+          src={mascotHappy}
           alt="Chefly"
           className="w-32 h-32 object-contain drop-shadow-lg"
           animate={{ 
@@ -431,7 +431,7 @@ const Chat = () => {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-background">
         <motion.img 
-          src={mascotCooking}
+          src={mascotDefault}
           alt="Loading"
           className="w-20 h-20 object-contain"
           animate={{ 
@@ -478,7 +478,7 @@ const Chat = () => {
             >
               <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 p-1 shadow-sm">
                 <img 
-                  src={mascotFire}
+                  src={mascotHappy}
                   alt="Chefly"
                   className="w-full h-full object-contain"
                 />
