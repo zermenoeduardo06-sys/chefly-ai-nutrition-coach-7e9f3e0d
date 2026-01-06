@@ -2,21 +2,37 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { X, Utensils, MessageCircle, CheckCircle2 } from "lucide-react";
+import { X, Utensils, MessageCircle, CheckCircle2, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface NewUserChecklistProps {
   onDismiss: () => void;
   mealsCompleted: number;
   hasUsedChat: boolean;
+  onOpenTutorial?: () => void;
 }
 
-const NewUserChecklist = ({ onDismiss, mealsCompleted, hasUsedChat }: NewUserChecklistProps) => {
-  const { t } = useLanguage();
+const NewUserChecklist = ({ onDismiss, mealsCompleted, hasUsedChat, onOpenTutorial }: NewUserChecklistProps) => {
+  const { t, language } = useLanguage();
   const navigate = useNavigate();
   const [visible, setVisible] = useState(true);
+  const [tutorialSeen, setTutorialSeen] = useState(() => {
+    return localStorage.getItem('chefly_tutorial_clicked') === 'true';
+  });
 
   const steps = [
+    {
+      id: "tutorial",
+      icon: Sparkles,
+      titleKey: "newUserChecklist.step0.title",
+      descKey: "newUserChecklist.step0.desc",
+      completed: tutorialSeen,
+      action: () => {
+        localStorage.setItem('chefly_tutorial_clicked', 'true');
+        setTutorialSeen(true);
+        onOpenTutorial?.();
+      },
+    },
     {
       id: "review",
       icon: Utensils,

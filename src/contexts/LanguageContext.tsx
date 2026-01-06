@@ -1010,6 +1010,8 @@ export const translations = {
     // New User Checklist
     "newUserChecklist.title": "Primeros pasos",
     "newUserChecklist.subtitle": "Completa estos pasos para aprovechar Chefly al máximo",
+    "newUserChecklist.step0.title": "Ver tutorial",
+    "newUserChecklist.step0.desc": "Aprende cómo usar la app",
     "newUserChecklist.step1.title": "Revisa tu menú",
     "newUserChecklist.step1.desc": "Explora las comidas de hoy",
     "newUserChecklist.step2.title": "Prepara una comida",
@@ -2073,6 +2075,8 @@ export const translations = {
     // New User Checklist
     "newUserChecklist.title": "Getting Started",
     "newUserChecklist.subtitle": "Complete these steps to make the most of Chefly",
+    "newUserChecklist.step0.title": "View tutorial",
+    "newUserChecklist.step0.desc": "Learn how to use the app",
     "newUserChecklist.step1.title": "Review your menu",
     "newUserChecklist.step1.desc": "Explore today's meals",
     "newUserChecklist.step2.title": "Prepare a meal",

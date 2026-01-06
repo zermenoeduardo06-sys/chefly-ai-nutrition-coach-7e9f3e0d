@@ -38,7 +38,7 @@ import { useOfflineMode } from "@/hooks/useOfflineMode";
 import { useDeepLinking } from "@/hooks/useDeepLinking";
 import { Capacitor } from "@capacitor/core";
 import { FoodScanner } from "@/components/FoodScanner";
-import { CalendarDayWidget } from "@/components/CalendarDayWidget";
+// CalendarDayWidget removed - date shown in header
 import { useWeeklyCheckIn } from "@/hooks/useWeeklyCheckIn";
 import { FamilyStatusBanner } from "@/components/family/FamilyStatusBanner";
 import { MealBestMatchBadge } from "@/components/family/MealMemberAdaptations";
@@ -1100,11 +1100,316 @@ const Dashboard = () => {
             }}
             mealsCompleted={userStats.meals_completed}
             hasUsedChat={localStorage.getItem('chefly_chat_used') === 'true'}
+            onOpenTutorial={() => {
+              const useMobileTutorial = isNativePlatform || isMobile;
+              if (useMobileTutorial) {
+                setShowMobileWelcome(true);
+              } else {
+                setShowInAppTour(true);
+              }
+            }}
           />
         )}
 
-        {/* TODAY'S PROGRESS - HERO WIDGET (First position) */}
+        {/* WEEKLY MEAL PLAN - PRIMARY CONTENT (First position after header) */}
+        <Card id="meals-section" className="border-border/50 shadow-lg">
+          <CardHeader className="pb-3">
+            <div data-tour="meal-plan" className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <Calendar className="h-5 w-5 text-primary flex-shrink-0" />
+                  <CardTitle className="text-lg sm:text-xl">{t("dashboard.weeklyPlan")}</CardTitle>
+                </div>
+                <CardDescription>{t("dashboard.weeklyPlanDesc")}</CardDescription>
+              </div>
+              {mealPlan && (
+                <Badge variant="secondary" className="text-xs sm:text-sm w-fit">
+                  {t("dashboard.weekOf")} {new Date(mealPlan.week_start_date).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
+                </Badge>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3 sm:space-y-4">
+
+          {Object.keys(groupedMeals).length > 0 ? (
+            <>
+              {/* Mobile: Swipeable single day view */}
+              {isMobile && (
+                <div className="md:hidden">
+                  <SwipeableDaysNavigator
+                    currentDay={currentMobileDay}
+                    totalDays={Object.keys(groupedMeals).length}
+                    dayNames={dayNames}
+                    onDayChange={setCurrentMobileDay}
+                  />
+                  
+                  <div className="mt-4 space-y-3">
+                    {groupedMeals[currentMobileDay]?.map((meal, mealIndex) => {
+                      const isCompleted = completedMeals.has(meal.id);
+                      const isFirstMealOfFirstDay = currentMobileDay === 0 && mealIndex === 0;
+                      return (
+                        <SwipeableMealCard
+                          key={meal.id}
+                          meal={meal}
+                          isCompleted={isCompleted}
+                          mealTypeLabel={mealTypes[meal.meal_type]}
+                          onComplete={handleMealComplete}
+                          onClick={() => {
+                            setSelectedMeal(meal);
+                            setMealDialogOpen(true);
+                          }}
+                          isFirstMeal={isFirstMealOfFirstDay}
+                          isFamilyPlan={mealPlan?.is_family_plan || false}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              
+              {/* Desktop: All days view */}
+              <div className={isMobile ? "hidden md:block" : ""}>
+            {Object.keys(groupedMeals).map((dayIndex) => {
+              const day = parseInt(dayIndex);
+              const meals = groupedMeals[day];
+
+              return (
+                <Card key={day} className="overflow-hidden border-2 border-border/50 shadow-lg hover:shadow-xl hover:border-primary/20 transition-all rounded-2xl mb-4">
+                  <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 border-b p-3 sm:p-6">
+                    <div className="flex items-center justify-between gap-2">
+                      <CardTitle className="flex items-center gap-2 sm:gap-3 min-w-0">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-primary to-primary-hover flex items-center justify-center flex-shrink-0 shadow-[0_3px_0_hsl(16_90%_45%)]">
+                          <span className="text-primary-foreground font-bold text-sm sm:text-base">{day + 1}</span>
+                        </div>
+                        <span className="text-base sm:text-xl font-bold truncate">{dayNames[day]}</span>
+                      </CardTitle>
+                      <Badge variant="secondary" className="text-xs flex-shrink-0 rounded-xl px-3">{meals.length} {t("dashboard.meals")}</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-3 sm:p-6">
+                    <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                      {meals.map((meal, mealIndex) => {
+                        const isCompleted = completedMeals.has(meal.id);
+                        const isFirstMealOfFirstDay = day === 0 && mealIndex === 0;
+                        return (
+                          <Card 
+                            key={meal.id} 
+                            className={`border-2 border-border/50 bg-gradient-to-br from-card to-muted/20 hover:shadow-md hover:border-primary/30 transition-all overflow-hidden relative rounded-2xl ${isCompleted ? 'ring-2 ring-secondary border-secondary/30' : ''}`}
+                          >
+                            {meal.image_url && (
+                              <div className="relative h-32 sm:h-40 w-full overflow-hidden">
+                                <MealImageWithSkeleton
+                                  src={meal.image_url}
+                                  alt={meal.name}
+                                  containerClassName="h-full w-full"
+                                  className={`w-full h-full object-cover ${isCompleted ? 'opacity-60' : ''}`}
+                                />
+                                <div className="absolute top-2 right-2">
+                                  <Badge variant="secondary" className="backdrop-blur-sm bg-background/80 text-xs rounded-xl">
+                                    {mealTypes[meal.meal_type]}
+                                  </Badge>
+                                </div>
+                                {/* Complete Meal Button - Image version */}
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      size="icon"
+                                      variant={isCompleted ? "duolingoSecondary" : "duolingo"}
+                                      data-tour={isFirstMealOfFirstDay ? "complete-meal" : undefined}
+                                      className="absolute top-2 left-2 h-9 w-9 shadow-lg rounded-xl"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleMealComplete(meal);
+                                      }}
+                                    >
+                                      <Check className="h-5 w-5" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="right">
+                                    <p className="text-xs max-w-[180px]">{t("tooltip.completeMeal")}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </div>
+                            )}
+                            <CardContent 
+                              className="p-3 sm:p-4 space-y-2 sm:space-y-3 cursor-pointer"
+                              onClick={() => {
+                                setSelectedMeal(meal);
+                                setMealDialogOpen(true);
+                              }}
+                            >
+                              {!meal.image_url && (
+                                <div className="flex items-center justify-between gap-2 mb-2">
+                                  <Badge variant="secondary" className="shrink-0 text-xs rounded-xl">
+                                    {mealTypes[meal.meal_type]}
+                                  </Badge>
+                                </div>
+                              )}
+                              <div className="min-w-0">
+                                <h4 className={`font-semibold text-sm sm:text-base mb-1 line-clamp-2 ${isCompleted ? 'line-through opacity-60' : ''}`}>
+                                  {meal.name}
+                                </h4>
+                                <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">{meal.description}</p>
+                              </div>
+                              
+                              {/* Family adaptation badge */}
+                              {mealPlan?.is_family_plan && meal.adaptations && meal.adaptations.length > 0 && (
+                                <div className="pb-1">
+                                  <MealBestMatchBadge adaptations={meal.adaptations} />
+                                </div>
+                              )}
+                              
+                              <Separator />
+                              <div className="flex items-start gap-2 mb-3">
+                                {isCompleted ? (
+                                  <>
+                                    <Check className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 shrink-0 mt-0.5" />
+                                    <p className="text-xs text-green-600 font-medium leading-relaxed line-clamp-2">{t("dashboard.completed")} {t("dashboard.pointsEarned")}</p>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-primary shrink-0 mt-0.5" />
+                                    <p className="text-xs text-primary font-medium leading-relaxed line-clamp-2">{meal.benefits}</p>
+                                  </>
+                                )}
+                              </div>
+                              {/* Complete Meal Button - No image version */}
+                              {!meal.image_url && (
+                                <Button
+                                  size="sm"
+                                  variant={isCompleted ? "duolingoSecondary" : "duolingo"}
+                                  data-tour={isFirstMealOfFirstDay ? "complete-meal" : undefined}
+                                  className="w-full text-xs gap-1.5 rounded-xl"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleMealComplete(meal);
+                                  }}
+                                >
+                                  <Check className="h-3.5 w-3.5" />
+                                  {isCompleted ? t("dashboard.alreadyCompleted") : t("dashboard.finishMeal")}
+                                </Button>
+                              )}
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+              </div>
+            </>
+           ) : (
+            <Card className="border-dashed border-2">
+              <CardContent className="flex flex-col items-center justify-center py-16 px-6">
+                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center mb-6">
+                  <Utensils className="w-10 h-10 text-primary" />
+                </div>
+                <h3 className="text-2xl font-bold mb-3">{t("dashboard.noMealPlan")}</h3>
+                <p className="text-muted-foreground text-center mb-8 max-w-md">
+                  {generating 
+                    ? t("dashboard.waitMessage")
+                    : t("dashboard.createFirst")
+                  }
+                </p>
+                {generating ? (
+                  <div className="flex flex-col items-center gap-4">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <p className="text-sm text-muted-foreground">{t("dashboard.generatingAI")}</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-4">
+                    {!limits.canGeneratePlans && (
+                      <div className="p-4 rounded-xl bg-primary/10 border border-primary/30 text-center">
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                          <Lock className="h-5 w-5 text-primary" />
+                          <span className="font-semibold text-primary">
+                            {language === 'es' ? 'Función exclusiva de Chefly Plus' : 'Chefly Plus exclusive feature'}
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          {language === 'es' 
+                            ? 'Mejora tu plan para generar nuevos menús personalizados cada semana'
+                            : 'Upgrade your plan to generate new personalized menus every week'
+                          }
+                        </p>
+                        <Button 
+                          onClick={() => navigate("/pricing")}
+                          variant="duolingo"
+                          size="lg"
+                          className="gap-2"
+                        >
+                          <Zap className="h-4 w-4" />
+                          {language === 'es' ? 'Mejorar a Chefly Plus' : 'Upgrade to Chefly Plus'}
+                        </Button>
+                      </div>
+                    )}
+                    
+                    {limits.canGeneratePlans && (
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        <Button 
+                          onClick={initiateGenerateMealPlan} 
+                          disabled={generating}
+                          size="xl"
+                          variant="duolingo"
+                          className="min-w-[200px]"
+                        >
+                          <Sparkles className="mr-2 h-5 w-5" />
+                          {t("dashboard.generatePlan")}
+                        </Button>
+                        <Button 
+                          onClick={() => navigate("/onboarding")}
+                          variant="duolingoOutline"
+                          size="lg"
+                        >
+                          <Settings className="mr-2 h-4 w-4" />
+                          {t("dashboard.setupPreferences")}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+          </CardContent>
+        </Card>
+
+        {/* TODAY'S PROGRESS WIDGET */}
         {userId && <NutritionSummaryWidget userId={userId} />}
+
+        {/* Gamification - Simplified with just mascot + level progress */}
+        <Card data-tour="gamification" className="border-border/50 shadow-lg bg-gradient-to-br from-card to-muted/20">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-4">
+              <MascotCompanion
+                points={userStats.total_points}
+                streak={userStats.current_streak}
+                level={userStats.level}
+                showCelebration={showCelebration}
+                message={mascotMessage}
+                size="md"
+                showStats={false}
+              />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="font-semibold text-sm">{t("dashboard.mascotGreeting")}</h3>
+                  <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                    {t("dashboard.level")} {userStats.level}
+                  </Badge>
+                </div>
+                <p className="text-xs text-muted-foreground mb-2">{t("dashboard.mascotHelp")}</p>
+                <div className="flex items-center gap-2">
+                  <Progress value={(userStats.total_points % 100)} className="flex-1 h-2" />
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">
+                    {userStats.total_points % 100}/100
+                  </span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Subscription Banner */}
         {profile && (
@@ -1116,11 +1421,6 @@ const Dashboard = () => {
           <FamilyStatusBanner userId={userId} />
         )}
 
-        {/* Calendar Day Widget */}
-        <CalendarDayWidget 
-          isCheckInDay={userId ? true : false}
-        />
-
         {/* Weekly Check-In Banner (Premium feature) */}
         {userId && (
           <WeeklyCheckInBanner 
@@ -1128,156 +1428,6 @@ const Dashboard = () => {
             onPlanGenerated={() => loadMealPlan(userId)}
           />
         )}
-
-        {/* Mascot and Gamification Section */}
-        <Card data-tour="gamification" className="border-border/50 shadow-lg bg-gradient-to-br from-card to-muted/20">
-          <CardHeader className="pb-2">
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" />
-              <CardTitle className="text-lg">{t("dashboard.gamificationTitle")}</CardTitle>
-            </div>
-            <CardDescription>{t("dashboard.gamificationDesc")}</CardDescription>
-          </CardHeader>
-          <CardContent className="p-4 sm:p-6 pt-2">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6">
-              <div className="flex flex-col md:flex-row items-center gap-4 sm:gap-6 w-full md:w-auto">
-                <MascotCompanion
-                  points={userStats.total_points}
-                  streak={userStats.current_streak}
-                  level={userStats.level}
-                  showCelebration={showCelebration}
-                  message={mascotMessage}
-                />
-                <div className="text-center md:text-left w-full md:w-auto min-w-0">
-                  <h3 className="text-xl sm:text-2xl font-bold">{t("dashboard.mascotGreeting")}</h3>
-                  <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-                    {t("dashboard.mascotHelp")}
-                  </p>
-                  <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Badge variant="secondary" className="text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2 cursor-help">
-                          {t("dashboard.level")} {userStats.level}
-                        </Badge>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="text-xs max-w-[200px]">{t("tooltip.level")}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Badge variant="outline" className="text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2 cursor-help">
-                          {userStats.meals_completed} {t("dashboard.mealsCompleted").toLowerCase()}
-                        </Badge>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="text-xs max-w-[200px]">{t("tooltip.mealsCompleted")}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Badge variant="outline" className="text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2 whitespace-nowrap cursor-help">
-                          {t("dashboard.longestStreak")}: {userStats.longest_streak} 🔥
-                        </Badge>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="text-xs max-w-[200px]">{t("tooltip.longestStreak")}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
-                </div>
-              </div>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="text-center w-full md:w-auto flex-shrink-0 cursor-help">
-                    <div className="text-xs sm:text-sm text-muted-foreground mb-2">{t("dashboard.progressToLevel")}</div>
-                    <Progress value={(userStats.total_points % 100)} className="w-full max-w-[12rem] mx-auto h-2 sm:h-3 mb-2" />
-                    <div className="text-xs text-muted-foreground">
-                      {userStats.total_points % 100}/100 {t("dashboard.points")}
-                    </div>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-xs max-w-[200px]">{t("tooltip.progressBar")}</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Stats Overview */}
-        <Card className="border-border/50 shadow-lg">
-          <CardHeader className="pb-2">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-primary" />
-              <CardTitle className="text-lg">{t("dashboard.weeklyStats")}</CardTitle>
-            </div>
-            <CardDescription>{t("dashboard.weeklyStatsDesc")}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 cursor-help">
-                    <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0">
-                        <Utensils className="w-5 h-5 text-primary" />
-                      </div>
-                      <div className="text-center sm:text-left min-w-0">
-                        <p className="text-xs text-muted-foreground truncate">{t("dashboard.mealsThisWeek")}</p>
-                        <p className="text-xl font-bold">{mealPlan?.meals.length || 0}</p>
-                      </div>
-                    </div>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-xs max-w-[200px]">{t("tooltip.mealsThisWeek")}</p>
-                </TooltipContent>
-              </Tooltip>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-secondary/10 to-secondary/5 border border-secondary/20 cursor-help">
-                    <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-secondary/20 flex items-center justify-center flex-shrink-0">
-                        <TrendingUp className="w-5 h-5 text-secondary" />
-                      </div>
-                      <div className="text-center sm:text-left min-w-0">
-                        <p className="text-xs text-muted-foreground truncate">{t("dashboard.currentStreakStat")}</p>
-                        <p className="text-xl font-bold">{userStats.current_streak} 🔥</p>
-                      </div>
-                    </div>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-xs max-w-[200px]">{t("tooltip.currentStreak")}</p>
-                </TooltipContent>
-              </Tooltip>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-muted/50 to-muted/30 border border-border/50 col-span-2 sm:col-span-1 cursor-help">
-                    <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
-                        <Clock className="w-5 h-5 text-muted-foreground" />
-                      </div>
-                      <div className="text-center sm:text-left min-w-0">
-                        <p className="text-xs text-muted-foreground truncate">{t("dashboard.lastUpdate")}</p>
-                        <p className="text-sm font-semibold">
-                          {mealPlan ? new Date(mealPlan.week_start_date).toLocaleDateString() : 'N/A'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-xs max-w-[200px]">{t("tooltip.lastUpdate")}</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-          </CardContent>
-        </Card>
-
 
         {/* Generate Plan & Language */}
         <Card data-tour="quick-actions" className="border-border/50 shadow-lg">
@@ -1388,34 +1538,6 @@ const Dashboard = () => {
                 </div>
               </div>
             )}
-          </CardContent>
-        </Card>
-        
-        {/* Help Section */}
-        <Card className="border-border/50 shadow-lg bg-gradient-to-br from-muted/30 to-background">
-          <CardHeader className="pb-2">
-            <div className="flex items-center gap-2">
-              <HelpCircle className="h-5 w-5 text-primary" />
-              <CardTitle className="text-lg">{t("dashboard.helpSection")}</CardTitle>
-            </div>
-            <CardDescription>{t("dashboard.helpDesc")}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button
-              variant="outline"
-              onClick={() => {
-                const useMobileTutorial = isNativePlatform || isMobile;
-                if (useMobileTutorial) {
-                  setShowMobileWelcome(true);
-                } else {
-                  setShowInAppTour(true);
-                }
-              }}
-              className="gap-2"
-            >
-              <Sparkles className="h-4 w-4" />
-              {t("dashboard.viewTutorial")}
-            </Button>
           </CardContent>
         </Card>
 
