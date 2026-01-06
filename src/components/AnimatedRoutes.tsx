@@ -46,6 +46,18 @@ import AppStoreDemo from '@/pages/AppStoreDemo';
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
   <SidebarProvider>
+    {/* iOS overscroll background extensions - prevents black lines */}
+    <div 
+      className="fixed inset-x-0 -top-[100px] h-[200px] bg-background pointer-events-none md:hidden" 
+      style={{ zIndex: 9999 }}
+      aria-hidden="true"
+    />
+    <div 
+      className="fixed inset-x-0 -bottom-[100px] h-[200px] bg-card pointer-events-none md:hidden" 
+      style={{ zIndex: 9999 }}
+      aria-hidden="true"
+    />
+    
     <div className="flex min-h-screen w-full bg-background">
       <div className="hidden md:block">
         <AppSidebar />

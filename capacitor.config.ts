@@ -11,8 +11,9 @@ const config: CapacitorConfig = {
   // },
   ios: {
     contentInset: 'automatic',
-    backgroundColor: '#0a0a0a',
-    preferredContentMode: 'mobile'
+    backgroundColor: '#12161f', // Must match --background in dark mode: hsl(220 25% 10%)
+    preferredContentMode: 'mobile',
+    scrollEnabled: true
   },
   plugins: {
     SplashScreen: {

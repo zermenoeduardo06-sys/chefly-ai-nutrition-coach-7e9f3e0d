@@ -145,19 +145,42 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
-  html, body {
-    /* Prevent black line artifacts during scroll on iOS - extend background */
+  html {
+    /* iOS overscroll fix - fixed positioning prevents native bounce */
     background-color: hsl(var(--background));
-    /* Extend background color to overscroll areas */
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
     overscroll-behavior: none;
-    /* Prevent overscroll to avoid black areas */
-    overscroll-behavior-y: none;
-    /* Ensure minimum height fills viewport */
-    min-height: 100vh;
-    min-height: 100dvh;
-    /* Prevent rendering gaps during scroll */
+    -webkit-overflow-scrolling: auto;
+  }
+
+  body {
+    /* Body also fixed to prevent iOS rubber banding */
+    background-color: hsl(var(--background));
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
+  }
+
+  #root {
+    /* Root handles actual scrolling with contained overscroll */
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    background-color: hsl(var(--background));
   }
 
   body {
