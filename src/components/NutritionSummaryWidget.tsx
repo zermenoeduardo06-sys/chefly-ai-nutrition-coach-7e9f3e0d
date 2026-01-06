@@ -151,6 +151,9 @@ export const NutritionSummaryWidget = ({ userId }: NutritionSummaryWidgetProps) 
   const carbsPercentage = Math.min((nutrition?.carbs || 0) / dailyGoals.carbs * 100, 100);
   const fatsPercentage = Math.min((nutrition?.fats || 0) / dailyGoals.fats * 100, 100);
   
+  // Check if user has started tracking today
+  const hasStartedTracking = caloriesConsumed > 0;
+  
   // Smaller circle for compact layout
   const radius = 48;
   const circumference = 2 * Math.PI * radius;
@@ -163,6 +166,42 @@ export const NutritionSummaryWidget = ({ userId }: NutritionSummaryWidgetProps) 
   };
 
   const progressColor = getProgressColor();
+
+  // Empty state for new users
+  if (!hasStartedTracking) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <Card className="border-0 shadow-xl bg-gradient-to-br from-card via-card to-primary/5 overflow-hidden relative">
+          <CardContent className="p-4 text-center">
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <Flame className="h-5 w-5 text-primary" />
+              </div>
+              <div className="text-left">
+                <h3 className="font-semibold text-foreground text-sm">
+                  {language === 'es' ? 'Progreso de Hoy' : "Today's Progress"}
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  {language === 'es' 
+                    ? '¡Completa tu primera comida para ver tu progreso!' 
+                    : 'Complete your first meal to see your progress!'}
+                </p>
+              </div>
+            </div>
+            <p className="text-[10px] text-muted-foreground/70 mt-2">
+              💡 {language === 'es' 
+                ? 'Las calorías mostradas son estimaciones basadas en tus metas' 
+                : 'Calories shown are estimates based on your goals'}
+            </p>
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div

@@ -142,12 +142,6 @@ export const SwipeableDaysNavigator = ({
         </Button>
       </div>
 
-      {/* Swipe hint */}
-      <p className="text-xs text-muted-foreground text-center mt-2 md:hidden">
-        <ChevronLeft className="h-3 w-3 inline animate-pulse" />
-        <span className="mx-1">Desliza para cambiar día</span>
-        <ChevronRight className="h-3 w-3 inline animate-pulse" />
-      </p>
     </div>
   );
 };
