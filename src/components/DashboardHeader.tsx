@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Flame, Sparkles } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { InfoTooltip } from "@/components/InfoTooltip";
 
 interface DashboardHeaderProps {
   displayName?: string;
@@ -52,6 +53,12 @@ export const DashboardHeader = ({ displayName, currentStreak, level }: Dashboard
             >
               <Flame className="h-4 w-4 text-orange-500" />
               <span className="text-sm font-bold text-orange-600 dark:text-orange-400">{currentStreak}</span>
+              <InfoTooltip 
+                titleKey="tooltip.streak.title"
+                contentKey="tooltip.streak.content"
+                iconSize={12}
+                className="ml-0.5"
+              />
             </motion.div>
           )}
           <motion.div 
@@ -62,6 +69,12 @@ export const DashboardHeader = ({ displayName, currentStreak, level }: Dashboard
           >
             <Sparkles className="h-4 w-4 text-primary" />
             <span className="text-sm font-bold text-primary">Lv.{level}</span>
+            <InfoTooltip 
+              titleKey="tooltip.level.title"
+              contentKey="tooltip.level.content"
+              iconSize={12}
+              className="ml-0.5"
+            />
           </motion.div>
         </div>
       </div>
