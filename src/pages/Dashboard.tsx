@@ -46,6 +46,7 @@ import { useStreakSystem } from "@/hooks/useStreakSystem";
 import { NutritionSummaryWidget } from "@/components/NutritionSummaryWidget";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { MealPhotoDialog } from "@/components/MealPhotoDialog";
+import NewUserChecklist from "@/components/NewUserChecklist";
 
 interface MealAdaptation {
   id: string;
@@ -129,6 +130,10 @@ const Dashboard = () => {
   const [showMealPhotoDialog, setShowMealPhotoDialog] = useState(false);
   const [mealToComplete, setMealToComplete] = useState<Meal | null>(null);
   const [currentMobileDay, setCurrentMobileDay] = useState(0);
+  const [showNewUserChecklist, setShowNewUserChecklist] = useState(() => {
+    const dismissed = localStorage.getItem('chefly_checklist_dismissed');
+    return !dismissed;
+  });
   const isNativePlatform = Capacitor.isNativePlatform();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -1085,6 +1090,18 @@ const Dashboard = () => {
           currentStreak={userStats.current_streak}
           level={userStats.level}
         />
+
+        {/* New User Checklist - Quick Actions for first-time users */}
+        {showNewUserChecklist && userStats.meals_completed < 5 && (
+          <NewUserChecklist
+            onDismiss={() => {
+              setShowNewUserChecklist(false);
+              localStorage.setItem('chefly_checklist_dismissed', 'true');
+            }}
+            mealsCompleted={userStats.meals_completed}
+            hasUsedChat={localStorage.getItem('chefly_chat_used') === 'true'}
+          />
+        )}
 
         {/* TODAY'S PROGRESS - HERO WIDGET (First position) */}
         {userId && <NutritionSummaryWidget userId={userId} />}

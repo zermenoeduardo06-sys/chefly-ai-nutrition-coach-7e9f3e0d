@@ -480,8 +480,12 @@ const Onboarding = () => {
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3 }}
               >
-                <Label className="text-lg font-semibold">{t("onboarding.personal.title")}</Label>
+                <div className="flex items-center gap-2">
+                  <Label className="text-lg font-semibold">{t("onboarding.personal.title")}</Label>
+                  <Badge variant="outline" className="text-xs font-normal">{t("onboarding.optional")}</Badge>
+                </div>
                 <p className="text-sm text-muted-foreground">{t("onboarding.personal.description")}</p>
+                <p className="text-xs text-primary/80 bg-primary/5 p-2 rounded-lg">{t("onboarding.personal.valueHint")}</p>
                 
                 <div className="space-y-3">
                   <div>
@@ -706,6 +710,9 @@ const Onboarding = () => {
                 title={t("onboarding.flavors.title")}
                 description={t("onboarding.flavors.description")}
                 onSelectionMade={flavorPreferences.length > 0}
+                isOptional
+                optionalLabel={t("onboarding.optional")}
+                valueHint={t("onboarding.flavors.valueHint")}
               >
                 <OnboardingBadgeSelector
                   options={flavors.map(f => ({ value: f.value, label: t(f.labelKey) }))}
@@ -722,6 +729,9 @@ const Onboarding = () => {
                 title={t("onboarding.cuisines.title")}
                 description={t("onboarding.cuisines.description")}
                 onSelectionMade={preferredCuisines.length > 0}
+                isOptional
+                optionalLabel={t("onboarding.optional")}
+                valueHint={t("onboarding.cuisines.valueHint")}
               >
                 <OnboardingBadgeSelector
                   options={cuisines.map(c => ({ value: c.value, label: t(c.labelKey) }))}
@@ -741,8 +751,12 @@ const Onboarding = () => {
                 transition={{ duration: 0.3 }}
               >
                 <div className="space-y-4">
-                  <Label className="text-lg font-semibold">{t("onboarding.allergies.title")}</Label>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-lg font-semibold">{t("onboarding.allergies.title")}</Label>
+                    <Badge variant="outline" className="text-xs font-normal">{t("onboarding.optional")}</Badge>
+                  </div>
                   <p className="text-sm text-muted-foreground">{t("onboarding.allergies.description")}</p>
+                  <p className="text-xs text-primary/80 bg-primary/5 p-2 rounded-lg">{t("onboarding.allergies.valueHint")}</p>
                   <div className="flex gap-2">
                     <Input
                       placeholder={t("onboarding.allergies.placeholder")}
@@ -827,88 +841,105 @@ const Onboarding = () => {
                 title={t("onboarding.avatar.title")}
                 description={t("onboarding.avatar.description")}
                 onSelectionMade={true}
+                isOptional
+                optionalLabel={t("onboarding.optional")}
+                valueHint={t("onboarding.avatar.valueHint")}
               >
                 <AvatarBuilder config={avatarConfig} onChange={setAvatarConfig} />
               </OnboardingStepWrapper>
             )}
 
             <motion.div
-              className="flex gap-3 pt-6 border-t border-border/50 mt-6"
+              className="flex flex-col gap-3 pt-6 border-t border-border/50 mt-6"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
             >
-              {step > 1 && (
-                <motion.div 
-                  className="flex-1"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+              {/* Skip button for optional steps */}
+              {[4, 8, 9, 10, 11].includes(step) && (
+                <Button
+                  variant="ghost"
+                  onClick={() => setStep(step + 1 > 11 ? 11 : step + 1)}
+                  disabled={loading}
+                  className="w-full text-muted-foreground hover:text-foreground"
                 >
-                  <Button
-                    variant="outline"
-                    onClick={() => setStep(step - 1)}
-                    disabled={loading}
-                    className="w-full h-12"
-                  >
-                    {t("onboarding.buttons.back")}
-                  </Button>
-                </motion.div>
+                  {step === 11 ? t("onboarding.buttons.skip") : t("onboarding.buttons.skip")}
+                </Button>
               )}
-              {step < 11 ? (
-                <motion.div 
-                  className="flex-1"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <Button
-                    onClick={() => setStep(step + 1)}
-                    disabled={loading || (step === 1 && !goal) || (step === 2 && !dietType)}
-                    className="w-full h-12 text-base font-semibold"
-                    variant="hero"
+              
+              <div className="flex gap-3">
+                {step > 1 && (
+                  <motion.div 
+                    className="flex-1"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                   >
-                    <span className="flex items-center gap-2">
-                      {t("onboarding.buttons.next")}
-                      <motion.span
-                        animate={{ x: [0, 4, 0] }}
-                        transition={{ duration: 1, repeat: Infinity }}
-                      >
-                        →
-                      </motion.span>
-                    </span>
-                  </Button>
-                </motion.div>
-              ) : (
-                <motion.div 
-                  className="flex-1"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <Button
-                    onClick={() => {
-                      setShowCelebration(true);
-                      setTimeout(() => {
-                        setShowCelebration(false);
-                        handleSubmit();
-                      }, 2500);
-                    }}
-                    disabled={loading}
-                    className="w-full h-12 text-base font-semibold"
-                    variant="hero"
+                    <Button
+                      variant="outline"
+                      onClick={() => setStep(step - 1)}
+                      disabled={loading}
+                      className="w-full h-12"
+                    >
+                      {t("onboarding.buttons.back")}
+                    </Button>
+                  </motion.div>
+                )}
+                {step < 11 ? (
+                  <motion.div 
+                    className="flex-1"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                   >
-                    {loading ? (
-                      <>
-                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        {t("onboarding.buttons.creating")}
-                      </>
-                    ) : (
+                    <Button
+                      onClick={() => setStep(step + 1)}
+                      disabled={loading || (step === 1 && !goal) || (step === 2 && !dietType)}
+                      className="w-full h-12 text-base font-semibold"
+                      variant="hero"
+                    >
                       <span className="flex items-center gap-2">
-                        <Sparkles className="w-5 h-5" />
-                        {t("onboarding.buttons.create")}
+                        {t("onboarding.buttons.next")}
+                        <motion.span
+                          animate={{ x: [0, 4, 0] }}
+                          transition={{ duration: 1, repeat: Infinity }}
+                        >
+                          →
+                        </motion.span>
                       </span>
-                    )}
-                  </Button>
-                </motion.div>
-              )}
+                    </Button>
+                  </motion.div>
+                ) : (
+                  <motion.div 
+                    className="flex-1"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Button
+                      onClick={() => {
+                        setShowCelebration(true);
+                        setTimeout(() => {
+                          setShowCelebration(false);
+                          handleSubmit();
+                        }, 2500);
+                      }}
+                      disabled={loading}
+                      className="w-full h-12 text-base font-semibold"
+                      variant="hero"
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                          {t("onboarding.buttons.creating")}
+                        </>
+                      ) : (
+                        <span className="flex items-center gap-2">
+                          <Sparkles className="w-5 h-5" />
+                          {t("onboarding.buttons.create")}
+                        </span>
+                      )}
+                    </Button>
+                  </motion.div>
+                )}
+              </div>
             </motion.div>
           </CardContent>
         </Card>

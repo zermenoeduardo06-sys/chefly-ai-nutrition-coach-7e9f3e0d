@@ -301,6 +301,8 @@ const Chat = () => {
       return;
     }
     setUserId(user.id);
+    // Mark that the user has used the chat for new user checklist
+    localStorage.setItem('chefly_chat_used', 'true');
     await loadMessages(user.id);
   };
 
