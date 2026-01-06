@@ -46,15 +46,15 @@ import AppStoreDemo from '@/pages/AppStoreDemo';
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
   <SidebarProvider>
-    <div className="flex min-h-screen w-full bg-background">
+    <div className="flex h-[100dvh] w-full bg-background overflow-hidden">
       <div className="hidden md:block">
         <AppSidebar />
       </div>
-      <div className="flex-1 flex flex-col min-w-0 bg-background">
-        <header className="hidden md:flex h-14 border-b bg-card sticky top-0 z-40 items-center px-4">
+      <div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden">
+        <header className="hidden md:flex h-14 border-b bg-card sticky top-0 z-40 items-center px-4 flex-shrink-0">
           <SidebarTrigger />
         </header>
-        <main className="flex-1 pb-mobile-nav md:pb-0 scroll-touch bg-background">{children}</main>
+        <main className="flex-1 overflow-y-auto overflow-x-hidden pb-mobile-nav md:pb-0 scroll-touch bg-background">{children}</main>
       </div>
     </div>
     <MobileBottomNav />
