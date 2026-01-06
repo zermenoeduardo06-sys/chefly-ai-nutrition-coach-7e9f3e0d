@@ -1077,9 +1077,32 @@ export const translations = {
 
     // Preferences
     "preferences.title": "Preferencias",
-    "preferences.saved": "¡Preferencias guardadas!",
-    "preferences.savedDesc": "Tus preferencias han sido actualizadas correctamente",
-    "preferences.cooking": "Preferencias de Cocina",
+
+    // Info Tooltips - Educational content
+    "tooltip.calories.title": "¿Por qué esta meta de calorías?",
+    "tooltip.calories.content": "Tu meta de {{calories}} kcal se calcula usando la fórmula Mifflin-St Jeor, basada en tu peso, altura, edad y nivel de actividad. {{goalNote}}",
+    "tooltip.calories.goalLose": "Para bajar de peso, restamos ~500 kcal para un déficit seguro.",
+    "tooltip.calories.goalGain": "Para ganar músculo, añadimos ~300 kcal para un superávit.",
+    "tooltip.calories.goalMaintain": "Para mantenerte, este es tu punto de equilibrio.",
+    "tooltip.calories.goalDefault": "Ajustado para ayudarte a alcanzar tu objetivo.",
+    
+    "tooltip.macros.title": "¿Qué son los macros?",
+    "tooltip.macros.content": "Los macronutrientes (proteína, carbohidratos y grasas) son los 3 componentes principales de tu alimentación. La proteína construye músculo, los carbos dan energía, y las grasas son esenciales para hormonas y absorción de vitaminas.",
+    
+    "tooltip.mealPlan.title": "¿Cómo funciona el plan de comidas?",
+    "tooltip.mealPlan.content": "Tu plan semanal se genera con IA basándose en tus preferencias, alergias y objetivos. Cada comida está balanceada para ayudarte a alcanzar tus metas. Puedes intercambiar comidas que no te gusten tocando el ícono de flechas.",
+    
+    "tooltip.completeMeal.title": "¿Cómo completar una comida?",
+    "tooltip.completeMeal.content": "Desliza la tarjeta hacia la derecha o toca el ícono ✓ para marcar una comida como completada. Esto suma las calorías a tu progreso diario y te da puntos para subir de nivel.",
+    
+    "tooltip.scanner.title": "¿Cómo funciona el escaneo?",
+    "tooltip.scanner.content": "Nuestra IA analiza la foto de tu comida para identificar ingredientes y estimar las calorías y macros. Para mejores resultados, toma fotos bien iluminadas desde arriba. La precisión depende de la claridad de la foto.",
+    
+    "tooltip.streak.title": "¿Qué es el Streak?",
+    "tooltip.streak.content": "Tu racha indica cuántos días consecutivos has registrado comidas. ¡Mantener la racha te da puntos extra y desbloquea logros especiales!",
+    
+    "tooltip.level.title": "¿Qué es el Nivel?",
+    "tooltip.level.content": "Subes de nivel ganando puntos. Ganas 10 puntos por cada comida completada, puntos extra por mantener rachas, y bonus por desbloquear logros. Cada 100 puntos = 1 nivel.",
   },
   en: {
     // Navigation
@@ -2143,6 +2166,32 @@ export const translations = {
 
     // Preferences
     "preferences.title": "Preferences",
+
+    // Info Tooltips - Educational content
+    "tooltip.calories.title": "Why this calorie goal?",
+    "tooltip.calories.content": "Your goal of {{calories}} kcal is calculated using the Mifflin-St Jeor formula, based on your weight, height, age, and activity level. {{goalNote}}",
+    "tooltip.calories.goalLose": "For weight loss, we subtract ~500 kcal for a safe deficit.",
+    "tooltip.calories.goalGain": "For muscle gain, we add ~300 kcal for a surplus.",
+    "tooltip.calories.goalMaintain": "For maintenance, this is your equilibrium point.",
+    "tooltip.calories.goalDefault": "Adjusted to help you reach your goal.",
+    
+    "tooltip.macros.title": "What are macros?",
+    "tooltip.macros.content": "Macronutrients (protein, carbs, and fats) are the 3 main components of your diet. Protein builds muscle, carbs provide energy, and fats are essential for hormones and vitamin absorption.",
+    
+    "tooltip.mealPlan.title": "How does the meal plan work?",
+    "tooltip.mealPlan.content": "Your weekly plan is AI-generated based on your preferences, allergies, and goals. Each meal is balanced to help you reach your nutrition targets. You can swap meals you don't like by tapping the swap icon.",
+    
+    "tooltip.completeMeal.title": "How to complete a meal?",
+    "tooltip.completeMeal.content": "Swipe the card right or tap the ✓ icon to mark a meal as completed. This adds the calories to your daily progress and gives you points to level up.",
+    
+    "tooltip.scanner.title": "How does scanning work?",
+    "tooltip.scanner.content": "Our AI analyzes your food photo to identify ingredients and estimate calories and macros. For best results, take well-lit photos from above. Accuracy depends on photo clarity and dish complexity.",
+    
+    "tooltip.streak.title": "What is the Streak?",
+    "tooltip.streak.content": "Your streak shows how many consecutive days you've tracked meals. Keeping your streak gives bonus points and unlocks special achievements!",
+    
+    "tooltip.level.title": "What is the Level?",
+    "tooltip.level.content": "You level up by earning points. You get 10 points per completed meal, bonus points for streaks, and extra for unlocking achievements. Every 100 points = 1 level.",
     "preferences.saved": "Preferences saved!",
     "preferences.savedDesc": "Your preferences have been updated successfully",
     "preferences.cooking": "Cooking Preferences",

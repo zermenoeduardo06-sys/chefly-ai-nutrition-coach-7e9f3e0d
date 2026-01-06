@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import mascotLime from '@/assets/mascot-lime.png';
+import { InfoTooltip } from '@/components/InfoTooltip';
 
 interface FoodScannerProps {
   open: boolean;
@@ -258,6 +259,12 @@ export function FoodScanner({ open, onOpenChange }: FoodScannerProps) {
                     <Sparkles className="h-2.5 w-2.5" />
                     {t.aiPowered}
                   </span>
+                  <InfoTooltip 
+                    titleKey="tooltip.scanner.title"
+                    contentKey="tooltip.scanner.content"
+                    iconSize={14}
+                    className="text-white/70 hover:text-white hover:bg-white/20"
+                  />
                 </div>
                 <p className="text-white/80 text-sm">{t.instructions}</p>
               </div>

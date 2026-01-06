@@ -7,6 +7,7 @@ import { Flame, Beef, Wheat, Droplet, Sparkles } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import { useNutritionGoals } from "@/hooks/useNutritionGoals";
+import { InfoTooltip } from "@/components/InfoTooltip";
 
 interface NutritionSummaryWidgetProps {
   userId: string;
@@ -273,6 +274,17 @@ export const NutritionSummaryWidget = ({ userId }: NutritionSummaryWidgetProps) 
                     {dailyGoals.isPersonalized && (
                       <Sparkles className="h-3 w-3 text-primary" />
                     )}
+                    <InfoTooltip 
+                      titleKey="tooltip.calories.title"
+                      contentKey="tooltip.calories.content"
+                      data={{ 
+                        calories: dailyGoals.calories,
+                        goalNote: language === 'es' 
+                          ? (dailyGoals.calories < 2000 ? 'Para bajar de peso, restamos ~500 kcal para un déficit seguro.' : 'Ajustado para ayudarte a alcanzar tu objetivo.')
+                          : (dailyGoals.calories < 2000 ? 'For weight loss, we subtract ~500 kcal for a safe deficit.' : 'Adjusted to help you reach your goal.')
+                      }}
+                      iconSize={12}
+                    />
                   </div>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <Flame className="h-3 w-3 text-primary" />
@@ -286,6 +298,16 @@ export const NutritionSummaryWidget = ({ userId }: NutritionSummaryWidgetProps) 
 
               {/* Macros compact */}
               <div className="space-y-2">
+                <div className="flex items-center gap-1 mb-1">
+                  <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
+                    {language === 'es' ? 'Macros' : 'Macros'}
+                  </span>
+                  <InfoTooltip 
+                    titleKey="tooltip.macros.title"
+                    contentKey="tooltip.macros.content"
+                    iconSize={10}
+                  />
+                </div>
                 {/* Protein */}
                 <div className="flex items-center gap-2">
                   <div className="p-1 rounded-md bg-rose-500/15">
