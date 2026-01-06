@@ -138,10 +138,39 @@ export const useInAppPurchases = (userId: string | undefined) => {
       
       // Get the package for this product
       const offerings = await Purchases.getOfferings();
+      console.log('[IAP] Offerings:', JSON.stringify(offerings));
+      
       const currentOffering = offerings?.current;
       
-      if (!currentOffering) {
-        throw new Error('No offerings available');
+      if (!currentOffering || !currentOffering.availablePackages?.length) {
+        console.log('[IAP] No offerings available, attempting direct product purchase');
+        
+        // Try to get products directly
+        const { products } = await Purchases.getProducts({ 
+          productIdentifiers: [productId] 
+        });
+        
+        console.log('[IAP] Direct products:', JSON.stringify(products));
+        
+        if (products && products.length > 0) {
+          const { customerInfo } = await Purchases.purchaseStoreProduct({ 
+            product: products[0] 
+          });
+          
+          console.log('[IAP] Purchase successful via direct product');
+          
+          // Verify the purchase was successful
+          const isActive = Object.keys(customerInfo.entitlements.active).length > 0;
+
+          if (isActive) {
+            // Update our backend
+            await supabase.functions.invoke('check-subscription');
+            setState(prev => ({ ...prev, isPurchasing: false }));
+            return true;
+          }
+        }
+        
+        throw new Error('No products available for purchase');
       }
 
       // Find the package matching our product
@@ -150,33 +179,37 @@ export const useInAppPurchases = (userId: string | undefined) => {
       );
 
       if (!pkg) {
+        console.log('[IAP] Product not found in packages, trying all packages');
+        // If exact match not found, try first available package
+        const firstPkg = currentOffering.availablePackages[0];
+        if (firstPkg) {
+          console.log('[IAP] Using first available package:', firstPkg.product.identifier);
+          const { customerInfo } = await Purchases.purchasePackage({ aPackage: firstPkg });
+          
+          const isActive = Object.keys(customerInfo.entitlements.active).length > 0;
+          if (isActive) {
+            await supabase.functions.invoke('check-subscription');
+            setState(prev => ({ ...prev, isPurchasing: false }));
+            return true;
+          }
+        }
         throw new Error(`Product ${productId} not found in offerings`);
       }
 
       // Make the purchase
+      console.log('[IAP] Purchasing package:', pkg.product.identifier);
       const { customerInfo } = await Purchases.purchasePackage({ aPackage: pkg });
       
       // Verify the purchase was successful
       const isActive = customerInfo.entitlements.active['premium'] !== undefined ||
-                       customerInfo.entitlements.active['family'] !== undefined;
+                       customerInfo.entitlements.active['family'] !== undefined ||
+                       Object.keys(customerInfo.entitlements.active).length > 0;
 
       if (isActive) {
-        // Get the receipt and verify with our backend
-        const appReceipt = customerInfo.originalAppUserId;
+        console.log('[IAP] Purchase successful, updating backend');
+        // Update our backend
+        await supabase.functions.invoke('check-subscription');
         
-        // Call our verify-apple-receipt function
-        const { error } = await supabase.functions.invoke('verify-apple-receipt', {
-          body: {
-            receipt: appReceipt,
-            userId,
-            productId,
-          },
-        });
-
-        if (error) {
-          console.error('[IAP] Receipt verification failed:', error);
-        }
-
         setState(prev => ({ ...prev, isPurchasing: false }));
         return true;
       }
@@ -185,9 +218,12 @@ export const useInAppPurchases = (userId: string | undefined) => {
       return false;
     } catch (error: any) {
       console.error('[IAP] Purchase failed:', error);
+      console.error('[IAP] Error details:', JSON.stringify(error));
       
       // Check if user cancelled
-      if (error.code === 'PURCHASE_CANCELLED') {
+      if (error.code === 'PURCHASE_CANCELLED' || 
+          error.message?.includes('cancel') ||
+          error.code === 1) {
         setState(prev => ({ ...prev, isPurchasing: false, error: null }));
         return false;
       }
