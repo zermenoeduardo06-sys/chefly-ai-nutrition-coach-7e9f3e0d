@@ -161,11 +161,6 @@ All colors MUST be HSL.
     -webkit-tap-highlight-color: transparent;
   }
 
-  body {
-    @apply text-foreground;
-    -webkit-tap-highlight-color: transparent;
-  }
-
   /* Safe area support for notched devices */
   :root {
     --safe-area-inset-top: env(safe-area-inset-top, 0px);
