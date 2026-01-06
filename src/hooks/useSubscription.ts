@@ -56,33 +56,6 @@ export const useSubscription = (userId: string | undefined) => {
     try {
       setStatus(prev => ({ ...prev, isLoading: true }));
       
-      // First check the profiles table for Apple IAP subscriptions
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('is_subscribed')
-        .eq('id', userId)
-        .single();
-      
-      // If is_subscribed is true in profiles (from Apple IAP), use that
-      if (profile?.is_subscribed) {
-        console.log('[Subscription] User is subscribed via Apple IAP');
-        setStatus({
-          subscribed: true,
-          product_id: SUBSCRIPTION_TIERS.CHEFLY_PLUS.product_id, // Default to Plus for IAP
-          subscription_end: null, // IAP doesn't provide this easily
-          isLoading: false,
-          plan: "chefly_plus",
-          is_chefly_family: false,
-          is_family_owner: false,
-          is_family_member: false,
-          family_id: null,
-          family_name: null,
-          has_family: false,
-        });
-        return;
-      }
-      
-      // Otherwise check Stripe subscription
       const { data, error } = await supabase.functions.invoke("check-subscription");
 
       if (error) {
