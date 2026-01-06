@@ -27,9 +27,9 @@ export function MobileBottomNav() {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-card border-t border-border/50 shadow-[0_-4px_20px_rgba(0,0,0,0.1)]">
-      {/* Background extension for safe area */}
-      <div className="absolute inset-x-0 bottom-0 h-[calc(100%+env(safe-area-inset-bottom,0px))] bg-card -z-10" />
+    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-card border-t border-border/50 shadow-[0_-4px_20px_rgba(0,0,0,0.1)]" style={{ transform: 'translateZ(0)' }}>
+      {/* Background extension beyond safe area to prevent overscroll artifacts */}
+      <div className="absolute inset-x-0 -bottom-20 h-[calc(100%+80px)] bg-card -z-10" style={{ backfaceVisibility: 'hidden' }} />
       <div className="flex items-center justify-around h-[72px] px-1 pb-safe-area-bottom">
         {navItems.map((item) => {
           const active = isActive(item.path);
