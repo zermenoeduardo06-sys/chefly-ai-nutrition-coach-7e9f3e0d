@@ -7,9 +7,13 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Subscription tiers
+// Stripe Subscription tiers
 const CHEFLY_PLUS_PRODUCT_ID = "prod_TUMZx1BcskL9rK";
 const CHEFLY_FAMILY_PRODUCT_ID = "prod_Te9zehdPjvu5Yg";
+
+// Apple IAP Product IDs
+const APPLE_CHEFLY_PLUS_ID = "chefly_plus_monthly";
+const APPLE_CHEFLY_FAMILY_ID = "chefly_family_monthly";
 
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
@@ -239,6 +243,7 @@ serve(async (req) => {
       is_family_member: !!familyMembership && familyMembership.role === "member",
       family_id: familyId,
       family_name: familyName,
+      subscription_source: hasActiveSub ? "stripe" : null,
     };
 
     return new Response(JSON.stringify(response), {

@@ -3,20 +3,24 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ArrowLeft, Check, ExternalLink, Crown, Zap, Gift, Users } from "lucide-react";
+import { Loader2, ArrowLeft, Check, ExternalLink, Crown, Zap, Gift, Users, RefreshCw } from "lucide-react";
 import { useSubscription, SUBSCRIPTION_TIERS } from "@/hooks/useSubscription";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "framer-motion";
 import mascotLime from "@/assets/mascot-lime.png";
 import { InAppCheckout } from "@/components/InAppCheckout";
+import { IAPPaywall } from "@/components/IAPPaywall";
 import { Browser } from "@capacitor/browser";
+import { Capacitor } from "@capacitor/core";
+import { useInAppPurchases } from "@/hooks/useInAppPurchases";
 
 const Subscription = () => {
   const [loading, setLoading] = useState(true);
   const [portalLoading, setPortalLoading] = useState(false);
   const [userId, setUserId] = useState<string | undefined>(undefined);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [iapPaywallOpen, setIapPaywallOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<{
     priceId: string;
     name: string;
@@ -27,6 +31,10 @@ const Subscription = () => {
   const { language } = useLanguage();
   const subscription = useSubscription(userId);
   const { limits } = useSubscriptionLimits(userId);
+  
+  // Check if running on native iOS
+  const isNativeIOS = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios';
+  const { restorePurchases, isRestoring } = useInAppPurchases(userId);
 
   useEffect(() => {
     checkAuth();
@@ -68,6 +76,12 @@ const Subscription = () => {
   };
 
   const handleSelectPlan = (priceId: string, planName: string, planPrice: string) => {
+    // On iOS, show native IAP paywall instead of Stripe
+    if (isNativeIOS) {
+      setIapPaywallOpen(true);
+      return;
+    }
+    
     setSelectedPlan({ priceId, name: planName, price: planPrice });
     setCheckoutOpen(true);
   };
@@ -76,6 +90,25 @@ const Subscription = () => {
     setCheckoutOpen(open);
     if (!open) {
       // Refresh subscription status after checkout closes
+      subscription.checkSubscription();
+    }
+  };
+
+  const handleIAPPaywallClose = (open: boolean) => {
+    setIapPaywallOpen(open);
+    if (!open) {
+      subscription.checkSubscription();
+    }
+  };
+
+  const handleRestorePurchases = async () => {
+    if (isNativeIOS) {
+      const success = await restorePurchases();
+      if (success) {
+        subscription.checkSubscription();
+      }
+    } else {
+      // For Stripe-based subscriptions, this refreshes the subscription status
       subscription.checkSubscription();
     }
   };
@@ -430,12 +463,20 @@ const Subscription = () => {
           <Button
             variant="link"
             className="w-full text-sm text-muted-foreground hover:text-primary"
-            onClick={() => {
-              // For Stripe-based subscriptions, this refreshes the subscription status
-              subscription.checkSubscription();
-            }}
+            onClick={handleRestorePurchases}
+            disabled={isRestoring}
           >
-            {language === "es" ? "Restaurar Compras" : "Restore Purchases"}
+            {isRestoring ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {language === "es" ? "Restaurando..." : "Restoring..."}
+              </>
+            ) : (
+              <>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                {language === "es" ? "Restaurar Compras" : "Restore Purchases"}
+              </>
+            )}
           </Button>
         </motion.div>
 
@@ -452,14 +493,24 @@ const Subscription = () => {
         </motion.p>
       </div>
 
-      {/* In-App Checkout Modal */}
-      {selectedPlan && (
+      {/* In-App Checkout Modal (Stripe - Web/Android) */}
+      {selectedPlan && !isNativeIOS && (
         <InAppCheckout
           open={checkoutOpen}
           onOpenChange={handleCheckoutClose}
           priceId={selectedPlan.priceId}
           planName={selectedPlan.name}
           planPrice={selectedPlan.price}
+        />
+      )}
+
+      {/* IAP Paywall (Apple - iOS) */}
+      {isNativeIOS && (
+        <IAPPaywall
+          open={iapPaywallOpen}
+          onOpenChange={handleIAPPaywallClose}
+          userId={userId}
+          onPurchaseSuccess={() => subscription.checkSubscription()}
         />
       )}
     </div>
