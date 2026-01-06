@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -1143,27 +1144,48 @@ const Dashboard = () => {
                     onDayChange={setCurrentMobileDay}
                   />
                   
-                  <div className="mt-4 space-y-3">
+                  <motion.div 
+                    className="mt-4 space-y-3"
+                    key={currentMobileDay}
+                    initial="hidden"
+                    animate="visible"
+                    variants={{
+                      hidden: {},
+                      visible: {
+                        transition: {
+                          staggerChildren: 0.1
+                        }
+                      }
+                    }}
+                  >
                     {groupedMeals[currentMobileDay]?.map((meal, mealIndex) => {
                       const isCompleted = completedMeals.has(meal.id);
                       const isFirstMealOfFirstDay = currentMobileDay === 0 && mealIndex === 0;
                       return (
-                        <SwipeableMealCard
+                        <motion.div
                           key={meal.id}
-                          meal={meal}
-                          isCompleted={isCompleted}
-                          mealTypeLabel={mealTypes[meal.meal_type]}
-                          onComplete={handleMealComplete}
-                          onClick={() => {
-                            setSelectedMeal(meal);
-                            setMealDialogOpen(true);
+                          variants={{
+                            hidden: { opacity: 0, y: 20 },
+                            visible: { opacity: 1, y: 0 }
                           }}
-                          isFirstMeal={isFirstMealOfFirstDay}
-                          isFamilyPlan={mealPlan?.is_family_plan || false}
-                        />
+                          transition={{ duration: 0.3, ease: "easeOut" }}
+                        >
+                          <SwipeableMealCard
+                            meal={meal}
+                            isCompleted={isCompleted}
+                            mealTypeLabel={mealTypes[meal.meal_type]}
+                            onComplete={handleMealComplete}
+                            onClick={() => {
+                              setSelectedMeal(meal);
+                              setMealDialogOpen(true);
+                            }}
+                            isFirstMeal={isFirstMealOfFirstDay}
+                            isFamilyPlan={mealPlan?.is_family_plan || false}
+                          />
+                        </motion.div>
                       );
                     })}
-                  </div>
+                  </motion.div>
                 </div>
               )}
               
