@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { NutritionProgressCharts } from "@/components/NutritionProgressCharts";
 import { BodyMeasurementForm } from "@/components/BodyMeasurementForm";
 import { BodyMeasurementCharts } from "@/components/BodyMeasurementCharts";
+import { WeightMilestones } from "@/components/WeightMilestones";
 import { useTrialGuard } from "@/hooks/useTrialGuard";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,12 +15,29 @@ const Progress = () => {
   const { t } = useLanguage();
   const [userId, setUserId] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [latestWeight, setLatestWeight] = useState<number | undefined>(undefined);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) setUserId(user.id);
-    });
-  }, []);
+    const loadUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+        // Load latest weight from body measurements
+        const { data: latestMeasurement } = await supabase
+          .from("body_measurements")
+          .select("weight")
+          .eq("user_id", user.id)
+          .order("measurement_date", { ascending: false })
+          .limit(1)
+          .single();
+        
+        if (latestMeasurement?.weight) {
+          setLatestWeight(latestMeasurement.weight);
+        }
+      }
+    };
+    loadUser();
+  }, [refreshTrigger]);
 
   if (isLoading) {
     return (
@@ -62,6 +80,14 @@ const Progress = () => {
           </TabsContent>
 
           <TabsContent value="body" className="mt-4 md:mt-6 space-y-4 md:space-y-6">
+            {/* Weight Milestones */}
+            {userId && (
+              <WeightMilestones 
+                userId={userId} 
+                currentWeight={latestWeight}
+              />
+            )}
+
             <Card>
               <CardHeader className="p-4 md:p-6">
                 <CardTitle className="text-base md:text-lg">{t('progress.recordMeasurements')}</CardTitle>

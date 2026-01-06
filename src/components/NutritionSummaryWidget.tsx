@@ -3,9 +3,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Flame, Beef, Wheat, Droplet } from "lucide-react";
+import { Flame, Beef, Wheat, Droplet, Sparkles } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
+import { useNutritionGoals } from "@/hooks/useNutritionGoals";
 
 interface NutritionSummaryWidgetProps {
   userId: string;
@@ -20,17 +21,11 @@ interface DailyNutrition {
   totalMeals: number;
 }
 
-const dailyGoals = {
-  calories: 2000,
-  protein: 120,
-  carbs: 250,
-  fats: 65,
-};
-
 export const NutritionSummaryWidget = ({ userId }: NutritionSummaryWidgetProps) => {
   const { language } = useLanguage();
   const [nutrition, setNutrition] = useState<DailyNutrition | null>(null);
   const [loading, setLoading] = useState(true);
+  const { goals: dailyGoals, loading: goalsLoading } = useNutritionGoals(userId);
 
   useEffect(() => {
     loadTodayNutrition();
@@ -127,7 +122,7 @@ export const NutritionSummaryWidget = ({ userId }: NutritionSummaryWidgetProps) 
     return Math.round(num).toLocaleString();
   };
 
-  if (loading) {
+  if (loading || goalsLoading) {
     return (
       <Card className="border-0 shadow-xl bg-gradient-to-br from-card via-card to-primary/5 overflow-hidden">
         <CardContent className="p-4">
@@ -271,9 +266,14 @@ export const NutritionSummaryWidget = ({ userId }: NutritionSummaryWidgetProps) 
               {/* Header */}
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <h3 className="font-semibold text-foreground text-sm">
-                    {language === 'es' ? 'Progreso de Hoy' : "Today's Progress"}
-                  </h3>
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="font-semibold text-foreground text-sm">
+                      {language === 'es' ? 'Progreso de Hoy' : "Today's Progress"}
+                    </h3>
+                    {dailyGoals.isPersonalized && (
+                      <Sparkles className="h-3 w-3 text-primary" />
+                    )}
+                  </div>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <Flame className="h-3 w-3 text-primary" />
                     <span className="text-xs text-muted-foreground">
