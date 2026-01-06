@@ -68,7 +68,50 @@ npx cap open ios
 # In Xcode: Product > Build (Cmd+B)
 ```
 
-### 5. App Store Submission Checklist
+### 5. Disable iOS Scroll Bounce (Optional)
+
+If CSS solutions don't fully prevent the black line on overscroll, add this native configuration:
+
+**Option A: Using Capacitor Plugin**
+```bash
+npm install capacitor-plugin-ios-webview-configurator
+npx cap sync ios
+```
+
+Then in your app initialization, configure:
+```typescript
+import { WebViewConfigurator } from 'capacitor-plugin-ios-webview-configurator';
+WebViewConfigurator.configure({ bounces: false });
+```
+
+**Option B: Manual Swift Configuration**
+
+Edit `ios/App/App/AppDelegate.swift` and add after `super.application`:
+```swift
+// Disable scroll bounce to prevent black lines
+if let window = window,
+   let rootVC = window.rootViewController,
+   let webView = findWKWebView(in: rootVC.view) {
+    webView.scrollView.bounces = false
+    webView.scrollView.alwaysBounceVertical = false
+    webView.scrollView.alwaysBounceHorizontal = false
+}
+
+// Helper function to find WKWebView
+func findWKWebView(in view: UIView) -> WKWebView? {
+    if let webView = view as? WKWebView {
+        return webView
+    }
+    for subview in view.subviews {
+        if let found = findWKWebView(in: subview) {
+            return found
+        }
+    }
+    return nil
+}
+```
+
+### 6. App Store Submission Checklist
 
 - [ ] App Icons configured
 - [ ] Privacy descriptions added
@@ -78,3 +121,4 @@ npx cap open ios
 - [ ] Provisioning profiles configured
 - [ ] Screenshots captured (all device sizes)
 - [ ] App description and keywords ready
+- [ ] Scroll bounce disabled (if needed)
