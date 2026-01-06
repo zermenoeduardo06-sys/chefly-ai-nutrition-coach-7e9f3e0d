@@ -51,21 +51,41 @@ export const useInAppPurchases = (userId: string | undefined) => {
         // Dynamic import to avoid issues on non-iOS platforms
         const { Purchases } = await import('@revenuecat/purchases-capacitor');
         
-        // Check if already configured
-        try {
-          await Purchases.getCustomerInfo();
-          console.log('[IAP] RevenueCat already configured');
-        } catch {
-          // Need to configure - will require API key
-          console.log('[IAP] RevenueCat needs configuration');
-          // For now, we'll use StoreKit directly through our verify-apple-receipt function
+        // Configure RevenueCat with API key
+        const REVENUECAT_API_KEY = 'test_CtWOrFkddqCwPBewEJZDzInhOWy';
+        
+        await Purchases.configure({
+          apiKey: REVENUECAT_API_KEY,
+          appUserID: userId || undefined,
+        });
+        console.log('[IAP] RevenueCat configured successfully');
+
+        // If user is logged in, login to RevenueCat
+        if (userId) {
+          await Purchases.logIn({ appUserID: userId });
+          console.log('[IAP] User logged in to RevenueCat:', userId);
         }
 
-        setState(prev => ({ 
-          ...prev, 
-          isLoading: false, 
-          isAvailable: true,
-          products: [
+        // Fetch offerings to get actual product info
+        const offerings = await Purchases.getOfferings();
+        const products: IAPProduct[] = [];
+
+        if (offerings?.current?.availablePackages) {
+          for (const pkg of offerings.current.availablePackages) {
+            products.push({
+              id: pkg.product.identifier,
+              title: pkg.product.title,
+              description: pkg.product.description,
+              price: pkg.product.priceString,
+              priceAsDecimal: pkg.product.price,
+              currency: pkg.product.currencyCode,
+            });
+          }
+        }
+
+        // Fallback products if offerings aren't configured yet
+        if (products.length === 0) {
+          products.push(
             {
               id: APPLE_IAP_PRODUCTS.CHEFLY_PLUS_MONTHLY,
               title: 'Chefly Plus',
@@ -81,8 +101,15 @@ export const useInAppPurchases = (userId: string | undefined) => {
               price: '$19.99',
               priceAsDecimal: 19.99,
               currency: 'USD',
-            },
-          ],
+            }
+          );
+        }
+
+        setState(prev => ({ 
+          ...prev, 
+          isLoading: false, 
+          isAvailable: true,
+          products,
         }));
       } catch (error) {
         console.error('[IAP] Failed to initialize:', error);
@@ -96,7 +123,7 @@ export const useInAppPurchases = (userId: string | undefined) => {
     };
 
     initializeIAP();
-  }, [isNativeIOS]);
+  }, [isNativeIOS, userId]);
 
   const purchaseProduct = useCallback(async (productId: string): Promise<boolean> => {
     if (!isNativeIOS || !userId) {
