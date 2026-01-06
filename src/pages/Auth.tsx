@@ -81,7 +81,7 @@ const Auth = () => {
         description: t("auth.accountCreatedDesc"),
       });
       
-      navigate("/onboarding");
+      navigate("/welcome-onboarding");
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -214,8 +214,8 @@ const Auth = () => {
           transition={{ duration: 0.5 }}
           className="w-full max-w-md"
         >
-          {/* Mobile logo */}
-          <div className="lg:hidden text-center mb-8">
+          {/* Mobile logo and benefits carousel */}
+          <div className="lg:hidden text-center mb-6">
             <div className="flex items-center justify-center gap-2 mb-2">
               <img src={cheflyLogo} alt="Chefly.AI" className="h-10 w-10" />
               <h1 className="text-3xl font-bold">
@@ -224,7 +224,26 @@ const Auth = () => {
                 </span>
               </h1>
             </div>
-            <p className="text-muted-foreground">{t("auth.tagline")}</p>
+            <p className="text-muted-foreground mb-4">{t("auth.tagline")}</p>
+            
+            {/* Mobile benefits carousel */}
+            <div className="flex gap-2 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide">
+              {benefits.map((benefit, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="flex-shrink-0 w-[200px] snap-start bg-primary/5 rounded-lg p-3 border border-primary/10"
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <benefit.icon className="w-4 h-4 text-primary" />
+                    <span className="text-xs font-medium text-foreground">{benefit.title}</span>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground text-left">{benefit.description}</p>
+                </motion.div>
+              ))}
+            </div>
           </div>
 
           <Card className="shadow-2xl border-border/50 backdrop-blur-sm">

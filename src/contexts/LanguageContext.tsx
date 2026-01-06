@@ -986,6 +986,38 @@ export const translations = {
     "onboarding.toast.createdDesc": "Tu plan semanal personalizado está listo",
     "onboarding.toast.error": "Error",
     
+    "onboarding.optional": "Opcional",
+    "onboarding.buttons.skip": "Saltar este paso",
+    "onboarding.personal.valueHint": "💡 Esto nos permite calcular tus calorías ideales y macronutrientes",
+    "onboarding.flavors.valueHint": "💡 Así incluiremos más recetas con tus sabores favoritos",
+    "onboarding.cuisines.valueHint": "💡 Adaptaremos el menú a los estilos de cocina que más disfrutas",
+    "onboarding.allergies.valueHint": "💡 Evitaremos ingredientes que puedan causarte problemas",
+    "onboarding.avatar.valueHint": "💡 Tu avatar aparecerá en el chat, logros y clasificación",
+    
+    // Onboarding Welcome
+    "onboardingWelcome.greeting": "¡Hola! 👋",
+    "onboardingWelcome.mascotIntro": "Soy Limey, tu coach de nutrición",
+    "onboardingWelcome.subtitle": "Juntos vamos a crear tu plan alimenticio perfecto",
+    "onboardingWelcome.feature1.title": "Menús personalizados con IA",
+    "onboardingWelcome.feature1.desc": "Recetas adaptadas a tus gustos y objetivos",
+    "onboardingWelcome.feature2.title": "Alcanza tus metas",
+    "onboardingWelcome.feature2.desc": "Ya sea bajar grasa, ganar músculo o comer saludable",
+    "onboardingWelcome.feature3.title": "Lista de compras automática",
+    "onboardingWelcome.feature3.desc": "Todo lo que necesitas para la semana en un solo lugar",
+    "onboardingWelcome.cta": "¡Vamos a personalizar tu plan!",
+    "onboardingWelcome.time": "Solo toma 2 minutos ⏱️",
+    
+    // New User Checklist
+    "newUserChecklist.title": "Primeros pasos",
+    "newUserChecklist.subtitle": "Completa estos pasos para aprovechar Chefly al máximo",
+    "newUserChecklist.step1.title": "Revisa tu menú",
+    "newUserChecklist.step1.desc": "Explora las comidas de hoy",
+    "newUserChecklist.step2.title": "Prepara una comida",
+    "newUserChecklist.step2.desc": "Marca como completada",
+    "newUserChecklist.step3.title": "Habla con Limey",
+    "newUserChecklist.step3.desc": "Pregunta sobre nutrición",
+    "newUserChecklist.completed": "¡Excelente! Ya conoces lo básico",
+    
     // Cookies
     "cookies.message": "Usamos cookies para analizar el tráfico y mejorar tu experiencia.",
     "cookies.accept": "Aceptar",
@@ -2017,14 +2049,43 @@ export const translations = {
     "onboarding.toast.createdDesc": "Your personalized weekly plan is ready",
     "onboarding.toast.error": "Error",
     
+    "onboarding.optional": "Optional",
+    "onboarding.buttons.skip": "Skip this step",
+    "onboarding.personal.valueHint": "💡 This allows us to calculate your ideal calories and macros",
+    "onboarding.flavors.valueHint": "💡 We'll include more recipes with your favorite flavors",
+    "onboarding.cuisines.valueHint": "💡 We'll adapt the menu to the cooking styles you enjoy most",
+    "onboarding.allergies.valueHint": "💡 We'll avoid ingredients that may cause you problems",
+    "onboarding.avatar.valueHint": "💡 Your avatar will appear in chat, achievements and leaderboard",
+    
+    // Onboarding Welcome
+    "onboardingWelcome.greeting": "Hello! 👋",
+    "onboardingWelcome.mascotIntro": "I'm Limey, your nutrition coach",
+    "onboardingWelcome.subtitle": "Together we'll create your perfect meal plan",
+    "onboardingWelcome.feature1.title": "AI-personalized menus",
+    "onboardingWelcome.feature1.desc": "Recipes tailored to your tastes and goals",
+    "onboardingWelcome.feature2.title": "Reach your goals",
+    "onboardingWelcome.feature2.desc": "Whether losing fat, building muscle, or eating healthy",
+    "onboardingWelcome.feature3.title": "Automatic shopping list",
+    "onboardingWelcome.feature3.desc": "Everything you need for the week in one place",
+    "onboardingWelcome.cta": "Let's personalize your plan!",
+    "onboardingWelcome.time": "Only takes 2 minutes ⏱️",
+    
+    // New User Checklist
+    "newUserChecklist.title": "Getting Started",
+    "newUserChecklist.subtitle": "Complete these steps to make the most of Chefly",
+    "newUserChecklist.step1.title": "Review your menu",
+    "newUserChecklist.step1.desc": "Explore today's meals",
+    "newUserChecklist.step2.title": "Prepare a meal",
+    "newUserChecklist.step2.desc": "Mark as completed",
+    "newUserChecklist.step3.title": "Chat with Limey",
+    "newUserChecklist.step3.desc": "Ask about nutrition",
+    "newUserChecklist.completed": "Excellent! You've got the basics",
+    
     // Cookies
     "cookies.message": "We use cookies to analyze traffic and improve your experience.",
     "cookies.accept": "Accept",
     "cookies.decline": "Decline",
     "cookies.learnMore": "Learn more",
-    
-    // Sidebar
-    "sidebar.shopping": "Shopping List",
 
     // Leaderboard
     "leaderboard.title": "Leaderboard",
