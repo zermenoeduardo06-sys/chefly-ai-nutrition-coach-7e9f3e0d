@@ -50,9 +50,12 @@ const Onboarding = () => {
   const [activityLevel, setActivityLevel] = useState("moderate");
   const [age, setAge] = useState("");
   const [weight, setWeight] = useState("");
+  const [height, setHeight] = useState("");
+  const [targetWeight, setTargetWeight] = useState("");
   const [gender, setGender] = useState("");
   const [additionalNotes, setAdditionalNotes] = useState("");
   const [avatarConfig, setAvatarConfig] = useState<AvatarConfig>(defaultAvatarConfig);
+  const [calculatedCalories, setCalculatedCalories] = useState<number | null>(null);
 
   const goals = [
     { value: "lose_fat", labelKey: "onboarding.goal.loseFat" },
@@ -212,6 +215,37 @@ const Onboarding = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No user found");
 
+      // Calculate nutrition goals
+      const userWeight = weight ? parseInt(weight) : null;
+      const userHeight = height ? parseInt(height) : null;
+      const userAge = age ? parseInt(age) : null;
+      
+      let calorieGoal = null;
+      let proteinGoal = null;
+      let carbsGoal = null;
+      let fatsGoal = null;
+      
+      if (userWeight && userHeight && userAge && gender) {
+        // Mifflin-St Jeor equation
+        const bmr = gender === "male"
+          ? 10 * userWeight + 6.25 * userHeight - 5 * userAge + 5
+          : 10 * userWeight + 6.25 * userHeight - 5 * userAge - 161;
+        
+        const activityMultipliers: Record<string, number> = {
+          sedentary: 1.2, light: 1.375, moderate: 1.55, active: 1.725, very_active: 1.9
+        };
+        const tdee = bmr * (activityMultipliers[activityLevel] || 1.55);
+        
+        // Adjust for goal
+        calorieGoal = Math.round(goal === "lose_fat" ? tdee - 500 : goal === "gain_muscle" ? tdee + 300 : tdee);
+        
+        // Calculate macros
+        const proteinMultiplier = goal === "lose_fat" ? 2.2 : goal === "gain_muscle" ? 2.0 : 1.6;
+        proteinGoal = Math.round(userWeight * proteinMultiplier);
+        fatsGoal = Math.round((calorieGoal * 0.25) / 9);
+        carbsGoal = Math.round((calorieGoal - proteinGoal * 4 - fatsGoal * 9) / 4);
+      }
+
       // Prepare preferences object with all fields
       const preferences = {
         goal,
@@ -227,10 +261,16 @@ const Onboarding = () => {
         meal_complexity: mealComplexity,
         preferred_cuisines: preferredCuisines,
         activity_level: activityLevel,
-        age: age ? parseInt(age) : null,
-        weight: weight ? parseInt(weight) : null,
+        age: userAge,
+        weight: userWeight,
+        height: userHeight,
+        target_weight: targetWeight ? parseFloat(targetWeight) : null,
         gender: gender || null,
         additional_notes: additionalNotes || null,
+        daily_calorie_goal: calorieGoal,
+        daily_protein_goal: proteinGoal,
+        daily_carbs_goal: carbsGoal,
+        daily_fats_goal: fatsGoal,
       };
 
       // First, check if user preferences exist
@@ -488,30 +528,62 @@ const Onboarding = () => {
                 <p className="text-xs text-primary/80 bg-primary/5 p-2 rounded-lg">{t("onboarding.personal.valueHint")}</p>
                 
                 <div className="space-y-3">
-                  <div>
-                    <Label htmlFor="age">{t("onboarding.personal.age")}</Label>
-                    <Input
-                      id="age"
-                      type="number"
-                      placeholder={t("onboarding.personal.agePlaceholder")}
-                      value={age}
-                      onChange={(e) => setAge(e.target.value)}
-                      min="10"
-                      max="120"
-                    />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="age">{t("onboarding.personal.age")}</Label>
+                      <Input
+                        id="age"
+                        type="number"
+                        placeholder={t("onboarding.personal.agePlaceholder")}
+                        value={age}
+                        onChange={(e) => setAge(e.target.value)}
+                        min="10"
+                        max="120"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="height">{t("onboarding.personal.height")}</Label>
+                      <Input
+                        id="height"
+                        type="number"
+                        placeholder={t("onboarding.personal.heightPlaceholder")}
+                        value={height}
+                        onChange={(e) => setHeight(e.target.value)}
+                        min="100"
+                        max="250"
+                      />
+                    </div>
                   </div>
                   
-                  <div>
-                    <Label htmlFor="weight">{t("onboarding.personal.weight")}</Label>
-                    <Input
-                      id="weight"
-                      type="number"
-                      placeholder={t("onboarding.personal.weightPlaceholder")}
-                      value={weight}
-                      onChange={(e) => setWeight(e.target.value)}
-                      min="30"
-                      max="300"
-                    />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="weight">{t("onboarding.personal.weight")}</Label>
+                      <Input
+                        id="weight"
+                        type="number"
+                        placeholder={t("onboarding.personal.weightPlaceholder")}
+                        value={weight}
+                        onChange={(e) => setWeight(e.target.value)}
+                        min="30"
+                        max="300"
+                      />
+                    </div>
+                    
+                    {(goal === "lose_fat" || goal === "gain_muscle") && (
+                      <div>
+                        <Label htmlFor="targetWeight">{t("onboarding.personal.targetWeight")}</Label>
+                        <Input
+                          id="targetWeight"
+                          type="number"
+                          placeholder={t("onboarding.personal.targetWeightPlaceholder")}
+                          value={targetWeight}
+                          onChange={(e) => setTargetWeight(e.target.value)}
+                          min="30"
+                          max="300"
+                        />
+                      </div>
+                    )}
                   </div>
                   
                   <div>

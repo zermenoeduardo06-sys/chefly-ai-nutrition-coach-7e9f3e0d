@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Progress } from "@/components/ui/progress";
+import { useNutritionGoals } from "@/hooks/useNutritionGoals";
 
 interface MealDetail {
   name: string;
@@ -53,13 +54,16 @@ export const NutritionProgressCharts = () => {
   const [monthlyData, setMonthlyData] = useState<WeekSummary[]>([]);
   const [weekTotals, setWeekTotals] = useState({ calories: 0, protein: 0, carbs: 0, fats: 0, meals: 0, avgCalories: 0 });
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
+  
+  const { goals: nutritionGoals } = useNutritionGoals(userId);
 
-  // Recommended daily values (configurable)
+  // Use personalized goals or fallback to defaults
   const dailyGoals = {
-    calories: 2000,
-    protein: 50,
-    carbs: 250,
-    fats: 65,
+    calories: nutritionGoals.calories,
+    protein: nutritionGoals.protein,
+    carbs: nutritionGoals.carbs,
+    fats: nutritionGoals.fats,
     meals: 3
   };
 
@@ -70,6 +74,7 @@ export const NutritionProgressCharts = () => {
   const loadProgressData = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
+    setUserId(user.id);
 
     setLoading(true);
     try {

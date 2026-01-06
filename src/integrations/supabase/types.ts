@@ -1195,16 +1195,22 @@ export type Database = {
           cooking_skill: string | null
           cooking_time: number | null
           created_at: string | null
+          daily_calorie_goal: number | null
+          daily_carbs_goal: number | null
+          daily_fats_goal: number | null
+          daily_protein_goal: number | null
           diet_type: string
           dislikes: string[] | null
           flavor_preferences: string[] | null
           gender: string | null
           goal: string
+          height: number | null
           id: string
           meal_complexity: string | null
           meals_per_day: number
           preferred_cuisines: string[] | null
           servings: number | null
+          target_weight: number | null
           updated_at: string | null
           user_id: string
           weight: number | null
@@ -1218,16 +1224,22 @@ export type Database = {
           cooking_skill?: string | null
           cooking_time?: number | null
           created_at?: string | null
+          daily_calorie_goal?: number | null
+          daily_carbs_goal?: number | null
+          daily_fats_goal?: number | null
+          daily_protein_goal?: number | null
           diet_type: string
           dislikes?: string[] | null
           flavor_preferences?: string[] | null
           gender?: string | null
           goal: string
+          height?: number | null
           id?: string
           meal_complexity?: string | null
           meals_per_day?: number
           preferred_cuisines?: string[] | null
           servings?: number | null
+          target_weight?: number | null
           updated_at?: string | null
           user_id: string
           weight?: number | null
@@ -1241,16 +1253,22 @@ export type Database = {
           cooking_skill?: string | null
           cooking_time?: number | null
           created_at?: string | null
+          daily_calorie_goal?: number | null
+          daily_carbs_goal?: number | null
+          daily_fats_goal?: number | null
+          daily_protein_goal?: number | null
           diet_type?: string
           dislikes?: string[] | null
           flavor_preferences?: string[] | null
           gender?: string | null
           goal?: string
+          height?: number | null
           id?: string
           meal_complexity?: string | null
           meals_per_day?: number
           preferred_cuisines?: string[] | null
           servings?: number | null
+          target_weight?: number | null
           updated_at?: string | null
           user_id?: string
           weight?: number | null
@@ -1403,6 +1421,42 @@ export type Database = {
           week_start_date?: string
           weekly_goals?: string[] | null
           weight_change?: string
+        }
+        Relationships: []
+      }
+      weight_milestones: {
+        Row: {
+          achieved_at: string | null
+          created_at: string
+          id: string
+          milestone_number: number
+          milestone_weight: number
+          percentage: number
+          starting_weight: number
+          target_weight: number
+          user_id: string
+        }
+        Insert: {
+          achieved_at?: string | null
+          created_at?: string
+          id?: string
+          milestone_number: number
+          milestone_weight: number
+          percentage: number
+          starting_weight: number
+          target_weight: number
+          user_id: string
+        }
+        Update: {
+          achieved_at?: string | null
+          created_at?: string
+          id?: string
+          milestone_number?: number
+          milestone_weight?: number
+          percentage?: number
+          starting_weight?: number
+          target_weight?: number
+          user_id?: string
         }
         Relationships: []
       }
