@@ -51,8 +51,8 @@ export const useInAppPurchases = (userId: string | undefined) => {
         // Dynamic import to avoid issues on non-iOS platforms
         const { Purchases } = await import('@revenuecat/purchases-capacitor');
         
-        // Configure RevenueCat with API key
-        const REVENUECAT_API_KEY = 'test_CtWOrFkddqCwPBewEJZDzInhOWy';
+        // Configure RevenueCat with production API key
+        const REVENUECAT_API_KEY = 'appl_HexnUHRGhZuRPXXfzPjKxNaLTXc';
         
         await Purchases.configure({
           apiKey: REVENUECAT_API_KEY,
