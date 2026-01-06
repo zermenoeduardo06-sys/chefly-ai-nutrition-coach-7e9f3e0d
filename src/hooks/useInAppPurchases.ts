@@ -158,13 +158,25 @@ export const useInAppPurchases = (userId: string | undefined) => {
           });
           
           console.log('[IAP] Purchase successful via direct product');
+          console.log('[IAP] Customer info:', JSON.stringify(customerInfo));
           
           // Verify the purchase was successful
           const isActive = Object.keys(customerInfo.entitlements.active).length > 0;
 
           if (isActive) {
-            // Update our backend
-            await supabase.functions.invoke('check-subscription');
+            console.log('[IAP] Updating subscription in database...');
+            // Update is_subscribed directly in profiles table since this is an Apple IAP
+            const { error: updateError } = await supabase
+              .from('profiles')
+              .update({ is_subscribed: true })
+              .eq('id', userId);
+            
+            if (updateError) {
+              console.error('[IAP] Failed to update profile:', updateError);
+            } else {
+              console.log('[IAP] Profile updated successfully - user is now subscribed');
+            }
+            
             setState(prev => ({ ...prev, isPurchasing: false }));
             return true;
           }
@@ -188,7 +200,18 @@ export const useInAppPurchases = (userId: string | undefined) => {
           
           const isActive = Object.keys(customerInfo.entitlements.active).length > 0;
           if (isActive) {
-            await supabase.functions.invoke('check-subscription');
+            console.log('[IAP] Updating subscription in database (first package)...');
+            const { error: updateError } = await supabase
+              .from('profiles')
+              .update({ is_subscribed: true })
+              .eq('id', userId);
+            
+            if (updateError) {
+              console.error('[IAP] Failed to update profile:', updateError);
+            } else {
+              console.log('[IAP] Profile updated successfully');
+            }
+            
             setState(prev => ({ ...prev, isPurchasing: false }));
             return true;
           }
@@ -206,9 +229,18 @@ export const useInAppPurchases = (userId: string | undefined) => {
                        Object.keys(customerInfo.entitlements.active).length > 0;
 
       if (isActive) {
-        console.log('[IAP] Purchase successful, updating backend');
-        // Update our backend
-        await supabase.functions.invoke('check-subscription');
+        console.log('[IAP] Purchase successful, updating database directly');
+        // Update is_subscribed directly in profiles table for Apple IAP
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ is_subscribed: true })
+          .eq('id', userId);
+        
+        if (updateError) {
+          console.error('[IAP] Failed to update profile:', updateError);
+        } else {
+          console.log('[IAP] Profile updated successfully - user is now subscribed');
+        }
         
         setState(prev => ({ ...prev, isPurchasing: false }));
         return true;
@@ -249,15 +281,27 @@ export const useInAppPurchases = (userId: string | undefined) => {
       const { Purchases } = await import('@revenuecat/purchases-capacitor');
       
       const { customerInfo } = await Purchases.restorePurchases();
+      console.log('[IAP] Restore customer info:', JSON.stringify(customerInfo));
       
       // Check if any entitlements are active
       const hasActiveSubscription = 
         customerInfo.entitlements.active['premium'] !== undefined ||
-        customerInfo.entitlements.active['family'] !== undefined;
+        customerInfo.entitlements.active['family'] !== undefined ||
+        Object.keys(customerInfo.entitlements.active).length > 0;
 
       if (hasActiveSubscription) {
-        // Update our backend
-        await supabase.functions.invoke('check-subscription');
+        console.log('[IAP] Restore successful, updating database...');
+        // Update is_subscribed directly in profiles table for Apple IAP
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ is_subscribed: true })
+          .eq('id', userId);
+        
+        if (updateError) {
+          console.error('[IAP] Failed to update profile on restore:', updateError);
+        } else {
+          console.log('[IAP] Profile updated successfully from restore');
+        }
         
         setState(prev => ({ ...prev, isRestoring: false }));
         return true;
