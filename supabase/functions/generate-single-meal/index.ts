@@ -137,165 +137,108 @@ serve(async (req) => {
     }
 
     // ============================================
-    // No cache hit - Generate with AI
+    // 100% CACHE MODE - NO AI CALLS
+    // If no exact match, pick any recipe of same meal type
     // ============================================
-    console.log("No cached recipe found, generating with AI...");
-
-    // Prepare meal type label
-    const mealTypeLabels: Record<string, string> = {
-      breakfast: "desayuno",
-      lunch: "almuerzo",
-      dinner: "cena",
-    };
-    const mealTypeLabel = mealTypeLabels[mealType] || mealType;
-
-    // Generate meal with AI using the economical model
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
-        messages: [
-          {
-            role: "system",
-            content: "Eres un experto nutricionista mexicano. Genera una comida completa en español con toda la información nutricional, ingredientes y pasos de preparación.",
-          },
-          {
-            role: "user",
-            content: `Genera un ${mealTypeLabel} personalizado para alguien con las siguientes características:
-- Tipo de dieta: ${preferences.diet_type}
-- Objetivo: ${preferences.goal}
-- Alergias: ${preferences.allergies?.join(", ") || "ninguna"}
-
-Responde SOLO con un objeto JSON válido sin markdown ni texto adicional:
-{
-  "name": "nombre de la comida",
-  "description": "descripción breve (1-2 líneas)",
-  "benefits": "beneficios principales para la salud",
-  "calories": número_de_calorías,
-  "protein": gramos_de_proteína,
-  "carbs": gramos_de_carbohidratos,
-  "fats": gramos_de_grasas,
-  "ingredients": ["ingrediente 1", "ingrediente 2", ...],
-  "steps": ["paso 1", "paso 2", ...]
-}`,
-          },
-        ],
-        temperature: 0.8,
-      }),
-    });
-
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again later." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "Payment required. Please add credits." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      const errorText = await response.text();
-      console.error("AI API error:", response.status, errorText);
-      throw new Error(`AI API error: ${response.status} - ${errorText}`);
-    }
-
-    const aiData = await response.json();
+    console.log("No exact cached recipe match, trying any recipe of same meal type...");
     
-    if (!aiData.choices || !aiData.choices[0] || !aiData.choices[0].message) {
-      console.error("Invalid AI response structure:", aiData);
-      throw new Error("Invalid response from AI API");
-    }
-
-    let mealData = aiData.choices[0].message.content;
-
-    // Clean and parse JSON response
-    mealData = mealData.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-    const meal = JSON.parse(mealData);
-
-    // Use a static Unsplash image based on meal type instead of generating with AI
-    const unsplashImages: Record<string, string[]> = {
-      breakfast: [
-        "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1525351484163-7529414344d8?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=400&h=300&fit=crop",
-      ],
-      lunch: [
-        "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400&h=300&fit=crop",
-      ],
-      dinner: [
-        "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1574484284002-952d92456975?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1559847844-5315695dadae?w=400&h=300&fit=crop",
-      ],
-    };
-    
-    const mealImages = unsplashImages[mealType] || unsplashImages.lunch;
-    const imageUrl = mealImages[Math.floor(Math.random() * mealImages.length)];
-
-    // Delete old meal if provided
-    if (mealId) {
-      await supabaseClient.from("meals").delete().eq("id", mealId);
-    }
-
-    // Insert new meal
-    const { data: newMeal, error: insertError } = await supabaseClient
-      .from("meals")
-      .insert({
-        meal_plan_id: mealPlanId,
-        day_of_week: dayOfWeek,
-        meal_type: mealType,
-        name: meal.name,
-        description: meal.description,
-        benefits: meal.benefits,
-        calories: meal.calories,
-        protein: meal.protein,
-        carbs: meal.carbs,
-        fats: meal.fats,
-        ingredients: meal.ingredients,
-        steps: meal.steps,
-        image_url: imageUrl,
-      })
-      .select()
-      .single();
-
-    if (insertError) throw insertError;
-
-    // Save to recipe library for future cache hits
-    await supabaseClient
+    // Try without diet filter
+    const { data: anyRecipes } = await supabaseClient
       .from("recipe_library")
-      .insert({
-        name: meal.name,
-        description: meal.description,
-        benefits: meal.benefits,
-        calories: meal.calories,
-        protein: meal.protein,
-        carbs: meal.carbs,
-        fats: meal.fats,
-        ingredients: meal.ingredients,
-        steps: meal.steps,
-        image_url: imageUrl,
-        meal_type: mealType,
-        diet_type: preferences.diet_type,
-        language: "es",
-        has_image: true,
-      })
-      .select()
-      .single();
+      .select("*")
+      .eq("meal_type", mealType)
+      .eq("has_image", true)
+      .not("image_url", "is", null);
+    
+    if (anyRecipes && anyRecipes.length > 0) {
+      const randomIndex = Math.floor(Math.random() * anyRecipes.length);
+      const recipe = anyRecipes[randomIndex];
+      
+      console.log(`Found fallback recipe: ${recipe.name} (from ${anyRecipes.length} options)`);
+      
+      // Delete old meal if provided
+      if (mealId) {
+        await supabaseClient.from("meals").delete().eq("id", mealId);
+      }
 
-    console.log("Meal generated with AI and saved to cache");
-    return new Response(JSON.stringify({ meal: newMeal, fromCache: false }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
+      // Insert recipe as new meal
+      const { data: newMeal, error: insertError } = await supabaseClient
+        .from("meals")
+        .insert({
+          meal_plan_id: mealPlanId,
+          day_of_week: dayOfWeek,
+          meal_type: mealType,
+          name: recipe.name,
+          description: recipe.description,
+          benefits: recipe.benefits || "Nutritivo y delicioso",
+          calories: recipe.calories,
+          protein: recipe.protein,
+          carbs: recipe.carbs,
+          fats: recipe.fats,
+          ingredients: recipe.ingredients,
+          steps: recipe.steps,
+          image_url: recipe.image_url,
+        })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      console.log("Meal created from fallback cache successfully");
+      return new Response(JSON.stringify({ meal: newMeal, fromCache: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    // Last resort: try ANY recipe from cache
+    const { data: lastResort } = await supabaseClient
+      .from("recipe_library")
+      .select("*")
+      .eq("has_image", true)
+      .not("image_url", "is", null)
+      .limit(50);
+    
+    if (lastResort && lastResort.length > 0) {
+      const randomIndex = Math.floor(Math.random() * lastResort.length);
+      const recipe = lastResort[randomIndex];
+      
+      console.log(`Using last resort recipe: ${recipe.name}`);
+      
+      if (mealId) {
+        await supabaseClient.from("meals").delete().eq("id", mealId);
+      }
+
+      const { data: newMeal, error: insertError } = await supabaseClient
+        .from("meals")
+        .insert({
+          meal_plan_id: mealPlanId,
+          day_of_week: dayOfWeek,
+          meal_type: mealType,
+          name: recipe.name,
+          description: recipe.description,
+          benefits: recipe.benefits || "Nutritivo y delicioso",
+          calories: recipe.calories,
+          protein: recipe.protein,
+          carbs: recipe.carbs,
+          fats: recipe.fats,
+          ingredients: recipe.ingredients,
+          steps: recipe.steps,
+          image_url: recipe.image_url,
+        })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      return new Response(JSON.stringify({ meal: newMeal, fromCache: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    // If absolutely no recipes in cache, return error
+    throw new Error("No recipes available in cache. Please contact support.");
   } catch (error) {
     console.error("Error:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";

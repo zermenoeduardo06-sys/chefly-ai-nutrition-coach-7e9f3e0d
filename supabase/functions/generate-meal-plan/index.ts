@@ -177,281 +177,79 @@ serve(async (req) => {
     }
 
     console.log(`Using ${mealsFromCache.length} meals from cache`);
-    console.log(`Need to generate ${slotsNeedingGeneration.length} new meals`);
+    console.log(`Slots needing recipes: ${slotsNeedingGeneration.length}`);
 
     // ============================================
-    // Generate only the missing meals (if any)
+    // 100% CACHE MODE - NO AI CALLS
+    // If not enough unique recipes, reuse from cache with variety
     // ============================================
-    let generatedMeals: any[] = [];
     let shoppingList: string[] = [];
 
+    // Handle missing slots by reusing cached recipes
     if (slotsNeedingGeneration.length > 0) {
-      console.log('Generating new meals with AI for missing slots...');
-
-      // Build weekly check-in context
-      let checkInContext = '';
-      if (weeklyCheckIn) {
-        const weightMap: Record<string, string> = {
-          up: language === 'en' ? 'gained weight' : 'subió de peso',
-          down: language === 'en' ? 'lost weight' : 'bajó de peso',
-          same: language === 'en' ? 'stayed the same' : 'se mantuvo igual',
-        };
-        const energyMap: Record<string, string> = {
-          high: language === 'en' ? 'high' : 'alta',
-          normal: language === 'en' ? 'normal' : 'normal',
-          low: language === 'en' ? 'low' : 'baja',
-        };
-
-        checkInContext = language === 'en'
-          ? `\nWEEKLY ADAPTATION:\n- Weight: ${weightMap[weeklyCheckIn.weightChange] || ''}\n- Energy: ${energyMap[weeklyCheckIn.energyLevel] || ''}\n${weeklyCheckIn.availableIngredients ? `- Available ingredients: ${weeklyCheckIn.availableIngredients}` : ''}`
-          : `\nADAPTACIÓN SEMANAL:\n- Peso: ${weightMap[weeklyCheckIn.weightChange] || ''}\n- Energía: ${energyMap[weeklyCheckIn.energyLevel] || ''}\n${weeklyCheckIn.availableIngredients ? `- Ingredientes disponibles: ${weeklyCheckIn.availableIngredients}` : ''}`;
-      }
-
-      // Create prompt for only the missing meals
-      const slotDescriptions = slotsNeedingGeneration.map(s => 
-        `Day ${s.day_of_week}, ${s.meal_type}`
-      ).join('; ');
-
-      const prompt = language === 'en'
-        ? `You are an expert nutritionist chef. Generate ONLY these specific meals: ${slotDescriptions}
-
-USER PROFILE:
-- Goal: ${preferences.goal}
-- Diet: ${preferences.diet_type}
-- Allergies: ${preferences.allergies?.join(', ') || 'None'}
-- Dislikes: ${preferences.dislikes?.join(', ') || 'None'}
-- Skill level: ${preferences.cooking_skill || 'beginner'}
-- Budget: ${preferences.budget || 'medium'}
-- Max cooking time: ${preferences.cooking_time || 30} minutes
-${checkInContext}
-
-Generate ${slotsNeedingGeneration.length} UNIQUE recipes. Respond ONLY with valid JSON:
-{
-  "meals": [
-    {
-      "day_of_week": 0,
-      "meal_type": "breakfast",
-      "name": "Recipe Name",
-      "description": "Brief description",
-      "ingredients": ["ingredient 1", "ingredient 2"],
-      "steps": ["Step 1", "Step 2"],
-      "calories": 400,
-      "protein": 20,
-      "carbs": 50,
-      "fats": 15,
-      "benefits": "Nutritional benefits"
-    }
-  ],
-  "shopping_list": ["item1", "item2"]
-}`
-        : `Eres un chef nutricionista experto. Genera SOLO estas comidas específicas: ${slotDescriptions}
-
-PERFIL DEL USUARIO:
-- Objetivo: ${preferences.goal}
-- Dieta: ${preferences.diet_type}
-- Alergias: ${preferences.allergies?.join(', ') || 'Ninguna'}
-- No le gusta: ${preferences.dislikes?.join(', ') || 'Nada'}
-- Nivel de habilidad: ${preferences.cooking_skill || 'principiante'}
-- Presupuesto: ${preferences.budget || 'medio'}
-- Tiempo máximo de cocina: ${preferences.cooking_time || 30} minutos
-${checkInContext}
-
-Genera ${slotsNeedingGeneration.length} recetas ÚNICAS. Responde SOLO con JSON válido:
-{
-  "meals": [
-    {
-      "day_of_week": 0,
-      "meal_type": "breakfast",
-      "name": "Nombre de la Receta",
-      "description": "Descripción breve",
-      "ingredients": ["ingrediente 1", "ingrediente 2"],
-      "steps": ["Paso 1", "Paso 2"],
-      "calories": 400,
-      "protein": 20,
-      "carbs": 50,
-      "fats": 15,
-      "benefits": "Beneficios nutricionales"
-    }
-  ],
-  "shopping_list": ["item1", "item2"]
-}`;
-
-      // Call AI for text generation
-      const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${Deno.env.get('LOVABLE_API_KEY')}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'google/gemini-2.5-flash-lite', // Use cheaper model for text
-          messages: [{ role: 'user', content: prompt }]
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('AI text generation error:', errorText);
-        throw new Error('Failed to generate meals with AI');
-      }
-
-      const aiData = await response.json();
-      const content = aiData.choices[0].message.content;
-      const jsonContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      console.log('Filling missing slots from cache (NO AI - 100% cache mode)...');
       
-      let mealData;
-      try {
-        mealData = JSON.parse(jsonContent);
-      } catch (parseError) {
-        console.error('Failed to parse AI response:', parseError);
-        throw new Error('AI returned invalid JSON');
-      }
-
-      shoppingList = mealData.shopping_list || [];
-
-      // Generate images for NEW meals and upload to Storage
-      console.log(`Generating ${mealData.meals.length} images for new meals...`);
-      
-      generatedMeals = await Promise.all(
-        mealData.meals.map(async (meal: any) => {
-          try {
-            const imagePrompt = language === 'en'
-              ? `Professional appetizing high quality food photo of ${meal.name}, ${preferences.diet_type} dish, elegant presentation, natural lighting, gastronomic style`
-              : `Foto profesional apetitosa de alta calidad de ${meal.name}, plato ${preferences.diet_type}, presentación elegante, iluminación natural, estilo gastronómico`;
-
-            const imageResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${Deno.env.get('LOVABLE_API_KEY')}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                model: 'google/gemini-2.5-flash-image',
-                messages: [{ role: 'user', content: imagePrompt }],
-                modalities: ['image', 'text']
-              }),
+      // Get ALL available cached recipes for reuse (without the allergen/dislike filter applied recipes)
+      for (const slot of slotsNeedingGeneration) {
+        // Try to find any recipe of this meal type from the original filtered list
+        const availableForType = filteredCachedRecipes.filter(
+          (r: CachedRecipeBase) => r.meal_type === slot.meal_type
+        );
+        
+        if (availableForType.length > 0) {
+          // Pick a random one (even if already used - better than no meal)
+          const randomIndex = Math.floor(Math.random() * availableForType.length);
+          const recipe = availableForType[randomIndex];
+          mealsFromCacheBase.push({ ...recipe, day_of_week: slot.day_of_week });
+        } else {
+          // Last resort: pick ANY recipe from cache
+          if (filteredCachedRecipes.length > 0) {
+            const randomIndex = Math.floor(Math.random() * filteredCachedRecipes.length);
+            const recipe = filteredCachedRecipes[randomIndex];
+            mealsFromCacheBase.push({ 
+              ...recipe, 
+              day_of_week: slot.day_of_week,
+              meal_type: slot.meal_type // Override meal type
             });
-
-            if (imageResponse.ok) {
-              const imageData = await imageResponse.json();
-              const base64Url = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-              
-              if (base64Url && base64Url.startsWith('data:image')) {
-                // Upload base64 to Storage instead of storing directly
-                try {
-                  const matches = base64Url.match(/^data:image\/(\w+);base64,(.+)$/);
-                  if (matches) {
-                    const extension = matches[1] === 'jpeg' ? 'jpg' : matches[1];
-                    const base64Content = matches[2];
-                    
-                    // Decode base64 to binary
-                    const binaryString = atob(base64Content);
-                    const bytes = new Uint8Array(binaryString.length);
-                    for (let i = 0; i < binaryString.length; i++) {
-                      bytes[i] = binaryString.charCodeAt(i);
-                    }
-
-                    // Generate unique filename
-                    const fileName = `meal-${Date.now()}-${Math.random().toString(36).substring(7)}.${extension}`;
-                    
-                    // Upload to storage
-                    const { error: uploadError } = await supabaseClient.storage
-                      .from('recipe-images')
-                      .upload(fileName, bytes, {
-                        contentType: `image/${extension}`,
-                        upsert: true
-                      });
-
-                    if (!uploadError) {
-                      // Get public URL
-                      const { data: urlData } = supabaseClient.storage
-                        .from('recipe-images')
-                        .getPublicUrl(fileName);
-                      
-                      console.log(`Uploaded image to Storage for: ${meal.name}`);
-                      return { ...meal, image_url: urlData.publicUrl };
-                    }
-                  }
-                } catch (uploadErr) {
-                  console.error(`Failed to upload image to Storage for ${meal.name}:`, uploadErr);
-                }
-              }
-              
-              console.log(`Generated image for: ${meal.name}`);
-              return { ...meal, image_url: base64Url };
-            } else {
-              console.error(`Failed to generate image for ${meal.name}`);
-              return { ...meal, image_url: null };
-            }
-          } catch (error) {
-            console.error(`Error generating image for ${meal.name}:`, error);
-            return { ...meal, image_url: null };
           }
-        })
-      );
-
-      // Save new recipes to the library for future use
-      console.log('Saving new recipes to library...');
-      for (const meal of generatedMeals) {
-        if (meal.image_url) {
-          await supabaseClient
-            .from('recipe_library')
-            .insert({
-              name: meal.name,
-              description: meal.description,
-              meal_type: meal.meal_type,
-              diet_type: preferences.diet_type,
-              ingredients: meal.ingredients || [],
-              steps: meal.steps || [],
-              calories: meal.calories || 0,
-              protein: meal.protein || 0,
-              carbs: meal.carbs || 0,
-              fats: meal.fats || 0,
-              benefits: meal.benefits,
-              image_url: meal.image_url,
-              language: language,
-              has_image: true,
-              complexity: preferences.meal_complexity || 'simple',
-              cooking_time_minutes: preferences.cooking_time || 30,
-            });
         }
       }
-      console.log(`Saved ${generatedMeals.filter(m => m.image_url).length} new recipes to library`);
+      
+      // Re-fetch images for the additional recipes
+      if (mealsFromCacheBase.length > mealsFromCache.length) {
+        const allRecipeIds = mealsFromCacheBase.map(r => r.id);
+        const { data: imagesData } = await supabaseClient
+          .from('recipe_library')
+          .select('id, image_url')
+          .in('id', allRecipeIds);
+        
+        const imageMap = new Map((imagesData || []).map((r: any) => [r.id, r.image_url]));
+        mealsFromCache = mealsFromCacheBase.map(r => ({
+          ...r,
+          image_url: imageMap.get(r.id) || null
+        }));
+      }
+      
+      console.log(`Filled ${slotsNeedingGeneration.length} slots from cache reuse. Total meals: ${mealsFromCache.length}`);
     }
 
     // ============================================
-    // Combine cached and generated meals
+    // All meals come from cache (100% cache mode)
     // ============================================
-    const allMeals = [
-      ...mealsFromCache.map(m => ({
-        day_of_week: m.day_of_week,
-        meal_type: m.meal_type,
-        name: m.name,
-        description: m.description,
-        ingredients: m.ingredients,
-        steps: m.steps,
-        calories: m.calories,
-        protein: m.protein,
-        carbs: m.carbs,
-        fats: m.fats,
-        benefits: m.benefits,
-        image_url: m.image_url,
-      })),
-      ...generatedMeals.map(m => ({
-        day_of_week: m.day_of_week,
-        meal_type: m.meal_type,
-        name: m.name,
-        description: m.description,
-        ingredients: m.ingredients || [],
-        steps: m.steps || [],
-        calories: m.calories || 0,
-        protein: m.protein || 0,
-        carbs: m.carbs || 0,
-        fats: m.fats || 0,
-        benefits: m.benefits,
-        image_url: m.image_url,
-      }))
-    ];
+    const allMeals = mealsFromCache.map(m => ({
+      day_of_week: m.day_of_week,
+      meal_type: m.meal_type,
+      name: m.name,
+      description: m.description,
+      ingredients: m.ingredients,
+      steps: m.steps,
+      calories: m.calories,
+      protein: m.protein,
+      carbs: m.carbs,
+      fats: m.fats,
+      benefits: m.benefits,
+      image_url: m.image_url,
+    }));
 
     // Generate shopping list from all ingredients if not from AI
     if (shoppingList.length === 0) {
@@ -526,12 +324,8 @@ Genera ${slotsNeedingGeneration.length} recetas ÚNICAS. Responde SOLO con JSON 
       });
 
     const cachedCount = mealsFromCache.length;
-    const generatedCount = generatedMeals.length;
-    const savingsPercent = totalMealsNeeded > 0 
-      ? Math.round((cachedCount / totalMealsNeeded) * 100) 
-      : 0;
 
-    console.log(`✅ Meal plan complete! Cache: ${cachedCount}, Generated: ${generatedCount}, Savings: ${savingsPercent}%`);
+    console.log(`✅ Meal plan complete! 100% from cache: ${cachedCount} meals, 0 AI calls`);
 
     return new Response(
       JSON.stringify({ 
@@ -539,8 +333,8 @@ Genera ${slotsNeedingGeneration.length} recetas ÚNICAS. Responde SOLO con JSON 
         mealPlanId: mealPlan.id,
         mealsCount: insertedMeals.length,
         fromCache: cachedCount,
-        generated: generatedCount,
-        savingsPercent: savingsPercent,
+        generated: 0,
+        savingsPercent: 100,
       }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
