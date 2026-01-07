@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.cheflyai.app',
+  appId: 'app.lovable.833b313101b5463fbcf82a92aa5adcfc',
   appName: 'Chefly AI',
   webDir: 'dist',
   // Para desarrollo con hot-reload, descomenta el bloque server:
