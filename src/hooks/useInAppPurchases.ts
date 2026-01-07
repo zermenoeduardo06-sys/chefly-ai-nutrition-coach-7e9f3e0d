@@ -160,26 +160,22 @@ export const useInAppPurchases = (userId: string | undefined) => {
           console.log('[IAP] Purchase successful via direct product');
           console.log('[IAP] Customer info:', JSON.stringify(customerInfo));
           
-          // Verify the purchase was successful
-          const isActive = Object.keys(customerInfo.entitlements.active).length > 0;
-
-          if (isActive) {
-            console.log('[IAP] Updating subscription in database...');
-            // Update is_subscribed directly in profiles table since this is an Apple IAP
-            const { error: updateError } = await supabase
-              .from('profiles')
-              .update({ is_subscribed: true })
-              .eq('id', userId);
-            
-            if (updateError) {
-              console.error('[IAP] Failed to update profile:', updateError);
-            } else {
-              console.log('[IAP] Profile updated successfully - user is now subscribed');
-            }
-            
-            setState(prev => ({ ...prev, isPurchasing: false }));
-            return true;
+          // If we got here, purchase was successful - update database immediately
+          // Don't rely solely on entitlements as they may not be configured in RevenueCat
+          console.log('[IAP] Updating subscription in database...');
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ is_subscribed: true })
+            .eq('id', userId);
+          
+          if (updateError) {
+            console.error('[IAP] Failed to update profile:', updateError);
+          } else {
+            console.log('[IAP] Profile updated successfully - user is now subscribed');
           }
+          
+          setState(prev => ({ ...prev, isPurchasing: false }));
+          return true;
         }
         
         throw new Error('No products available for purchase');
@@ -196,58 +192,46 @@ export const useInAppPurchases = (userId: string | undefined) => {
         const firstPkg = currentOffering.availablePackages[0];
         if (firstPkg) {
           console.log('[IAP] Using first available package:', firstPkg.product.identifier);
-          const { customerInfo } = await Purchases.purchasePackage({ aPackage: firstPkg });
+          await Purchases.purchasePackage({ aPackage: firstPkg });
           
-          const isActive = Object.keys(customerInfo.entitlements.active).length > 0;
-          if (isActive) {
-            console.log('[IAP] Updating subscription in database (first package)...');
-            const { error: updateError } = await supabase
-              .from('profiles')
-              .update({ is_subscribed: true })
-              .eq('id', userId);
-            
-            if (updateError) {
-              console.error('[IAP] Failed to update profile:', updateError);
-            } else {
-              console.log('[IAP] Profile updated successfully');
-            }
-            
-            setState(prev => ({ ...prev, isPurchasing: false }));
-            return true;
+          // Purchase successful - update database immediately
+          console.log('[IAP] Updating subscription in database (first package)...');
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ is_subscribed: true })
+            .eq('id', userId);
+          
+          if (updateError) {
+            console.error('[IAP] Failed to update profile:', updateError);
+          } else {
+            console.log('[IAP] Profile updated successfully');
           }
+          
+          setState(prev => ({ ...prev, isPurchasing: false }));
+          return true;
         }
         throw new Error(`Product ${productId} not found in offerings`);
       }
 
       // Make the purchase
       console.log('[IAP] Purchasing package:', pkg.product.identifier);
-      const { customerInfo } = await Purchases.purchasePackage({ aPackage: pkg });
+      await Purchases.purchasePackage({ aPackage: pkg });
       
-      // Verify the purchase was successful
-      const isActive = customerInfo.entitlements.active['premium'] !== undefined ||
-                       customerInfo.entitlements.active['family'] !== undefined ||
-                       Object.keys(customerInfo.entitlements.active).length > 0;
-
-      if (isActive) {
-        console.log('[IAP] Purchase successful, updating database directly');
-        // Update is_subscribed directly in profiles table for Apple IAP
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update({ is_subscribed: true })
-          .eq('id', userId);
-        
-        if (updateError) {
-          console.error('[IAP] Failed to update profile:', updateError);
-        } else {
-          console.log('[IAP] Profile updated successfully - user is now subscribed');
-        }
-        
-        setState(prev => ({ ...prev, isPurchasing: false }));
-        return true;
+      // If we reach here without error, purchase was successful
+      console.log('[IAP] Purchase successful, updating database directly');
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ is_subscribed: true })
+        .eq('id', userId);
+      
+      if (updateError) {
+        console.error('[IAP] Failed to update profile:', updateError);
+      } else {
+        console.log('[IAP] Profile updated successfully - user is now subscribed');
       }
-
+      
       setState(prev => ({ ...prev, isPurchasing: false }));
-      return false;
+      return true;
     } catch (error: any) {
       console.error('[IAP] Purchase failed:', error);
       console.error('[IAP] Error details:', JSON.stringify(error));
