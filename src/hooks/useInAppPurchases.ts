@@ -4,8 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 
 // Apple Product IDs - Must match App Store Connect configuration
 export const APPLE_IAP_PRODUCTS = {
-  CHEFLY_PLUS_MONTHLY: 'chefly_plus_monthly',
-  CHEFLY_FAMILY_MONTHLY: 'chefly_family_monthly',
+  CHEFLY_PLUS_MONTHLY: 'chefly_plus_monthly_',
+  CHEFLY_FAMILY_MONTHLY: 'chefly_family_monthly_',
 };
 
 interface IAPProduct {
@@ -52,7 +52,7 @@ export const useInAppPurchases = (userId: string | undefined) => {
         const { Purchases } = await import('@revenuecat/purchases-capacitor');
         
         // Configure RevenueCat with production API key
-        const REVENUECAT_API_KEY = 'appl_HexnUHRGhZuRPXXfzPjKxNaLTXc';
+        const REVENUECAT_API_KEY = 'appl_ZLRbvztXqFDPEUPyFaZcxnQxpEk';
         
         await Purchases.configure({
           apiKey: REVENUECAT_API_KEY,
