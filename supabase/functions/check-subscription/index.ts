@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@18.5.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,10 +9,6 @@ const corsHeaders = {
 // Stripe Subscription tiers
 const CHEFLY_PLUS_PRODUCT_ID = "prod_TUMZx1BcskL9rK";
 const CHEFLY_FAMILY_PRODUCT_ID = "prod_Te9zehdPjvu5Yg";
-
-// Apple IAP Product IDs
-const APPLE_CHEFLY_PLUS_ID = "chefly_plus_monthly";
-const APPLE_CHEFLY_FAMILY_ID = "chefly_family_monthly";
 
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
@@ -36,39 +31,33 @@ serve(async (req) => {
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
-    logStep("Stripe key verified");
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header provided");
-    logStep("Authorization header found");
 
     const token = authHeader.replace("Bearer ", "");
-    logStep("Authenticating user with token");
-    
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
     if (userError) throw new Error(`Authentication error: ${userError.message}`);
     const user = userData.user;
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+    // Check if user has is_subscribed = true in profiles (Apple IAP)
+    const { data: profile } = await supabaseClient
+      .from("profiles")
+      .select("is_subscribed")
+      .eq("id", user.id)
+      .single();
 
-    // First, check if user belongs to a family with active subscription
+    logStep("Profile check", { is_subscribed: profile?.is_subscribed });
+
+    // Check family membership
     const { data: familyMembership } = await supabaseClient
       .from("family_memberships")
-      .select(`
-        family_id,
-        role,
-        families!inner (
-          id,
-          name,
-          owner_id
-        )
-      `)
+      .select(`family_id, role, families!inner (id, name, owner_id)`)
       .eq("user_id", user.id)
       .single();
 
-    // Also check if user owns a family directly
     const { data: ownedFamily } = await supabaseClient
       .from("families")
       .select("id, name")
@@ -80,158 +69,66 @@ serve(async (req) => {
     const familyName = (familyMembership?.families as any)?.name || ownedFamily?.name;
     const isOwner = !!ownedFamily || familyMembership?.role === "owner";
 
-    if (familyMembership) {
-      logStep("User belongs to a family", { familyId: familyMembership.family_id, role: familyMembership.role });
-      
-      // Get owner's email to check their subscription
-      const family = familyMembership.families as any;
-      const { data: ownerProfile } = await supabaseClient
-        .from("profiles")
-        .select("email")
-        .eq("id", family.owner_id)
-        .single();
-
-      if (ownerProfile?.email) {
-        const ownerCustomers = await stripe.customers.list({ email: ownerProfile.email, limit: 1 });
-        
-        if (ownerCustomers.data.length > 0) {
-          const ownerCustomerId = ownerCustomers.data[0].id;
-          const ownerSubscriptions = await stripe.subscriptions.list({
-            customer: ownerCustomerId,
-            status: "active",
-            limit: 1,
-          });
-
-          if (ownerSubscriptions.data.length > 0) {
-            const subscription = ownerSubscriptions.data[0];
-            const productId = subscription.items?.data?.[0]?.price?.product as string;
-            
-            if (productId === CHEFLY_FAMILY_PRODUCT_ID) {
-              logStep("User inherits Family plan benefits", { ownerId: family.owner_id });
-              
-              let subscriptionEnd = null;
-              if (subscription.current_period_end && typeof subscription.current_period_end === 'number') {
-                const date = new Date(subscription.current_period_end * 1000);
-                if (!isNaN(date.getTime())) {
-                  subscriptionEnd = date.toISOString();
-                }
-              }
-
-              await supabaseClient
-                .from("profiles")
-                .update({ is_subscribed: true })
-                .eq("id", user.id);
-
-              return new Response(JSON.stringify({
-                subscribed: true,
-                product_id: productId,
-                subscription_end: subscriptionEnd,
-                plan: "chefly_family",
-                is_chefly_plus: true,
-                is_chefly_family: true,
-                is_family_member: familyMembership.role === "member",
-                is_family_owner: familyMembership.role === "owner",
-                family_id: familyMembership.family_id,
-                family_name: family.name,
-                has_family: true,
-              }), {
-                headers: { ...corsHeaders, "Content-Type": "application/json" },
-                status: 200,
-              });
-            }
-          }
-        }
-      }
-    }
-
-    // Check direct subscription
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    
-    if (customers.data.length === 0) {
-      logStep("No Stripe customer found - user is on Free plan", { hasFamily });
-      
-      await supabaseClient
-        .from("profiles")
-        .update({ is_subscribed: false })
-        .eq("id", user.id);
-      
-      return new Response(JSON.stringify({ 
-        subscribed: false,
-        plan: "free",
-        is_chefly_plus: false,
+    // If user has is_subscribed = true in profiles (Apple IAP)
+    if (profile?.is_subscribed === true) {
+      logStep("User has active Apple IAP subscription");
+      return new Response(JSON.stringify({
+        subscribed: true,
+        product_id: CHEFLY_PLUS_PRODUCT_ID,
+        subscription_end: null,
+        plan: "chefly_plus",
+        is_chefly_plus: true,
         is_chefly_family: false,
         has_family: hasFamily,
         is_family_owner: isOwner,
         is_family_member: !!familyMembership && familyMembership.role === "member",
         family_id: familyId,
         family_name: familyName,
+        subscription_source: "apple_iap",
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
     }
 
-    const customerId = customers.data[0].id;
-    logStep("Found Stripe customer", { customerId });
-
-    const subscriptions = await stripe.subscriptions.list({
-      customer: customerId,
-      status: "active",
-      limit: 1,
+    // Check Stripe subscription via API
+    const stripeResponse = await fetch(`https://api.stripe.com/v1/customers?email=${encodeURIComponent(user.email)}&limit=1`, {
+      headers: { Authorization: `Bearer ${stripeKey}` },
     });
-    
-    const hasActiveSub = subscriptions.data.length > 0;
-    let productId = null;
-    let subscriptionEnd = null;
-    let isCheflyPlus = false;
-    let isCheflyFamily = false;
+    const customers = await stripeResponse.json();
 
-    if (hasActiveSub) {
-      const subscription = subscriptions.data[0];
-      
-      logStep("Processing subscription", { 
-        current_period_end: subscription.current_period_end,
-      });
-      
-      if (subscription.current_period_end && typeof subscription.current_period_end === 'number') {
-        const timestamp = subscription.current_period_end * 1000;
-        const date = new Date(timestamp);
-        
-        if (!isNaN(date.getTime())) {
-          subscriptionEnd = date.toISOString();
-        }
-      }
-      
-      if (subscription.items?.data?.[0]?.price?.product) {
-        productId = subscription.items.data[0].price.product as string;
-        isCheflyPlus = productId === CHEFLY_PLUS_PRODUCT_ID;
-        isCheflyFamily = productId === CHEFLY_FAMILY_PRODUCT_ID;
-        logStep("Subscription product identified", { 
-          productId, 
-          isCheflyPlus,
-          isCheflyFamily,
-        });
-      }
-      
-      logStep("Active subscription found", { 
-        subscriptionId: subscription.id, 
-        endDate: subscriptionEnd,
-      });
-      
-      await supabaseClient
-        .from("profiles")
-        .update({ is_subscribed: true })
-        .eq("id", user.id);
-    } else {
-      logStep("No active paid subscription - user is on Free plan");
-      
-      await supabaseClient
-        .from("profiles")
-        .update({ is_subscribed: false })
-        .eq("id", user.id);
+    if (!customers.data?.length) {
+      logStep("No Stripe customer - Free plan");
+      return new Response(JSON.stringify({ 
+        subscribed: false, plan: "free", is_chefly_plus: false, is_chefly_family: false,
+        has_family: hasFamily, is_family_owner: isOwner,
+        is_family_member: !!familyMembership && familyMembership.role === "member",
+        family_id: familyId, family_name: familyName,
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
     }
 
-    const response: any = {
+    const customerId = customers.data[0].id;
+    const subsResponse = await fetch(`https://api.stripe.com/v1/subscriptions?customer=${customerId}&status=active&limit=1`, {
+      headers: { Authorization: `Bearer ${stripeKey}` },
+    });
+    const subscriptions = await subsResponse.json();
+    
+    const hasActiveSub = subscriptions.data?.length > 0;
+    let productId = null, subscriptionEnd = null, isCheflyPlus = false, isCheflyFamily = false;
+
+    if (hasActiveSub) {
+      const sub = subscriptions.data[0];
+      subscriptionEnd = sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : null;
+      productId = sub.items?.data?.[0]?.price?.product;
+      isCheflyPlus = productId === CHEFLY_PLUS_PRODUCT_ID;
+      isCheflyFamily = productId === CHEFLY_FAMILY_PRODUCT_ID;
+      
+      await supabaseClient.from("profiles").update({ is_subscribed: true }).eq("id", user.id);
+    } else {
+      await supabaseClient.from("profiles").update({ is_subscribed: false }).eq("id", user.id);
+    }
+
+    return new Response(JSON.stringify({
       subscribed: hasActiveSub,
       product_id: productId,
       subscription_end: subscriptionEnd,
@@ -244,18 +141,12 @@ serve(async (req) => {
       family_id: familyId,
       family_name: familyName,
       subscription_source: hasActiveSub ? "stripe" : null,
-    };
-
-    return new Response(JSON.stringify(response), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
+    }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in check-subscription", { message: errorMessage });
+    logStep("ERROR", { message: errorMessage });
     return new Response(JSON.stringify({ error: errorMessage }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500,
     });
   }
 });
