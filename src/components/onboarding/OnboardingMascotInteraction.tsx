@@ -1,14 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import mascotLime from '@/assets/mascot-lime.png';
-import mascotCooking from '@/assets/mascot-cooking.png';
-import mascotFlexing from '@/assets/mascot-flexing.png';
-import mascotFire from '@/assets/mascot-fire.png';
-import mascotWorking from '@/assets/mascot-working.png';
-import mascotMoney from '@/assets/mascot-money.png';
-import mascotGaming from '@/assets/mascot-gaming.png';
+import mascotHappy from '@/assets/mascot-happy.png';
+import mascotHealth from '@/assets/mascot-health.png';
+import mascotScience from '@/assets/mascot-science.png';
+import mascotStrong from '@/assets/mascot-strong.png';
 
-export type MascotPose = 'default' | 'cooking' | 'flexing' | 'fire' | 'working' | 'money' | 'gaming' | 'celebrating';
+export type MascotPose = 'default' | 'happy' | 'health' | 'science' | 'strong' | 'celebrating';
 
 interface OnboardingMascotInteractionProps {
   message: string;
@@ -19,14 +16,12 @@ interface OnboardingMascotInteractionProps {
 }
 
 const mascotImages: Record<MascotPose, string> = {
-  default: mascotLime,
-  cooking: mascotCooking,
-  flexing: mascotFlexing,
-  fire: mascotFire,
-  working: mascotWorking,
-  money: mascotMoney,
-  gaming: mascotGaming,
-  celebrating: mascotFlexing,
+  default: mascotHappy,
+  happy: mascotHappy,
+  health: mascotHealth,
+  science: mascotScience,
+  strong: mascotStrong,
+  celebrating: mascotStrong,
 };
 
 const sizeConfig = {

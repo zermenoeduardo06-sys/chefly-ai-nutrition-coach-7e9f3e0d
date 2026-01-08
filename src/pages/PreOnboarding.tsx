@@ -166,13 +166,13 @@ const PreOnboarding: React.FC = () => {
   const getMascotMessage = (): { message: string; pose: MascotPose } => {
     switch (step) {
       case 1:
-        return { message: "¡Hola! 👋 Soy Chefly, tu coach nutricional. ¿Cómo te llamas?", pose: 'default' };
+        return { message: "¡Hola! 👋 Soy Chefly, tu coach nutricional. ¿Cómo te llamas?", pose: 'happy' };
       case 2:
         return { message: `¡Un placer conocerte, ${data.name}! 🎉 Juntos vamos a lograr grandes cosas.`, pose: 'celebrating' };
       case 3:
         return { message: "Cuéntame, ¿cuál es tu objetivo principal? 🎯", pose: 'default' };
       case 4:
-        return { message: `¡Excelente elección! ${getGoalMessage()} 💪`, pose: 'flexing' };
+        return { message: `¡Excelente elección! ${getGoalMessage()} 💪`, pose: 'strong' };
       case 5:
         return { message: "Para personalizar tu plan, necesito conocerte mejor. ¿Cómo te identificas?", pose: 'default' };
       case 6:
@@ -182,25 +182,25 @@ const PreOnboarding: React.FC = () => {
       case 8:
         return { message: "¿Cuánto pesas actualmente? ⚖️", pose: 'default' };
       case 9:
-        return { message: "¿Cuál es tu peso objetivo? 🎯", pose: 'fire' };
+        return { message: "¿Cuál es tu peso objetivo? 🎯", pose: 'strong' };
       case 10:
-        return { message: "¿Qué tan activo eres en tu día a día? 🏃", pose: 'default' };
+        return { message: "¿Qué tan activo eres en tu día a día? 🏃", pose: 'health' };
       case 11:
-        return { message: "¿Sigues algún tipo de alimentación específica? 🥗", pose: 'cooking' };
+        return { message: "¿Sigues algún tipo de alimentación específica? 🥗", pose: 'science' };
       case 12:
         return { message: "¿Tienes alguna alergia o intolerancia? ⚠️", pose: 'default' };
       case 13:
         return { message: "¿Hay alimentos que prefieras evitar? 🚫", pose: 'default' };
       case 14:
-        return { message: "¿Qué cocinas te gustan más? 🌍", pose: 'cooking' };
+        return { message: "¿Qué cocinas te gustan más? 🌍", pose: 'happy' };
       case 15:
-        return { message: "¿Qué sabores prefieres? 😋", pose: 'default' };
+        return { message: "¿Qué sabores prefieres? 😋", pose: 'happy' };
       case 16:
-        return { message: "¿Cómo describirías tu nivel en la cocina? 👨‍🍳", pose: 'cooking' };
+        return { message: "¿Cómo describirías tu nivel en la cocina? 👨‍🍳", pose: 'science' };
       case 17:
-        return { message: "¿Cuánto tiempo tienes para cocinar? ⏱️", pose: 'working' };
+        return { message: "¿Cuánto tiempo tienes para cocinar? ⏱️", pose: 'science' };
       case 18:
-        return { message: "¿Cuál es tu presupuesto para comida? 💰", pose: 'money' };
+        return { message: "¿Cuál es tu presupuesto para comida? 💰", pose: 'happy' };
       case 19:
         return { message: "¿Cuántas comidas haces al día? 🍽️", pose: 'default' };
       default:
