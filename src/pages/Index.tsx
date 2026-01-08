@@ -228,7 +228,7 @@ const Index = () => {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center md:justify-start">
-                <Button variant="hero" size="lg" className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 h-auto group" onClick={() => navigate("/auth")}>
+                <Button variant="hero" size="lg" className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 h-auto group" onClick={() => navigate("/start")}>
                   {t("hero.cta")}
                   <Sparkles className="ml-2 w-4 h-4 sm:w-5 sm:h-5 group-hover:rotate-12 transition-transform" />
                 </Button>
