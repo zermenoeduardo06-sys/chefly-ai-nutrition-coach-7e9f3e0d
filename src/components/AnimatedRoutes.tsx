@@ -43,6 +43,7 @@ import FoodHistory from '@/pages/FoodHistory';
 import FamilyManagement from '@/pages/FamilyManagement';
 import Contact from '@/pages/Contact';
 import AppStoreDemo from '@/pages/AppStoreDemo';
+import PreOnboarding from '@/pages/PreOnboarding';
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
   <SidebarProvider>
@@ -69,6 +70,7 @@ export const AnimatedRoutes = () => {
       <Routes location={location} key={location.pathname}>
         {/* Public pages */}
         <Route path="/" element={<PageTransition><Index /></PageTransition>} />
+        <Route path="/start" element={<PageTransition><PreOnboarding /></PageTransition>} />
         <Route path="/auth" element={<PageTransition><Auth /></PageTransition>} />
         <Route path="/welcome-onboarding" element={<PageTransition><OnboardingWelcome /></PageTransition>} />
         <Route path="/onboarding" element={<PageTransition><Onboarding /></PageTransition>} />
