@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "framer-motion";
 import { Sparkles, ChefHat, Target, ShoppingCart } from "lucide-react";
-import mascotCooking from "@/assets/mascot-cooking.png";
+import mascotHappy from "@/assets/mascot-happy.png";
 
 const OnboardingWelcome = () => {
   const navigate = useNavigate();
@@ -48,9 +48,9 @@ const OnboardingWelcome = () => {
             className="relative mx-auto mb-6"
           >
             <motion.img
-              src={mascotCooking}
+              src={mascotHappy}
               alt="Chefly Mascot"
-              className="w-32 h-32 mx-auto drop-shadow-xl"
+              className="w-36 h-36 mx-auto drop-shadow-xl"
               animate={{ 
                 y: [0, -8, 0],
               }}
@@ -62,7 +62,7 @@ const OnboardingWelcome = () => {
             />
             {/* Waving hand effect */}
             <motion.div
-              className="absolute -right-2 top-4 text-2xl"
+              className="absolute -right-4 top-6 text-3xl"
               animate={{ rotate: [0, 20, 0, 20, 0] }}
               transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 2 }}
             >
@@ -131,7 +131,7 @@ const OnboardingWelcome = () => {
             transition={{ delay: 1.1 }}
           >
             <Button
-              onClick={() => navigate("/onboarding")}
+              onClick={() => navigate("/start")}
               className="w-full h-14 text-lg font-semibold"
               variant="hero"
             >
