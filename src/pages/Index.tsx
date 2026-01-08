@@ -36,7 +36,7 @@ const Index = () => {
   const { t } = useLanguage();
   const [isNativeRedirecting, setIsNativeRedirecting] = useState(false);
   
-  // Redirect to auth for native mobile apps (skip landing page completely)
+  // Redirect for native mobile apps (skip landing page completely)
   useEffect(() => {
     const checkNativeAndAuth = async () => {
       if (Capacitor.isNativePlatform()) {
@@ -46,7 +46,8 @@ const Index = () => {
         if (session) {
           navigate("/dashboard", { replace: true });
         } else {
-          navigate("/auth", { replace: true });
+          // New users go to welcome → onboarding flow
+          navigate("/welcome-onboarding", { replace: true });
         }
       }
     };
