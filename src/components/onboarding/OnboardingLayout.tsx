@@ -33,7 +33,7 @@ export const OnboardingLayout: React.FC<OnboardingLayoutProps> = ({
   return (
     <div className={`min-h-screen bg-background flex flex-col ${className}`}>
       {/* Header with progress bar */}
-      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/50">
+      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/50 pt-safe-top">
         <div className="flex items-center px-4 py-3 gap-4">
           {showBack && currentStep > 1 ? (
             <button
