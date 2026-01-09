@@ -420,220 +420,253 @@ export default function Recipes() {
         )}
       </div>
 
-      {/* Recipe Detail Dialog */}
+      {/* Recipe Detail Dialog - Full Screen Sheet Style */}
       <Dialog open={showRecipeDetail} onOpenChange={setShowRecipeDetail}>
-        <DialogContent className="max-w-lg p-0 overflow-hidden max-h-[90vh]">
+        <DialogContent className="max-w-md w-full h-[85vh] p-0 overflow-hidden rounded-t-3xl sm:rounded-2xl flex flex-col">
           {selectedRecipe && (
-            <ScrollArea className="max-h-[90vh]">
-              <div className="relative">
-                {/* Hero Image */}
-                <div className="aspect-video relative">
+            <>
+              {/* Fixed Header with Image */}
+              <div className="relative shrink-0">
+                <div className="aspect-[16/10] relative">
                   <MealImageWithSkeleton
                     src={selectedRecipe.image_url}
                     alt={selectedRecipe.name}
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
+                  
+                  {/* Close Button */}
                   <button 
                     onClick={() => setShowRecipeDetail(false)}
-                    className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/50 flex items-center justify-center text-white"
+                    className="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-colors"
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-5 w-5" />
                   </button>
-                  <div className="absolute bottom-3 left-3 right-3">
+                  
+                  {/* Badge */}
+                  <div className="absolute top-3 left-3">
                     <Badge 
-                      variant="secondary" 
-                      className={cn("mb-2", mealTypeColors[selectedRecipe.meal_type])}
+                      className={cn("backdrop-blur-sm", mealTypeColors[selectedRecipe.meal_type])}
                     >
                       {mealTypeLabels[selectedRecipe.meal_type]?.[language] || selectedRecipe.meal_type}
                     </Badge>
-                    <h2 className="text-xl font-bold text-white">{selectedRecipe.name}</h2>
+                  </div>
+                  
+                  {/* Title overlay */}
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <h2 className="text-xl font-bold text-foreground leading-tight">{selectedRecipe.name}</h2>
                   </div>
                 </div>
+              </div>
 
-                <div className="p-4 space-y-4">
+              {/* Scrollable Content */}
+              <ScrollArea className="flex-1 overflow-auto">
+                <div className="p-4 pb-8 space-y-5">
                   {/* Description */}
-                  <p className="text-muted-foreground text-sm">{selectedRecipe.description}</p>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{selectedRecipe.description}</p>
 
-                  {/* Macros - Always Visible */}
+                  {/* Macros Grid */}
                   <div className="grid grid-cols-4 gap-2">
-                    <div className="bg-amber-500/10 rounded-lg p-2 text-center">
-                      <Flame className="h-4 w-4 mx-auto text-amber-500 mb-1" />
-                      <p className="text-xs text-muted-foreground">{t.kcal}</p>
-                      <p className="font-semibold text-foreground">{selectedRecipe.calories}</p>
+                    <div className="bg-gradient-to-br from-amber-500/20 to-amber-500/5 rounded-xl p-3 text-center border border-amber-500/10">
+                      <Flame className="h-5 w-5 mx-auto text-amber-500 mb-1" />
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{t.kcal}</p>
+                      <p className="font-bold text-lg text-foreground">{selectedRecipe.calories}</p>
                     </div>
-                    <div className="bg-emerald-500/10 rounded-lg p-2 text-center">
-                      <p className="text-xs text-muted-foreground">{t.protein}</p>
-                      <p className="font-semibold text-foreground">{selectedRecipe.protein}g</p>
+                    <div className="bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 rounded-xl p-3 text-center border border-emerald-500/10">
+                      <div className="w-5 h-5 mx-auto mb-1 rounded-full bg-emerald-500/30 flex items-center justify-center">
+                        <span className="text-[10px] font-bold text-emerald-500">P</span>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{t.protein}</p>
+                      <p className="font-bold text-lg text-foreground">{selectedRecipe.protein}g</p>
                     </div>
-                    <div className="bg-cyan-500/10 rounded-lg p-2 text-center">
-                      <p className="text-xs text-muted-foreground">{t.carbs}</p>
-                      <p className="font-semibold text-foreground">{selectedRecipe.carbs}g</p>
+                    <div className="bg-gradient-to-br from-cyan-500/20 to-cyan-500/5 rounded-xl p-3 text-center border border-cyan-500/10">
+                      <div className="w-5 h-5 mx-auto mb-1 rounded-full bg-cyan-500/30 flex items-center justify-center">
+                        <span className="text-[10px] font-bold text-cyan-500">C</span>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{t.carbs}</p>
+                      <p className="font-bold text-lg text-foreground">{selectedRecipe.carbs}g</p>
                     </div>
-                    <div className="bg-pink-500/10 rounded-lg p-2 text-center">
-                      <p className="text-xs text-muted-foreground">{t.fats}</p>
-                      <p className="font-semibold text-foreground">{selectedRecipe.fats}g</p>
+                    <div className="bg-gradient-to-br from-pink-500/20 to-pink-500/5 rounded-xl p-3 text-center border border-pink-500/10">
+                      <div className="w-5 h-5 mx-auto mb-1 rounded-full bg-pink-500/30 flex items-center justify-center">
+                        <span className="text-[10px] font-bold text-pink-500">F</span>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{t.fats}</p>
+                      <p className="font-bold text-lg text-foreground">{selectedRecipe.fats}g</p>
                     </div>
                   </div>
 
-                  {/* Benefits - Always Visible */}
+                  {/* Benefits */}
                   {selectedRecipe.benefits && (
-                    <div className="bg-primary/5 rounded-xl p-3 border border-primary/20">
-                      <h4 className="font-semibold text-foreground mb-1 text-sm">{t.benefits}</h4>
-                      <p className="text-sm text-muted-foreground">{selectedRecipe.benefits}</p>
+                    <div className="bg-gradient-to-r from-primary/10 to-cyan-500/10 rounded-xl p-4 border border-primary/20">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Sparkles className="h-4 w-4 text-primary" />
+                        <h4 className="font-semibold text-foreground text-sm">{t.benefits}</h4>
+                      </div>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{selectedRecipe.benefits}</p>
                     </div>
                   )}
 
-                  {/* Premium Content Section */}
-                  <div className="space-y-4">
-                    {/* Ingredients */}
-                    <div className="relative">
-                      <div className="flex items-center gap-2 mb-2">
-                        <ListChecks className="h-4 w-4 text-primary" />
+                  {/* Ingredients Section */}
+                  <div className="bg-muted/50 rounded-xl p-4 border border-border/50">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <ListChecks className="h-5 w-5 text-primary" />
                         <h4 className="font-semibold text-foreground">{t.ingredients}</h4>
-                        {!isCheflyPlus && (
-                          <Badge variant="secondary" className="text-[10px] bg-amber-500/20 text-amber-500">
-                            <Lock className="h-2.5 w-2.5 mr-1" />
-                            Premium
-                          </Badge>
-                        )}
                       </div>
-                      
-                      {isCheflyPlus ? (
-                        <ul className="space-y-1.5">
-                          {selectedRecipe.ingredients?.map((ing, idx) => (
-                            <li key={idx} className="text-sm text-muted-foreground flex items-start gap-2">
-                              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
-                              {ing}
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <div className="relative overflow-hidden rounded-lg">
-                          <div className="blur-sm select-none pointer-events-none opacity-50">
-                            <ul className="space-y-1.5">
-                              {['200g de pollo deshuesado', '1 taza de arroz integral', '2 cucharadas de aceite de oliva', '1 cebolla picada', '2 dientes de ajo'].map((ing, idx) => (
-                                <li key={idx} className="text-sm text-muted-foreground flex items-start gap-2">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
-                                  {ing}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                          <div className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-[2px]">
+                      {!isCheflyPlus && (
+                        <Badge className="bg-amber-500/20 text-amber-500 border-amber-500/30">
+                          <Lock className="h-3 w-3 mr-1" />
+                          Premium
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    {isCheflyPlus ? (
+                      <ul className="space-y-2">
+                        {selectedRecipe.ingredients?.map((ing, idx) => (
+                          <li key={idx} className="text-sm text-muted-foreground flex items-start gap-3">
+                            <span className="w-2 h-2 rounded-full bg-primary mt-1.5 shrink-0" />
+                            {ing}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <div className="relative overflow-hidden rounded-lg min-h-[100px]">
+                        <div className="blur-[6px] select-none pointer-events-none opacity-60">
+                          <ul className="space-y-2">
+                            {['200g de pollo deshuesado', '1 taza de arroz integral', '2 cucharadas de aceite de oliva', '1 cebolla picada', '2 dientes de ajo picados'].map((ing, idx) => (
+                              <li key={idx} className="text-sm text-muted-foreground flex items-start gap-3">
+                                <span className="w-2 h-2 rounded-full bg-primary mt-1.5 shrink-0" />
+                                {ing}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/40">
+                          <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
                             <Lock className="h-6 w-6 text-muted-foreground" />
                           </div>
+                          <span className="text-xs text-muted-foreground font-medium">
+                            {language === 'es' ? 'Contenido bloqueado' : 'Locked content'}
+                          </span>
                         </div>
-                      )}
-                    </div>
-
-                    {/* Steps */}
-                    <div className="relative">
-                      <div className="flex items-center gap-2 mb-2">
-                        <ChefHat className="h-4 w-4 text-primary" />
-                        <h4 className="font-semibold text-foreground">{t.steps}</h4>
-                        {!isCheflyPlus && (
-                          <Badge variant="secondary" className="text-[10px] bg-amber-500/20 text-amber-500">
-                            <Lock className="h-2.5 w-2.5 mr-1" />
-                            Premium
-                          </Badge>
-                        )}
                       </div>
-                      
-                      {isCheflyPlus ? (
-                        <ol className="space-y-3">
-                          {selectedRecipe.steps?.map((step, idx) => (
-                            <li key={idx} className="flex gap-3 text-sm">
-                              <span className="w-6 h-6 rounded-full bg-primary/20 text-primary text-xs flex items-center justify-center shrink-0 font-medium">
-                                {idx + 1}
-                              </span>
-                              <span className="text-muted-foreground">{step}</span>
-                            </li>
-                          ))}
-                        </ol>
-                      ) : (
-                        <div className="relative overflow-hidden rounded-lg">
-                          <div className="blur-sm select-none pointer-events-none opacity-50">
-                            <ol className="space-y-3">
-                              {['Precalienta el horno a 180°C', 'Corta el pollo en cubos medianos', 'Sofríe la cebolla y el ajo', 'Añade el pollo y cocina hasta dorar'].map((step, idx) => (
-                                <li key={idx} className="flex gap-3 text-sm">
-                                  <span className="w-6 h-6 rounded-full bg-primary/20 text-primary text-xs flex items-center justify-center shrink-0 font-medium">
-                                    {idx + 1}
-                                  </span>
-                                  <span className="text-muted-foreground">{step}</span>
-                                </li>
-                              ))}
-                            </ol>
-                          </div>
-                          <div className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-[2px]">
-                            <Lock className="h-6 w-6 text-muted-foreground" />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* PDF Download */}
-                    <div className="relative">
-                      {isCheflyPlus ? (
-                        <Button 
-                          variant="outline" 
-                          className="w-full"
-                          onClick={() => {
-                            // TODO: Implement PDF download
-                          }}
-                        >
-                          <Download className="h-4 w-4 mr-2" />
-                          {t.downloadPdf}
-                        </Button>
-                      ) : (
-                        <div className="relative">
-                          <Button 
-                            variant="outline" 
-                            className="w-full opacity-50 pointer-events-none"
-                          >
-                            <Download className="h-4 w-4 mr-2" />
-                            {t.downloadPdf}
-                          </Button>
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <Lock className="h-5 w-5 text-muted-foreground" />
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                    )}
                   </div>
+
+                  {/* Steps Section */}
+                  <div className="bg-muted/50 rounded-xl p-4 border border-border/50">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <ChefHat className="h-5 w-5 text-primary" />
+                        <h4 className="font-semibold text-foreground">{t.steps}</h4>
+                      </div>
+                      {!isCheflyPlus && (
+                        <Badge className="bg-amber-500/20 text-amber-500 border-amber-500/30">
+                          <Lock className="h-3 w-3 mr-1" />
+                          Premium
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    {isCheflyPlus ? (
+                      <ol className="space-y-4">
+                        {selectedRecipe.steps?.map((step, idx) => (
+                          <li key={idx} className="flex gap-3 text-sm">
+                            <span className="w-7 h-7 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center shrink-0 font-bold">
+                              {idx + 1}
+                            </span>
+                            <span className="text-muted-foreground pt-1 leading-relaxed">{step}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    ) : (
+                      <div className="relative overflow-hidden rounded-lg min-h-[120px]">
+                        <div className="blur-[6px] select-none pointer-events-none opacity-60">
+                          <ol className="space-y-4">
+                            {['Precalienta el horno a 180°C y prepara una bandeja', 'Corta el pollo en cubos medianos uniformes', 'Sofríe la cebolla y el ajo hasta que estén dorados', 'Añade el pollo y cocina hasta dorar por todos lados'].map((step, idx) => (
+                              <li key={idx} className="flex gap-3 text-sm">
+                                <span className="w-7 h-7 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center shrink-0 font-bold">
+                                  {idx + 1}
+                                </span>
+                                <span className="text-muted-foreground pt-1">{step}</span>
+                              </li>
+                            ))}
+                          </ol>
+                        </div>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/40">
+                          <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                            <Lock className="h-6 w-6 text-muted-foreground" />
+                          </div>
+                          <span className="text-xs text-muted-foreground font-medium">
+                            {language === 'es' ? 'Contenido bloqueado' : 'Locked content'}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* PDF Download Button */}
+                  {isCheflyPlus ? (
+                    <Button 
+                      variant="outline" 
+                      className="w-full h-12"
+                      onClick={() => {
+                        // TODO: Implement PDF download
+                      }}
+                    >
+                      <Download className="h-5 w-5 mr-2" />
+                      {t.downloadPdf}
+                    </Button>
+                  ) : (
+                    <div className="relative">
+                      <Button 
+                        variant="outline" 
+                        className="w-full h-12 opacity-40 pointer-events-none"
+                      >
+                        <Download className="h-5 w-5 mr-2" />
+                        {t.downloadPdf}
+                      </Button>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="flex items-center gap-2 bg-muted px-3 py-1.5 rounded-full">
+                          <Lock className="h-4 w-4 text-amber-500" />
+                          <span className="text-xs font-medium text-amber-500">Premium</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Upgrade CTA for Free Users */}
                   {!isCheflyPlus && (
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="bg-gradient-to-r from-amber-500/10 via-primary/10 to-amber-500/10 rounded-xl p-4 border border-amber-500/30"
+                      className="bg-gradient-to-br from-amber-500/15 via-primary/10 to-amber-500/15 rounded-2xl p-5 border border-amber-500/30 shadow-lg shadow-amber-500/5"
                     >
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-primary flex items-center justify-center shrink-0">
-                          <Crown className="h-5 w-5 text-white" />
+                      <div className="flex flex-col items-center text-center gap-3">
+                        <div className="w-14 h-14 rounded-full bg-gradient-to-br from-amber-400 to-primary flex items-center justify-center shadow-lg shadow-amber-500/30">
+                          <Crown className="h-7 w-7 text-white" />
                         </div>
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-foreground mb-1">{t.unlockContent}</h4>
-                          <p className="text-sm text-muted-foreground mb-3">{t.unlockDesc}</p>
-                          <Button 
-                            onClick={() => {
-                              setShowRecipeDetail(false);
-                              navigate("/pricing");
-                            }}
-                            size="sm"
-                            className="bg-gradient-to-r from-amber-500 to-primary"
-                          >
-                            <Crown className="h-4 w-4 mr-2" />
-                            {t.upgrade}
-                          </Button>
+                        <div>
+                          <h4 className="font-bold text-foreground text-lg mb-1">{t.unlockContent}</h4>
+                          <p className="text-sm text-muted-foreground">{t.unlockDesc}</p>
                         </div>
+                        <Button 
+                          onClick={() => {
+                            setShowRecipeDetail(false);
+                            navigate("/pricing");
+                          }}
+                          className="w-full h-12 bg-gradient-to-r from-amber-500 to-primary hover:from-amber-600 hover:to-primary/90 text-white font-semibold shadow-lg shadow-primary/30"
+                        >
+                          <Crown className="h-5 w-5 mr-2" />
+                          {t.upgrade}
+                        </Button>
                       </div>
                     </motion.div>
                   )}
                 </div>
-              </div>
-            </ScrollArea>
+              </ScrollArea>
+            </>
           )}
         </DialogContent>
       </Dialog>
