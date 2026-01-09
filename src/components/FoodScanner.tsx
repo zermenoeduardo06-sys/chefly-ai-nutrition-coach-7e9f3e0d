@@ -15,9 +15,11 @@ import { InfoTooltip } from '@/components/InfoTooltip';
 interface FoodScannerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  mealType?: string;
+  onSaveSuccess?: () => void;
 }
 
-export function FoodScanner({ open, onOpenChange }: FoodScannerProps) {
+export function FoodScanner({ open, onOpenChange, mealType, onSaveSuccess }: FoodScannerProps) {
   const { language } = useLanguage();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -133,12 +135,14 @@ export function FoodScanner({ open, onOpenChange }: FoodScannerProps) {
           confidence: result.confidence || 'medium',
           notes: result.notes,
           image_url: imageUrl,
+          meal_type: mealType || null,
         });
 
       if (error) throw error;
 
       setSaved(true);
       refreshLimits();
+      onSaveSuccess?.();
       toast({
         title: language === 'es' ? '¡Guardado!' : 'Saved!',
         description: language === 'es' 

@@ -182,7 +182,36 @@ export default function AddFood() {
   };
 
   const handleDone = async () => {
-    // TODO: Save selected foods to food_scans
+    if (!userId || selectedFoods.length === 0) {
+      navigate(-1);
+      return;
+    }
+
+    try {
+      // Save each selected food to food_scans with the meal_type
+      const foodScansToInsert = selectedFoods.map(food => ({
+        user_id: userId,
+        dish_name: food.name,
+        calories: food.calories,
+        protein: food.protein || 0,
+        carbs: food.carbs || 0,
+        fat: food.fats || 0,
+        portion_estimate: food.portion,
+        meal_type: validMealType,
+        confidence: 'high',
+      }));
+
+      const { error } = await supabase
+        .from('food_scans')
+        .insert(foodScansToInsert);
+
+      if (error) {
+        console.error('Error saving foods:', error);
+      }
+    } catch (error) {
+      console.error('Error saving foods:', error);
+    }
+
     navigate(-1);
   };
 
