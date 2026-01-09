@@ -46,7 +46,22 @@ const PreOnboarding: React.FC = () => {
     clearData,
     calculateNutritionGoals,
     calculateAge,
+    getSavedStep,
+    saveStep,
   } = usePreOnboardingState();
+
+  // Restore saved step on mount
+  useEffect(() => {
+    const savedStep = getSavedStep();
+    if (savedStep > 1) {
+      setStep(savedStep);
+    }
+  }, [getSavedStep]);
+
+  // Persist step changes
+  useEffect(() => {
+    saveStep(step);
+  }, [step, saveStep]);
 
   // Check if already authenticated
   useEffect(() => {

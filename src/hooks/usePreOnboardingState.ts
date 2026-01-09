@@ -37,6 +37,7 @@ export interface PreOnboardingData {
 }
 
 const STORAGE_KEY = 'chefly_pre_onboarding';
+const STEP_STORAGE_KEY = 'chefly_pre_onboarding_step';
 
 const defaultData: PreOnboardingData = {
   name: '',
@@ -118,7 +119,29 @@ export const usePreOnboardingState = () => {
 
   const clearData = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(STEP_STORAGE_KEY);
     setData(defaultData);
+  }, []);
+
+  const getSavedStep = useCallback((): number => {
+    try {
+      const savedStep = localStorage.getItem(STEP_STORAGE_KEY);
+      if (savedStep) {
+        const step = parseInt(savedStep, 10);
+        return isNaN(step) ? 1 : step;
+      }
+    } catch (e) {
+      console.error('Error loading saved step:', e);
+    }
+    return 1;
+  }, []);
+
+  const saveStep = useCallback((step: number) => {
+    try {
+      localStorage.setItem(STEP_STORAGE_KEY, step.toString());
+    } catch (e) {
+      console.error('Error saving step:', e);
+    }
   }, []);
 
   const calculateAge = useCallback(() => {
@@ -186,5 +209,7 @@ export const usePreOnboardingState = () => {
     clearData,
     calculateAge,
     calculateNutritionGoals,
+    getSavedStep,
+    saveStep,
   };
 };
