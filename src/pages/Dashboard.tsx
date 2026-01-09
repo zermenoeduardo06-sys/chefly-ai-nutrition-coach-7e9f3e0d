@@ -39,6 +39,7 @@ import { DiaryDateHeader } from "@/components/diary/DiaryDateHeader";
 import { useDailyFoodIntake } from "@/hooks/useDailyFoodIntake";
 import { useNutritionGoals } from "@/hooks/useNutritionGoals";
 import { WaterTrackerWidget } from "@/components/WaterTrackerWidget";
+import { WeightTrackerWidget } from "@/components/WeightTrackerWidget";
 
 interface MealAdaptation {
   id: string;
@@ -1115,6 +1116,9 @@ const Dashboard = () => {
 
         {/* WATER TRACKER - Daily hydration goal */}
         <WaterTrackerWidget userId={userId} selectedDate={selectedDate} />
+
+        {/* WEIGHT TRACKER - Current weight with +/- controls */}
+        <WeightTrackerWidget userId={userId} />
 
         {/* Gamification - Simplified with just mascot + level progress */}
         <Card data-tour="gamification" className="border-border/50 shadow-lg bg-gradient-to-br from-card to-muted/20">
