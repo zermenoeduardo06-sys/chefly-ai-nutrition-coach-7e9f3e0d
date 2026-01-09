@@ -15,6 +15,12 @@ export interface PreOnboardingData {
   // Goals
   goal: string;
   
+  // Motivation & Obstacles (NEW)
+  motivation: string[];
+  previousDiets: string;
+  obstacles: string[];
+  timeline: string;
+  
   // Diet preferences
   dietType: string;
   allergies: string[];
@@ -43,6 +49,10 @@ const defaultData: PreOnboardingData = {
   targetWeight: 0,
   activityLevel: '',
   goal: '',
+  motivation: [],
+  previousDiets: '',
+  obstacles: [],
+  timeline: '',
   dietType: '',
   allergies: [],
   dislikes: [],
