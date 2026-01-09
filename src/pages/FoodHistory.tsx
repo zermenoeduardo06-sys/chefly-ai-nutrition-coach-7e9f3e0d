@@ -312,7 +312,7 @@ const FoodHistory = () => {
               transition={{ type: "spring", stiffness: 200, damping: 15 }}
             >
               <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
-                <img src={mascotDefault} alt="Chefly" className="h-10 w-10 object-contain" />
+                <img src={mascotDefault} alt="Limey" className="h-10 w-10 object-contain" />
               </div>
             </motion.div>
             <div>

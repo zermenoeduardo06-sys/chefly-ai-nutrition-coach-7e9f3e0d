@@ -44,7 +44,7 @@ const TypingIndicator = () => (
       }}
       className="w-12 h-12 flex-shrink-0"
     >
-      <img src={mascotLime} alt="Chefly thinking" className="w-full h-full object-contain" />
+      <img src={mascotLime} alt="Limey thinking" className="w-full h-full object-contain" />
     </motion.div>
     <Card className="bg-card border-2 border-primary/20 p-3 rounded-2xl rounded-bl-sm">
       <div className="flex gap-1.5">
@@ -78,7 +78,7 @@ const CheflyAvatar = ({ isAnimating = false }: { isAnimating?: boolean }) => (
     } : {}}
     transition={{ duration: 0.5 }}
   >
-    <img src={mascotLime} alt="Chefly" className="w-full h-full object-contain drop-shadow-md" />
+    <img src={mascotLime} alt="Limey" className="w-full h-full object-contain drop-shadow-md" />
   </motion.div>
 );
 

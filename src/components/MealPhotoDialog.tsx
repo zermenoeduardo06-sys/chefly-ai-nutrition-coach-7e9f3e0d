@@ -162,7 +162,7 @@ export function MealPhotoDialog({ open, onOpenChange, meal, onPhotoSaved }: Meal
               animate={{ scale: 1, rotate: 0 }}
               transition={{ type: "spring", stiffness: 200, damping: 15 }}
             >
-              <img src={mascotLime} alt="Chefly" className="h-9 w-9 object-contain" />
+              <img src={mascotLime} alt="Limey" className="h-9 w-9 object-contain" />
             </motion.div>
             <div>
               <h2 className="text-xl font-bold text-white">{t.title}</h2>
