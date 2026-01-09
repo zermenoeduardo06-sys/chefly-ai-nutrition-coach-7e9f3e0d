@@ -1075,14 +1075,34 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* NUTRITION SUMMARY - Top of diary, YAZIO style */}
-        {userId && <NutritionSummaryWidget userId={userId} selectedDate={selectedDate} />}
+        {/* GREETING HEADER - Welcome message with name */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="pb-2"
+        >
+          <h1 className="text-xl font-bold text-foreground">
+            {(() => {
+              const hour = new Date().getHours();
+              const greeting = hour < 12 
+                ? (language === 'es' ? '¡Buenos días' : 'Good morning')
+                : hour < 18 
+                  ? (language === 'es' ? '¡Buenas tardes' : 'Good afternoon')
+                  : (language === 'es' ? '¡Buenas noches' : 'Good evening');
+              const name = profile?.display_name || (language === 'es' ? 'Chef' : 'Chef');
+              return <>{greeting}, <span className="text-primary">{name}</span>! 👋</>;
+            })()}
+          </h1>
+        </motion.div>
 
         {/* YAZIO-Style Date Header with swipe - only past and present */}
         <DiaryDateHeader 
           selectedDate={selectedDate}
           onDateChange={setSelectedDate}
         />
+
+        {/* NUTRITION SUMMARY - Below date header, YAZIO style */}
+        {userId && <NutritionSummaryWidget userId={userId} selectedDate={selectedDate} />}
 
         {/* MEAL MODULES - YAZIO Style (Desayuno, Almuerzo, Cena, Snacks) */}
         <MealModulesSection
