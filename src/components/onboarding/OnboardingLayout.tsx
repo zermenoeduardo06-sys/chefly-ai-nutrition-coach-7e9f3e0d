@@ -57,11 +57,7 @@ export const OnboardingLayout: React.FC<OnboardingLayoutProps> = ({
             />
           </div>
           
-          <div className="w-10 text-right">
-            <span className="text-sm text-muted-foreground">
-              {currentStep}/{totalSteps}
-            </span>
-          </div>
+          <div className="w-10" />
         </div>
       </div>
 

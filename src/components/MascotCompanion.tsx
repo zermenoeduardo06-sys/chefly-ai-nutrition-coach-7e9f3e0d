@@ -265,7 +265,7 @@ export function MascotCompanion({
           <motion.img 
             key={getMascotImage()}
             src={getMascotImage()} 
-            alt="Limey mascot"
+            alt="Chefly mascot"
             className={`${sizeConfig[size]} object-contain drop-shadow-xl`}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}

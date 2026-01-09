@@ -727,7 +727,7 @@ const FloatingMascot: React.FC = () => {
         {/* Mascot Image with elaborate celebration animations */}
         <motion.img
           src={moodImages[state.mood]}
-          alt="Limey"
+          alt="Chefly"
           className="relative z-10 w-full h-full object-cover"
           animate={
             isCelebrating 

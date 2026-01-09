@@ -1000,7 +1000,7 @@ export const translations = {
     
     // Onboarding Welcome
     "onboardingWelcome.greeting": "¡Hola! 👋",
-    "onboardingWelcome.mascotIntro": "Soy Limey, tu coach de nutrición",
+    "onboardingWelcome.mascotIntro": "Soy Chefly, tu coach de nutrición",
     "onboardingWelcome.subtitle": "Juntos vamos a crear tu plan alimenticio perfecto",
     "onboardingWelcome.feature1.title": "Menús personalizados con IA",
     "onboardingWelcome.feature1.desc": "Recetas adaptadas a tus gustos y objetivos",
@@ -1020,7 +1020,7 @@ export const translations = {
     "newUserChecklist.step1.desc": "Explora las comidas de hoy",
     "newUserChecklist.step2.title": "Prepara una comida",
     "newUserChecklist.step2.desc": "Marca como completada",
-    "newUserChecklist.step3.title": "Habla con Limey",
+    "newUserChecklist.step3.title": "Habla con Chefly",
     "newUserChecklist.step3.desc": "Pregunta sobre nutrición",
     "newUserChecklist.completed": "¡Excelente! Ya conoces lo básico",
     
@@ -2264,7 +2264,7 @@ export const translations = {
     
     // Onboarding Welcome
     "onboardingWelcome.greeting": "Hello! 👋",
-    "onboardingWelcome.mascotIntro": "I'm Limey, your nutrition coach",
+    "onboardingWelcome.mascotIntro": "I'm Chefly, your nutrition coach",
     "onboardingWelcome.subtitle": "Together we'll create your perfect meal plan",
     "onboardingWelcome.feature1.title": "AI-personalized menus",
     "onboardingWelcome.feature1.desc": "Recipes tailored to your tastes and goals",
@@ -2284,7 +2284,7 @@ export const translations = {
     "newUserChecklist.step1.desc": "Explore today's meals",
     "newUserChecklist.step2.title": "Prepare a meal",
     "newUserChecklist.step2.desc": "Mark as completed",
-    "newUserChecklist.step3.title": "Chat with Limey",
+    "newUserChecklist.step3.title": "Chat with Chefly",
     "newUserChecklist.step3.desc": "Ask about nutrition",
     "newUserChecklist.completed": "Excellent! You've got the basics",
     
