@@ -1088,8 +1088,8 @@ const Dashboard = () => {
           recentFoods={recentFoods}
         />
 
-        {/* TODAY'S PROGRESS WIDGET */}
-        {userId && <NutritionSummaryWidget userId={userId} />}
+        {/* PROGRESS WIDGET - Shows data for selected date */}
+        {userId && <NutritionSummaryWidget userId={userId} selectedDate={selectedDate} />}
 
         {/* Gamification - Simplified with just mascot + level progress */}
         <Card data-tour="gamification" className="border-border/50 shadow-lg bg-gradient-to-br from-card to-muted/20">

@@ -11,6 +11,7 @@ import { InfoTooltip } from "@/components/InfoTooltip";
 
 interface NutritionSummaryWidgetProps {
   userId: string;
+  selectedDate?: Date;
 }
 
 interface DailyNutrition {
@@ -22,23 +23,24 @@ interface DailyNutrition {
   totalMeals: number;
 }
 
-export const NutritionSummaryWidget = ({ userId }: NutritionSummaryWidgetProps) => {
+export const NutritionSummaryWidget = ({ userId, selectedDate = new Date() }: NutritionSummaryWidgetProps) => {
   const { language } = useLanguage();
   const [nutrition, setNutrition] = useState<DailyNutrition | null>(null);
   const [loading, setLoading] = useState(true);
   const { goals: dailyGoals, loading: goalsLoading } = useNutritionGoals(userId);
 
   useEffect(() => {
-    loadTodayNutrition();
-  }, [userId]);
+    loadDateNutrition();
+  }, [userId, selectedDate]);
 
-  const loadTodayNutrition = async () => {
+  const loadDateNutrition = async () => {
     if (!userId) return;
+    setLoading(true);
 
     try {
-      const now = new Date();
-      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const tomorrowStart = new Date(todayStart.getTime() + 86400000);
+      // Use selected date instead of today
+      const dateStart = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+      const dateEnd = new Date(dateStart.getTime() + 86400000);
       
       const { data: completions } = await supabase
         .from("meal_completions")
@@ -54,15 +56,15 @@ export const NutritionSummaryWidget = ({ userId }: NutritionSummaryWidgetProps) 
           )
         `)
         .eq("user_id", userId)
-        .gte("completed_at", todayStart.toISOString())
-        .lt("completed_at", tomorrowStart.toISOString());
+        .gte("completed_at", dateStart.toISOString())
+        .lt("completed_at", dateEnd.toISOString());
 
       const { data: scans } = await supabase
         .from("food_scans")
         .select("calories, protein, carbs, fat")
         .eq("user_id", userId)
-        .gte("scanned_at", todayStart.toISOString())
-        .lt("scanned_at", tomorrowStart.toISOString());
+        .gte("scanned_at", dateStart.toISOString())
+        .lt("scanned_at", dateEnd.toISOString());
 
       const { data: mealPlan } = await supabase
         .from("meal_plans")
@@ -72,15 +74,15 @@ export const NutritionSummaryWidget = ({ userId }: NutritionSummaryWidgetProps) 
         .limit(1)
         .single();
 
-      let totalMealsToday = 0;
+      let totalMealsForDate = 0;
       if (mealPlan) {
-        const dayOfWeek = new Date().getDay();
+        const dayOfWeek = selectedDate.getDay();
         const { count } = await supabase
           .from("meals")
           .select("id", { count: "exact" })
           .eq("meal_plan_id", mealPlan.id)
           .eq("day_of_week", dayOfWeek);
-        totalMealsToday = count || 3;
+        totalMealsForDate = count || 3;
       }
 
       let totalCalories = 0;
@@ -110,7 +112,7 @@ export const NutritionSummaryWidget = ({ userId }: NutritionSummaryWidgetProps) 
         carbs: totalCarbs,
         fats: totalFats,
         mealsCompleted: completions?.length || 0,
-        totalMeals: totalMealsToday || 3,
+        totalMeals: totalMealsForDate || 3,
       });
     } catch (error) {
       console.error("Error loading nutrition:", error);
@@ -179,12 +181,12 @@ export const NutritionSummaryWidget = ({ userId }: NutritionSummaryWidgetProps) 
               </div>
               <div className="text-left">
                 <h3 className="font-semibold text-foreground text-sm">
-                  {language === 'es' ? 'Progreso de Hoy' : "Today's Progress"}
+                  {language === 'es' ? 'Progreso del Día' : "Day's Progress"}
                 </h3>
                 <p className="text-xs text-muted-foreground">
                   {language === 'es' 
-                    ? '¡Completa tu primera comida para ver tu progreso!' 
-                    : 'Complete your first meal to see your progress!'}
+                    ? '¡Registra tu primera comida para ver tu progreso!' 
+                    : 'Log your first meal to see your progress!'}
                 </p>
               </div>
             </div>
@@ -268,9 +270,9 @@ export const NutritionSummaryWidget = ({ userId }: NutritionSummaryWidgetProps) 
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <h3 className="font-semibold text-foreground text-sm">
-                      {language === 'es' ? 'Progreso de Hoy' : "Today's Progress"}
-                    </h3>
+                  <h3 className="font-semibold text-foreground text-sm">
+                    {language === 'es' ? 'Progreso del Día' : "Day's Progress"}
+                  </h3>
                     {dailyGoals.isPersonalized && (
                       <Sparkles className="h-3 w-3 text-primary" />
                     )}
