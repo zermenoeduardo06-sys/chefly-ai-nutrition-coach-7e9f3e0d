@@ -1388,6 +1388,36 @@ export type Database = {
           },
         ]
       }
+      water_intake: {
+        Row: {
+          created_at: string
+          daily_goal: number
+          glasses: number
+          id: string
+          intake_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          daily_goal?: number
+          glasses?: number
+          id?: string
+          intake_date: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          daily_goal?: number
+          glasses?: number
+          id?: string
+          intake_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       weekly_checkins: {
         Row: {
           available_ingredients: string | null
