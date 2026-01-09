@@ -48,6 +48,8 @@ import PreOnboarding from '@/pages/PreOnboarding';
 import MealDetail from '@/pages/MealDetail';
 import AddFood from '@/pages/AddFood';
 import AICamera from '@/pages/AICamera';
+import ChefIA from '@/pages/ChefIA';
+import MorePage from '@/pages/MorePage';
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
   <SidebarProvider>
@@ -91,6 +93,7 @@ export const AnimatedRoutes = () => {
         {/* Dashboard pages */}
         <Route path="/dashboard" element={<DashboardLayout><PageTransition><Dashboard /></PageTransition></DashboardLayout>} />
         <Route path="/dashboard/progress" element={<DashboardLayout><PageTransition><Progress /></PageTransition></DashboardLayout>} />
+        <Route path="/dashboard/more" element={<DashboardLayout><PageTransition><MorePage /></PageTransition></DashboardLayout>} />
         <Route path="/dashboard/achievements" element={<DashboardLayout><PageTransition><Achievements /></PageTransition></DashboardLayout>} />
         <Route path="/dashboard/challenges" element={<DashboardLayout><PageTransition><Challenges /></PageTransition></DashboardLayout>} />
         <Route path="/dashboard/leaderboard" element={<DashboardLayout><PageTransition><Leaderboard /></PageTransition></DashboardLayout>} />
@@ -111,6 +114,9 @@ export const AnimatedRoutes = () => {
         <Route path="/subscription" element={<DashboardLayout><PageTransition><Subscription /></PageTransition></DashboardLayout>} />
         <Route path="/family" element={<DashboardLayout><PageTransition><FamilyManagement /></PageTransition></DashboardLayout>} />
         <Route path="/admin/affiliates" element={<DashboardLayout><PageTransition><AdminAffiliatesDashboard /></PageTransition></DashboardLayout>} />
+        
+        {/* Chef IA Hub */}
+        <Route path="/chef-ia" element={<DashboardLayout><PageTransition><ChefIA /></PageTransition></DashboardLayout>} />
         
         {/* Chat */}
         <Route path="/chat" element={<PageTransition><Chat /></PageTransition>} />
