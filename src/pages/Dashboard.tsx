@@ -1075,7 +1075,10 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* YAZIO-Style Date Header with swipe */}
+        {/* NUTRITION SUMMARY - Top of diary, YAZIO style */}
+        {userId && <NutritionSummaryWidget userId={userId} selectedDate={selectedDate} />}
+
+        {/* YAZIO-Style Date Header with swipe - only past and present */}
         <DiaryDateHeader 
           selectedDate={selectedDate}
           onDateChange={setSelectedDate}
@@ -1087,9 +1090,6 @@ const Dashboard = () => {
           targetCalories={targetCalories}
           recentFoods={recentFoods}
         />
-
-        {/* PROGRESS WIDGET - Shows data for selected date */}
-        {userId && <NutritionSummaryWidget userId={userId} selectedDate={selectedDate} />}
 
         {/* Gamification - Simplified with just mascot + level progress */}
         <Card data-tour="gamification" className="border-border/50 shadow-lg bg-gradient-to-br from-card to-muted/20">

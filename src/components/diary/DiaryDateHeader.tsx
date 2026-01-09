@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { format, addDays, subDays, isToday, isTomorrow, isYesterday } from "date-fns";
+import { format, addDays, subDays, isToday, isYesterday, isFuture, startOfDay } from "date-fns";
 import { es, enUS } from "date-fns/locale";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useHaptics } from "@/hooks/useHaptics";
@@ -16,12 +16,10 @@ const texts = {
   es: {
     today: "Hoy",
     yesterday: "Ayer",
-    tomorrow: "Mañana",
   },
   en: {
     today: "Today",
     yesterday: "Yesterday",
-    tomorrow: "Tomorrow",
   },
 };
 
@@ -32,16 +30,18 @@ export function DiaryDateHeader({ selectedDate, onDateChange }: DiaryDateHeaderP
   const locale = language === 'es' ? es : enUS;
   
   const [direction, setDirection] = useState(0);
+  
+  // Check if we can go to next day (only if it's not in the future)
+  const canGoNext = !isToday(selectedDate);
 
   const getDateLabel = (date: Date): string => {
     if (isToday(date)) return t.today;
     if (isYesterday(date)) return t.yesterday;
-    if (isTomorrow(date)) return t.tomorrow;
     return format(date, "EEEE", { locale });
   };
 
   const getFormattedDate = (date: Date): string => {
-    if (isToday(date) || isYesterday(date) || isTomorrow(date)) {
+    if (isToday(date) || isYesterday(date)) {
       return format(date, "d 'de' MMMM", { locale });
     }
     return format(date, "d 'de' MMMM, yyyy", { locale });
@@ -54,6 +54,8 @@ export function DiaryDateHeader({ selectedDate, onDateChange }: DiaryDateHeaderP
   };
 
   const handleNextDay = () => {
+    // Block navigation to future dates
+    if (!canGoNext) return;
     lightImpact();
     setDirection(1);
     onDateChange(addDays(selectedDate, 1));
@@ -63,7 +65,7 @@ export function DiaryDateHeader({ selectedDate, onDateChange }: DiaryDateHeaderP
     const threshold = 50;
     if (info.offset.x > threshold) {
       handlePrevDay();
-    } else if (info.offset.x < -threshold) {
+    } else if (info.offset.x < -threshold && canGoNext) {
       handleNextDay();
     }
   };
@@ -128,19 +130,25 @@ export function DiaryDateHeader({ selectedDate, onDateChange }: DiaryDateHeaderP
           </AnimatePresence>
         </div>
 
-        {/* Next day button */}
+        {/* Next day button - disabled if today */}
         <button
           onClick={handleNextDay}
-          className="p-2 rounded-full hover:bg-muted/50 transition-colors active:scale-90"
+          disabled={!canGoNext}
+          className={cn(
+            "p-2 rounded-full transition-colors active:scale-90",
+            canGoNext 
+              ? "hover:bg-muted/50 text-muted-foreground" 
+              : "text-muted-foreground/30 cursor-not-allowed"
+          )}
           aria-label="Next day"
         >
-          <ChevronRight className="h-6 w-6 text-muted-foreground" />
+          <ChevronRight className="h-6 w-6" />
         </button>
       </motion.div>
 
-      {/* Day dots indicator */}
+      {/* Day dots indicator - only past days and today */}
       <div className="flex justify-center gap-1.5 pb-2">
-        {[-2, -1, 0, 1, 2].map((offset) => {
+        {[-4, -3, -2, -1, 0].map((offset) => {
           const dotDate = addDays(new Date(), offset);
           const isSelected = format(selectedDate, 'yyyy-MM-dd') === format(dotDate, 'yyyy-MM-dd');
           const isTodayDot = offset === 0;
