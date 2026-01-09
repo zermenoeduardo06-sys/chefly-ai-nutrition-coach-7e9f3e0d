@@ -102,6 +102,7 @@ export const AnimatedRoutes = () => {
         <Route path="/dashboard/settings" element={<DashboardLayout><PageTransition><Settings /></PageTransition></DashboardLayout>} />
         <Route path="/dashboard/settings/profile" element={<DashboardLayout><PageTransition><ProfileEdit /></PageTransition></DashboardLayout>} />
         <Route path="/dashboard/settings/avatar" element={<DashboardLayout><PageTransition><AvatarEdit /></PageTransition></DashboardLayout>} />
+        <Route path="/dashboard/avatar" element={<DashboardLayout><PageTransition><AvatarEdit /></PageTransition></DashboardLayout>} />
         <Route path="/dashboard/settings/preferences" element={<DashboardLayout><PageTransition><Preferences /></PageTransition></DashboardLayout>} />
         <Route path="/dashboard/settings/notifications" element={<DashboardLayout><PageTransition><NotificationSettings /></PageTransition></DashboardLayout>} />
         <Route path="/dashboard/settings/contact" element={<DashboardLayout><PageTransition><Contact /></PageTransition></DashboardLayout>} />
