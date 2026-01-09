@@ -667,6 +667,60 @@ export type Database = {
         }
         Relationships: []
       }
+      foods: {
+        Row: {
+          barcode: string | null
+          brand: string | null
+          calories: number
+          carbs: number | null
+          category: string
+          created_at: string | null
+          fats: number | null
+          fiber: number | null
+          id: string
+          is_verified: boolean | null
+          name: string
+          name_en: string | null
+          portion: string
+          portion_grams: number | null
+          protein: number | null
+        }
+        Insert: {
+          barcode?: string | null
+          brand?: string | null
+          calories: number
+          carbs?: number | null
+          category: string
+          created_at?: string | null
+          fats?: number | null
+          fiber?: number | null
+          id?: string
+          is_verified?: boolean | null
+          name: string
+          name_en?: string | null
+          portion: string
+          portion_grams?: number | null
+          protein?: number | null
+        }
+        Update: {
+          barcode?: string | null
+          brand?: string | null
+          calories?: number
+          carbs?: number | null
+          category?: string
+          created_at?: string | null
+          fats?: number | null
+          fiber?: number | null
+          id?: string
+          is_verified?: boolean | null
+          name?: string
+          name_en?: string | null
+          portion?: string
+          portion_grams?: number | null
+          protein?: number | null
+        }
+        Relationships: []
+      }
       friendships: {
         Row: {
           created_at: string
@@ -1184,6 +1238,47 @@ export type Database = {
             columns: ["challenge_id"]
             isOneToOne: false
             referencedRelation: "daily_challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_foods: {
+        Row: {
+          created_at: string | null
+          custom_food_data: Json | null
+          food_id: string | null
+          id: string
+          is_favorite: boolean | null
+          last_used_at: string | null
+          usage_count: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          custom_food_data?: Json | null
+          food_id?: string | null
+          id?: string
+          is_favorite?: boolean | null
+          last_used_at?: string | null
+          usage_count?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          custom_food_data?: Json | null
+          food_id?: string | null
+          id?: string
+          is_favorite?: boolean | null
+          last_used_at?: string | null
+          usage_count?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_foods_food_id_fkey"
+            columns: ["food_id"]
+            isOneToOne: false
+            referencedRelation: "foods"
             referencedColumns: ["id"]
           },
         ]
