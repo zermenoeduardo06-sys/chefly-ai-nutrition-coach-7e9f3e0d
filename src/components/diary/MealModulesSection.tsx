@@ -96,6 +96,7 @@ export function MealModulesSection({
   consumedCalories,
   targetCalories,
   recentFoods = {},
+  selectedDate = new Date(),
 }: MealModulesSectionProps) {
   const navigate = useNavigate();
   const { language } = useLanguage();
@@ -131,12 +132,15 @@ export function MealModulesSection({
   ];
 
   const handleModuleClick = (mealType: string) => {
-    navigate(`/dashboard/meal/${mealType}`);
+    // Pass date as query param for the detail page
+    const dateParam = format(selectedDate, "yyyy-MM-dd");
+    navigate(`/dashboard/meal/${mealType}?date=${dateParam}`);
   };
 
   const handleAddClick = (e: React.MouseEvent, mealType: string) => {
     e.stopPropagation();
-    navigate(`/dashboard/add-food/${mealType}`);
+    const dateParam = format(selectedDate, "yyyy-MM-dd");
+    navigate(`/dashboard/add-food/${mealType}?date=${dateParam}`);
   };
 
   return (
