@@ -1,18 +1,7 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, Zap, Sparkles } from 'lucide-react';
-
-interface XPGain {
-  id: string;
-  amount: number;
-  x: number;
-  y: number;
-  type: 'food' | 'meal' | 'challenge' | 'streak' | 'achievement';
-}
-
-interface XPGainAnimationProps {
-  children: React.ReactNode;
-}
+import { useXPAnimation, XPGain } from '@/contexts/XPAnimationContext';
 
 const typeConfig = {
   food: { icon: Zap, color: 'text-primary', bgColor: 'bg-primary/20' },
@@ -20,36 +9,6 @@ const typeConfig = {
   challenge: { icon: Sparkles, color: 'text-purple-400', bgColor: 'bg-purple-400/20' },
   streak: { icon: Zap, color: 'text-orange-400', bgColor: 'bg-orange-400/20' },
   achievement: { icon: Star, color: 'text-yellow-400', bgColor: 'bg-yellow-400/20' },
-};
-
-// Create a global event bus for XP gains
-const xpEventBus = {
-  listeners: [] as ((gain: XPGain) => void)[],
-  emit: (gain: Omit<XPGain, 'id'>) => {
-    const fullGain = { ...gain, id: `${Date.now()}-${Math.random()}` };
-    xpEventBus.listeners.forEach(listener => listener(fullGain));
-  },
-  subscribe: (listener: (gain: XPGain) => void) => {
-    xpEventBus.listeners.push(listener);
-    return () => {
-      xpEventBus.listeners = xpEventBus.listeners.filter(l => l !== listener);
-    };
-  },
-};
-
-// Hook to trigger XP animations from anywhere
-export const useXPAnimation = () => {
-  const triggerXP = useCallback((
-    amount: number,
-    type: XPGain['type'] = 'food',
-    position?: { x: number; y: number }
-  ) => {
-    const x = position?.x ?? window.innerWidth / 2;
-    const y = position?.y ?? window.innerHeight / 2;
-    xpEventBus.emit({ amount, type, x, y });
-  }, []);
-
-  return { triggerXP };
 };
 
 const XPFloater: React.FC<{ gain: XPGain; onComplete: () => void }> = ({ gain, onComplete }) => {
@@ -93,33 +52,19 @@ const XPFloater: React.FC<{ gain: XPGain; onComplete: () => void }> = ({ gain, o
   );
 };
 
-export const XPGainAnimation: React.FC<XPGainAnimationProps> = ({ children }) => {
-  const [gains, setGains] = useState<XPGain[]>([]);
-
-  useEffect(() => {
-    const unsubscribe = xpEventBus.subscribe((gain) => {
-      setGains(prev => [...prev, gain]);
-    });
-    return unsubscribe;
-  }, []);
-
-  const removeGain = useCallback((id: string) => {
-    setGains(prev => prev.filter(g => g.id !== id));
-  }, []);
+export const XPGainAnimation: React.FC = () => {
+  const { gains, removeGain } = useXPAnimation();
 
   return (
-    <>
-      {children}
-      <AnimatePresence>
-        {gains.map(gain => (
-          <XPFloater 
-            key={gain.id} 
-            gain={gain} 
-            onComplete={() => removeGain(gain.id)} 
-          />
-        ))}
-      </AnimatePresence>
-    </>
+    <AnimatePresence>
+      {gains.map(gain => (
+        <XPFloater 
+          key={gain.id} 
+          gain={gain} 
+          onComplete={() => removeGain(gain.id)} 
+        />
+      ))}
+    </AnimatePresence>
   );
 };
 

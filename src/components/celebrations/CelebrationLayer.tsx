@@ -1,4 +1,5 @@
 import React from 'react';
+import { XPAnimationProvider } from '@/contexts/XPAnimationContext';
 import { XPGainAnimation } from './XPGainAnimation';
 
 interface CelebrationLayerProps {
@@ -11,9 +12,10 @@ interface CelebrationLayerProps {
  */
 export const CelebrationLayer: React.FC<CelebrationLayerProps> = ({ children }) => {
   return (
-    <XPGainAnimation>
+    <XPAnimationProvider>
+      <XPGainAnimation />
       {children}
-    </XPGainAnimation>
+    </XPAnimationProvider>
   );
 };
 

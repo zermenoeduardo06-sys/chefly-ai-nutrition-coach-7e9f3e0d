@@ -47,8 +47,10 @@ export function MobileBottomNav() {
                     ? "bg-primary/10" 
                     : "hover:bg-muted/50"
                 )}
-                whileTap={{ scale: 0.9 }}
-                transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                whileTap={{ scale: 0.85 }}
+                whileHover={{ scale: 1.05 }}
+                animate={active ? { y: -2 } : { y: 0 }}
+                transition={{ type: "spring", stiffness: 500, damping: 25 }}
               >
                 <item.icon 
                   className={cn(

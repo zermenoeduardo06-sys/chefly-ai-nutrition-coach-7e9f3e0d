@@ -13,6 +13,9 @@ import { ScannerPromo } from "@/components/food/ScannerPromo";
 import { FoodListItem } from "@/components/food/FoodListItem";
 import { FoodScanner } from "@/components/FoodScanner";
 import ContextualPaywall from "@/components/ContextualPaywall";
+import { FoodAddedCelebration } from "@/components/celebrations/FoodAddedCelebration";
+import { useCelebrations } from "@/hooks/useCelebrations";
+import { useXPAnimation } from "@/contexts/XPAnimationContext";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -41,6 +44,11 @@ export default function AddFood() {
   const [paywallFeature, setPaywallFeature] = useState<"scan">("scan");
   const [showScanner, setShowScanner] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showFoodCelebration, setShowFoodCelebration] = useState(false);
+  const [celebrationData, setCelebrationData] = useState<{ name: string; calories: number; points: number } | null>(null);
+
+  const { celebrateFoodAdded } = useCelebrations();
+  const { triggerXP } = useXPAnimation();
 
   const subscription = useSubscription(userId);
   const { limits } = useSubscriptionLimits(userId);
@@ -233,7 +241,36 @@ export default function AddFood() {
         console.error('Error saving foods:', error);
         toast.error(language === 'es' ? 'Error al guardar' : 'Error saving');
       } else {
-        toast.success(t.saved);
+        // Calculate total calories and points
+        const totalCalories = selectedFoods.reduce((sum, f) => sum + f.calories, 0);
+        const pointsEarned = selectedFoods.length * 10;
+        const firstName = selectedFoods[0]?.name || '';
+        const displayName = selectedFoods.length > 1 
+          ? `${firstName} +${selectedFoods.length - 1}`
+          : firstName;
+
+        // Set celebration data
+        setCelebrationData({
+          name: displayName,
+          calories: totalCalories,
+          points: pointsEarned,
+        });
+
+        // Trigger celebration effects
+        celebrateFoodAdded(firstName, pointsEarned);
+        triggerXP(pointsEarned, 'food');
+
+        // Show celebration overlay
+        setShowFoodCelebration(true);
+
+        // Wait for celebration to finish before navigating
+        setTimeout(() => {
+          setShowFoodCelebration(false);
+          navigate(-1);
+        }, 1800);
+        
+        setIsSaving(false);
+        return; // Exit early to prevent immediate navigation
       }
     } catch (error) {
       console.error('Error saving foods:', error);
@@ -441,6 +478,15 @@ export default function AddFood() {
         onOpenChange={setShowPaywall}
         feature={paywallFeature}
         userId={userId}
+      />
+
+      {/* Food Added Celebration */}
+      <FoodAddedCelebration
+        show={showFoodCelebration}
+        foodName={celebrationData?.name || ''}
+        calories={celebrationData?.calories || 0}
+        points={celebrationData?.points || 10}
+        onComplete={() => setShowFoodCelebration(false)}
       />
     </div>
   );
