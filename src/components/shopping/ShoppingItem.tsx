@@ -1,5 +1,8 @@
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
+import { useHaptics } from "@/hooks/useHaptics";
 
 interface ShoppingItemProps {
   ingredient: string;
@@ -107,28 +110,87 @@ const getIngredientEmoji = (ingredient: string): string => {
 
 export function ShoppingItem({ ingredient, isPurchased, onToggle }: ShoppingItemProps) {
   const emoji = getIngredientEmoji(ingredient);
+  const { lightImpact } = useHaptics();
+  const [justChecked, setJustChecked] = useState(false);
+
+  const handleToggle = () => {
+    if (!isPurchased) {
+      setJustChecked(true);
+      lightImpact();
+      setTimeout(() => setJustChecked(false), 600);
+    }
+    onToggle();
+  };
 
   return (
-    <div className={cn(
-      "flex items-center gap-2 py-2 px-2 md:px-3 rounded-md transition-colors min-w-0",
-      isPurchased ? "bg-muted/50" : "hover:bg-accent/30 active:bg-accent/50"
-    )}>
-      <Checkbox
-        id={`item-${ingredient}`}
-        checked={isPurchased}
-        onCheckedChange={onToggle}
-        className="shrink-0"
-      />
-      <span className="text-base shrink-0">{emoji}</span>
-      <label 
+    <motion.div 
+      className={cn(
+        "flex items-center gap-2 py-2 px-2 md:px-3 rounded-md transition-colors min-w-0 relative overflow-hidden",
+        isPurchased ? "bg-muted/50" : "hover:bg-accent/30 active:bg-accent/50"
+      )}
+      whileTap={{ scale: 0.98 }}
+      layout
+    >
+      {/* Celebration sparkle effect */}
+      <AnimatePresence>
+        {justChecked && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1.5 }}
+            exit={{ opacity: 0, scale: 2 }}
+            transition={{ duration: 0.5 }}
+            className="absolute inset-0 pointer-events-none"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <motion.div
+        animate={justChecked ? { scale: [1, 1.3, 1] } : {}}
+        transition={{ duration: 0.3 }}
+      >
+        <Checkbox
+          id={`item-${ingredient}`}
+          checked={isPurchased}
+          onCheckedChange={handleToggle}
+          className="shrink-0"
+        />
+      </motion.div>
+      
+      <motion.span 
+        className="text-base shrink-0"
+        animate={justChecked ? { scale: [1, 1.4, 1], rotate: [0, 10, -10, 0] } : {}}
+        transition={{ duration: 0.4 }}
+      >
+        {emoji}
+      </motion.span>
+      
+      <motion.label 
         htmlFor={`item-${ingredient}`}
         className={cn(
-          "text-xs md:text-sm cursor-pointer flex-1 min-w-0 break-words",
+          "text-xs md:text-sm cursor-pointer flex-1 min-w-0 break-words transition-all duration-300",
           isPurchased && "line-through text-muted-foreground"
         )}
+        animate={isPurchased ? { x: [0, 5, 0] } : {}}
+        transition={{ duration: 0.2 }}
       >
         {ingredient}
-      </label>
-    </div>
+      </motion.label>
+
+      {/* Check animation */}
+      <AnimatePresence>
+        {justChecked && (
+          <motion.span
+            initial={{ opacity: 0, scale: 0, x: -10 }}
+            animate={{ opacity: 1, scale: 1, x: 0 }}
+            exit={{ opacity: 0, scale: 0 }}
+            className="text-primary text-sm font-medium"
+          >
+            ✓
+          </motion.span>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }

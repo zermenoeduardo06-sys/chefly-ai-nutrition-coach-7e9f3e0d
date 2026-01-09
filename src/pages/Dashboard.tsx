@@ -40,6 +40,8 @@ import { useDailyFoodIntake } from "@/hooks/useDailyFoodIntake";
 import { useNutritionGoals } from "@/hooks/useNutritionGoals";
 import { WaterTrackerWidget } from "@/components/WaterTrackerWidget";
 import { WeightTrackerWidget } from "@/components/WeightTrackerWidget";
+import { DailyProgressMilestones } from "@/components/celebrations/DailyProgressMilestones";
+import { useCelebrations } from "@/hooks/useCelebrations";
 
 interface MealAdaptation {
   id: string;
@@ -140,8 +142,11 @@ const Dashboard = () => {
   // Streak system based on daily calorie intake
   const streakSystem = useStreakSystem(userId, subscription.isCheflyPlus);
   
+  // Celebrations hook for enhanced animations
+  const { celebrateMealComplete, celebrateDailyGoal } = useCelebrations();
+  
   // Daily food intake tracking from food_scans - uses selected date
-  const { consumedCalories, recentFoods, refetch: refetchFoodIntake } = useDailyFoodIntake(userId, selectedDate);
+  const { consumedCalories, consumedMacros, recentFoods, refetch: refetchFoodIntake } = useDailyFoodIntake(userId, selectedDate);
   
   // Nutrition goals from user preferences
   const { goals: nutritionGoals, loading: goalsLoading } = useNutritionGoals(userId || null);
@@ -606,15 +611,15 @@ const Dashboard = () => {
     // Determine intensity based on type
     const intensity = celebrationType === 'daily_goal' ? 'epic' : 'medium';
 
+    // Use new celebration system for enhanced effects
+    if (celebrationType === 'daily_goal') {
+      celebrateDailyGoal();
+    } else if (celebrationType === 'meal_complete') {
+      celebrateMealComplete();
+    }
+
     // Trigger floating mascot celebration with type and intensity
     triggerMascotCelebration(randomMessage, celebrationType, intensity);
-
-    // Confetti with intensity matching
-    confetti({
-      particleCount: intensity === 'epic' ? 150 : 100,
-      spread: intensity === 'epic' ? 100 : 70,
-      origin: { y: 0.6 }
-    });
 
     const duration = intensity === 'epic' ? 5000 : 3000;
     setTimeout(() => {
@@ -1112,6 +1117,12 @@ const Dashboard = () => {
           targetCalories={targetCalories}
           recentFoods={recentFoods}
           selectedDate={selectedDate}
+        />
+
+        {/* DAILY PROGRESS MILESTONES - Celebrate 25%, 50%, 75%, 100% */}
+        <DailyProgressMilestones
+          currentCalories={consumedMacros.calories}
+          targetCalories={nutritionGoals.calories}
         />
 
         {/* WATER TRACKER - Daily hydration goal */}
