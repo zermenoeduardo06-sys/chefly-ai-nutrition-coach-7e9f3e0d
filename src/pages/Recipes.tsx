@@ -10,17 +10,23 @@ import {
   ArrowLeft,
   Search,
   Loader2,
-  UtensilsCrossed
+  UtensilsCrossed,
+  Sparkles,
+  FileText,
+  ListChecks,
+  X,
+  Download
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { MealImageWithSkeleton } from "@/components/MealImageWithSkeleton";
-import ContextualPaywall from "@/components/ContextualPaywall";
 import { cn } from "@/lib/utils";
 
 interface Recipe {
@@ -55,37 +61,57 @@ const mealTypeLabels: Record<string, Record<string, string>> = {
 const texts = {
   es: {
     title: "Mis Recetas",
-    subtitle: "Recetas personalizadas según tu objetivo",
+    subtitle: "Recetas saludables creadas con IA para ti",
+    aiPowered: "Personalizado con IA",
     search: "Buscar recetas...",
     noRecipes: "Aún no tienes recetas",
-    noRecipesDesc: "Genera tu plan semanal para ver tus recetas personalizadas",
-    generatePlan: "Generar Plan",
+    noRecipesDesc: "Nuestra IA generará recetas saludables personalizadas según tu objetivo y preferencias",
+    generatePlan: "Generar Recetas con IA",
     viewDetails: "Ver receta completa",
     locked: "Solo Chefly Plus",
     lockedDesc: "Accede a ingredientes, pasos y descarga de PDF",
     upgrade: "Mejorar a Plus",
     kcal: "kcal",
-    ingredients: "ingredientes",
-    steps: "pasos",
+    ingredients: "Ingredientes",
+    steps: "Pasos de preparación",
+    downloadPdf: "Descargar PDF",
     all: "Todas",
     loading: "Cargando recetas...",
+    benefits: "Beneficios",
+    macros: "Información nutricional",
+    protein: "Proteína",
+    carbs: "Carbohidratos",
+    fats: "Grasas",
+    unlockContent: "Desbloquea el contenido completo",
+    unlockDesc: "Con Chefly Plus obtienes acceso a todos los ingredientes, pasos detallados y descarga de PDF",
+    premiumFeature: "Función Premium",
   },
   en: {
     title: "My Recipes",
-    subtitle: "Personalized recipes for your goal",
+    subtitle: "Healthy AI-powered recipes made for you",
+    aiPowered: "AI Personalized",
     search: "Search recipes...",
     noRecipes: "No recipes yet",
-    noRecipesDesc: "Generate your weekly plan to see personalized recipes",
-    generatePlan: "Generate Plan",
+    noRecipesDesc: "Our AI will generate healthy recipes personalized to your goals and preferences",
+    generatePlan: "Generate AI Recipes",
     viewDetails: "View full recipe",
     locked: "Chefly Plus Only",
     lockedDesc: "Access ingredients, steps and PDF download",
     upgrade: "Upgrade to Plus",
     kcal: "kcal",
-    ingredients: "ingredients",
-    steps: "steps",
+    ingredients: "Ingredients",
+    steps: "Preparation steps",
+    downloadPdf: "Download PDF",
     all: "All",
     loading: "Loading recipes...",
+    benefits: "Benefits",
+    macros: "Nutritional info",
+    protein: "Protein",
+    carbs: "Carbohydrates",
+    fats: "Fats",
+    unlockContent: "Unlock full content",
+    unlockDesc: "With Chefly Plus you get access to all ingredients, detailed steps and PDF download",
+    premiumFeature: "Premium Feature",
   },
 };
 
@@ -99,8 +125,8 @@ export default function Recipes() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
-  const [showPaywall, setShowPaywall] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+  const [showRecipeDetail, setShowRecipeDetail] = useState(false);
 
   const { isCheflyPlus } = useSubscription(userId);
   const t = texts[language];
@@ -127,7 +153,6 @@ export default function Recipes() {
     setIsLoading(true);
 
     try {
-      // Get the most recent meal plan (not necessarily current week)
       const { data: mealPlan } = await supabase
         .from("meal_plans")
         .select("id")
@@ -143,7 +168,6 @@ export default function Recipes() {
         return;
       }
 
-      // Get all meals from the plan
       const { data: meals } = await supabase
         .from("meals")
         .select("*")
@@ -152,7 +176,6 @@ export default function Recipes() {
         .order("meal_type", { ascending: true });
 
       if (meals) {
-        // Remove duplicates based on name
         const uniqueRecipes = meals.reduce((acc: Recipe[], meal) => {
           if (!acc.find(r => r.name === meal.name)) {
             acc.push(meal);
@@ -175,7 +198,6 @@ export default function Recipes() {
     setIsGenerating(true);
     
     try {
-      // First check if user has preferences
       const { data: preferences } = await supabase
         .from("user_preferences")
         .select("id")
@@ -183,13 +205,11 @@ export default function Recipes() {
         .single();
 
       if (!preferences) {
-        // Redirect to onboarding if no preferences
         navigate("/onboarding");
         return;
       }
 
-      // Generate the meal plan
-      const { data, error } = await supabase.functions.invoke("generate-meal-plan", {
+      const { error } = await supabase.functions.invoke("generate-meal-plan", {
         body: { userId, forceNew: false, language },
       });
 
@@ -198,7 +218,6 @@ export default function Recipes() {
         return;
       }
 
-      // Reload recipes after generation
       await loadRecipes();
     } catch (error) {
       console.error("Error generating plan:", error);
@@ -207,7 +226,6 @@ export default function Recipes() {
     }
   };
 
-  // Filter recipes based on search and meal type
   useEffect(() => {
     let filtered = recipes;
 
@@ -227,14 +245,8 @@ export default function Recipes() {
   }, [searchQuery, activeFilter, recipes]);
 
   const handleRecipeClick = (recipe: Recipe) => {
-    if (isCheflyPlus) {
-      navigate(`/dashboard/meal/${recipe.meal_type}`, { 
-        state: { mealData: recipe }
-      });
-    } else {
-      setSelectedRecipe(recipe);
-      setShowPaywall(true);
-    }
+    setSelectedRecipe(recipe);
+    setShowRecipeDetail(true);
   };
 
   const mealTypes = ["all", "desayuno", "almuerzo", "cena", "snack"];
@@ -260,7 +272,10 @@ export default function Recipes() {
           </button>
           <div className="flex-1">
             <h1 className="text-xl font-bold text-foreground">{t.title}</h1>
-            <p className="text-sm text-muted-foreground">{t.subtitle}</p>
+            <div className="flex items-center gap-1.5">
+              <Sparkles className="h-3 w-3 text-primary" />
+              <p className="text-sm text-primary font-medium">{t.subtitle}</p>
+            </div>
           </div>
           <div className="flex items-center gap-1 bg-primary/10 px-2 py-1 rounded-full">
             <ChefHat className="h-4 w-4 text-primary" />
@@ -269,8 +284,27 @@ export default function Recipes() {
         </div>
       </div>
 
+      {/* AI Badge Banner */}
+      {filteredRecipes.length > 0 && (
+        <div className="px-4 py-3">
+          <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-primary/10 via-cyan-500/10 to-primary/10 rounded-xl border border-primary/20">
+            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+              <Sparkles className="h-4 w-4 text-primary" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-foreground">{t.aiPowered}</p>
+              <p className="text-xs text-muted-foreground">
+                {language === 'es' 
+                  ? 'Recetas adaptadas a tus objetivos y preferencias' 
+                  : 'Recipes adapted to your goals and preferences'}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Search */}
-      <div className="px-4 py-3">
+      <div className="px-4 py-2">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input
@@ -303,26 +337,33 @@ export default function Recipes() {
       </div>
 
       {/* Recipes Grid */}
-      <div className="px-4 space-y-3">
+      <div className="px-4 grid grid-cols-2 gap-3">
         {filteredRecipes.length === 0 ? (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="flex flex-col items-center justify-center py-16 text-center"
+            className="col-span-2 flex flex-col items-center justify-center py-16 text-center"
           >
-            <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-4">
-              <UtensilsCrossed className="h-10 w-10 text-muted-foreground" />
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-cyan-500/20 flex items-center justify-center mb-4">
+              <Sparkles className="h-10 w-10 text-primary" />
             </div>
             <h3 className="text-lg font-semibold text-foreground mb-2">{t.noRecipes}</h3>
-            <p className="text-muted-foreground mb-6 max-w-xs">{t.noRecipesDesc}</p>
-            <Button onClick={handleGeneratePlan} disabled={isGenerating}>
+            <p className="text-muted-foreground mb-6 max-w-xs text-sm">{t.noRecipesDesc}</p>
+            <Button 
+              onClick={handleGeneratePlan} 
+              disabled={isGenerating}
+              className="bg-gradient-to-r from-primary to-cyan-500"
+            >
               {isGenerating ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   {language === 'es' ? 'Generando...' : 'Generating...'}
                 </>
               ) : (
-                t.generatePlan
+                <>
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  {t.generatePlan}
+                </>
               )}
             </Button>
           </motion.div>
@@ -331,69 +372,46 @@ export default function Recipes() {
             {filteredRecipes.map((recipe, index) => (
               <motion.div
                 key={recipe.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ delay: index * 0.05 }}
               >
                 <Card 
-                  className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow border-border/50"
+                  className="overflow-hidden cursor-pointer hover:shadow-lg transition-all hover:scale-[1.02] border-border/50 h-full"
                   onClick={() => handleRecipeClick(recipe)}
                 >
-                  <div className="flex">
-                    {/* Image */}
-                    <div className="w-28 h-28 flex-shrink-0 relative">
-                      <MealImageWithSkeleton
-                        src={recipe.image_url}
-                        alt={recipe.name}
-                        className="w-full h-full object-cover"
-                      />
-                      {!isCheflyPlus && (
-                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                          <Lock className="h-6 w-6 text-white" />
-                        </div>
-                      )}
+                  {/* Image */}
+                  <div className="aspect-square relative overflow-hidden">
+                    <MealImageWithSkeleton
+                      src={recipe.image_url}
+                      alt={recipe.name}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute top-2 left-2">
+                      <Badge 
+                        variant="secondary" 
+                        className={cn("text-[10px] px-1.5 backdrop-blur-sm", mealTypeColors[recipe.meal_type])}
+                      >
+                        {mealTypeLabels[recipe.meal_type]?.[language] || recipe.meal_type}
+                      </Badge>
                     </div>
-
-                    {/* Content */}
-                    <div className="flex-1 p-3 flex flex-col justify-between">
-                      <div>
-                        <div className="flex items-start justify-between gap-2 mb-1">
-                          <h3 className="font-semibold text-foreground line-clamp-2 text-sm leading-tight">
-                            {recipe.name}
-                          </h3>
-                          <Badge 
-                            variant="secondary" 
-                            className={cn("text-[10px] px-1.5 shrink-0", mealTypeColors[recipe.meal_type])}
-                          >
-                            {mealTypeLabels[recipe.meal_type]?.[language] || recipe.meal_type}
-                          </Badge>
-                        </div>
-                        <p className="text-xs text-muted-foreground line-clamp-1 mb-2">
-                          {recipe.description}
-                        </p>
-                      </div>
-
-                      {/* Stats */}
-                      <div className="flex items-center gap-3 text-xs">
-                        <div className="flex items-center gap-1 text-amber-500">
-                          <Flame className="h-3.5 w-3.5" />
-                          <span>{recipe.calories} {t.kcal}</span>
-                        </div>
-                        {isCheflyPlus && recipe.ingredients && (
-                          <div className="flex items-center gap-1 text-muted-foreground">
-                            <UtensilsCrossed className="h-3.5 w-3.5" />
-                            <span>{recipe.ingredients.length} {t.ingredients}</span>
-                          </div>
-                        )}
-                        {isCheflyPlus && recipe.steps && (
-                          <div className="flex items-center gap-1 text-muted-foreground">
-                            <Clock className="h-3.5 w-3.5" />
-                            <span>{recipe.steps.length} {t.steps}</span>
-                          </div>
-                        )}
+                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent p-2">
+                      <div className="flex items-center gap-1 text-white text-xs">
+                        <Flame className="h-3 w-3 text-amber-400" />
+                        <span>{recipe.calories} {t.kcal}</span>
                       </div>
                     </div>
+                  </div>
+
+                  {/* Content */}
+                  <div className="p-3">
+                    <h3 className="font-semibold text-foreground line-clamp-2 text-sm leading-tight mb-1">
+                      {recipe.name}
+                    </h3>
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      {recipe.description}
+                    </p>
                   </div>
                 </Card>
               </motion.div>
@@ -402,43 +420,223 @@ export default function Recipes() {
         )}
       </div>
 
-      {/* Premium Upsell Banner for Free Users */}
-      {!isCheflyPlus && filteredRecipes.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="px-4 mt-6"
-        >
-          <Card className="p-4 bg-gradient-to-r from-amber-500/10 to-primary/10 border-amber-500/30">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
-                <Crown className="h-5 w-5 text-amber-500" />
-              </div>
-              <div className="flex-1">
-                <h4 className="font-semibold text-foreground mb-1">{t.locked}</h4>
-                <p className="text-sm text-muted-foreground mb-3">{t.lockedDesc}</p>
-                <Button 
-                  onClick={() => navigate("/pricing")}
-                  size="sm"
-                  className="bg-gradient-to-r from-amber-500 to-primary"
-                >
-                  <Crown className="h-4 w-4 mr-2" />
-                  {t.upgrade}
-                </Button>
-              </div>
-            </div>
-          </Card>
-        </motion.div>
-      )}
+      {/* Recipe Detail Dialog */}
+      <Dialog open={showRecipeDetail} onOpenChange={setShowRecipeDetail}>
+        <DialogContent className="max-w-lg p-0 overflow-hidden max-h-[90vh]">
+          {selectedRecipe && (
+            <ScrollArea className="max-h-[90vh]">
+              <div className="relative">
+                {/* Hero Image */}
+                <div className="aspect-video relative">
+                  <MealImageWithSkeleton
+                    src={selectedRecipe.image_url}
+                    alt={selectedRecipe.name}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                  <button 
+                    onClick={() => setShowRecipeDetail(false)}
+                    className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/50 flex items-center justify-center text-white"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                  <div className="absolute bottom-3 left-3 right-3">
+                    <Badge 
+                      variant="secondary" 
+                      className={cn("mb-2", mealTypeColors[selectedRecipe.meal_type])}
+                    >
+                      {mealTypeLabels[selectedRecipe.meal_type]?.[language] || selectedRecipe.meal_type}
+                    </Badge>
+                    <h2 className="text-xl font-bold text-white">{selectedRecipe.name}</h2>
+                  </div>
+                </div>
 
-      {/* Contextual Paywall */}
-      <ContextualPaywall
-        open={showPaywall}
-        onOpenChange={setShowPaywall}
-        feature="plan"
-        userId={userId}
-      />
+                <div className="p-4 space-y-4">
+                  {/* Description */}
+                  <p className="text-muted-foreground text-sm">{selectedRecipe.description}</p>
+
+                  {/* Macros - Always Visible */}
+                  <div className="grid grid-cols-4 gap-2">
+                    <div className="bg-amber-500/10 rounded-lg p-2 text-center">
+                      <Flame className="h-4 w-4 mx-auto text-amber-500 mb-1" />
+                      <p className="text-xs text-muted-foreground">{t.kcal}</p>
+                      <p className="font-semibold text-foreground">{selectedRecipe.calories}</p>
+                    </div>
+                    <div className="bg-emerald-500/10 rounded-lg p-2 text-center">
+                      <p className="text-xs text-muted-foreground">{t.protein}</p>
+                      <p className="font-semibold text-foreground">{selectedRecipe.protein}g</p>
+                    </div>
+                    <div className="bg-cyan-500/10 rounded-lg p-2 text-center">
+                      <p className="text-xs text-muted-foreground">{t.carbs}</p>
+                      <p className="font-semibold text-foreground">{selectedRecipe.carbs}g</p>
+                    </div>
+                    <div className="bg-pink-500/10 rounded-lg p-2 text-center">
+                      <p className="text-xs text-muted-foreground">{t.fats}</p>
+                      <p className="font-semibold text-foreground">{selectedRecipe.fats}g</p>
+                    </div>
+                  </div>
+
+                  {/* Benefits - Always Visible */}
+                  {selectedRecipe.benefits && (
+                    <div className="bg-primary/5 rounded-xl p-3 border border-primary/20">
+                      <h4 className="font-semibold text-foreground mb-1 text-sm">{t.benefits}</h4>
+                      <p className="text-sm text-muted-foreground">{selectedRecipe.benefits}</p>
+                    </div>
+                  )}
+
+                  {/* Premium Content Section */}
+                  <div className="space-y-4">
+                    {/* Ingredients */}
+                    <div className="relative">
+                      <div className="flex items-center gap-2 mb-2">
+                        <ListChecks className="h-4 w-4 text-primary" />
+                        <h4 className="font-semibold text-foreground">{t.ingredients}</h4>
+                        {!isCheflyPlus && (
+                          <Badge variant="secondary" className="text-[10px] bg-amber-500/20 text-amber-500">
+                            <Lock className="h-2.5 w-2.5 mr-1" />
+                            Premium
+                          </Badge>
+                        )}
+                      </div>
+                      
+                      {isCheflyPlus ? (
+                        <ul className="space-y-1.5">
+                          {selectedRecipe.ingredients?.map((ing, idx) => (
+                            <li key={idx} className="text-sm text-muted-foreground flex items-start gap-2">
+                              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+                              {ing}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <div className="relative overflow-hidden rounded-lg">
+                          <div className="blur-sm select-none pointer-events-none opacity-50">
+                            <ul className="space-y-1.5">
+                              {['200g de pollo deshuesado', '1 taza de arroz integral', '2 cucharadas de aceite de oliva', '1 cebolla picada', '2 dientes de ajo'].map((ing, idx) => (
+                                <li key={idx} className="text-sm text-muted-foreground flex items-start gap-2">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+                                  {ing}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-[2px]">
+                            <Lock className="h-6 w-6 text-muted-foreground" />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Steps */}
+                    <div className="relative">
+                      <div className="flex items-center gap-2 mb-2">
+                        <ChefHat className="h-4 w-4 text-primary" />
+                        <h4 className="font-semibold text-foreground">{t.steps}</h4>
+                        {!isCheflyPlus && (
+                          <Badge variant="secondary" className="text-[10px] bg-amber-500/20 text-amber-500">
+                            <Lock className="h-2.5 w-2.5 mr-1" />
+                            Premium
+                          </Badge>
+                        )}
+                      </div>
+                      
+                      {isCheflyPlus ? (
+                        <ol className="space-y-3">
+                          {selectedRecipe.steps?.map((step, idx) => (
+                            <li key={idx} className="flex gap-3 text-sm">
+                              <span className="w-6 h-6 rounded-full bg-primary/20 text-primary text-xs flex items-center justify-center shrink-0 font-medium">
+                                {idx + 1}
+                              </span>
+                              <span className="text-muted-foreground">{step}</span>
+                            </li>
+                          ))}
+                        </ol>
+                      ) : (
+                        <div className="relative overflow-hidden rounded-lg">
+                          <div className="blur-sm select-none pointer-events-none opacity-50">
+                            <ol className="space-y-3">
+                              {['Precalienta el horno a 180°C', 'Corta el pollo en cubos medianos', 'Sofríe la cebolla y el ajo', 'Añade el pollo y cocina hasta dorar'].map((step, idx) => (
+                                <li key={idx} className="flex gap-3 text-sm">
+                                  <span className="w-6 h-6 rounded-full bg-primary/20 text-primary text-xs flex items-center justify-center shrink-0 font-medium">
+                                    {idx + 1}
+                                  </span>
+                                  <span className="text-muted-foreground">{step}</span>
+                                </li>
+                              ))}
+                            </ol>
+                          </div>
+                          <div className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-[2px]">
+                            <Lock className="h-6 w-6 text-muted-foreground" />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* PDF Download */}
+                    <div className="relative">
+                      {isCheflyPlus ? (
+                        <Button 
+                          variant="outline" 
+                          className="w-full"
+                          onClick={() => {
+                            // TODO: Implement PDF download
+                          }}
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          {t.downloadPdf}
+                        </Button>
+                      ) : (
+                        <div className="relative">
+                          <Button 
+                            variant="outline" 
+                            className="w-full opacity-50 pointer-events-none"
+                          >
+                            <Download className="h-4 w-4 mr-2" />
+                            {t.downloadPdf}
+                          </Button>
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <Lock className="h-5 w-5 text-muted-foreground" />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Upgrade CTA for Free Users */}
+                  {!isCheflyPlus && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-gradient-to-r from-amber-500/10 via-primary/10 to-amber-500/10 rounded-xl p-4 border border-amber-500/30"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-primary flex items-center justify-center shrink-0">
+                          <Crown className="h-5 w-5 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-foreground mb-1">{t.unlockContent}</h4>
+                          <p className="text-sm text-muted-foreground mb-3">{t.unlockDesc}</p>
+                          <Button 
+                            onClick={() => {
+                              setShowRecipeDetail(false);
+                              navigate("/pricing");
+                            }}
+                            size="sm"
+                            className="bg-gradient-to-r from-amber-500 to-primary"
+                          >
+                            <Crown className="h-4 w-4 mr-2" />
+                            {t.upgrade}
+                          </Button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+              </div>
+            </ScrollArea>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
