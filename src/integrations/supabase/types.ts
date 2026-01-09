@@ -622,6 +622,7 @@ export type Database = {
           foods_identified: string[] | null
           id: string
           image_url: string | null
+          meal_type: string | null
           notes: string | null
           portion_estimate: string | null
           protein: number | null
@@ -639,6 +640,7 @@ export type Database = {
           foods_identified?: string[] | null
           id?: string
           image_url?: string | null
+          meal_type?: string | null
           notes?: string | null
           portion_estimate?: string | null
           protein?: number | null
@@ -656,6 +658,7 @@ export type Database = {
           foods_identified?: string[] | null
           id?: string
           image_url?: string | null
+          meal_type?: string | null
           notes?: string | null
           portion_estimate?: string | null
           protein?: number | null
