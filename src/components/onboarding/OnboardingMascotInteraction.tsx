@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import mascotHappy from '@/assets/mascot-happy.png';
 import mascotHealth from '@/assets/mascot-health.png';
 import mascotScience from '@/assets/mascot-science.png';
@@ -13,6 +15,8 @@ interface OnboardingMascotInteractionProps {
   size?: 'small' | 'medium' | 'large';
   showCelebration?: boolean;
   className?: string;
+  onContinue?: () => void;
+  continueLabel?: string;
 }
 
 const mascotImages: Record<MascotPose, string> = {
@@ -36,6 +40,8 @@ export const OnboardingMascotInteraction: React.FC<OnboardingMascotInteractionPr
   size = 'medium',
   showCelebration = false,
   className = "",
+  onContinue,
+  continueLabel = "Siguiente",
 }) => {
   const [displayedMessage, setDisplayedMessage] = useState("");
   const [isTyping, setIsTyping] = useState(true);
@@ -159,6 +165,25 @@ export const OnboardingMascotInteraction: React.FC<OnboardingMascotInteractionPr
           </>
         )}
       </motion.div>
+
+      {/* Continue Button */}
+      {onContinue && !isTyping && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.3 }}
+          className="mt-6"
+        >
+          <Button 
+            onClick={onContinue}
+            size="lg"
+            className="gap-2 px-8"
+          >
+            {continueLabel}
+            <ChevronRight className="w-5 h-5" />
+          </Button>
+        </motion.div>
+      )}
     </div>
   );
 };
