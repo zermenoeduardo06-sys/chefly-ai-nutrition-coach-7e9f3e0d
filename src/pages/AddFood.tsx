@@ -1,18 +1,24 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Camera, MoreHorizontal, Carrot, UtensilsCrossed, ChefHat, ClipboardList, Crown, Barcode, Plus } from "lucide-react";
+import { Search, MoreHorizontal, Carrot, UtensilsCrossed, ChefHat, ClipboardList, Crown, Barcode, ArrowLeft, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
+import { useFoodDatabase, Food, getCategoryIcon, getCategoryColor } from "@/hooks/useFoodDatabase";
+import { ScannerPromo } from "@/components/food/ScannerPromo";
+import { FoodListItem } from "@/components/food/FoodListItem";
+import { FoodScanner } from "@/components/FoodScanner";
 import ContextualPaywall from "@/components/ContextualPaywall";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { format } from "date-fns";
 
 type Category = "foods" | "meals" | "recipes" | "plan";
 type FilterTab = "frequent" | "recent" | "favorites";
-type BottomTab = "camera" | "search";
 
 interface FoodItem {
   id: string;
@@ -31,35 +37,58 @@ const mealTypeLabels = {
   snack: { es: "Snack", en: "Snack" },
 };
 
-// Sample food data - would come from database/API
-const sampleFoods: FoodItem[] = [
-  { id: "1", name: "Café negro", portion: "1 taza (237 mL)", calories: 2, protein: 0.3, carbs: 0, fats: 0 },
-  { id: "2", name: "Plátano", portion: "1 mediano (118 g)", calories: 105, protein: 1.3, carbs: 27, fats: 0.4 },
-  { id: "3", name: "Huevo revuelto", portion: "1 grande (50 g)", calories: 91, protein: 6, carbs: 1, fats: 7 },
-  { id: "4", name: "Avena con leche", portion: "1 taza (240 g)", calories: 150, protein: 5, carbs: 27, fats: 3 },
-  { id: "5", name: "Tostada integral", portion: "1 rebanada (30 g)", calories: 70, protein: 3, carbs: 12, fats: 1 },
-  { id: "6", name: "Yogur griego", portion: "170 g", calories: 100, protein: 17, carbs: 6, fats: 0.7 },
-];
-
 export default function AddFood() {
   const navigate = useNavigate();
   const { mealType } = useParams<{ mealType: string }>();
+  const [searchParams] = useSearchParams();
   const { language } = useLanguage();
   const [userId, setUserId] = useState<string | undefined>();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<Category>("foods");
   const [activeFilter, setActiveFilter] = useState<FilterTab>("frequent");
-  const [activeBottomTab, setActiveBottomTab] = useState<BottomTab>("search");
-  const [selectedFoods, setSelectedFoods] = useState<FoodItem[]>([]);
+  const [selectedFoods, setSelectedFoods] = useState<Food[]>([]);
   const [showPaywall, setShowPaywall] = useState(false);
   const [paywallFeature, setPaywallFeature] = useState<"scan" | "plan">("plan");
   const [planMeals, setPlanMeals] = useState<FoodItem[]>([]);
+  const [showScanner, setShowScanner] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const subscription = useSubscription(userId);
+  const { limits } = useSubscriptionLimits(userId);
   const isPremium = subscription.isCheflyPlus;
   
-  const validMealType = (mealType as keyof typeof mealTypeLabels) || "breakfast";
+  const {
+    foods: dbFoods,
+    frequentFoods,
+    recentFoods,
+    favoriteFoods,
+    isLoading,
+    searchFoods,
+    getAllFoods,
+    getFrequentFoods,
+    getRecentFoods,
+    getFavoriteFoods,
+    toggleFavorite,
+    trackFoodUsage,
+  } = useFoodDatabase(userId);
 
+  const validMealType = (mealType as keyof typeof mealTypeLabels) || "breakfast";
+  const selectedDate = searchParams.get('date') || format(new Date(), 'yyyy-MM-dd');
+
+  // Debounced search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchQuery.length >= 2) {
+        searchFoods(searchQuery);
+      } else if (searchQuery.length === 0) {
+        getAllFoods();
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, searchFoods, getAllFoods]);
+
+  // Load user data and initial foods
   useEffect(() => {
     const loadData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -68,6 +97,9 @@ export default function AddFood() {
         return;
       }
       setUserId(user.id);
+
+      // Load initial foods from database
+      getAllFoods();
 
       // Load meals from weekly plan for this meal type
       const today = new Date().getDay();
@@ -102,7 +134,20 @@ export default function AddFood() {
     };
 
     loadData();
-  }, [navigate, validMealType]);
+  }, [navigate, validMealType, getAllFoods]);
+
+  // Load filtered foods based on active filter
+  useEffect(() => {
+    if (userId && activeCategory === "foods" && searchQuery.length === 0) {
+      if (activeFilter === "frequent") {
+        getFrequentFoods();
+      } else if (activeFilter === "recent") {
+        getRecentFoods();
+      } else if (activeFilter === "favorites") {
+        getFavoriteFoods();
+      }
+    }
+  }, [userId, activeFilter, activeCategory, searchQuery, getFrequentFoods, getRecentFoods, getFavoriteFoods]);
 
   const texts = {
     es: {
@@ -114,12 +159,14 @@ export default function AddFood() {
       frequent: "Frecuentes",
       recent: "Recientes",
       favorites: "Favoritos",
-      cameraAI: "Cámara IA",
-      search: "Buscar",
       done: "Listo",
       noResults: "No se encontraron resultados",
+      searchHint: "Busca entre 100+ alimentos",
       premium: "Premium",
       kcal: "kcal",
+      saving: "Guardando...",
+      saved: "Alimentos guardados",
+      or: "o busca manualmente",
     },
     en: {
       whatDidYouEat: `What did you have for ${validMealType}?`,
@@ -130,12 +177,14 @@ export default function AddFood() {
       frequent: "Frequent",
       recent: "Recent",
       favorites: "Favorites",
-      cameraAI: "AI Camera",
-      search: "Search",
       done: "Done",
       noResults: "No results found",
+      searchHint: "Search 100+ foods",
       premium: "Premium",
       kcal: "kcal",
+      saving: "Saving...",
+      saved: "Foods saved",
+      or: "or search manually",
     },
   };
 
@@ -162,22 +211,37 @@ export default function AddFood() {
       return;
     }
     setActiveCategory(category);
+    setSearchQuery("");
   };
 
-  const handleBottomTabChange = (tab: BottomTab) => {
-    if (tab === "camera") {
-      // Navigate to AI Camera page
-      navigate(`/dashboard/ai-camera/${validMealType}`);
+  const handleScanClick = () => {
+    if (!isPremium && limits.foodScansUsed >= limits.dailyFoodScanLimit) {
+      setPaywallFeature("scan");
+      setShowPaywall(true);
       return;
     }
-    setActiveBottomTab(tab);
+    setShowScanner(true);
   };
 
-  const handleAddFood = (food: FoodItem) => {
+  const handleAddFood = (food: Food) => {
     if (selectedFoods.find(f => f.id === food.id)) {
       setSelectedFoods(selectedFoods.filter(f => f.id !== food.id));
     } else {
       setSelectedFoods([...selectedFoods, food]);
+    }
+  };
+
+  const handleToggleFavorite = useCallback((foodId: string) => {
+    toggleFavorite(foodId);
+  }, [toggleFavorite]);
+
+  const getTimeForMeal = (mealType: string): string => {
+    switch(mealType) {
+      case 'breakfast': return '08:00:00';
+      case 'lunch': return '13:00:00';
+      case 'dinner': return '20:00:00';
+      case 'snack': return '16:00:00';
+      default: return '12:00:00';
     }
   };
 
@@ -187,18 +251,30 @@ export default function AddFood() {
       return;
     }
 
+    setIsSaving(true);
+
     try {
+      // Track usage for each selected food
+      for (const food of selectedFoods) {
+        await trackFoodUsage(food.id);
+      }
+
+      // Calculate the correct timestamp based on selected date and meal type
+      const mealTime = getTimeForMeal(validMealType);
+      const scannedAt = new Date(`${selectedDate}T${mealTime}`).toISOString();
+
       // Save each selected food to food_scans with the meal_type
       const foodScansToInsert = selectedFoods.map(food => ({
         user_id: userId,
         dish_name: food.name,
         calories: food.calories,
-        protein: food.protein || 0,
-        carbs: food.carbs || 0,
-        fat: food.fats || 0,
+        protein: Math.round(food.protein),
+        carbs: Math.round(food.carbs),
+        fat: Math.round(food.fats),
         portion_estimate: food.portion,
         meal_type: validMealType,
         confidence: 'high',
+        scanned_at: scannedAt,
       }));
 
       const { error } = await supabase
@@ -207,32 +283,60 @@ export default function AddFood() {
 
       if (error) {
         console.error('Error saving foods:', error);
+        toast.error(language === 'es' ? 'Error al guardar' : 'Error saving');
+      } else {
+        toast.success(t.saved);
       }
     } catch (error) {
       console.error('Error saving foods:', error);
+    } finally {
+      setIsSaving(false);
     }
 
     navigate(-1);
   };
 
-  const filteredFoods = (activeCategory === "plan" ? planMeals : sampleFoods).filter(food =>
-    food.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Get foods to display based on current state
+  const getDisplayFoods = (): Food[] => {
+    if (searchQuery.length >= 2) {
+      return dbFoods;
+    }
 
+    if (activeCategory === "foods") {
+      switch (activeFilter) {
+        case "frequent":
+          return frequentFoods.length > 0 ? frequentFoods : dbFoods;
+        case "recent":
+          return recentFoods.length > 0 ? recentFoods : dbFoods;
+        case "favorites":
+          return favoriteFoods;
+        default:
+          return dbFoods;
+      }
+    }
+
+    return dbFoods;
+  };
+
+  const displayFoods = getDisplayFoods();
   const totalSelected = selectedFoods.length;
+  const scansRemaining = Math.max(0, limits.dailyFoodScanLimit - limits.foodScansUsed);
 
-  // Remove the scanner view - we use the Dialog directly now
-  // The scanner is rendered as a dialog at the bottom of this component
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
         <div className="flex items-center justify-between p-4">
-          <div className="flex items-center gap-2">
-            <span className="h-7 w-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
-              {totalSelected}
-            </span>
-            <span className="font-medium text-foreground">{mealLabel}</span>
+          <div className="flex items-center gap-3">
+            <button onClick={() => navigate(-1)} className="p-1">
+              <ArrowLeft className="h-5 w-5 text-foreground" />
+            </button>
+            <div className="flex items-center gap-2">
+              <span className="h-7 w-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
+                {totalSelected}
+              </span>
+              <span className="font-medium text-foreground">{mealLabel}</span>
+            </div>
           </div>
           <button className="p-2">
             <MoreHorizontal className="h-6 w-6" />
@@ -240,12 +344,31 @@ export default function AddFood() {
         </div>
       </div>
 
-      {/* Search Bar */}
+      {/* Scanner Promo Section */}
       <div className="p-4 pb-2">
+        <ScannerPromo
+          scansRemaining={scansRemaining}
+          maxScans={limits.dailyFoodScanLimit}
+          isPremium={isPremium}
+          onScanClick={handleScanClick}
+        />
+      </div>
+
+      {/* Divider */}
+      <div className="px-4 py-3">
+        <div className="flex items-center gap-3">
+          <div className="flex-1 h-px bg-border" />
+          <span className="text-xs text-muted-foreground">{t.or}</span>
+          <div className="flex-1 h-px bg-border" />
+        </div>
+      </div>
+
+      {/* Search Bar */}
+      <div className="px-4 pb-2">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input
-            placeholder={t.whatDidYouEat}
+            placeholder={t.searchHint}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10 pr-10 h-12 bg-muted border-0"
@@ -283,71 +406,54 @@ export default function AddFood() {
       </div>
 
       {/* Filter Tabs */}
-      <div className="px-4 py-2 border-b">
-        <div className="flex gap-4">
-          {filterTabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveFilter(tab.id)}
-              className={cn(
-                "pb-2 text-sm font-medium transition-colors border-b-2",
-                activeFilter === tab.id
-                  ? "border-primary text-foreground"
-                  : "border-transparent text-muted-foreground"
-              )}
-            >
-              {tab.label}
-            </button>
-          ))}
+      {activeCategory === "foods" && (
+        <div className="px-4 py-2 border-b">
+          <div className="flex gap-4">
+            {filterTabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveFilter(tab.id)}
+                className={cn(
+                  "pb-2 text-sm font-medium transition-colors border-b-2",
+                  activeFilter === tab.id
+                    ? "border-primary text-foreground"
+                    : "border-transparent text-muted-foreground"
+                )}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Food List */}
-      <div className="flex-1 overflow-y-auto pb-32">
-        <AnimatePresence mode="popLayout">
-          {filteredFoods.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-              <Search className="h-12 w-12 mb-4 opacity-50" />
-              <p>{t.noResults}</p>
-            </div>
-          ) : (
-            filteredFoods.map((food, index) => {
-              const isSelected = selectedFoods.find(f => f.id === food.id);
-              return (
-                <motion.button
+      <div className="flex-1 overflow-y-auto pb-32 px-4 pt-2 space-y-2">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <AnimatePresence mode="popLayout">
+            {displayFoods.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                <Search className="h-12 w-12 mb-4 opacity-50" />
+                <p>{t.noResults}</p>
+              </div>
+            ) : (
+              displayFoods.map((food) => (
+                <FoodListItem
                   key={food.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ delay: index * 0.03 }}
-                  onClick={() => handleAddFood(food)}
-                  className={cn(
-                    "w-full flex items-center justify-between p-4 border-b border-border transition-colors",
-                    isSelected && "bg-primary/5"
-                  )}
-                >
-                  <div className="text-left">
-                    <p className="font-medium text-foreground">{food.name}</p>
-                    <p className="text-sm text-muted-foreground">{food.portion}</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm text-muted-foreground">
-                      {food.calories} {t.kcal}
-                    </span>
-                    <div className={cn(
-                      "h-7 w-7 rounded-full border-2 flex items-center justify-center transition-colors",
-                      isSelected 
-                        ? "bg-primary border-primary" 
-                        : "border-muted-foreground/30"
-                    )}>
-                      {isSelected && <Plus className="h-4 w-4 text-primary-foreground rotate-45" />}
-                    </div>
-                  </div>
-                </motion.button>
-              );
-            })
-          )}
-        </AnimatePresence>
+                  food={food}
+                  isSelected={!!selectedFoods.find(f => f.id === food.id)}
+                  isFavorite={favoriteFoods.some(f => f.id === food.id)}
+                  onSelect={handleAddFood}
+                  onToggleFavorite={handleToggleFavorite}
+                />
+              ))
+            )}
+          </AnimatePresence>
+        )}
       </div>
 
       {/* Done Button - Floating */}
@@ -355,48 +461,36 @@ export default function AddFood() {
         <motion.div
           initial={{ y: 100 }}
           animate={{ y: 0 }}
-          className="fixed bottom-20 left-4 right-4 z-40"
+          className="fixed bottom-6 left-4 right-4 z-40"
         >
           <Button
             onClick={handleDone}
+            disabled={isSaving}
             className="w-full h-14 text-lg font-semibold shadow-lg"
             size="lg"
           >
-            {t.done}
+            {isSaving ? (
+              <>
+                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                {t.saving}
+              </>
+            ) : (
+              `${t.done} (${totalSelected})`
+            )}
           </Button>
         </motion.div>
       )}
 
-      {/* Bottom Tab Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-card border-t safe-area-pb z-50">
-        <div className="flex">
-          <button
-            onClick={() => handleBottomTabChange("camera")}
-            className={cn(
-              "flex-1 flex flex-col items-center gap-1 py-3 transition-colors",
-              activeBottomTab === "camera" ? "text-primary" : "text-muted-foreground"
-            )}
-          >
-            <div className="relative">
-              <Camera className="h-6 w-6" />
-              {!isPremium && (
-                <Crown className="h-3 w-3 absolute -top-1 -right-2 text-yellow-500" />
-              )}
-            </div>
-            <span className="text-xs font-medium">{t.cameraAI}</span>
-          </button>
-          <button
-            onClick={() => handleBottomTabChange("search")}
-            className={cn(
-              "flex-1 flex flex-col items-center gap-1 py-3 transition-colors",
-              activeBottomTab === "search" ? "text-primary" : "text-muted-foreground"
-            )}
-          >
-            <Search className="h-6 w-6" />
-            <span className="text-xs font-medium">{t.search}</span>
-          </button>
-        </div>
-      </div>
+      {/* Food Scanner Dialog */}
+      <FoodScanner
+        open={showScanner}
+        onOpenChange={setShowScanner}
+        mealType={validMealType}
+        onSaveSuccess={() => {
+          setShowScanner(false);
+          navigate(-1);
+        }}
+      />
 
       {/* Paywall */}
       <ContextualPaywall
