@@ -96,7 +96,7 @@ const AvatarEdit = () => {
         description: t("avatar.savedDesc"),
       });
 
-      navigate("/dashboard/settings");
+      navigate("/dashboard/more");
     } catch (err: any) {
       console.error("Error saving avatar:", err);
       toast({
@@ -214,7 +214,7 @@ const AvatarEdit = () => {
         className="sticky top-0 z-50 bg-background border-b border-border pt-safe-top"
       >
         <div className="flex items-center justify-between px-4 py-4">
-          <button onClick={() => navigate("/dashboard/settings")} className="p-2 -ml-2">
+          <button onClick={() => navigate("/dashboard/more")} className="p-2 -ml-2">
             <X className="h-6 w-6 text-muted-foreground" />
           </button>
           <h1 className="text-lg font-bold text-foreground">{t("avatar.editTitle")}</h1>
