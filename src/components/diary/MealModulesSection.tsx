@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Plus, ChevronRight, Coffee, Utensils, Moon, Apple } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
@@ -35,11 +35,60 @@ const mealIcons = {
 };
 
 const mealColors = {
-  breakfast: "bg-amber-900/50",
-  lunch: "bg-orange-900/50",
-  dinner: "bg-rose-900/50",
-  snack: "bg-red-900/50",
+  breakfast: { bg: "bg-amber-900/50", ring: "stroke-amber-400" },
+  lunch: { bg: "bg-orange-900/50", ring: "stroke-orange-400" },
+  dinner: { bg: "bg-rose-900/50", ring: "stroke-rose-400" },
+  snack: { bg: "bg-red-900/50", ring: "stroke-red-400" },
 };
+
+// Circular progress component
+function CircularProgress({ 
+  value, 
+  size = 48, 
+  strokeWidth = 4,
+  colorClass = "stroke-primary"
+}: { 
+  value: number; 
+  size?: number; 
+  strokeWidth?: number;
+  colorClass?: string;
+}) {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const progress = Math.min(Math.max(value, 0), 100);
+  const offset = circumference - (progress / 100) * circumference;
+
+  return (
+    <svg width={size} height={size} className="transform -rotate-90">
+      {/* Background circle */}
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={strokeWidth}
+        className="text-muted/30"
+      />
+      {/* Progress circle */}
+      <motion.circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        fill="none"
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        className={colorClass}
+        initial={{ strokeDashoffset: circumference }}
+        animate={{ strokeDashoffset: offset }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        style={{
+          strokeDasharray: circumference,
+        }}
+      />
+    </svg>
+  );
+}
 
 export function MealModulesSection({
   consumedCalories,
@@ -73,10 +122,10 @@ export function MealModulesSection({
   const t = texts[language];
 
   const modules = [
-    { id: "breakfast", label: t.breakfast, icon: mealIcons.breakfast, color: mealColors.breakfast },
-    { id: "lunch", label: t.lunch, icon: mealIcons.lunch, color: mealColors.lunch },
-    { id: "dinner", label: t.dinner, icon: mealIcons.dinner, color: mealColors.dinner },
-    { id: "snack", label: t.snack, icon: mealIcons.snack, color: mealColors.snack },
+    { id: "breakfast", label: t.breakfast, icon: mealIcons.breakfast, colors: mealColors.breakfast },
+    { id: "lunch", label: t.lunch, icon: mealIcons.lunch, colors: mealColors.lunch },
+    { id: "dinner", label: t.dinner, icon: mealIcons.dinner, colors: mealColors.dinner },
+    { id: "snack", label: t.snack, icon: mealIcons.snack, colors: mealColors.snack },
   ];
 
   const handleModuleClick = (mealType: string) => {
@@ -102,8 +151,9 @@ export function MealModulesSection({
           {modules.map((module, index) => {
             const Icon = module.icon;
             const consumed = consumedCalories[module.id as keyof typeof consumedCalories] || 0;
-            const target = targetCalories[module.id as keyof typeof targetCalories] || 0;
+            const target = targetCalories[module.id as keyof typeof targetCalories] || 1;
             const recent = recentFoods[module.id as keyof typeof recentFoods];
+            const percentage = Math.round((consumed / target) * 100);
             
             return (
               <motion.button
@@ -115,12 +165,18 @@ export function MealModulesSection({
                 )}
                 whileTap={{ scale: 0.98 }}
               >
-                {/* Icon */}
-                <div className={cn(
-                  "w-12 h-12 rounded-full flex items-center justify-center mr-4 flex-shrink-0",
-                  module.color
-                )}>
-                  <Icon className="h-6 w-6 text-foreground" />
+                {/* Circular Progress with Icon */}
+                <div className="relative w-12 h-12 mr-4 flex-shrink-0">
+                  <CircularProgress 
+                    value={percentage} 
+                    size={48} 
+                    strokeWidth={4}
+                    colorClass={module.colors.ring}
+                  />
+                  {/* Icon centered inside the ring */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Icon className="h-5 w-5 text-foreground" />
+                  </div>
                 </div>
 
                 {/* Content */}
