@@ -1,323 +1,563 @@
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { 
-  MessageCircle, 
-  Camera, 
-  CalendarDays, 
-  ShoppingCart,
-  Sparkles,
-  ChevronRight,
-  Crown,
-  Zap,
-  Bot,
-  ChefHat
-} from "lucide-react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { useSubscription } from "@/hooks/useSubscription";
-import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { supabase } from "@/integrations/supabase/client";
-import mascotImage from "@/assets/chefly-mascot.png";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2, Send, Sparkles, Volume2, VolumeX } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
+import { Badge } from "@/components/ui/badge";
+import { useTrialGuard } from "@/hooks/useTrialGuard";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { motion, AnimatePresence } from "framer-motion";
+import { useHaptics } from "@/hooks/useHaptics";
+import { useChatSounds } from "@/hooks/useChatSounds";
 
-const texts = {
-  es: {
-    title: "Chef IA",
-    subtitle: "Tu asistente de nutrición inteligente",
-    quickTip: "Tip del día",
-    tips: [
-      "Escanea tu comida para obtener información nutricional instantánea 📸",
-      "Pregúntame sobre recetas saludables o consejos de nutrición 💬",
-      "Genera un plan semanal personalizado según tus objetivos 🎯",
-      "Tu lista de compras se genera automáticamente del plan 🛒",
-    ],
-    chat: {
-      title: "Chat con Chefly",
-      description: "Consejero nutricional personal 24/7",
-    },
-    scanner: {
-      title: "Escáner de Alimentos",
-      description: "Analiza cualquier comida con IA",
-    },
-    recipes: {
-      title: "Mis Recetas",
-      description: "Recetas personalizadas para ti",
-    },
-    mealPlan: {
-      title: "Plan Semanal",
-      description: "Tu plan de comidas de la semana",
-    },
-    shopping: {
-      title: "Lista de Compras",
-      description: "Ingredientes de tu plan semanal",
-    },
-    premium: "Plus",
-    free: "Gratis",
-    messagesLeft: "mensajes hoy",
-    scansLeft: "escaneos hoy",
-    unlimited: "ilimitado",
-  },
-  en: {
-    title: "Chef AI",
-    subtitle: "Your intelligent nutrition assistant",
-    quickTip: "Tip of the day",
-    tips: [
-      "Scan your food to get instant nutritional info 📸",
-      "Ask me about healthy recipes or nutrition advice 💬",
-      "Generate a personalized weekly plan for your goals 🎯",
-      "Your shopping list is auto-generated from the plan 🛒",
-    ],
-    chat: {
-      title: "Chat with Chefly",
-      description: "24/7 personal nutrition advisor",
-    },
-    scanner: {
-      title: "Food Scanner",
-      description: "Analyze any food with AI",
-    },
-    recipes: {
-      title: "My Recipes",
-      description: "Personalized recipes for you",
-    },
-    mealPlan: {
-      title: "Weekly Plan",
-      description: "Your weekly meal plan",
-    },
-    shopping: {
-      title: "Shopping List",
-      description: "Ingredients from your weekly plan",
-    },
-    premium: "Plus",
-    free: "Free",
-    messagesLeft: "messages today",
-    scansLeft: "scans today",
-    unlimited: "unlimited",
-  },
-};
+import mascotLime from "@/assets/mascot-lime.png";
 
-interface FeatureCardProps {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  isPremium?: boolean;
-  premiumLabel: string;
-  freeLabel: string;
-  onClick: () => void;
-  delay?: number;
-  gradient: string;
-  usageInfo?: string;
+interface Message {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  created_at: string;
 }
 
-function FeatureCard({ 
-  icon, 
-  title, 
-  description, 
-  isPremium = false,
-  premiumLabel,
-  freeLabel,
-  onClick,
-  delay = 0,
-  gradient,
-  usageInfo
-}: FeatureCardProps) {
+const TypingIndicator = () => (
+  <motion.div 
+    initial={{ opacity: 0, y: 10 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -10 }}
+    className="flex items-end gap-3"
+  >
+    <motion.div 
+      animate={{ 
+        y: [0, -8, 0],
+        rotate: [-5, 5, -5]
+      }}
+      transition={{ 
+        duration: 1.5, 
+        repeat: Infinity,
+        ease: "easeInOut"
+      }}
+      className="w-12 h-12 flex-shrink-0"
+    >
+      <img src={mascotLime} alt="Limey thinking" className="w-full h-full object-contain" />
+    </motion.div>
+    <Card className="bg-card border-2 border-primary/20 p-3 rounded-2xl rounded-bl-sm">
+      <div className="flex gap-1.5">
+        {[0, 1, 2].map((i) => (
+          <motion.div
+            key={i}
+            className="w-2.5 h-2.5 rounded-full bg-primary"
+            animate={{ 
+              y: [0, -6, 0],
+              opacity: [0.4, 1, 0.4]
+            }}
+            transition={{
+              duration: 0.8,
+              repeat: Infinity,
+              delay: i * 0.15,
+              ease: "easeInOut"
+            }}
+          />
+        ))}
+      </div>
+    </Card>
+  </motion.div>
+);
+
+const CheflyAvatar = ({ isAnimating = false }: { isAnimating?: boolean }) => (
+  <motion.div 
+    className="w-10 h-10 flex-shrink-0"
+    animate={isAnimating ? { 
+      scale: [1, 1.1, 1],
+      rotate: [-3, 3, -3]
+    } : {}}
+    transition={{ duration: 0.5 }}
+  >
+    <img src={mascotLime} alt="Limey" className="w-full h-full object-contain drop-shadow-md" />
+  </motion.div>
+);
+
+const MessageBubble = ({ message, isNew = false }: { message: Message; isNew?: boolean }) => {
+  const isUser = message.role === "user";
+  
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.4, ease: "easeOut" }}
+      initial={isNew ? { opacity: 0, y: 20, scale: 0.95 } : false}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ 
+        type: "spring",
+        stiffness: 400,
+        damping: 25
+      }}
+      className={`flex items-end gap-2 ${isUser ? "justify-end" : "justify-start"}`}
     >
-      <Card
-        className="relative overflow-hidden cursor-pointer group border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-lg"
-        onClick={onClick}
+      {!isUser && <CheflyAvatar />}
+      
+      <motion.div
+        whileHover={{ scale: 1.01 }}
+        className={`max-w-[80%] ${isUser ? "order-1" : ""}`}
       >
-        {/* Gradient background */}
-        <div className={`absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity ${gradient}`} />
-        
-        <div className="relative p-4 flex items-center gap-4">
-          {/* Icon container */}
-          <motion.div 
-            className={`w-14 h-14 rounded-2xl flex items-center justify-center ${gradient}`}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            {icon}
-          </motion.div>
-          
-          {/* Content */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-0.5">
-              <h3 className="font-semibold text-foreground">{title}</h3>
-              {isPremium && (
-                <Badge variant="secondary" className="bg-amber-500/20 text-amber-400 border-0 text-[10px] px-1.5">
-                  <Crown className="h-2.5 w-2.5 mr-0.5" />
-                  {premiumLabel}
-                </Badge>
-              )}
-            </div>
-            <p className="text-sm text-muted-foreground line-clamp-1">{description}</p>
-            {usageInfo && (
-              <p className="text-xs text-primary font-medium mt-1">{usageInfo}</p>
-            )}
-          </div>
-          
-          {/* Arrow */}
-          <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
-        </div>
-      </Card>
+        <Card
+          className={`p-3 md:p-4 rounded-2xl shadow-sm ${
+            isUser
+              ? "bg-primary text-primary-foreground rounded-br-sm"
+              : "bg-card border-2 border-primary/10 rounded-bl-sm"
+          }`}
+        >
+          <p className="whitespace-pre-wrap text-sm md:text-base leading-relaxed">
+            {message.content}
+          </p>
+        </Card>
+      </motion.div>
+      
+      {isUser && (
+        <motion.div 
+          className="w-8 h-8 rounded-full bg-gradient-to-br from-secondary to-secondary/70 flex items-center justify-center flex-shrink-0 shadow-sm"
+          whileHover={{ scale: 1.1 }}
+        >
+          <span className="text-white text-sm font-bold">Tú</span>
+        </motion.div>
+      )}
     </motion.div>
   );
-}
+};
 
-export default function ChefIA() {
-  const navigate = useNavigate();
-  const { language } = useLanguage();
-  const [userId, setUserId] = useState<string>();
-  const [tipIndex, setTipIndex] = useState(0);
+const WelcomeScreen = ({ onSuggestionClick }: { onSuggestionClick: (text: string) => void }) => {
+  const { t, language } = useLanguage();
   
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) setUserId(user.id);
-    });
-    // Random tip on load
-    setTipIndex(Math.floor(Math.random() * 4));
-  }, []);
-  
-  const { subscribed } = useSubscription(userId);
-  const { limits } = useSubscriptionLimits(userId);
-  const t = texts[language];
-
-  const chatUsage = subscribed 
-    ? t.unlimited 
-    : `${Math.max(0, 5 - limits.chatMessagesUsed)}/${5} ${t.messagesLeft}`;
-  
-  const scanUsage = subscribed
-    ? t.unlimited
-    : `${Math.max(0, 1 - limits.foodScansUsed)}/${1} ${t.scansLeft}`;
-
-  const features = [
-    {
-      icon: <MessageCircle className="h-7 w-7 text-white" />,
-      title: t.chat.title,
-      description: t.chat.description,
-      isPremium: false,
-      onClick: () => navigate("/chat"),
-      gradient: "bg-gradient-to-br from-pink-500 to-rose-600",
-      usageInfo: chatUsage,
-    },
-    {
-      icon: <Camera className="h-7 w-7 text-white" />,
-      title: t.scanner.title,
-      description: t.scanner.description,
-      isPremium: true,
-      onClick: () => navigate("/dashboard/ai-camera/snack"),
-      gradient: "bg-gradient-to-br from-amber-500 to-orange-600",
-      usageInfo: scanUsage,
-    },
-    {
-      icon: <ChefHat className="h-7 w-7 text-white" />,
-      title: t.recipes.title,
-      description: t.recipes.description,
-      isPremium: true,
-      onClick: () => navigate("/recipes"),
-      gradient: "bg-gradient-to-br from-violet-500 to-purple-600",
-    },
-    {
-      icon: <CalendarDays className="h-7 w-7 text-white" />,
-      title: t.mealPlan.title,
-      description: t.mealPlan.description,
-      isPremium: true,
-      onClick: () => navigate("/dashboard"),
-      gradient: "bg-gradient-to-br from-emerald-500 to-teal-600",
-    },
-    {
-      icon: <ShoppingCart className="h-7 w-7 text-white" />,
-      title: t.shopping.title,
-      description: t.shopping.description,
-      isPremium: true,
-      onClick: () => navigate("/dashboard/shopping"),
-      gradient: "bg-gradient-to-br from-cyan-500 to-blue-600",
-    },
+  const suggestions = language === 'es' ? [
+    { text: "¿Puedo cambiar la cena del martes?", emoji: "🍽️" },
+    { text: "Dame ideas de snacks saludables", emoji: "🥗" },
+    { text: "¿Qué puedo comer si no tengo horno?", emoji: "🔥" },
+    { text: "¿Cuánta proteína debo comer?", emoji: "💪" },
+  ] : [
+    { text: "Can I change Tuesday's dinner?", emoji: "🍽️" },
+    { text: "Give me healthy snack ideas", emoji: "🥗" },
+    { text: "What can I eat without an oven?", emoji: "🔥" },
+    { text: "How much protein should I eat?", emoji: "💪" },
   ];
 
   return (
-    <div className="min-h-full bg-background pb-24">
-      {/* Header with mascot */}
-      <div className="relative overflow-hidden bg-gradient-to-b from-primary/10 to-transparent pb-6">
-        <div className="absolute top-0 right-0 w-32 h-32 opacity-20">
-          <Sparkles className="w-full h-full text-primary" />
-        </div>
-        
-        <div className="px-4 pt-6">
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-4"
-          >
-            <motion.div
-              className="relative"
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            >
-              <img
-                src={mascotImage}
-                alt="Chefly"
-                className="w-16 h-16 object-contain"
-              />
-              <motion.div
-                className="absolute -top-1 -right-1 bg-primary rounded-full p-1"
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                <Bot className="h-3 w-3 text-primary-foreground" />
-              </motion.div>
-            </motion.div>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">{t.title}</h1>
-              <p className="text-muted-foreground text-sm">{t.subtitle}</p>
-            </div>
-          </motion.div>
-        </div>
-      </div>
-
-      {/* Tip of the day */}
+    <motion.div 
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="flex flex-col items-center justify-center py-8 px-4"
+    >
       <motion.div
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.2 }}
-        className="px-4 -mt-2 mb-4"
+        animate={{ 
+          y: [0, -10, 0],
+        }}
+        transition={{ 
+          duration: 3,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+        className="relative mb-4"
       >
-        <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
-          <div className="p-3 flex items-start gap-3">
-            <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
-              <Zap className="h-4 w-4 text-primary" />
-            </div>
-            <div>
-              <p className="text-xs font-medium text-primary mb-0.5">{t.quickTip}</p>
-              <p className="text-sm text-muted-foreground">{t.tips[tipIndex]}</p>
+        <motion.img 
+          src={mascotLime}
+          alt="Chefly"
+          className="w-32 h-32 object-contain drop-shadow-lg"
+          animate={{ 
+            rotate: [-2, 2, -2],
+          }}
+          transition={{ 
+            duration: 4,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        
+        <motion.div
+          className="absolute -top-2 -right-2"
+          animate={{ 
+            scale: [0, 1, 0],
+            rotate: [0, 180, 360]
+          }}
+          transition={{ 
+            duration: 2,
+            repeat: Infinity,
+            delay: 0.5
+          }}
+        >
+          <Sparkles className="w-6 h-6 text-amber-400" />
+        </motion.div>
+        <motion.div
+          className="absolute -bottom-1 -left-3"
+          animate={{ 
+            scale: [0, 1, 0],
+            rotate: [0, -180, -360]
+          }}
+          transition={{ 
+            duration: 2.5,
+            repeat: Infinity,
+            delay: 1
+          }}
+        >
+          <Sparkles className="w-5 h-5 text-primary" />
+        </motion.div>
+      </motion.div>
+      
+      <motion.div
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.3, type: "spring", stiffness: 300 }}
+        className="relative bg-card border-2 border-primary/20 rounded-3xl p-5 mb-6 max-w-sm shadow-lg"
+      >
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-6 h-6 bg-card border-l-2 border-t-2 border-primary/20 rotate-45" />
+        
+        <h3 className="text-xl font-bold text-center mb-2 text-foreground">
+          {language === 'es' ? '¡Hola! Soy Chefly 👋' : 'Hi! I\'m Chefly 👋'}
+        </h3>
+        <p className="text-sm text-muted-foreground text-center">
+          {t("chat.welcomeMessage")}
+        </p>
+      </motion.div>
+      
+      <div className="grid grid-cols-1 gap-2 w-full max-w-sm">
+        {suggestions.map((suggestion, index) => (
+          <motion.button
+            key={index}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.5 + index * 0.1 }}
+            whileHover={{ scale: 1.02, x: 5 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => onSuggestionClick(suggestion.text)}
+            className="flex items-center gap-3 p-3 bg-card border-2 border-border hover:border-primary/30 rounded-xl text-left transition-colors group"
+          >
+            <span className="text-2xl">{suggestion.emoji}</span>
+            <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
+              "{suggestion.text}"
+            </span>
+          </motion.button>
+        ))}
+      </div>
+    </motion.div>
+  );
+};
+
+export default function ChefIA() {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [userId, setUserId] = useState<string | undefined>(undefined);
+  const [newMessageId, setNewMessageId] = useState<string | null>(null);
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    const saved = localStorage.getItem('chefly-sounds');
+    return saved !== 'false';
+  });
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const { limits, refreshLimits } = useSubscriptionLimits(userId);
+  const { isBlocked, isLoading: trialLoading } = useTrialGuard();
+  const { t, language } = useLanguage();
+  
+  const { lightImpact, successNotification, errorNotification } = useHaptics();
+  const { playMessageSent, playMessageReceived, playError } = useChatSounds();
+
+  const toggleSound = () => {
+    const newValue = !soundEnabled;
+    setSoundEnabled(newValue);
+    localStorage.setItem('chefly-sounds', String(newValue));
+    if (newValue) {
+      playMessageReceived();
+      lightImpact();
+    }
+  };
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const scrollToBottom = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  const checkAuth = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+    setUserId(user.id);
+    localStorage.setItem('chefly_chat_used', 'true');
+    await loadMessages(user.id);
+  };
+
+  const loadMessages = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("chat_messages")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+
+      if (data) {
+        setMessages(data as Message[]);
+      }
+    } catch (error: any) {
+      console.error("Error loading messages:", error);
+    } finally {
+      setInitialLoading(false);
+    }
+  };
+
+  const handleSend = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!input.trim() || loading) return;
+
+    if (limits.chatMessagesUsed >= limits.dailyChatLimit) {
+      toast({
+        variant: "destructive",
+        title: language === 'es' ? "Límite de mensajes alcanzado" : "Message limit reached",
+        description: language === 'es' 
+          ? `Has usado tus ${limits.dailyChatLimit} mensajes de hoy. Mejora a Chefly Plus para mensajes ilimitados.`
+          : `You've used your ${limits.dailyChatLimit} messages today. Upgrade to Chefly Plus for unlimited messages.`,
+      });
+      navigate("/pricing");
+      return;
+    }
+
+    const userMessage = input.trim();
+    setInput("");
+    setLoading(true);
+
+    if (soundEnabled) playMessageSent();
+    lightImpact();
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No user found");
+
+      const tempUserId = `temp-${Date.now()}`;
+      const tempUserMessage: Message = {
+        id: tempUserId,
+        role: "user",
+        content: userMessage,
+        created_at: new Date().toISOString(),
+      };
+      setMessages((prev) => [...prev, tempUserMessage]);
+      setNewMessageId(tempUserId);
+
+      await supabase.from("chat_messages").insert({
+        user_id: user.id,
+        role: "user",
+        content: userMessage,
+      });
+
+      const { data, error } = await supabase.functions.invoke("nutrition-chat", {
+        body: { message: userMessage, userId: user.id },
+      });
+
+      if (error) throw error;
+
+      const aiMessageId = `ai-${Date.now()}`;
+      const aiMessage: Message = {
+        id: aiMessageId,
+        role: "assistant",
+        content: data.response,
+        created_at: new Date().toISOString(),
+      };
+      setMessages((prev) => [...prev, aiMessage]);
+      setNewMessageId(aiMessageId);
+
+      if (soundEnabled) playMessageReceived();
+      successNotification();
+
+      await supabase.from("chat_messages").insert({
+        user_id: user.id,
+        role: "assistant",
+        content: data.response,
+      });
+
+      refreshLimits();
+    } catch (error: any) {
+      if (soundEnabled) playError();
+      errorNotification();
+      
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || (language === "es" ? "No se pudo enviar el mensaje" : "Could not send message"),
+      });
+    } finally {
+      setLoading(false);
+      setTimeout(() => setNewMessageId(null), 500);
+    }
+  };
+
+  const handleSuggestionClick = (text: string) => {
+    setInput(text);
+    if (soundEnabled) playMessageSent();
+    lightImpact();
+  };
+
+  if (initialLoading || trialLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-background pt-safe-top">
+        <motion.img 
+          src={mascotLime}
+          alt="Loading"
+          className="w-20 h-20 object-contain"
+          animate={{ 
+            rotate: [-10, 10, -10],
+            y: [0, -10, 0]
+          }}
+          transition={{ 
+            duration: 1.5,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (isBlocked) {
+    return null;
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-primary/5 flex flex-col">
+      {/* Header with safe area */}
+      <motion.header 
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="border-b border-border/50 bg-card/80 backdrop-blur-xl sticky top-0 z-40 pt-safe-top"
+      >
+        <div className="container mx-auto px-4 py-3 flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <motion.div 
+              className="relative"
+              whileHover={{ scale: 1.05 }}
+            >
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 p-1 shadow-sm">
+                <img 
+                  src={mascotLime}
+                  alt="Chefly"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <motion.div 
+                className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-card shadow-sm"
+                animate={{ scale: [1, 1.15, 1] }}
+                transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+              />
+            </motion.div>
+            
+            <div className="min-w-0 flex-1">
+              <h1 className="text-lg font-bold truncate text-foreground">Chefly</h1>
+              <div className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span className="text-xs text-muted-foreground font-medium">
+                  {language === 'es' ? 'Tu coach nutricional' : 'Your nutrition coach'}
+                </span>
+              </div>
             </div>
           </div>
-        </Card>
-      </motion.div>
+          
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={toggleSound}
+            className="p-2 rounded-full hover:bg-muted transition-colors"
+            title={soundEnabled ? (language === 'es' ? 'Silenciar' : 'Mute') : (language === 'es' ? 'Activar sonido' : 'Unmute')}
+          >
+            {soundEnabled ? (
+              <Volume2 className="h-5 w-5 text-primary" />
+            ) : (
+              <VolumeX className="h-5 w-5 text-muted-foreground" />
+            )}
+          </motion.button>
+          
+          {limits.isFreePlan && (
+            <Badge variant="outline" className="flex-shrink-0 text-xs border-primary/30">
+              {limits.chatMessagesUsed}/{limits.dailyChatLimit}
+            </Badge>
+          )}
+        </div>
+      </motion.header>
 
-      {/* Feature cards */}
-      <div className="px-4 space-y-3">
-        {features.map((feature, index) => (
-          <FeatureCard
-            key={feature.title}
-            icon={feature.icon}
-            title={feature.title}
-            description={feature.description}
-            isPremium={feature.isPremium}
-            premiumLabel={t.premium}
-            freeLabel={t.free}
-            onClick={feature.onClick}
-            delay={0.1 + index * 0.08}
-            gradient={feature.gradient}
-            usageInfo={feature.usageInfo}
-          />
-        ))}
+      {/* Messages area */}
+      <div className="flex-1 container mx-auto px-4 py-4 flex flex-col max-w-2xl overflow-hidden">
+        <ScrollArea className="flex-1 -mx-4 px-4">
+          <div className="space-y-4 pb-4">
+            <AnimatePresence mode="wait">
+              {messages.length === 0 ? (
+                <WelcomeScreen onSuggestionClick={handleSuggestionClick} />
+              ) : (
+                <>
+                  {messages.map((message) => (
+                    <MessageBubble 
+                      key={message.id} 
+                      message={message} 
+                      isNew={message.id === newMessageId}
+                    />
+                  ))}
+                  
+                  {loading && <TypingIndicator />}
+                </>
+              )}
+            </AnimatePresence>
+            <div ref={scrollRef} />
+          </div>
+        </ScrollArea>
+
+        {/* Input area */}
+        <motion.form 
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          onSubmit={handleSend} 
+          className="mt-3 flex gap-2 bg-background/80 backdrop-blur-sm pt-2 pb-24"
+        >
+          <motion.div 
+            className="flex-1 relative"
+            whileFocus={{ scale: 1.01 }}
+          >
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={t("chat.placeholder")}
+              disabled={loading}
+              className="flex-1 h-12 text-base rounded-full border-2 border-border focus:border-primary/50 pl-4 pr-4 bg-card"
+              enterKeyHint="send"
+            />
+          </motion.div>
+          
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Button 
+              type="submit" 
+              disabled={loading || !input.trim()} 
+              className="h-12 w-12 rounded-full bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25"
+            >
+              {loading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Send className="h-5 w-5" />
+              )}
+            </Button>
+          </motion.div>
+        </motion.form>
       </div>
     </div>
   );
