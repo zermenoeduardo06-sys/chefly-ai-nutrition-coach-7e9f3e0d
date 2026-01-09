@@ -1,4 +1,4 @@
-import { Home, ShoppingCart, TrendingUp, MessageCircle, User, Camera } from "lucide-react";
+import { BookOpen, TrendingUp, Sparkles, Menu } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -6,12 +6,10 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useHaptics } from "@/hooks/useHaptics";
 
 const navItems = [
-  { icon: Home, path: "/dashboard", color: "text-primary", tourId: "nav-home", labelEs: "Inicio", labelEn: "Home" },
-  { icon: ShoppingCart, path: "/dashboard/shopping", color: "text-cyan-500", tourId: "nav-shopping", labelEs: "Compras", labelEn: "Shop" },
-  { icon: Camera, path: "/dashboard/food-history", color: "text-amber-500", tourId: "nav-scan", labelEs: "Escanear", labelEn: "Scan" },
-  { icon: TrendingUp, path: "/dashboard/progress", color: "text-secondary", tourId: "nav-progress", labelEs: "Progreso", labelEn: "Progress" },
-  { icon: MessageCircle, path: "/chat", color: "text-pink-500", tourId: "nav-chat", labelEs: "Chat", labelEn: "Chat" },
-  { icon: User, path: "/dashboard/profile", color: "text-purple-500", tourId: "nav-profile", labelEs: "Perfil", labelEn: "Profile" },
+  { icon: BookOpen, path: "/dashboard", color: "text-primary", tourId: "nav-diary", labelEs: "Diario", labelEn: "Diary" },
+  { icon: TrendingUp, path: "/dashboard/progress", color: "text-emerald-500", tourId: "nav-progress", labelEs: "Progreso", labelEn: "Progress" },
+  { icon: Sparkles, path: "/chef-ia", color: "text-amber-500", tourId: "nav-chef", labelEs: "Chef IA", labelEn: "Chef AI" },
+  { icon: Menu, path: "/dashboard/more", color: "text-purple-500", tourId: "nav-more", labelEs: "Más", labelEn: "More" },
 ];
 
 export function MobileBottomNav() {
