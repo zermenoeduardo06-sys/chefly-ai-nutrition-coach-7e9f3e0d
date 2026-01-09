@@ -244,7 +244,7 @@ export function FoodScanner({ open, onOpenChange, mealType, onSaveSuccess }: Foo
                 transition={{ type: "spring", stiffness: 200, damping: 15 }}
               >
                 <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
-                  <img src={mascotLime} alt="Limey" className="h-12 w-12 object-contain" />
+                  <img src={mascotLime} alt="Chefly" className="h-12 w-12 object-contain" />
                 </div>
                 <motion.div 
                   className="absolute -bottom-1 -right-1 w-6 h-6 bg-gradient-to-r from-emerald-400 to-green-500 rounded-full flex items-center justify-center shadow-lg"
