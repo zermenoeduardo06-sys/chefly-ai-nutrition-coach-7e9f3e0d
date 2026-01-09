@@ -49,6 +49,8 @@ import { DashboardHeader } from "@/components/DashboardHeader";
 import { MealPhotoDialog } from "@/components/MealPhotoDialog";
 import NewUserChecklist from "@/components/NewUserChecklist";
 import { MealModulesSection } from "@/components/diary/MealModulesSection";
+import { useDailyFoodIntake } from "@/hooks/useDailyFoodIntake";
+import { useNutritionGoals } from "@/hooks/useNutritionGoals";
 // MealEntryOptionsModal removed - now using page navigation
 
 interface MealAdaptation {
@@ -154,6 +156,20 @@ const Dashboard = () => {
   
   // Streak system based on daily calorie intake
   const streakSystem = useStreakSystem(userId, subscription.isCheflyPlus);
+  
+  // Daily food intake tracking from food_scans
+  const { consumedCalories, recentFoods, refetch: refetchFoodIntake } = useDailyFoodIntake(userId);
+  
+  // Nutrition goals from user preferences
+  const { goals: nutritionGoals, loading: goalsLoading } = useNutritionGoals(userId || null);
+  
+  // Calculate target calories per meal (approximate distribution)
+  const targetCalories = {
+    breakfast: Math.round(nutritionGoals.calories * 0.25), // 25%
+    lunch: Math.round(nutritionGoals.calories * 0.35), // 35%
+    dinner: Math.round(nutritionGoals.calories * 0.30), // 30%
+    snack: Math.round(nutritionGoals.calories * 0.10), // 10%
+  };
 
   // Deep linking handler for opening specific meals from notifications
   const handleDeepLinkMealOpen = (mealType: string, dayOfWeek: number) => {
@@ -1127,18 +1143,9 @@ const Dashboard = () => {
 
         {/* MEAL MODULES - YAZIO Style (Desayuno, Almuerzo, Cena, Snacks) */}
         <MealModulesSection
-          consumedCalories={{
-            breakfast: 0,
-            lunch: 0,
-            dinner: 0,
-            snack: 0,
-          }}
-          targetCalories={{
-            breakfast: 769,
-            lunch: 1026,
-            dinner: 641,
-            snack: 128,
-          }}
+          consumedCalories={consumedCalories}
+          targetCalories={targetCalories}
+          recentFoods={recentFoods}
         />
 
         {/* TODAY'S PROGRESS WIDGET */}
