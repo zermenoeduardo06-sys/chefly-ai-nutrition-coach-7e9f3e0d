@@ -265,15 +265,7 @@ const PreOnboarding: React.FC = () => {
     }
   }, [step, data.goal]);
 
-  // Auto-advance celebration steps (2, 5, 11)
-  useEffect(() => {
-    if (step === 2 || step === 5 || step === 11) {
-      const timer = setTimeout(() => {
-        handleNext();
-      }, 2500);
-      return () => clearTimeout(timer);
-    }
-  }, [step]);
+  // Celebration steps (2, 5, 11) now require manual continue - no auto-advance
 
   // Trigger nutrition reveal at step 27
   useEffect(() => {
@@ -318,6 +310,8 @@ const PreOnboarding: React.FC = () => {
               pose={mascot.pose}
               size="large"
               showCelebration
+              onContinue={handleNext}
+              continueLabel="¡Vamos!"
             />
           </div>
         );
@@ -396,6 +390,8 @@ const PreOnboarding: React.FC = () => {
               pose="strong"
               size="large"
               showCelebration
+              onContinue={handleNext}
+              continueLabel="Continuar"
             />
           </div>
         );
@@ -559,6 +555,8 @@ const PreOnboarding: React.FC = () => {
               pose="science"
               size="large"
               showCelebration
+              onContinue={handleNext}
+              continueLabel="Continuar"
             />
           </div>
         );
