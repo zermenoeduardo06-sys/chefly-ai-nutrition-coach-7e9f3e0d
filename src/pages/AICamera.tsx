@@ -89,6 +89,11 @@ export default function AICamera() {
             }
             setShowScanner(open);
           }}
+          mealType={validMealType}
+          onSaveSuccess={() => {
+            // Close and go back after saving
+            setTimeout(() => navigate(-1), 500);
+          }}
         />
       </div>
     );
