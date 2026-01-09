@@ -9,16 +9,21 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Sparkles, Target, Flame, GripVertical, Star, Heart, Zap, Trophy, CheckCircle2, ShoppingCart } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import mascotLime from '@/assets/mascot-lime.png';
-// Map moods to images - ready for future emotional mascot images
+import mascotCelebrating from '@/assets/mascot-celebrating.png';
+import mascotHealthy from '@/assets/mascot-healthy.png';
+import mascotEnergized from '@/assets/mascot-energized.png';
+import mascotPower from '@/assets/mascot-power.png';
+
+// Map moods to images - emotional mascot states
 const moodImages: Record<MascotMood, string> = {
   idle: mascotLime,
-  happy: mascotLime,
-  motivated: mascotLime,
+  happy: mascotCelebrating,
+  motivated: mascotPower,
   sleepy: mascotLime,
   hungry: mascotLime,
-  proud: mascotLime,
-  encouraging: mascotLime,
-  celebrating: mascotLime,
+  proud: mascotPower,
+  encouraging: mascotHealthy,
+  celebrating: mascotCelebrating,
 };
 
 // Celebration configs by type
