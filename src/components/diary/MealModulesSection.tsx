@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
+import { format, isToday } from "date-fns";
 
 interface MealModulesSectionProps {
   consumedCalories: {
@@ -25,6 +26,7 @@ interface MealModulesSectionProps {
     dinner?: string;
     snack?: string;
   };
+  selectedDate?: Date;
 }
 
 const mealIcons = {
