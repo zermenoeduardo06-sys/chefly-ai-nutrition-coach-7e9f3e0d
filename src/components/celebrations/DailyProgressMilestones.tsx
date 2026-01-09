@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Target, Flame, Trophy, Star, Zap } from 'lucide-react';
+import { Sparkles, Target, Flame, Trophy, Star } from 'lucide-react';
 import { useCelebrations } from '@/hooks/useCelebrations';
 import { useLanguage } from '@/contexts/LanguageContext';
 import mascotEnergized from '@/assets/mascot-energized.png';
@@ -66,38 +66,109 @@ const milestones: Milestone[] = [
   },
 ];
 
+// Helper to get today's date as a key
+const getTodayKey = () => new Date().toISOString().split('T')[0];
+
+// Helper to get/set milestones from localStorage
+const getStoredMilestones = (): { date: string; milestones: number[] } => {
+  try {
+    const stored = localStorage.getItem('daily_milestones_shown');
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (e) {
+    console.error('Error reading milestones from storage:', e);
+  }
+  return { date: '', milestones: [] };
+};
+
+const setStoredMilestones = (milestones: number[]) => {
+  try {
+    localStorage.setItem('daily_milestones_shown', JSON.stringify({
+      date: getTodayKey(),
+      milestones,
+    }));
+  } catch (e) {
+    console.error('Error saving milestones to storage:', e);
+  }
+};
+
 interface DailyProgressMilestonesProps {
   currentCalories: number;
   targetCalories: number;
+  selectedDate?: Date;
   onMilestoneReached?: (percentage: number) => void;
 }
 
 export const DailyProgressMilestones: React.FC<DailyProgressMilestonesProps> = ({
   currentCalories,
   targetCalories,
+  selectedDate,
   onMilestoneReached,
 }) => {
   const { language } = useLanguage();
   const { celebrateProgressMilestone } = useCelebrations();
   const [activeMilestone, setActiveMilestone] = useState<Milestone | null>(null);
   const [showMilestone, setShowMilestone] = useState(false);
-  const reachedMilestones = useRef<Set<number>>(new Set());
+  const [shownMilestones, setShownMilestones] = useState<Set<number>>(() => {
+    const stored = getStoredMilestones();
+    if (stored.date === getTodayKey()) {
+      return new Set(stored.milestones);
+    }
+    return new Set();
+  });
   const prevPercentage = useRef(0);
+  const hasInitialized = useRef(false);
 
   const currentPercentage = targetCalories > 0 
     ? Math.round((currentCalories / targetCalories) * 100) 
     : 0;
 
+  // Check if viewing today
+  const isToday = !selectedDate || 
+    new Date(selectedDate).toISOString().split('T')[0] === getTodayKey();
+
   useEffect(() => {
+    // Don't show milestones if not viewing today
+    if (!isToday) return;
+
+    // On first render, just set the initial percentage without triggering milestones
+    if (!hasInitialized.current) {
+      hasInitialized.current = true;
+      prevPercentage.current = currentPercentage;
+      
+      // Also mark already-reached milestones as shown (for when user reopens the app)
+      const alreadyReached = milestones
+        .filter(m => currentPercentage >= m.percentage)
+        .map(m => m.percentage);
+      
+      if (alreadyReached.length > 0) {
+        const stored = getStoredMilestones();
+        if (stored.date === getTodayKey()) {
+          // Keep the stored ones
+          return;
+        }
+        // New day but user already has progress - mark as shown
+        const newShown = new Set(alreadyReached);
+        setShownMilestones(newShown);
+        setStoredMilestones(alreadyReached);
+      }
+      return;
+    }
+
     // Check for newly reached milestones
     for (const milestone of milestones) {
       const wasReached = prevPercentage.current >= milestone.percentage;
       const isNowReached = currentPercentage >= milestone.percentage;
-      const alreadyShown = reachedMilestones.current.has(milestone.percentage);
+      const alreadyShown = shownMilestones.has(milestone.percentage);
 
       if (isNowReached && !wasReached && !alreadyShown) {
         // New milestone reached!
-        reachedMilestones.current.add(milestone.percentage);
+        const newShownMilestones = new Set(shownMilestones);
+        newShownMilestones.add(milestone.percentage);
+        setShownMilestones(newShownMilestones);
+        setStoredMilestones(Array.from(newShownMilestones));
+        
         setActiveMilestone(milestone);
         setShowMilestone(true);
         celebrateProgressMilestone(milestone.percentage);
@@ -114,14 +185,16 @@ export const DailyProgressMilestones: React.FC<DailyProgressMilestonesProps> = (
     }
 
     prevPercentage.current = currentPercentage;
-  }, [currentPercentage, celebrateProgressMilestone, onMilestoneReached]);
+  }, [currentPercentage, celebrateProgressMilestone, onMilestoneReached, shownMilestones, isToday]);
 
-  // Reset milestones at start of new day (when calories reset)
+  // Reset milestones at start of new day
   useEffect(() => {
-    if (currentCalories === 0 && prevPercentage.current > 0) {
-      reachedMilestones.current.clear();
+    const stored = getStoredMilestones();
+    if (stored.date !== getTodayKey()) {
+      setShownMilestones(new Set());
+      localStorage.removeItem('daily_milestones_shown');
     }
-  }, [currentCalories]);
+  }, []);
 
   return (
     <AnimatePresence>
