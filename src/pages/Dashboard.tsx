@@ -1110,6 +1110,7 @@ const Dashboard = () => {
           consumedCalories={consumedCalories}
           targetCalories={targetCalories}
           recentFoods={recentFoods}
+          selectedDate={selectedDate}
         />
 
         {/* WATER TRACKER - Daily hydration goal */}
