@@ -45,6 +45,8 @@ import FamilyManagement from '@/pages/FamilyManagement';
 import Contact from '@/pages/Contact';
 import AppStoreDemo from '@/pages/AppStoreDemo';
 import PreOnboarding from '@/pages/PreOnboarding';
+import MealDetail from '@/pages/MealDetail';
+import AddFood from '@/pages/AddFood';
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
   <SidebarProvider>
@@ -102,6 +104,8 @@ export const AnimatedRoutes = () => {
         <Route path="/dashboard/shopping" element={<DashboardLayout><PageTransition><ShoppingList /></PageTransition></DashboardLayout>} />
         <Route path="/dashboard/food-history" element={<DashboardLayout><PageTransition><FoodHistory /></PageTransition></DashboardLayout>} />
         <Route path="/dashboard/food-search" element={<DashboardLayout><PageTransition><FoodSearch /></PageTransition></DashboardLayout>} />
+        <Route path="/dashboard/meal/:mealType" element={<PageTransition><MealDetail /></PageTransition>} />
+        <Route path="/dashboard/add-food/:mealType" element={<PageTransition><AddFood /></PageTransition>} />
         <Route path="/subscription" element={<DashboardLayout><PageTransition><Subscription /></PageTransition></DashboardLayout>} />
         <Route path="/family" element={<DashboardLayout><PageTransition><FamilyManagement /></PageTransition></DashboardLayout>} />
         <Route path="/admin/affiliates" element={<DashboardLayout><PageTransition><AdminAffiliatesDashboard /></PageTransition></DashboardLayout>} />
