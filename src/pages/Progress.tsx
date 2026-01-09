@@ -3,19 +3,43 @@ import { NutritionProgressCharts } from "@/components/NutritionProgressCharts";
 import { BodyMeasurementForm } from "@/components/BodyMeasurementForm";
 import { BodyMeasurementCharts } from "@/components/BodyMeasurementCharts";
 import { WeightMilestones } from "@/components/WeightMilestones";
+import { ProgressAchievementsTab } from "@/components/progress/ProgressAchievementsTab";
+import { ProgressStatsTab } from "@/components/progress/ProgressStatsTab";
 import { useTrialGuard } from "@/hooks/useTrialGuard";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Scale, TrendingDown } from "lucide-react";
+import { Loader2, Scale, TrendingUp, Trophy, BarChart3 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const Progress = () => {
   const { isBlocked, isLoading } = useTrialGuard();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [userId, setUserId] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [latestWeight, setLatestWeight] = useState<number | undefined>(undefined);
+
+  const texts = {
+    es: {
+      title: "Mi Progreso",
+      nutrition: "Nutrición",
+      weight: "Peso",
+      achievements: "Logros",
+      stats: "Estadísticas",
+      recordMeasurements: "Registrar Medidas",
+      recordMeasurementsDesc: "Actualiza tu peso y medidas corporales",
+    },
+    en: {
+      title: "My Progress",
+      nutrition: "Nutrition",
+      weight: "Weight",
+      achievements: "Achievements",
+      stats: "Statistics",
+      recordMeasurements: "Record Measurements",
+      recordMeasurementsDesc: "Update your weight and body measurements",
+    },
+  };
+  const tx = texts[language];
 
   useEffect(() => {
     const loadUser = async () => {
@@ -58,29 +82,38 @@ const Progress = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 pt-safe-top pb-24 md:pb-6">
       <main className="container mx-auto px-4 py-4 md:py-6 space-y-4 md:space-y-6">
-        <div className="flex items-center gap-2 mb-4 md:mb-6">
-          <TrendingDown className="h-6 w-6 md:h-8 md:w-8 text-primary" />
-          <h1 className="text-2xl md:text-3xl font-bold">{t('progress.title')}</h1>
+        <div className="flex items-center gap-2 mb-2">
+          <TrendingUp className="h-6 w-6 text-primary" />
+          <h1 className="text-2xl font-bold">{tx.title}</h1>
         </div>
 
         <Tabs defaultValue="nutrition" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 h-11">
-            <TabsTrigger value="nutrition" className="text-sm md:text-base">
-              {t('progress.tabNutrition')}
+          <TabsList className="grid w-full grid-cols-4 h-11">
+            <TabsTrigger value="nutrition" className="text-xs px-1">
+              <TrendingUp className="h-4 w-4 mr-1 hidden sm:inline" />
+              {tx.nutrition}
             </TabsTrigger>
-            <TabsTrigger value="body" className="text-sm md:text-base">
-              <Scale className="mr-1.5 md:mr-2 h-4 w-4" />
-              <span className="hidden sm:inline">{t('progress.tabBody')}</span>
-              <span className="sm:hidden">{t('progress.tabWeight')}</span>
+            <TabsTrigger value="weight" className="text-xs px-1">
+              <Scale className="h-4 w-4 mr-1 hidden sm:inline" />
+              {tx.weight}
+            </TabsTrigger>
+            <TabsTrigger value="achievements" className="text-xs px-1">
+              <Trophy className="h-4 w-4 mr-1 hidden sm:inline" />
+              {tx.achievements}
+            </TabsTrigger>
+            <TabsTrigger value="stats" className="text-xs px-1">
+              <BarChart3 className="h-4 w-4 mr-1 hidden sm:inline" />
+              {tx.stats}
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="nutrition" className="mt-4 md:mt-6">
+          {/* Nutrition Tab */}
+          <TabsContent value="nutrition" className="mt-4 space-y-4">
             <NutritionProgressCharts />
           </TabsContent>
 
-          <TabsContent value="body" className="mt-4 md:mt-6 space-y-4 md:space-y-6">
-            {/* Weight Milestones */}
+          {/* Weight Tab */}
+          <TabsContent value="weight" className="mt-4 space-y-4">
             {userId && (
               <WeightMilestones 
                 userId={userId} 
@@ -89,13 +122,13 @@ const Progress = () => {
             )}
 
             <Card>
-              <CardHeader className="p-4 md:p-6">
-                <CardTitle className="text-base md:text-lg">{t('progress.recordMeasurements')}</CardTitle>
+              <CardHeader className="p-4">
+                <CardTitle className="text-base">{tx.recordMeasurements}</CardTitle>
                 <CardDescription className="text-sm">
-                  {t('progress.recordMeasurementsDesc')}
+                  {tx.recordMeasurementsDesc}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="p-4 md:p-6 pt-0">
+              <CardContent className="p-4 pt-0">
                 {userId && (
                   <BodyMeasurementForm 
                     userId={userId} 
@@ -111,6 +144,16 @@ const Progress = () => {
                 refreshTrigger={refreshTrigger}
               />
             )}
+          </TabsContent>
+
+          {/* Achievements Tab */}
+          <TabsContent value="achievements" className="mt-4">
+            {userId && <ProgressAchievementsTab userId={userId} />}
+          </TabsContent>
+
+          {/* Stats Tab */}
+          <TabsContent value="stats" className="mt-4">
+            {userId && <ProgressStatsTab userId={userId} />}
           </TabsContent>
         </Tabs>
       </main>
