@@ -48,6 +48,7 @@ import { NutritionSummaryWidget } from "@/components/NutritionSummaryWidget";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { MealPhotoDialog } from "@/components/MealPhotoDialog";
 import NewUserChecklist from "@/components/NewUserChecklist";
+import MealEntryOptionsModal from "@/components/diary/MealEntryOptionsModal";
 
 interface MealAdaptation {
   id: string;
@@ -135,6 +136,11 @@ const Dashboard = () => {
     const dismissed = localStorage.getItem('chefly_checklist_dismissed');
     return !dismissed;
   });
+  // Meal entry options modal state
+  const [showMealEntryModal, setShowMealEntryModal] = useState(false);
+  const [selectedMealTypeForEntry, setSelectedMealTypeForEntry] = useState<"breakfast" | "lunch" | "dinner" | "snack">("breakfast");
+  const [currentMealForEntry, setCurrentMealForEntry] = useState<Meal | null>(null);
+  
   const isNativePlatform = Capacitor.isNativePlatform();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -328,6 +334,19 @@ const Dashboard = () => {
     }
     setMealToComplete(meal);
     setShowMealPhotoDialog(true);
+  };
+
+  // Opens meal entry options modal
+  const handleOpenMealEntry = (meal: Meal) => {
+    const mealTypeMap: Record<string, "breakfast" | "lunch" | "dinner" | "snack"> = {
+      breakfast: "breakfast",
+      lunch: "lunch", 
+      dinner: "dinner",
+      snack: "snack",
+    };
+    setSelectedMealTypeForEntry(mealTypeMap[meal.meal_type] || "breakfast");
+    setCurrentMealForEntry(meal);
+    setShowMealEntryModal(true);
   };
 
   // Actually completes the meal after photo is taken
@@ -1175,6 +1194,7 @@ const Dashboard = () => {
                             isCompleted={isCompleted}
                             mealTypeLabel={mealTypes[meal.meal_type]}
                             onComplete={handleMealComplete}
+                            onAddEntry={handleOpenMealEntry}
                             onClick={() => {
                               setSelectedMeal(meal);
                               setMealDialogOpen(true);
@@ -1627,6 +1647,29 @@ const Dashboard = () => {
         onPhotoSaved={(mealId) => {
           completeMeal(mealId);
           setMealToComplete(null);
+        }}
+      />
+
+      <MealEntryOptionsModal
+        open={showMealEntryModal}
+        onOpenChange={setShowMealEntryModal}
+        mealType={selectedMealTypeForEntry}
+        userId={userId}
+        currentMeal={currentMealForEntry ? {
+          name: currentMealForEntry.name,
+          image_url: currentMealForEntry.image_url,
+          calories: currentMealForEntry.calories,
+        } : null}
+        onScanSelect={() => {
+          setShowFoodScanner(true);
+        }}
+        onSearchSelect={() => {
+          navigate("/dashboard/food-search");
+        }}
+        onPlanMealSelect={() => {
+          if (currentMealForEntry) {
+            handleMealComplete(currentMealForEntry);
+          }
         }}
       />
 

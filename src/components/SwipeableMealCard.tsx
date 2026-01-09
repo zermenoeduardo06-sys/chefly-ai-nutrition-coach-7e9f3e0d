@@ -3,7 +3,7 @@ import { motion, PanInfo, useMotionValue, useTransform, animate } from "framer-m
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Check, Sparkles, ChevronRight } from "lucide-react";
+import { Check, Sparkles, ChevronRight, Plus } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { MealImageWithSkeleton } from "@/components/MealImageWithSkeleton";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -44,6 +44,7 @@ interface SwipeableMealCardProps {
   mealTypeLabel: string;
   onComplete: (meal: Meal) => void;
   onClick: () => void;
+  onAddEntry?: (meal: Meal) => void;
   isFirstMeal?: boolean;
   isFamilyPlan?: boolean;
 }
@@ -56,6 +57,7 @@ export const SwipeableMealCard = ({
   mealTypeLabel,
   onComplete,
   onClick,
+  onAddEntry,
   isFirstMeal = false,
   isFamilyPlan = false,
 }: SwipeableMealCardProps) => {
@@ -143,27 +145,35 @@ export const SwipeableMealCard = ({
               
               {/* Top badges */}
               <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
-                {/* Complete button */}
-                <Button
-                  size="icon"
-                  variant={isCompleted ? "secondary" : "default"}
-                  data-tour={isFirstMeal ? "complete-meal" : undefined}
-                  className={cn(
-                    "h-10 w-10 shadow-xl rounded-2xl transition-all duration-300",
-                    isCompleted 
-                      ? "bg-secondary text-secondary-foreground" 
-                      : "bg-white/90 text-primary hover:bg-white hover:scale-105"
-                  )}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (!isCompleted) {
+                {/* Add entry / Complete button */}
+                {isCompleted ? (
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    className="h-10 w-10 shadow-xl rounded-2xl bg-secondary text-secondary-foreground"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Check className="h-5 w-5 text-secondary-foreground" />
+                  </Button>
+                ) : (
+                  <Button
+                    size="icon"
+                    variant="default"
+                    data-tour={isFirstMeal ? "complete-meal" : undefined}
+                    className="h-10 w-10 shadow-xl rounded-2xl bg-white/90 text-primary hover:bg-white hover:scale-105 transition-all duration-300"
+                    onClick={(e) => {
+                      e.stopPropagation();
                       mediumImpact();
-                      onComplete(meal);
-                    }
-                  }}
-                >
-                  <Check className={cn("h-5 w-5", isCompleted && "text-secondary-foreground")} />
-                </Button>
+                      if (onAddEntry) {
+                        onAddEntry(meal);
+                      } else {
+                        onComplete(meal);
+                      }
+                    }}
+                  >
+                    <Plus className="h-5 w-5" />
+                  </Button>
+                )}
                 
                 {/* Meal type badge */}
                 <Badge 
@@ -195,20 +205,33 @@ export const SwipeableMealCard = ({
                 <Badge variant="secondary" className="shrink-0 font-semibold rounded-xl px-3">
                   {mealTypeLabel}
                 </Badge>
-                <Button
-                  size="icon"
-                  variant={isCompleted ? "secondary" : "default"}
-                  className="h-8 w-8 rounded-xl"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (!isCompleted) {
+                {isCompleted ? (
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    className="h-8 w-8 rounded-xl"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Check className="h-4 w-4" />
+                  </Button>
+                ) : (
+                  <Button
+                    size="icon"
+                    variant="default"
+                    className="h-8 w-8 rounded-xl"
+                    onClick={(e) => {
+                      e.stopPropagation();
                       mediumImpact();
-                      onComplete(meal);
-                    }
-                  }}
-                >
-                  <Check className="h-4 w-4" />
-                </Button>
+                      if (onAddEntry) {
+                        onAddEntry(meal);
+                      } else {
+                        onComplete(meal);
+                      }
+                    }}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             )}
             

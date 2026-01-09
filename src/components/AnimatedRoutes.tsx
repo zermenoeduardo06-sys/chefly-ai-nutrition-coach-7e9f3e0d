@@ -40,6 +40,7 @@ import AvatarEdit from '@/pages/AvatarEdit';
 import Preferences from '@/pages/Preferences';
 import NotificationSettings from '@/pages/NotificationSettings';
 import FoodHistory from '@/pages/FoodHistory';
+import FoodSearch from '@/pages/FoodSearch';
 import FamilyManagement from '@/pages/FamilyManagement';
 import Contact from '@/pages/Contact';
 import AppStoreDemo from '@/pages/AppStoreDemo';
@@ -100,6 +101,7 @@ export const AnimatedRoutes = () => {
         <Route path="/dashboard/settings/contact" element={<DashboardLayout><PageTransition><Contact /></PageTransition></DashboardLayout>} />
         <Route path="/dashboard/shopping" element={<DashboardLayout><PageTransition><ShoppingList /></PageTransition></DashboardLayout>} />
         <Route path="/dashboard/food-history" element={<DashboardLayout><PageTransition><FoodHistory /></PageTransition></DashboardLayout>} />
+        <Route path="/dashboard/food-search" element={<DashboardLayout><PageTransition><FoodSearch /></PageTransition></DashboardLayout>} />
         <Route path="/subscription" element={<DashboardLayout><PageTransition><Subscription /></PageTransition></DashboardLayout>} />
         <Route path="/family" element={<DashboardLayout><PageTransition><FamilyManagement /></PageTransition></DashboardLayout>} />
         <Route path="/admin/affiliates" element={<DashboardLayout><PageTransition><AdminAffiliatesDashboard /></PageTransition></DashboardLayout>} />
