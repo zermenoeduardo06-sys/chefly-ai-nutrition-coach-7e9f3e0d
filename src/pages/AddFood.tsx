@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Search, Camera, MoreHorizontal, Carrot, UtensilsCrossed, ChefHat, ClipboardList, Crown, Barcode, Plus } from "lucide-react";
+import { Search, Camera, MoreHorizontal, Carrot, UtensilsCrossed, ChefHat, ClipboardList, Crown, Barcode, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
-import { FoodScanner } from "@/components/FoodScanner";
 import ContextualPaywall from "@/components/ContextualPaywall";
 import { cn } from "@/lib/utils";
 
@@ -52,9 +51,8 @@ export default function AddFood() {
   const [activeFilter, setActiveFilter] = useState<FilterTab>("frequent");
   const [activeBottomTab, setActiveBottomTab] = useState<BottomTab>("search");
   const [selectedFoods, setSelectedFoods] = useState<FoodItem[]>([]);
-  const [showScanner, setShowScanner] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
-  const [paywallFeature, setPaywallFeature] = useState<"scan" | "plan">("scan");
+  const [paywallFeature, setPaywallFeature] = useState<"scan" | "plan">("plan");
   const [planMeals, setPlanMeals] = useState<FoodItem[]>([]);
 
   const subscription = useSubscription(userId);
@@ -168,12 +166,9 @@ export default function AddFood() {
 
   const handleBottomTabChange = (tab: BottomTab) => {
     if (tab === "camera") {
-      if (!isPremium) {
-        setPaywallFeature("scan");
-        setShowPaywall(true);
-        return;
-      }
-      setShowScanner(true);
+      // Navigate to AI Camera page
+      navigate(`/dashboard/ai-camera/${validMealType}`);
+      return;
     }
     setActiveBottomTab(tab);
   };
@@ -380,12 +375,6 @@ export default function AddFood() {
         onOpenChange={setShowPaywall}
         feature={paywallFeature}
         userId={userId}
-      />
-
-      {/* Food Scanner Dialog */}
-      <FoodScanner
-        open={showScanner}
-        onOpenChange={setShowScanner}
       />
     </div>
   );
