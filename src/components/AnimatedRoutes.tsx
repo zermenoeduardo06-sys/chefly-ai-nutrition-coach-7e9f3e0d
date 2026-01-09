@@ -50,6 +50,7 @@ import AddFood from '@/pages/AddFood';
 import AICamera from '@/pages/AICamera';
 import ChefIA from '@/pages/ChefIA';
 import MorePage from '@/pages/MorePage';
+import Recipes from '@/pages/Recipes';
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
   <SidebarProvider>
@@ -118,6 +119,7 @@ export const AnimatedRoutes = () => {
         
         {/* Chef IA Hub */}
         <Route path="/chef-ia" element={<DashboardLayout><PageTransition><ChefIA /></PageTransition></DashboardLayout>} />
+        <Route path="/recipes" element={<DashboardLayout><PageTransition><Recipes /></PageTransition></DashboardLayout>} />
         
         {/* Chat */}
         <Route path="/chat" element={<PageTransition><Chat /></PageTransition>} />

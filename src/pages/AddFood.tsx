@@ -1,14 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, MoreHorizontal, Carrot, UtensilsCrossed, ChefHat, ClipboardList, Crown, Barcode, ArrowLeft, Loader2 } from "lucide-react";
+import { Search, MoreHorizontal, Carrot, UtensilsCrossed, ChefHat, Barcode, ArrowLeft, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
-import { useFoodDatabase, Food, getCategoryIcon, getCategoryColor } from "@/hooks/useFoodDatabase";
+import { useFoodDatabase, Food } from "@/hooks/useFoodDatabase";
 import { ScannerPromo } from "@/components/food/ScannerPromo";
 import { FoodListItem } from "@/components/food/FoodListItem";
 import { FoodScanner } from "@/components/FoodScanner";
@@ -17,18 +17,8 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
-type Category = "foods" | "meals" | "recipes" | "plan";
+type Category = "foods" | "meals" | "recipes";
 type FilterTab = "frequent" | "recent" | "favorites";
-
-interface FoodItem {
-  id: string;
-  name: string;
-  portion: string;
-  calories: number;
-  protein?: number;
-  carbs?: number;
-  fats?: number;
-}
 
 const mealTypeLabels = {
   breakfast: { es: "Desayuno", en: "Breakfast" },
@@ -48,8 +38,7 @@ export default function AddFood() {
   const [activeFilter, setActiveFilter] = useState<FilterTab>("frequent");
   const [selectedFoods, setSelectedFoods] = useState<Food[]>([]);
   const [showPaywall, setShowPaywall] = useState(false);
-  const [paywallFeature, setPaywallFeature] = useState<"scan" | "plan">("plan");
-  const [planMeals, setPlanMeals] = useState<FoodItem[]>([]);
+  const [paywallFeature, setPaywallFeature] = useState<"scan">("scan");
   const [showScanner, setShowScanner] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -100,41 +89,10 @@ export default function AddFood() {
 
       // Load initial foods from database
       getAllFoods();
-
-      // Load meals from weekly plan for this meal type
-      const today = new Date().getDay();
-      const { data: mealPlan } = await supabase
-        .from("meal_plans")
-        .select("id")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .single();
-
-      if (mealPlan) {
-        const { data: meals } = await supabase
-          .from("meals")
-          .select("*")
-          .eq("meal_plan_id", mealPlan.id)
-          .eq("meal_type", validMealType)
-          .eq("day_of_week", today);
-
-        if (meals) {
-          setPlanMeals(meals.map(m => ({
-            id: m.id,
-            name: m.name,
-            portion: "1 porción",
-            calories: m.calories || 0,
-            protein: m.protein || 0,
-            carbs: m.carbs || 0,
-            fats: m.fats || 0,
-          })));
-        }
-      }
     };
 
     loadData();
-  }, [navigate, validMealType, getAllFoods]);
+  }, [navigate, getAllFoods]);
 
   // Load filtered foods based on active filter
   useEffect(() => {
@@ -155,14 +113,12 @@ export default function AddFood() {
       foods: "Alimentos",
       meals: "Comidas",
       recipes: "Recetas",
-      fromPlan: "Del Plan",
       frequent: "Frecuentes",
       recent: "Recientes",
       favorites: "Favoritos",
       done: "Listo",
       noResults: "No se encontraron resultados",
       searchHint: "Busca entre 100+ alimentos",
-      premium: "Premium",
       kcal: "kcal",
       saving: "Guardando...",
       saved: "Alimentos guardados",
@@ -173,14 +129,12 @@ export default function AddFood() {
       foods: "Foods",
       meals: "Meals",
       recipes: "Recipes",
-      fromPlan: "From Plan",
       frequent: "Frequent",
       recent: "Recent",
       favorites: "Favorites",
       done: "Done",
       noResults: "No results found",
       searchHint: "Search 100+ foods",
-      premium: "Premium",
       kcal: "kcal",
       saving: "Saving...",
       saved: "Foods saved",
@@ -192,10 +146,9 @@ export default function AddFood() {
   const mealLabel = mealTypeLabels[validMealType][language];
 
   const categories = [
-    { id: "foods" as Category, label: t.foods, icon: Carrot, premium: false },
-    { id: "meals" as Category, label: t.meals, icon: UtensilsCrossed, premium: false },
-    { id: "recipes" as Category, label: t.recipes, icon: ChefHat, premium: false },
-    { id: "plan" as Category, label: t.fromPlan, icon: ClipboardList, premium: true },
+    { id: "foods" as Category, label: t.foods, icon: Carrot },
+    { id: "meals" as Category, label: t.meals, icon: UtensilsCrossed },
+    { id: "recipes" as Category, label: t.recipes, icon: ChefHat },
   ];
 
   const filterTabs = [
@@ -205,11 +158,6 @@ export default function AddFood() {
   ];
 
   const handleCategoryChange = (category: Category) => {
-    if (category === "plan" && !isPremium) {
-      setPaywallFeature("plan");
-      setShowPaywall(true);
-      return;
-    }
     setActiveCategory(category);
     setSearchQuery("");
   };
@@ -393,12 +341,7 @@ export default function AddFood() {
                   : "bg-muted text-muted-foreground"
               )}
             >
-              <div className="relative">
-                <category.icon className="h-5 w-5" />
-                {category.premium && !isPremium && (
-                  <Crown className="h-3 w-3 absolute -top-1 -right-2 text-yellow-500" />
-                )}
-              </div>
+              <category.icon className="h-5 w-5" />
               <span className="text-xs font-medium whitespace-nowrap">{category.label}</span>
             </button>
           ))}

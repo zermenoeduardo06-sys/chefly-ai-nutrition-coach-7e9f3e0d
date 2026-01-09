@@ -9,7 +9,8 @@ import {
   ChevronRight,
   Crown,
   Zap,
-  Bot
+  Bot,
+  ChefHat
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
@@ -39,9 +40,13 @@ const texts = {
       title: "Escáner de Alimentos",
       description: "Analiza cualquier comida con IA",
     },
+    recipes: {
+      title: "Mis Recetas",
+      description: "Recetas personalizadas para ti",
+    },
     mealPlan: {
       title: "Plan Semanal",
-      description: "Recetas personalizadas para tu objetivo",
+      description: "Tu plan de comidas de la semana",
     },
     shopping: {
       title: "Lista de Compras",
@@ -71,9 +76,13 @@ const texts = {
       title: "Food Scanner",
       description: "Analyze any food with AI",
     },
+    recipes: {
+      title: "My Recipes",
+      description: "Personalized recipes for you",
+    },
     mealPlan: {
       title: "Weekly Plan",
-      description: "Personalized recipes for your goal",
+      description: "Your weekly meal plan",
     },
     shopping: {
       title: "Shopping List",
@@ -204,6 +213,14 @@ export default function ChefIA() {
       onClick: () => navigate("/dashboard/ai-camera/snack"),
       gradient: "bg-gradient-to-br from-amber-500 to-orange-600",
       usageInfo: scanUsage,
+    },
+    {
+      icon: <ChefHat className="h-7 w-7 text-white" />,
+      title: t.recipes.title,
+      description: t.recipes.description,
+      isPremium: true,
+      onClick: () => navigate("/recipes"),
+      gradient: "bg-gradient-to-br from-violet-500 to-purple-600",
     },
     {
       icon: <CalendarDays className="h-7 w-7 text-white" />,
