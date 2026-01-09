@@ -96,6 +96,7 @@ export default function Recipes() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [filteredRecipes, setFilteredRecipes] = useState<Recipe[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
   const [showPaywall, setShowPaywall] = useState(false);
@@ -126,18 +127,13 @@ export default function Recipes() {
     setIsLoading(true);
 
     try {
-      // Get the current week's meal plan
-      const today = new Date();
-      const dayOfWeek = today.getDay();
-      const monday = new Date(today);
-      monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
-      const weekStart = monday.toISOString().split("T")[0];
-
+      // Get the most recent meal plan (not necessarily current week)
       const { data: mealPlan } = await supabase
         .from("meal_plans")
         .select("id")
         .eq("user_id", userId)
-        .eq("week_start_date", weekStart)
+        .order("created_at", { ascending: false })
+        .limit(1)
         .single();
 
       if (!mealPlan) {
@@ -170,6 +166,44 @@ export default function Recipes() {
       console.error("Error loading recipes:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGeneratePlan = async () => {
+    if (!userId || isGenerating) return;
+    
+    setIsGenerating(true);
+    
+    try {
+      // First check if user has preferences
+      const { data: preferences } = await supabase
+        .from("user_preferences")
+        .select("id")
+        .eq("user_id", userId)
+        .single();
+
+      if (!preferences) {
+        // Redirect to onboarding if no preferences
+        navigate("/onboarding");
+        return;
+      }
+
+      // Generate the meal plan
+      const { data, error } = await supabase.functions.invoke("generate-meal-plan", {
+        body: { userId, forceNew: false, language },
+      });
+
+      if (error) {
+        console.error("Error generating meal plan:", error);
+        return;
+      }
+
+      // Reload recipes after generation
+      await loadRecipes();
+    } catch (error) {
+      console.error("Error generating plan:", error);
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -281,8 +315,15 @@ export default function Recipes() {
             </div>
             <h3 className="text-lg font-semibold text-foreground mb-2">{t.noRecipes}</h3>
             <p className="text-muted-foreground mb-6 max-w-xs">{t.noRecipesDesc}</p>
-            <Button onClick={() => navigate("/dashboard")}>
-              {t.generatePlan}
+            <Button onClick={handleGeneratePlan} disabled={isGenerating}>
+              {isGenerating ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  {language === 'es' ? 'Generando...' : 'Generating...'}
+                </>
+              ) : (
+                t.generatePlan
+              )}
             </Button>
           </motion.div>
         ) : (
