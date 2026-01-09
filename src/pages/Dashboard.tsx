@@ -48,7 +48,7 @@ import { NutritionSummaryWidget } from "@/components/NutritionSummaryWidget";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { MealPhotoDialog } from "@/components/MealPhotoDialog";
 import NewUserChecklist from "@/components/NewUserChecklist";
-import MealEntryOptionsModal from "@/components/diary/MealEntryOptionsModal";
+// MealEntryOptionsModal removed - now using page navigation
 
 interface MealAdaptation {
   id: string;
@@ -136,11 +136,7 @@ const Dashboard = () => {
     const dismissed = localStorage.getItem('chefly_checklist_dismissed');
     return !dismissed;
   });
-  // Meal entry options modal state
-  const [showMealEntryModal, setShowMealEntryModal] = useState(false);
-  const [selectedMealTypeForEntry, setSelectedMealTypeForEntry] = useState<"breakfast" | "lunch" | "dinner" | "snack">("breakfast");
-  const [currentMealForEntry, setCurrentMealForEntry] = useState<Meal | null>(null);
-  
+  // Meal entry modal removed - now using page navigation
   const isNativePlatform = Capacitor.isNativePlatform();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -336,17 +332,14 @@ const Dashboard = () => {
     setShowMealPhotoDialog(true);
   };
 
-  // Opens meal entry options modal
+  // Navigate to add food page for this meal type
   const handleOpenMealEntry = (meal: Meal) => {
-    const mealTypeMap: Record<string, "breakfast" | "lunch" | "dinner" | "snack"> = {
-      breakfast: "breakfast",
-      lunch: "lunch", 
-      dinner: "dinner",
-      snack: "snack",
-    };
-    setSelectedMealTypeForEntry(mealTypeMap[meal.meal_type] || "breakfast");
-    setCurrentMealForEntry(meal);
-    setShowMealEntryModal(true);
+    navigate(`/dashboard/add-food/${meal.meal_type}`);
+  };
+
+  // Navigate to meal detail page
+  const handleMealClick = (meal: Meal) => {
+    navigate(`/dashboard/meal/${meal.meal_type}`);
   };
 
   // Actually completes the meal after photo is taken
@@ -1195,10 +1188,7 @@ const Dashboard = () => {
                             mealTypeLabel={mealTypes[meal.meal_type]}
                             onComplete={handleMealComplete}
                             onAddEntry={handleOpenMealEntry}
-                            onClick={() => {
-                              setSelectedMeal(meal);
-                              setMealDialogOpen(true);
-                            }}
+                            onClick={() => handleMealClick(meal)}
                             isFirstMeal={isFirstMealOfFirstDay}
                             isFamilyPlan={mealPlan?.is_family_plan || false}
                           />
@@ -1650,28 +1640,7 @@ const Dashboard = () => {
         }}
       />
 
-      <MealEntryOptionsModal
-        open={showMealEntryModal}
-        onOpenChange={setShowMealEntryModal}
-        mealType={selectedMealTypeForEntry}
-        userId={userId}
-        currentMeal={currentMealForEntry ? {
-          name: currentMealForEntry.name,
-          image_url: currentMealForEntry.image_url,
-          calories: currentMealForEntry.calories,
-        } : null}
-        onScanSelect={() => {
-          setShowFoodScanner(true);
-        }}
-        onSearchSelect={() => {
-          navigate("/dashboard/food-search");
-        }}
-        onPlanMealSelect={() => {
-          if (currentMealForEntry) {
-            handleMealComplete(currentMealForEntry);
-          }
-        }}
-      />
+      {/* MealEntryOptionsModal removed - using page navigation now */}
 
     </div>
     </TooltipProvider>
