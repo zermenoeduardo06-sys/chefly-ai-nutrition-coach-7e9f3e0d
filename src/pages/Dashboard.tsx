@@ -1,57 +1,43 @@
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion"; // Meal card animations
+import { motion } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, RefreshCw, MessageCircle, Calendar, Settings, TrendingUp, Utensils, Clock, Sparkles, Check, Lock, CreditCard, Languages, HelpCircle, Camera, Zap } from "lucide-react";
-import { MealImageWithSkeleton } from "@/components/MealImageWithSkeleton";
+import { Loader2, Sparkles, Check } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { MealDetailDialog } from "@/components/MealDetailDialog";
 import { SwapMealDialog } from "@/components/SwapMealDialog";
 import { MascotCompanion } from "@/components/MascotCompanion";
 import { DailySummaryDialog } from "@/components/DailySummaryDialog";
 import { AchievementUnlockAnimation } from "@/components/AchievementUnlockAnimation";
-import { SubscriptionBanner } from "@/components/SubscriptionBanner";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useTrialGuard } from "@/hooks/useTrialGuard";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useMascot } from "@/contexts/MascotContext";
-import WeeklyCheckInBanner from "@/components/checkin/WeeklyCheckInBanner";
 import confetti from "canvas-confetti";
 import DashboardTutorial from "@/components/DashboardTutorial";
 import { InAppTour } from "@/components/InAppTour";
 import MobileWelcomeTutorial from "@/components/MobileWelcomeTutorial";
 import { clearAllShoppingListCaches } from "@/utils/shoppingListCache";
-import { MobileStatsBar } from "@/components/MobileStatsBar";
 import { useNotifications } from "@/hooks/useNotifications";
-import { SwipeableDaysNavigator } from "@/components/SwipeableDaysNavigator";
-import { SwipeableMealCard } from "@/components/SwipeableMealCard";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useHaptics } from "@/hooks/useHaptics";
 import { useOfflineMode } from "@/hooks/useOfflineMode";
 import { useDeepLinking } from "@/hooks/useDeepLinking";
 import { Capacitor } from "@capacitor/core";
 import { FoodScanner } from "@/components/FoodScanner";
-// CalendarDayWidget removed - date shown in header
-import { useWeeklyCheckIn } from "@/hooks/useWeeklyCheckIn";
-import { FamilyStatusBanner } from "@/components/family/FamilyStatusBanner";
-import { MealBestMatchBadge } from "@/components/family/MealMemberAdaptations";
 import { useStreakSystem } from "@/hooks/useStreakSystem";
 import { NutritionSummaryWidget } from "@/components/NutritionSummaryWidget";
-import { DashboardHeader } from "@/components/DashboardHeader";
 import { MealPhotoDialog } from "@/components/MealPhotoDialog";
-import NewUserChecklist from "@/components/NewUserChecklist";
 import { MealModulesSection } from "@/components/diary/MealModulesSection";
+import { DiaryDateHeader } from "@/components/diary/DiaryDateHeader";
 import { useDailyFoodIntake } from "@/hooks/useDailyFoodIntake";
 import { useNutritionGoals } from "@/hooks/useNutritionGoals";
-// MealEntryOptionsModal removed - now using page navigation
 
 interface MealAdaptation {
   id: string;
@@ -102,7 +88,6 @@ const Dashboard = () => {
   const [generating, setGenerating] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const [mealPlan, setMealPlan] = useState<MealPlan | null>(null);
-  // Trial system removed - freemium model
   const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null);
   const [mealDialogOpen, setMealDialogOpen] = useState(false);
   const [swapDialogOpen, setSwapDialogOpen] = useState(false);
@@ -127,7 +112,6 @@ const Dashboard = () => {
   const [showAchievementUnlock, setShowAchievementUnlock] = useState(false);
   const [unlockedAchievement, setUnlockedAchievement] = useState<any>(null);
   const [userId, setUserId] = useState<string | undefined>(undefined);
-  const [portalLoading, setPortalLoading] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const [showInAppTour, setShowInAppTour] = useState(false);
   const [showMobileWelcome, setShowMobileWelcome] = useState(false);
@@ -135,11 +119,8 @@ const Dashboard = () => {
   const [showMealPhotoDialog, setShowMealPhotoDialog] = useState(false);
   const [mealToComplete, setMealToComplete] = useState<Meal | null>(null);
   const [currentMobileDay, setCurrentMobileDay] = useState(0);
-  const [showNewUserChecklist, setShowNewUserChecklist] = useState(() => {
-    const dismissed = localStorage.getItem('chefly_checklist_dismissed');
-    return !dismissed;
-  });
-  // Meal entry modal removed - now using page navigation
+  // Selected date for diary view - YAZIO style
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const isNativePlatform = Capacitor.isNativePlatform();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -157,8 +138,8 @@ const Dashboard = () => {
   // Streak system based on daily calorie intake
   const streakSystem = useStreakSystem(userId, subscription.isCheflyPlus);
   
-  // Daily food intake tracking from food_scans
-  const { consumedCalories, recentFoods, refetch: refetchFoodIntake } = useDailyFoodIntake(userId);
+  // Daily food intake tracking from food_scans - uses selected date
+  const { consumedCalories, recentFoods, refetch: refetchFoodIntake } = useDailyFoodIntake(userId, selectedDate);
   
   // Nutrition goals from user preferences
   const { goals: nutritionGoals, loading: goalsLoading } = useNutritionGoals(userId || null);
@@ -1041,27 +1022,7 @@ const Dashboard = () => {
     return acc;
   }, {} as { [key: number]: Meal[] }) || {};
 
-  const handleManageSubscription = async () => {
-    setPortalLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("customer-portal");
-
-      if (error) throw error;
-
-      if (data.url) {
-        window.open(data.url, "_blank");
-      }
-    } catch (error) {
-      console.error("Error opening customer portal:", error);
-      toast({
-        variant: "destructive",
-        title: t("common.error"),
-        description: t("dashboard.portalError"),
-      });
-    } finally {
-      setPortalLoading(false);
-    }
-  };
+  // handleManageSubscription removed - moved to MorePage
 
   if (loading || trialLoading) {
     return (
@@ -1086,7 +1047,7 @@ const Dashboard = () => {
       {/* Background extension for safe area - prevents black space at top */}
       <div className="fixed top-0 left-0 right-0 h-[env(safe-area-inset-top,0px)] bg-background z-40" />
       
-      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6 max-w-full overflow-hidden pt-safe-top">
+      <main className="container mx-auto px-3 sm:px-4 py-2 sm:py-4 space-y-4 max-w-full overflow-hidden pt-safe-top">
         
         {/* Offline/Syncing Indicator */}
         {(!isOnline || pendingCount > 0) && (
@@ -1114,32 +1075,11 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* Dashboard Header */}
-        <DashboardHeader 
-          displayName={profile?.display_name}
-          currentStreak={userStats.current_streak}
-          level={userStats.level}
+        {/* YAZIO-Style Date Header with swipe */}
+        <DiaryDateHeader 
+          selectedDate={selectedDate}
+          onDateChange={setSelectedDate}
         />
-
-        {/* New User Checklist - Quick Actions for first-time users */}
-        {showNewUserChecklist && userStats.meals_completed < 5 && (
-          <NewUserChecklist
-            onDismiss={() => {
-              setShowNewUserChecklist(false);
-              localStorage.setItem('chefly_checklist_dismissed', 'true');
-            }}
-            mealsCompleted={userStats.meals_completed}
-            hasUsedChat={localStorage.getItem('chefly_chat_used') === 'true'}
-            onOpenTutorial={() => {
-              const useMobileTutorial = isNativePlatform || isMobile;
-              if (useMobileTutorial) {
-                setShowMobileWelcome(true);
-              } else {
-                setShowInAppTour(true);
-              }
-            }}
-          />
-        )}
 
         {/* MEAL MODULES - YAZIO Style (Desayuno, Almuerzo, Cena, Snacks) */}
         <MealModulesSection
@@ -1180,136 +1120,6 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Subscription Banner */}
-        {profile && (
-          <SubscriptionBanner userId={profile.id} />
-        )}
-
-        {/* Family Status Banner */}
-        {userId && (
-          <FamilyStatusBanner userId={userId} />
-        )}
-
-        {/* Weekly Check-In Banner (Premium feature) */}
-        {userId && (
-          <WeeklyCheckInBanner 
-            userId={userId} 
-            onPlanGenerated={() => loadMealPlan(userId)}
-          />
-        )}
-
-        {/* Generate Plan & Language */}
-        <Card data-tour="quick-actions" className="border-border/50 shadow-lg">
-          <CardHeader className="pb-2">
-            <div className="flex items-center gap-2">
-              <RefreshCw className="h-5 w-5 text-primary" />
-              <CardTitle className="text-lg">{t("dashboard.generateNewPlan")}</CardTitle>
-            </div>
-            <CardDescription>
-              {language === 'es' 
-                ? 'Genera un nuevo plan semanal personalizado' 
-                : 'Generate a new personalized weekly plan'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Generate button */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={initiateGenerateMealPlan}
-                  disabled={generating || !limits.canGeneratePlans}
-                  variant="duolingo"
-                  className="w-full relative"
-                >
-                  {generating ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      <span>{t("dashboard.generating")}</span>
-                    </>
-                  ) : (
-                    <>
-                      {!limits.canGeneratePlans && <Lock className="h-4 w-4 mr-2" />}
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      <span>{t("dashboard.generateNewPlan")}</span>
-                      {!limits.canGeneratePlans && (
-                        <Badge variant="default" className="ml-2 text-xs">
-                          Chefly Plus
-                        </Badge>
-                      )}
-                    </>
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="text-xs max-w-[200px]">{t("tooltip.generatePlan")}</p>
-              </TooltipContent>
-            </Tooltip>
-            
-            {/* Language selector */}
-            <div className="flex items-center justify-center gap-2 p-3 rounded-lg bg-muted/30 border border-border/30">
-              <Languages className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">{t("dashboard.planLanguage")}:</span>
-              <div className="flex gap-1">
-                <Button
-                  variant={language === "es" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setLanguage("es")}
-                  className="h-7 px-3 text-sm"
-                >
-                  ES
-                </Button>
-                <Button
-                  variant={language === "en" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setLanguage("en")}
-                  className="h-7 px-3 text-sm"
-                >
-                  EN
-                </Button>
-              </div>
-            </div>
-
-            {/* Plan limitations info for basic users */}
-            {limits.isFreePlan && (
-              <div className="p-4 bg-muted/50 rounded-lg border border-border/50">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center flex-shrink-0">
-                    <Sparkles className="h-5 w-5 text-primary" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="text-sm font-semibold mb-1">{t("dashboard.unlockFeatures")}</h4>
-                    <p className="text-xs text-muted-foreground mb-3">
-                      {t("dashboard.withIntermediate")}
-                    </p>
-                    <ul className="space-y-1 text-xs text-muted-foreground mb-3">
-                      <li className="flex items-center gap-2">
-                        <Check className="h-3 w-3 text-primary" />
-                        <span>{t("dashboard.unlimitedPlans")}</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <Check className="h-3 w-3 text-primary" />
-                        <span>{t("dashboard.swapMeals")}</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <Check className="h-3 w-3 text-primary" />
-                        <span>{t("dashboard.unlimitedChat")}</span>
-                      </li>
-                    </ul>
-                    <Button 
-                      onClick={() => navigate("/pricing")} 
-                      size="sm" 
-                      className="w-full"
-                      variant="duolingo"
-                    >
-                      {t("dashboard.viewPlans")}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
           </CardContent>
         </Card>
 
