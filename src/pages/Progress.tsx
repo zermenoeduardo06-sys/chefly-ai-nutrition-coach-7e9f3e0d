@@ -80,28 +80,28 @@ const Progress = () => {
   };
 
   return (
-    <div className="min-h-full bg-gradient-to-b from-background to-muted/30 pb-24 md:pb-6">
-      <main className="container mx-auto px-4 py-4 md:py-6 space-y-4 md:space-y-6">
+    <div className="min-h-full bg-gradient-to-b from-background to-muted/30 pb-24 lg:pb-6">
+      <main className="container mx-auto px-4 tablet:px-6 py-4 tablet:py-6 space-y-4 tablet:space-y-6 max-w-3xl">
         <div className="flex items-center gap-2 mb-2">
-          <TrendingUp className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-bold">{tx.title}</h1>
+          <TrendingUp className="h-6 w-6 tablet:h-7 tablet:w-7 text-primary" />
+          <h1 className="text-2xl tablet:text-3xl font-bold">{tx.title}</h1>
         </div>
 
         <Tabs defaultValue="nutrition" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 h-11">
-            <TabsTrigger value="nutrition" className="text-xs px-1">
+          <TabsList className="grid w-full grid-cols-4 h-11 tablet:h-12">
+            <TabsTrigger value="nutrition" className="text-xs tablet:text-sm px-1">
               <TrendingUp className="h-4 w-4 mr-1 hidden sm:inline" />
               {tx.nutrition}
             </TabsTrigger>
-            <TabsTrigger value="weight" className="text-xs px-1">
+            <TabsTrigger value="weight" className="text-xs tablet:text-sm px-1">
               <Scale className="h-4 w-4 mr-1 hidden sm:inline" />
               {tx.weight}
             </TabsTrigger>
-            <TabsTrigger value="achievements" className="text-xs px-1">
+            <TabsTrigger value="achievements" className="text-xs tablet:text-sm px-1">
               <Trophy className="h-4 w-4 mr-1 hidden sm:inline" />
               {tx.achievements}
             </TabsTrigger>
-            <TabsTrigger value="stats" className="text-xs px-1">
+            <TabsTrigger value="stats" className="text-xs tablet:text-sm px-1">
               <BarChart3 className="h-4 w-4 mr-1 hidden sm:inline" />
               {tx.stats}
             </TabsTrigger>

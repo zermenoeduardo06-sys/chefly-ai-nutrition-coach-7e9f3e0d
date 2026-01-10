@@ -442,13 +442,13 @@ export default function ChefIA() {
         animate={{ y: 0, opacity: 1 }}
         className="border-b border-border/50 bg-card/80 backdrop-blur-xl sticky top-0 z-40"
       >
-        <div className="container mx-auto px-4 py-3 flex items-center gap-3">
+        <div className="container mx-auto px-4 tablet:px-6 py-3 tablet:py-4 flex items-center gap-3 max-w-3xl">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <motion.div 
               className="relative"
               whileHover={{ scale: 1.05 }}
             >
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 p-1 shadow-sm">
+              <div className="w-11 h-11 tablet:w-14 tablet:h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 p-1 shadow-sm">
                 <img 
                   src={mascotLime}
                   alt="Chefly"
@@ -463,7 +463,7 @@ export default function ChefIA() {
             </motion.div>
             
             <div className="min-w-0 flex-1">
-              <h1 className="text-lg font-bold truncate text-foreground">Chefly</h1>
+              <h1 className="text-lg tablet:text-xl font-bold truncate text-foreground">Chefly</h1>
               <div className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                 <span className="text-xs text-muted-foreground font-medium">
@@ -496,8 +496,8 @@ export default function ChefIA() {
       </motion.header>
 
       {/* Messages area */}
-      <div className="flex-1 container mx-auto px-4 py-4 flex flex-col max-w-2xl overflow-hidden">
-        <ScrollArea className="flex-1 -mx-4 px-4">
+      <div className="flex-1 container mx-auto px-4 tablet:px-6 py-4 tablet:py-6 flex flex-col max-w-3xl overflow-hidden">
+        <ScrollArea className="flex-1 -mx-4 tablet:-mx-6 px-4 tablet:px-6">
           <div className="space-y-4 pb-4">
             <AnimatePresence mode="wait">
               {messages.length === 0 ? (

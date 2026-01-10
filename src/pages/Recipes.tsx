@@ -261,15 +261,15 @@ export default function Recipes() {
   }
 
   return (
-    <div className="min-h-full bg-background pb-24">
+    <div className="min-h-full bg-background pb-24 lg:pb-6">
       {/* Header */}
       <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-        <div className="flex items-center gap-3 p-4">
+        <div className="flex items-center gap-3 p-4 tablet:px-6 max-w-4xl mx-auto">
           <button onClick={() => navigate(-1)} className="p-1">
-            <ArrowLeft className="h-5 w-5 text-foreground" />
+            <ArrowLeft className="h-5 w-5 tablet:h-6 tablet:w-6 text-foreground" />
           </button>
           <div className="flex-1">
-            <h1 className="text-xl font-bold text-foreground">{t.title}</h1>
+            <h1 className="text-xl tablet:text-2xl font-bold text-foreground">{t.title}</h1>
             <div className="flex items-center gap-1.5">
               <Sparkles className="h-3 w-3 text-primary" />
               <p className="text-sm text-primary font-medium">{t.subtitle}</p>
@@ -284,14 +284,14 @@ export default function Recipes() {
 
       {/* AI Badge Banner */}
       {filteredRecipes.length > 0 && (
-        <div className="px-4 py-3">
-          <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-primary/10 via-cyan-500/10 to-primary/10 rounded-xl border border-primary/20">
-            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-              <Sparkles className="h-4 w-4 text-primary" />
+        <div className="px-4 tablet:px-6 py-3 max-w-4xl mx-auto">
+          <div className="flex items-center gap-2 p-3 tablet:p-4 bg-gradient-to-r from-primary/10 via-cyan-500/10 to-primary/10 rounded-xl border border-primary/20">
+            <div className="w-8 h-8 tablet:w-10 tablet:h-10 rounded-full bg-primary/20 flex items-center justify-center">
+              <Sparkles className="h-4 w-4 tablet:h-5 tablet:w-5 text-primary" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-medium text-foreground">{t.aiPowered}</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm tablet:text-base font-medium text-foreground">{t.aiPowered}</p>
+              <p className="text-xs tablet:text-sm text-muted-foreground">
                 {language === 'es' 
                   ? 'Recetas adaptadas a tus objetivos y preferencias' 
                   : 'Recipes adapted to your goals and preferences'}
@@ -302,27 +302,27 @@ export default function Recipes() {
       )}
 
       {/* Search */}
-      <div className="px-4 py-2">
+      <div className="px-4 tablet:px-6 py-2 max-w-4xl mx-auto">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input
             placeholder={t.search}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 h-12 bg-muted border-0"
+            className="pl-10 h-12 tablet:h-14 tablet:text-base bg-muted border-0"
           />
         </div>
       </div>
 
       {/* Meal Type Filter Pills */}
-      <div className="px-4 pb-3">
-        <div className="flex gap-2 overflow-x-auto no-scrollbar">
+      <div className="px-4 tablet:px-6 pb-3 max-w-4xl mx-auto">
+        <div className="flex gap-2 tablet:gap-3 overflow-x-auto no-scrollbar">
           {mealTypes.map((type) => (
             <button
               key={type}
               onClick={() => setActiveFilter(type)}
               className={cn(
-                "px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors",
+                "px-4 tablet:px-5 py-2 tablet:py-2.5 rounded-full text-sm tablet:text-base font-medium whitespace-nowrap transition-colors",
                 activeFilter === type
                   ? "bg-primary text-primary-foreground"
                   : "bg-muted text-muted-foreground hover:bg-muted/80"
@@ -335,7 +335,7 @@ export default function Recipes() {
       </div>
 
       {/* Recipes Grid */}
-      <div className="px-4 grid grid-cols-2 gap-3">
+      <div className="px-4 tablet:px-6 grid grid-cols-2 tablet:grid-cols-3 gap-3 tablet:gap-4 max-w-4xl mx-auto">
         {filteredRecipes.length === 0 ? (
           <motion.div 
             initial={{ opacity: 0 }}

@@ -93,26 +93,26 @@ function MenuItem({ icon, label, onClick, badge, badgeVariant = "default", showA
   return (
     <button
       onClick={onClick}
-      className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-muted/50 active:bg-muted transition-colors"
+      className="w-full flex items-center justify-between px-4 tablet:px-6 py-3.5 tablet:py-4 hover:bg-muted/50 active:bg-muted transition-colors"
     >
       <div className="flex items-center gap-3">
         <span className="text-muted-foreground">{icon}</span>
-        <span className="text-foreground text-sm">{label}</span>
+        <span className="text-foreground text-sm tablet:text-base">{label}</span>
       </div>
       <div className="flex items-center gap-2">
         {badge && (
           <Badge 
             variant="secondary" 
             className={badgeVariant === "premium" 
-              ? "bg-amber-500/20 text-amber-400 border-0 text-xs" 
-              : "bg-muted text-muted-foreground border-0 text-xs"
+              ? "bg-amber-500/20 text-amber-400 border-0 text-xs tablet:text-sm" 
+              : "bg-muted text-muted-foreground border-0 text-xs tablet:text-sm"
             }
           >
             {badgeVariant === "premium" && <Crown className="h-3 w-3 mr-1" />}
             {badge}
           </Badge>
         )}
-        {showArrow && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+        {showArrow && <ChevronRight className="h-4 w-4 tablet:h-5 tablet:w-5 text-muted-foreground" />}
       </div>
     </button>
   );
@@ -126,7 +126,7 @@ interface MenuSectionProps {
 function MenuSection({ title, children }: MenuSectionProps) {
   return (
     <div>
-      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-2 mb-1">
+      <h3 className="text-xs tablet:text-sm font-semibold text-muted-foreground uppercase tracking-wider px-4 tablet:px-6 py-2 mb-1">
         {title}
       </h3>
       <Card className="border-border/50 overflow-hidden divide-y divide-border/50">
@@ -203,25 +203,25 @@ export default function MorePage() {
   };
 
   return (
-    <div className="min-h-full bg-background pb-28">
+    <div className="min-h-full bg-background pb-28 lg:pb-6">
       {/* Profile header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="px-4 pt-6 pb-4"
+        className="px-4 tablet:px-6 pt-6 pb-4 max-w-2xl mx-auto"
       >
-        <Card className="p-4 border-border/50 bg-gradient-to-br from-card to-muted/20">
+        <Card className="p-4 tablet:p-6 border-border/50 bg-gradient-to-br from-card to-muted/20">
           <div className="flex items-center gap-4">
             <motion.div 
               className="relative"
               whileHover={{ scale: 1.05 }}
               onClick={() => navigate("/dashboard/avatar")}
             >
-              <div className="w-18 h-18 rounded-full overflow-hidden bg-muted flex items-center justify-center ring-2 ring-primary/20">
+              <div className="w-18 h-18 tablet:w-24 tablet:h-24 rounded-full overflow-hidden bg-muted flex items-center justify-center ring-2 ring-primary/20">
                 {avatarConfig ? (
                   <ModularAvatar config={avatarConfig} size={72} />
                 ) : (
-                  <User className="h-9 w-9 text-muted-foreground" />
+                  <User className="h-9 w-9 tablet:h-12 tablet:w-12 text-muted-foreground" />
                 )}
               </div>
               {subscribed && (
@@ -231,7 +231,7 @@ export default function MorePage() {
               )}
             </motion.div>
             <div className="flex-1 min-w-0">
-              <h2 className="text-lg font-bold text-foreground truncate">{displayName}</h2>
+              <h2 className="text-lg tablet:text-xl font-bold text-foreground truncate">{displayName}</h2>
               <div className="flex items-center gap-2 mt-1 flex-wrap">
                 <Badge variant="secondary" className="bg-primary/20 text-primary border-0 text-xs">
                   <Star className="h-3 w-3 mr-1" />
@@ -270,7 +270,7 @@ export default function MorePage() {
         </Card>
       </motion.div>
 
-      <div className="px-4 space-y-4">
+      <div className="px-4 tablet:px-6 space-y-4 max-w-2xl mx-auto">
         {/* Subscription */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}

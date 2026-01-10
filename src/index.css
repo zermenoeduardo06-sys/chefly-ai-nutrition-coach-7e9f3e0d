@@ -223,14 +223,25 @@ All colors MUST be HSL.
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
-  /* Hide on mobile, show on desktop */
+  /* Hide on mobile/tablet, show on desktop */
   .desktop-only {
-    @apply hidden md:block;
+    @apply hidden lg:block;
   }
 
-  /* Show on mobile, hide on desktop */
+  /* Show on mobile/tablet, hide on desktop */
   .mobile-only {
-    @apply block md:hidden;
+    @apply block lg:hidden;
+  }
+
+  /* iPad-specific padding utility */
+  .pb-mobile-nav {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  }
+
+  @media (min-width: 768px) and (max-width: 1023px) {
+    .pb-mobile-nav {
+      padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+    }
   }
 
   /* Improved focus states for touch */
