@@ -5,7 +5,7 @@ import { useInAppPurchases, APPLE_IAP_PRODUCTS } from '@/hooks/useInAppPurchases
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { useAppReview } from '@/hooks/useAppReview';
-import { Check, Crown, Loader2, Users, Zap, RefreshCw, CheckCircle } from 'lucide-react';
+import { Check, Crown, Loader2, Zap, RefreshCw, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import mascotLime from '@/assets/mascot-lime.png';
 import mascotCelebrating from '@/assets/mascot-celebrating.png';
@@ -21,13 +21,11 @@ export const IAPPaywall = ({ open, onOpenChange, userId, onPurchaseSuccess }: IA
   const { language } = useLanguage();
   const { toast } = useToast();
   const { requestReviewAfterDelay } = useAppReview();
-  const [selectedProduct, setSelectedProduct] = useState<string>(APPLE_IAP_PRODUCTS.CHEFLY_PLUS_MONTHLY);
   const [showSuccess, setShowSuccess] = useState(false);
   
   const {
     isPurchasing,
     isRestoring,
-    products,
     error,
     purchaseProduct,
     restorePurchases,
@@ -37,7 +35,7 @@ export const IAPPaywall = ({ open, onOpenChange, userId, onPurchaseSuccess }: IA
   const handlePurchase = async () => {
     clearError();
     
-    const success = await purchaseProduct(selectedProduct);
+    const success = await purchaseProduct(APPLE_IAP_PRODUCTS.CHEFLY_PLUS_MONTHLY);
     
     if (success) {
       // Show success screen first
@@ -80,34 +78,10 @@ export const IAPPaywall = ({ open, onOpenChange, userId, onPurchaseSuccess }: IA
     }
   };
 
-  const planOptions = [
-    {
-      id: APPLE_IAP_PRODUCTS.CHEFLY_PLUS_MONTHLY,
-      name: 'Chefly Plus',
-      price: '$7.99',
-      period: language === 'es' ? '/mes' : '/month',
-      icon: Zap,
-      gradient: 'from-emerald-400 to-teal-500',
-      features: [
-        language === 'es' ? 'Planes semanales ilimitados' : 'Unlimited weekly plans',
-        language === 'es' ? 'Chat ilimitado con IA' : 'Unlimited AI chat',
-        language === 'es' ? 'Escaneo ilimitado' : 'Unlimited food scanning',
-      ],
-    },
-    {
-      id: APPLE_IAP_PRODUCTS.CHEFLY_FAMILY_MONTHLY,
-      name: 'Chefly Familiar',
-      price: '$19.99',
-      period: language === 'es' ? '/mes' : '/month',
-      icon: Users,
-      gradient: 'from-violet-500 to-purple-500',
-      badge: language === 'es' ? '5 personas' : '5 people',
-      features: [
-        language === 'es' ? 'Todo de Chefly Plus' : 'Everything in Chefly Plus',
-        language === 'es' ? 'Hasta 5 perfiles' : 'Up to 5 profiles',
-        language === 'es' ? 'Metas individuales' : 'Individual goals',
-      ],
-    },
+  const planFeatures = [
+    language === 'es' ? 'Planes semanales ilimitados' : 'Unlimited weekly plans',
+    language === 'es' ? 'Chat ilimitado con IA' : 'Unlimited AI chat',
+    language === 'es' ? 'Escaneo ilimitado' : 'Unlimited food scanning',
   ];
 
   return (
@@ -181,7 +155,7 @@ export const IAPPaywall = ({ open, onOpenChange, userId, onPurchaseSuccess }: IA
                 </motion.div>
                 <DialogTitle className="text-xl font-bold">
                   <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                    {language === 'es' ? 'Desbloquea Chefly Premium' : 'Unlock Chefly Premium'}
+                    {language === 'es' ? 'Desbloquea Chefly Plus' : 'Unlock Chefly Plus'}
                   </span>
                 </DialogTitle>
                 <p className="text-sm text-muted-foreground">
@@ -191,116 +165,92 @@ export const IAPPaywall = ({ open, onOpenChange, userId, onPurchaseSuccess }: IA
                 </p>
               </DialogHeader>
 
-        <div className="space-y-3 py-4">
-          {planOptions.map((plan) => (
-            <motion.button
-              key={plan.id}
-              onClick={() => setSelectedProduct(plan.id)}
-              className={`w-full p-4 rounded-xl border-2 text-left transition-all ${
-                selectedProduct === plan.id
-                  ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
-                  : 'border-border hover:border-primary/50'
-              }`}
-              whileTap={{ scale: 0.98 }}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className={`p-1.5 rounded-lg bg-gradient-to-r ${plan.gradient}`}>
-                      <plan.icon className="h-4 w-4 text-white" />
+              <div className="space-y-3 py-4">
+                <div className="w-full p-4 rounded-xl border-2 border-primary bg-primary/5 ring-2 ring-primary/20">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="p-1.5 rounded-lg bg-gradient-to-r from-emerald-400 to-teal-500">
+                          <Zap className="h-4 w-4 text-white" />
+                        </div>
+                        <span className="font-bold text-foreground">Chefly Plus</span>
+                      </div>
+                      
+                      <div className="flex items-baseline gap-1 mb-2">
+                        <span className="text-lg font-bold text-foreground">$7.99</span>
+                        <span className="text-sm text-muted-foreground">
+                          {language === 'es' ? '/mes' : '/month'}
+                        </span>
+                      </div>
+                      
+                      <ul className="space-y-1">
+                        {planFeatures.map((feature, i) => (
+                          <li key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Check className="h-3 w-3 text-primary" />
+                            {feature}
+                          </li>
+                        ))}
+                      </ul>
                     </div>
-                    <span className="font-bold text-foreground">{plan.name}</span>
-                    {plan.badge && (
-                      <span className="text-xs bg-violet-500/10 text-violet-500 px-2 py-0.5 rounded-full">
-                        {plan.badge}
-                      </span>
-                    )}
                   </div>
-                  
-                  <div className="flex items-baseline gap-1 mb-2">
-                    <span className="text-lg font-bold text-foreground">{plan.price}</span>
-                    <span className="text-sm text-muted-foreground">{plan.period}</span>
-                  </div>
-                  
-                  <ul className="space-y-1">
-                    {plan.features.map((feature, i) => (
-                      <li key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Check className="h-3 w-3 text-primary" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                
-                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                  selectedProduct === plan.id 
-                    ? 'border-primary bg-primary' 
-                    : 'border-muted-foreground/30'
-                }`}>
-                  {selectedProduct === plan.id && (
-                    <Check className="h-3 w-3 text-primary-foreground" />
-                  )}
                 </div>
               </div>
-            </motion.button>
-          ))}
-        </div>
 
-        {/* Purchase Button */}
-        <Button
-          onClick={handlePurchase}
-          disabled={isPurchasing || isRestoring}
-          className="w-full h-12 bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white font-bold text-base"
-        >
-          {isPurchasing ? (
-            <>
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              {language === 'es' ? 'Procesando...' : 'Processing...'}
-            </>
-          ) : (
-            <>
-              <Crown className="mr-2 h-5 w-5" />
-              {language === 'es' ? 'Suscribirse' : 'Subscribe'}
-            </>
-          )}
-        </Button>
+              {/* Purchase Button */}
+              <Button
+                onClick={handlePurchase}
+                disabled={isPurchasing || isRestoring}
+                className="w-full h-12 bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white font-bold text-base"
+              >
+                {isPurchasing ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    {language === 'es' ? 'Procesando...' : 'Processing...'}
+                  </>
+                ) : (
+                  <>
+                    <Crown className="mr-2 h-5 w-5" />
+                    {language === 'es' ? 'Suscribirse' : 'Subscribe'}
+                  </>
+                )}
+              </Button>
 
-        {/* Restore Purchases */}
-        <Button
-          variant="ghost"
-          onClick={handleRestore}
-          disabled={isPurchasing || isRestoring}
-          className="w-full text-sm text-muted-foreground"
-        >
-          {isRestoring ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {language === 'es' ? 'Restaurando...' : 'Restoring...'}
-            </>
-          ) : (
-            <>
-              <RefreshCw className="mr-2 h-4 w-4" />
-              {language === 'es' ? 'Restaurar compras' : 'Restore purchases'}
-            </>
-          )}
-        </Button>
+              {/* Restore Purchases */}
+              <Button
+                variant="ghost"
+                onClick={handleRestore}
+                disabled={isPurchasing || isRestoring}
+                className="w-full text-sm text-muted-foreground"
+              >
+                {isRestoring ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {language === 'es' ? 'Restaurando...' : 'Restoring...'}
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    {language === 'es' ? 'Restaurar compras' : 'Restore purchases'}
+                  </>
+                )}
+              </Button>
 
-        {/* Legal Text */}
-        <div className="space-y-2 pt-2 border-t border-border">
-          <p className="text-[10px] text-muted-foreground text-center leading-relaxed">
-            {language === 'es' 
-              ? 'El pago se cargará a tu cuenta de Apple al confirmar. La suscripción se renueva automáticamente a menos que se cancele 24 horas antes del final del período.'
-              : 'Payment will be charged to your Apple account upon confirmation. Subscription auto-renews unless cancelled 24 hours before period ends.'}
-          </p>
-          <div className="flex justify-center gap-4 text-[10px] text-muted-foreground">
-            <a href="/terms" className="hover:underline">
-              {language === 'es' ? 'Términos' : 'Terms'}
-            </a>
-            <a href="/privacy" className="hover:underline">
-              {language === 'es' ? 'Privacidad' : 'Privacy'}
-            </a>
+              {/* Legal Text */}
+              <div className="space-y-2 pt-2 border-t border-border">
+                <p className="text-[10px] text-muted-foreground text-center leading-relaxed">
+                  {language === 'es' 
+                    ? 'El pago se cargará a tu cuenta de Apple al confirmar. La suscripción se renueva automáticamente a menos que se cancele 24 horas antes del final del período.'
+                    : 'Payment will be charged to your Apple account upon confirmation. Subscription auto-renews unless cancelled 24 hours before period ends.'}
+                </p>
+                <div className="flex justify-center gap-4 text-[10px] text-muted-foreground">
+                  <a href="/terms" className="hover:underline">
+                    {language === 'es' ? 'Términos' : 'Terms'}
+                  </a>
+                  <a href="/privacy" className="hover:underline">
+                    {language === 'es' ? 'Privacidad' : 'Privacy'}
+                  </a>
+                </div>
               </div>
-            </div>
             </motion.div>
           )}
         </AnimatePresence>

@@ -41,7 +41,6 @@ const texts = {
     manage: "Gestionar",
     social: "Social",
     friends: "Amigos",
-    family: "Familia",
     settings: "Ajustes",
     preferences: "Preferencias nutricionales",
     notifications: "Notificaciones",
@@ -65,7 +64,6 @@ const texts = {
     manage: "Manage",
     social: "Social",
     friends: "Friends",
-    family: "Family",
     settings: "Settings",
     preferences: "Nutrition preferences",
     notifications: "Notifications",
@@ -299,13 +297,6 @@ export default function MorePage() {
               icon={<UserPlus className="h-5 w-5" />}
               label={t.friends}
               onClick={() => navigate("/dashboard/friends")}
-              badge="Plus"
-              badgeVariant="premium"
-            />
-            <MenuItem
-              icon={<Home className="h-5 w-5" />}
-              label={t.family}
-              onClick={() => navigate("/family")}
               badge="Plus"
               badgeVariant="premium"
             />

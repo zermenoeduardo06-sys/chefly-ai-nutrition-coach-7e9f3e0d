@@ -5,7 +5,6 @@ import { supabase } from '@/integrations/supabase/client';
 // Apple Product IDs - Must match App Store Connect configuration
 export const APPLE_IAP_PRODUCTS = {
   CHEFLY_PLUS_MONTHLY: 'chefly_plus_monthly_',
-  CHEFLY_FAMILY_MONTHLY: 'chefly_family_monthly_',
 };
 
 interface IAPProduct {
@@ -85,24 +84,14 @@ export const useInAppPurchases = (userId: string | undefined) => {
 
         // Fallback products if offerings aren't configured yet
         if (products.length === 0) {
-          products.push(
-            {
-              id: APPLE_IAP_PRODUCTS.CHEFLY_PLUS_MONTHLY,
-              title: 'Chefly Plus',
-              description: 'Unlimited personalized nutrition',
-              price: '$7.99',
-              priceAsDecimal: 7.99,
-              currency: 'USD',
-            },
-            {
-              id: APPLE_IAP_PRODUCTS.CHEFLY_FAMILY_MONTHLY,
-              title: 'Chefly Familiar',
-              description: 'Nutrition for up to 5 family members',
-              price: '$19.99',
-              priceAsDecimal: 19.99,
-              currency: 'USD',
-            }
-          );
+          products.push({
+            id: APPLE_IAP_PRODUCTS.CHEFLY_PLUS_MONTHLY,
+            title: 'Chefly Plus',
+            description: 'Unlimited personalized nutrition',
+            price: '$7.99',
+            priceAsDecimal: 7.99,
+            currency: 'USD',
+          });
         }
 
         setState(prev => ({ 
@@ -161,7 +150,6 @@ export const useInAppPurchases = (userId: string | undefined) => {
           console.log('[IAP] Customer info:', JSON.stringify(customerInfo));
           
           // If we got here, purchase was successful - update database immediately
-          // Don't rely solely on entitlements as they may not be configured in RevenueCat
           console.log('[IAP] Updating subscription in database...');
           const { error: updateError } = await supabase
             .from('profiles')
@@ -270,7 +258,6 @@ export const useInAppPurchases = (userId: string | undefined) => {
       // Check if any entitlements are active
       const hasActiveSubscription = 
         customerInfo.entitlements.active['premium'] !== undefined ||
-        customerInfo.entitlements.active['family'] !== undefined ||
         Object.keys(customerInfo.entitlements.active).length > 0;
 
       if (hasActiveSubscription) {
@@ -312,10 +299,6 @@ export const useInAppPurchases = (userId: string | undefined) => {
     return purchaseProduct(APPLE_IAP_PRODUCTS.CHEFLY_PLUS_MONTHLY);
   }, [purchaseProduct]);
 
-  const purchaseCheflyFamily = useCallback(() => {
-    return purchaseProduct(APPLE_IAP_PRODUCTS.CHEFLY_FAMILY_MONTHLY);
-  }, [purchaseProduct]);
-
   const clearError = useCallback(() => {
     setState(prev => ({ ...prev, error: null }));
   }, []);
@@ -325,7 +308,6 @@ export const useInAppPurchases = (userId: string | undefined) => {
     isNativeIOS,
     purchaseProduct,
     purchaseCheflyPlus,
-    purchaseCheflyFamily,
     restorePurchases,
     clearError,
   };

@@ -9,7 +9,7 @@ import jsPDF from "jspdf";
 import { useToast } from "@/hooks/use-toast";
 import { usePDFExport } from "@/hooks/usePDFExport";
 import { StepByStepDialog } from "./StepByStepDialog";
-import { MealMemberAdaptations } from "./family/MealMemberAdaptations";
+
 
 interface MealAdaptation {
   id: string;
@@ -418,13 +418,6 @@ export function MealDetailDialog({
 
           <Separator className="my-4" />
 
-          {/* Family Adaptations */}
-          {isFamilyPlan && meal.adaptations && meal.adaptations.length > 0 && (
-            <>
-              <MealMemberAdaptations adaptations={meal.adaptations} />
-              <Separator className="my-4" />
-            </>
-          )}
 
           {/* Beneficios */}
           <div className="bg-primary/5 border border-primary/10 rounded-xl p-3">

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Home, TrendingUp, Trophy, Target, MessageCircle, Users, CreditCard, LogOut, DollarSign, Settings, UserPlus, User, ShoppingCart, UsersRound } from "lucide-react";
+import { Home, TrendingUp, Trophy, Target, MessageCircle, Users, CreditCard, LogOut, DollarSign, Settings, UserPlus, User, ShoppingCart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -29,7 +29,6 @@ export function AppSidebar() {
   const { hasRole: isAdmin } = useUserRole("admin");
   const [isAffiliate, setIsAffiliate] = useState(false);
   const [userId, setUserId] = useState<string | undefined>();
-  const { isCheflyFamily, is_family_owner, is_family_member, has_family } = useSubscription(userId);
 
   useEffect(() => {
     const checkUserStatus = async () => {
@@ -50,8 +49,6 @@ export function AppSidebar() {
     checkUserStatus();
   }, []);
 
-  const hasFamilyAccess = isCheflyFamily || is_family_owner || is_family_member || has_family;
-
   const baseMenuItems = [
     { title: t("sidebar.dashboard"), url: "/dashboard", icon: Home, tourId: "" },
     { title: t("sidebar.profile"), url: "/dashboard/profile", icon: User, tourId: "" },
@@ -66,10 +63,6 @@ export function AppSidebar() {
   ];
 
   let menuItems = [...baseMenuItems];
-  
-  if (hasFamilyAccess) {
-    menuItems.push({ title: t("sidebar.family") || "Familia", url: "/family", icon: UsersRound, tourId: "family" });
-  }
   
   if (isAffiliate) {
     menuItems.push({ title: t("sidebar.affiliates"), url: "/affiliates", icon: DollarSign, tourId: "" });
