@@ -43,7 +43,6 @@ interface MealDetailDialogProps {
   onOpenChange: (open: boolean) => void;
   onSwapMeal?: (mealId: string) => void;
   canSwap?: boolean;
-  isFamilyPlan?: boolean;
 }
 
 export function MealDetailDialog({ 
@@ -52,7 +51,6 @@ export function MealDetailDialog({
   onOpenChange, 
   onSwapMeal,
   canSwap = true,
-  isFamilyPlan = false
 }: MealDetailDialogProps) {
   const { t, language } = useLanguage();
   const { toast } = useToast();

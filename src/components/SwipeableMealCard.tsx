@@ -46,7 +46,6 @@ interface SwipeableMealCardProps {
   onClick: () => void;
   onAddEntry?: (meal: Meal) => void;
   isFirstMeal?: boolean;
-  isFamilyPlan?: boolean;
 }
 
 const SWIPE_THRESHOLD = 100;
@@ -59,7 +58,6 @@ export const SwipeableMealCard = ({
   onClick,
   onAddEntry,
   isFirstMeal = false,
-  isFamilyPlan = false,
 }: SwipeableMealCardProps) => {
   const { t, language } = useLanguage();
   const { mediumImpact } = useHaptics();

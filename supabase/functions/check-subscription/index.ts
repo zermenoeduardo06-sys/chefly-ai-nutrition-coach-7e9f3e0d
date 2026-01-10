@@ -6,9 +6,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Stripe Subscription tiers
+// Stripe Subscription tier
 const CHEFLY_PLUS_PRODUCT_ID = "prod_TUMZx1BcskL9rK";
-const CHEFLY_FAMILY_PRODUCT_ID = "prod_Te9zehdPjvu5Yg";
 
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
@@ -51,24 +50,6 @@ serve(async (req) => {
 
     logStep("Profile check", { is_subscribed: profile?.is_subscribed });
 
-    // Check family membership
-    const { data: familyMembership } = await supabaseClient
-      .from("family_memberships")
-      .select(`family_id, role, families!inner (id, name, owner_id)`)
-      .eq("user_id", user.id)
-      .single();
-
-    const { data: ownedFamily } = await supabaseClient
-      .from("families")
-      .select("id, name")
-      .eq("owner_id", user.id)
-      .single();
-
-    const hasFamily = !!familyMembership || !!ownedFamily;
-    const familyId = familyMembership?.family_id || ownedFamily?.id;
-    const familyName = (familyMembership?.families as any)?.name || ownedFamily?.name;
-    const isOwner = !!ownedFamily || familyMembership?.role === "owner";
-
     // If user has is_subscribed = true in profiles (Apple IAP)
     if (profile?.is_subscribed === true) {
       logStep("User has active Apple IAP subscription");
@@ -78,12 +59,6 @@ serve(async (req) => {
         subscription_end: null,
         plan: "chefly_plus",
         is_chefly_plus: true,
-        is_chefly_family: false,
-        has_family: hasFamily,
-        is_family_owner: isOwner,
-        is_family_member: !!familyMembership && familyMembership.role === "member",
-        family_id: familyId,
-        family_name: familyName,
         subscription_source: "apple_iap",
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -100,10 +75,9 @@ serve(async (req) => {
     if (!customers.data?.length) {
       logStep("No Stripe customer - Free plan");
       return new Response(JSON.stringify({ 
-        subscribed: false, plan: "free", is_chefly_plus: false, is_chefly_family: false,
-        has_family: hasFamily, is_family_owner: isOwner,
-        is_family_member: !!familyMembership && familyMembership.role === "member",
-        family_id: familyId, family_name: familyName,
+        subscribed: false, 
+        plan: "free", 
+        is_chefly_plus: false,
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
     }
 
@@ -114,14 +88,13 @@ serve(async (req) => {
     const subscriptions = await subsResponse.json();
     
     const hasActiveSub = subscriptions.data?.length > 0;
-    let productId = null, subscriptionEnd = null, isCheflyPlus = false, isCheflyFamily = false;
+    let productId = null, subscriptionEnd = null, isCheflyPlus = false;
 
     if (hasActiveSub) {
       const sub = subscriptions.data[0];
       subscriptionEnd = sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : null;
       productId = sub.items?.data?.[0]?.price?.product;
       isCheflyPlus = productId === CHEFLY_PLUS_PRODUCT_ID;
-      isCheflyFamily = productId === CHEFLY_FAMILY_PRODUCT_ID;
       
       await supabaseClient.from("profiles").update({ is_subscribed: true }).eq("id", user.id);
     } else {
@@ -132,14 +105,8 @@ serve(async (req) => {
       subscribed: hasActiveSub,
       product_id: productId,
       subscription_end: subscriptionEnd,
-      plan: isCheflyFamily ? "chefly_family" : (isCheflyPlus ? "chefly_plus" : "free"),
-      is_chefly_plus: isCheflyPlus || isCheflyFamily,
-      is_chefly_family: isCheflyFamily,
-      has_family: hasFamily,
-      is_family_owner: isOwner,
-      is_family_member: !!familyMembership && familyMembership.role === "member",
-      family_id: familyId,
-      family_name: familyName,
+      plan: isCheflyPlus ? "chefly_plus" : "free",
+      is_chefly_plus: isCheflyPlus,
       subscription_source: hasActiveSub ? "stripe" : null,
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
   } catch (error) {

@@ -181,7 +181,7 @@ const Auth = () => {
     },
     {
       icon: Shield,
-      title: language === 'es' ? "Prueba gratis 4 días" : "Free 4-day trial",
+      title: language === 'es' ? "Plan gratuito incluido" : "Free plan included",
       description: language === 'es' ? "Sin compromiso ni tarjeta de crédito" : "No commitment or credit card required"
     }
   ];
