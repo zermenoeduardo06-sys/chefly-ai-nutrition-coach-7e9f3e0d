@@ -37,7 +37,10 @@ export default function AICamera() {
   const subscription = useSubscription(userId);
   const { limits } = useSubscriptionLimits(userId);
   const isPremium = subscription.isCheflyPlus;
-  const canScan = isPremium || limits.foodScansUsed < limits.dailyFoodScanLimit;
+  
+  // Only determine canScan when both subscription AND limits are fully loaded
+  const isFullyLoaded = !subscription.isLoading && !limits.isLoading && userId;
+  const canScan = isFullyLoaded && (isPremium || limits.foodScansUsed < limits.dailyFoodScanLimit);
   
   const validMealType = (mealType as keyof typeof mealTypeLabels) || "breakfast";
   const selectedDate = searchParams.get('date');
@@ -55,12 +58,12 @@ export default function AICamera() {
     loadData();
   }, [navigate]);
 
-  // Open scanner when subscription data is ready
+  // Open scanner ONLY when fully loaded AND user has permission
   useEffect(() => {
-    if (!subscription.isLoading && canScan && userId) {
+    if (isFullyLoaded && canScan) {
       setShowScanner(true);
     }
-  }, [subscription.isLoading, canScan, userId]);
+  }, [isFullyLoaded, canScan]);
 
   // Animate through scan states for demo
   useEffect(() => {
@@ -108,8 +111,22 @@ export default function AICamera() {
     setShowScanner(open);
   };
 
+  // Show loading state while checking subscription
+  if (!isFullyLoaded) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+        >
+          <Sparkles className="h-8 w-8 text-primary" />
+        </motion.div>
+      </div>
+    );
+  }
+
   // If user can scan, show scanner dialog
-  if (canScan && showScanner && !subscription.isLoading) {
+  if (canScan && showScanner) {
     return (
       <div className="min-h-screen bg-background">
         <FoodScanner
