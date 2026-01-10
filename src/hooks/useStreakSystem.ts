@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -22,6 +22,13 @@ export function useStreakSystem(userId: string | undefined, isPremium: boolean) 
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const { language } = useLanguage();
+  
+  // Use refs to avoid including toast/language in callback dependencies
+  // This prevents infinite loops from context updates
+  const toastRef = useRef(toast);
+  const languageRef = useRef(language);
+  toastRef.current = toast;
+  languageRef.current = language;
 
   // Check if user has any calories logged for a specific date (using local timezone)
   const checkDailyCalories = useCallback(async (localDate: Date): Promise<number> => {
@@ -113,14 +120,14 @@ export function useStreakSystem(userId: string | undefined, isPremium: boolean) 
             })
             .eq("user_id", userId);
           
-          if (language === 'es') {
-            toast({
+          if (languageRef.current === 'es') {
+            toastRef.current({
               variant: "destructive",
               title: "Racha reiniciada",
               description: "No registraste calorías ayer. ¡Empieza de nuevo hoy!",
             });
           } else {
-            toast({
+            toastRef.current({
               variant: "destructive",
               title: "Streak reset",
               description: "You didn't log any calories yesterday. Start fresh today!",
@@ -141,7 +148,7 @@ export function useStreakSystem(userId: string | undefined, isPremium: boolean) 
     } finally {
       setIsLoading(false);
     }
-  }, [userId, checkDailyCalories, language, toast]);
+  }, [userId, checkDailyCalories]);
 
   // Update streak when user logs calories
   const updateStreakOnCalorieLog = useCallback(async () => {

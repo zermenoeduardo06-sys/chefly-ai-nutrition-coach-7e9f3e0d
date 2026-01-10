@@ -18,6 +18,7 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [hasNavigated, setHasNavigated] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t, language } = useLanguage();
@@ -35,8 +36,16 @@ const Auth = () => {
   };
 
   useEffect(() => {
+    // Use ref to track navigation state within the effect
+    let navigated = false;
+    
     // Helper function to check preferences and navigate
     const checkPreferencesAndNavigate = async (userId: string) => {
+      // Prevent multiple navigations
+      if (navigated || hasNavigated) return;
+      navigated = true;
+      setHasNavigated(true);
+      
       try {
         const { data: preferences } = await supabase
           .from('user_preferences')
@@ -45,19 +54,19 @@ const Auth = () => {
           .maybeSingle();
         
         if (preferences) {
-          navigate("/dashboard");
+          navigate("/dashboard", { replace: true });
         } else {
-          navigate("/start");
+          navigate("/start", { replace: true });
         }
       } catch (error) {
         console.error('Error checking preferences:', error);
-        navigate("/start");
+        navigate("/start", { replace: true });
       }
     };
 
     // Check initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
+      if (session && !navigated) {
         checkPreferencesAndNavigate(session.user.id);
       }
     });
@@ -65,7 +74,7 @@ const Auth = () => {
     // CRITICAL: Never use async functions directly in onAuthStateChange callback
     // This causes deadlocks. Use setTimeout(0) to defer Supabase calls.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
+      if (session && !navigated) {
         // Defer the Supabase call to prevent deadlock
         setTimeout(() => {
           checkPreferencesAndNavigate(session.user.id);
@@ -74,7 +83,7 @@ const Auth = () => {
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, hasNavigated]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
