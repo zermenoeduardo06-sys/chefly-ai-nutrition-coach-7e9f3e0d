@@ -3,21 +3,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { 
   ChefHat, 
-  Clock, 
   Flame, 
   Lock, 
   Crown,
   ArrowLeft,
   Search,
   Loader2,
-  UtensilsCrossed,
   Sparkles,
   FileText,
   ListChecks,
   X,
   Download
 } from "lucide-react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +25,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { MealImageWithSkeleton } from "@/components/MealImageWithSkeleton";
 import { cn } from "@/lib/utils";
+import { RecipeCard } from "@/components/recipes/RecipeCard";
 
 interface Recipe {
   id: string;
@@ -370,51 +368,15 @@ export default function Recipes() {
         ) : (
           <AnimatePresence mode="popLayout">
             {filteredRecipes.map((recipe, index) => (
-              <motion.div
+              <RecipeCard
                 key={recipe.id}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <Card 
-                  className="overflow-hidden cursor-pointer hover:shadow-lg transition-all hover:scale-[1.02] border-border/50 h-full"
-                  onClick={() => handleRecipeClick(recipe)}
-                >
-                  {/* Image */}
-                  <div className="aspect-square relative overflow-hidden">
-                    <MealImageWithSkeleton
-                      src={recipe.image_url}
-                      alt={recipe.name}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute top-2 left-2">
-                      <Badge 
-                        variant="secondary" 
-                        className={cn("text-[10px] px-1.5 backdrop-blur-sm", mealTypeColors[recipe.meal_type])}
-                      >
-                        {mealTypeLabels[recipe.meal_type]?.[language] || recipe.meal_type}
-                      </Badge>
-                    </div>
-                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent p-2">
-                      <div className="flex items-center gap-1 text-white text-xs">
-                        <Flame className="h-3 w-3 text-amber-400" />
-                        <span>{recipe.calories} {t.kcal}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Content */}
-                  <div className="p-3">
-                    <h3 className="font-semibold text-foreground line-clamp-2 text-sm leading-tight mb-1">
-                      {recipe.name}
-                    </h3>
-                    <p className="text-xs text-muted-foreground line-clamp-2">
-                      {recipe.description}
-                    </p>
-                  </div>
-                </Card>
-              </motion.div>
+                recipe={recipe}
+                onClick={() => handleRecipeClick(recipe)}
+                index={index}
+                mealTypeColors={mealTypeColors}
+                mealTypeLabel={mealTypeLabels[recipe.meal_type]?.[language] || recipe.meal_type}
+                kcalLabel={t.kcal}
+              />
             ))}
           </AnimatePresence>
         )}
