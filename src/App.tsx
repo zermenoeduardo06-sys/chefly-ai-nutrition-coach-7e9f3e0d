@@ -51,7 +51,7 @@ const App = () => {
                 <BrowserRouter>
                   {!Capacitor.isNativePlatform() && <CookieConsent />}
                   <AnimatedRoutes />
-                  <FloatingMascot />
+                  {!showSplash && <FloatingMascot />}
                 </BrowserRouter>
               </CelebrationLayer>
             </TooltipProvider>
