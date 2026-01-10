@@ -8,7 +8,6 @@ import { PageTransition } from '@/components/PageTransition';
 // Pages
 import Index from '@/pages/Index';
 import Auth from '@/pages/Auth';
-import Onboarding from '@/pages/Onboarding';
 import OnboardingWelcome from '@/pages/OnboardingWelcome';
 import Dashboard from '@/pages/Dashboard';
 import Progress from '@/pages/Progress';
@@ -81,7 +80,6 @@ export const AnimatedRoutes = () => {
         <Route path="/pre-onboarding" element={<PageTransition><PreOnboarding /></PageTransition>} />
         <Route path="/auth" element={<PageTransition><Auth /></PageTransition>} />
         <Route path="/welcome-onboarding" element={<PageTransition><OnboardingWelcome /></PageTransition>} />
-        <Route path="/onboarding" element={<PageTransition><Onboarding /></PageTransition>} />
         <Route path="/pricing" element={<PageTransition><Pricing /></PageTransition>} />
         <Route path="/welcome" element={<PageTransition><Welcome /></PageTransition>} />
         <Route path="/privacy" element={<PageTransition><Privacy /></PageTransition>} />

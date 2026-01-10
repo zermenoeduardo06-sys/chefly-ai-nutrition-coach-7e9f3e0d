@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -89,6 +89,8 @@ interface UserStats {
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+  const redirectingRef = useRef(false);
   const [generating, setGenerating] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const [mealPlan, setMealPlan] = useState<MealPlan | null>(null);
@@ -151,13 +153,13 @@ const Dashboard = () => {
   // Nutrition goals from user preferences
   const { goals: nutritionGoals, loading: goalsLoading } = useNutritionGoals(userId || null);
   
-  // Calculate target calories per meal (approximate distribution)
-  const targetCalories = {
+  // Calculate target calories per meal (approximate distribution) - memoized
+  const targetCalories = useMemo(() => ({
     breakfast: Math.round(nutritionGoals.calories * 0.25), // 25%
     lunch: Math.round(nutritionGoals.calories * 0.35), // 35%
     dinner: Math.round(nutritionGoals.calories * 0.30), // 30%
     snack: Math.round(nutritionGoals.calories * 0.10), // 10%
-  };
+  }), [nutritionGoals.calories]);
 
   // Deep linking handler for opening specific meals from notifications
   const handleDeepLinkMealOpen = (mealType: string, dayOfWeek: number) => {
@@ -199,6 +201,25 @@ const Dashboard = () => {
     checkAuth();
   }, []);
 
+  // Safety timeout: show error message if loading takes too long (15 seconds)
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (loading && !initialLoadComplete) {
+        setLoading(false);
+        setInitialLoadComplete(true);
+        toast({
+          variant: "destructive",
+          title: language === 'es' ? "Error de conexión" : "Connection error",
+          description: language === 'es' 
+            ? "No pudimos cargar tus datos. Intenta recargar la página." 
+            : "We couldn't load your data. Try refreshing the page.",
+        });
+      }
+    }, 15000);
+    
+    return () => clearTimeout(timeout);
+  }, [loading, initialLoadComplete, language]);
+
   // Check subscription status on return from Stripe
   useEffect(() => {
     const subscriptionStatus = searchParams.get('subscription');
@@ -220,11 +241,21 @@ const Dashboard = () => {
     }
 
     setUserId(user.id);
-    await loadProfile(user.id);
-    await loadUserStats(user.id);
-    await loadMealPlan(user.id);
     
-    // Check if user has seen the welcome tutorial
+    // Load essential data in parallel for faster initial load
+    try {
+      await Promise.all([
+        loadProfile(user.id),
+        loadUserStats(user.id),
+        loadMealPlan(user.id),
+      ]);
+    } catch (error) {
+      console.error("Error loading initial data:", error);
+    } finally {
+      setInitialLoadComplete(true);
+    }
+    
+    // Check if user has seen the welcome tutorial (after initial load)
     // Use mobile tutorial for native apps OR mobile web views
     // Only show to truly new users (created within last 24 hours)
     const useMobileTutorial = isNativePlatform || isMobile;
@@ -642,6 +673,9 @@ const Dashboard = () => {
   };
 
   const loadMealPlan = async (userId: string) => {
+    // Prevent multiple simultaneous load attempts
+    if (redirectingRef.current) return;
+    
     setLoading(true);
     try {
       // First check if user has preferences
@@ -652,8 +686,11 @@ const Dashboard = () => {
         .single();
 
       if (!preferences) {
+        // Prevent multiple redirects
+        if (redirectingRef.current) return;
+        redirectingRef.current = true;
         // Redirect to start (pre-onboarding) if no preferences
-        navigate("/start");
+        navigate("/start", { replace: true });
         return;
       }
 

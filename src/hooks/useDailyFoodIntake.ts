@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { startOfDay, endOfDay } from "date-fns";
 
@@ -35,6 +35,10 @@ interface FoodScan {
 }
 
 export function useDailyFoodIntake(userId: string | undefined, date: Date = new Date()) {
+  // Convert Date to stable string key to avoid infinite loops
+  // Using date.getTime() as dependency since Date objects have unstable references
+  const dateKey = useMemo(() => date.toISOString().split('T')[0], [date.getTime()]);
+  
   const [consumedCalories, setConsumedCalories] = useState<MealCalories>({
     breakfast: 0,
     lunch: 0,
@@ -60,8 +64,10 @@ export function useDailyFoodIntake(userId: string | undefined, date: Date = new 
     }
 
     try {
-      const dayStart = startOfDay(date).toISOString();
-      const dayEnd = endOfDay(date).toISOString();
+      // Reconstruct date from stable dateKey to avoid dependency issues
+      const targetDate = new Date(dateKey + 'T00:00:00');
+      const dayStart = startOfDay(targetDate).toISOString();
+      const dayEnd = endOfDay(targetDate).toISOString();
 
       const { data, error } = await supabase
         .from("food_scans")
@@ -139,7 +145,7 @@ export function useDailyFoodIntake(userId: string | undefined, date: Date = new 
     } finally {
       setIsLoading(false);
     }
-  }, [userId, date]);
+  }, [userId, dateKey]);
 
   useEffect(() => {
     fetchDailyIntake();
