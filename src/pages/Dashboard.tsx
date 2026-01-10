@@ -652,8 +652,8 @@ const Dashboard = () => {
         .single();
 
       if (!preferences) {
-        // Redirect to pre-onboarding if no preferences
-        navigate("/pre-onboarding");
+        // Redirect to start (pre-onboarding) if no preferences
+        navigate("/start");
         return;
       }
 

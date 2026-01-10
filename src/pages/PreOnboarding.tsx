@@ -119,7 +119,7 @@ const PreOnboarding: React.FC = () => {
       if (isNewUser) {
         let profileExists = false;
         let attempts = 0;
-        const maxAttempts = 5;
+        const maxAttempts = 8; // Increased from 5 to 8 (4 seconds total)
         
         while (!profileExists && attempts < maxAttempts) {
           await new Promise(resolve => setTimeout(resolve, 500));
@@ -131,10 +131,19 @@ const PreOnboarding: React.FC = () => {
           
           profileExists = !!profile;
           attempts++;
+          console.log(`Waiting for profile... attempt ${attempts}/${maxAttempts}`);
         }
         
+        // If profile still doesn't exist after retries, create it manually
         if (!profileExists) {
-          console.warn('Profile not created by trigger, continuing anyway');
+          console.warn('Profile not created by trigger, creating manually...');
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user?.email) {
+            await supabase.from('profiles').insert({
+              id: userId,
+              email: user.email,
+            });
+          }
         }
       }
       
@@ -357,6 +366,15 @@ const PreOnboarding: React.FC = () => {
       case 1:
         return (
           <div className="flex-1 flex flex-col items-center justify-center px-6 py-8">
+            {/* Login link for returning users */}
+            <div className="absolute top-4 right-4">
+              <a 
+                href="/auth" 
+                className="text-xs text-primary hover:underline font-medium"
+              >
+                Iniciar sesión
+              </a>
+            </div>
             <OnboardingMascotInteraction 
               message={mascot.message} 
               pose={mascot.pose}
