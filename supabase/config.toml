@@ -45,11 +45,6 @@ verify_jwt = false
 [functions.analyze-food]
 verify_jwt = true
 
-[functions.family-management]
-verify_jwt = true
-
-[functions.generate-family-meal-plan]
-verify_jwt = true
 
 [functions.process-shopping-list]
 verify_jwt = true

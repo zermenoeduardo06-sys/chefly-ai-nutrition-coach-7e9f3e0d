@@ -9,7 +9,7 @@ import { MealImageWithSkeleton } from "@/components/MealImageWithSkeleton";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
 import { useHaptics } from "@/hooks/useHaptics";
-import { MealBestMatchBadge } from "@/components/family/MealMemberAdaptations";
+
 
 interface MealAdaptation {
   id: string;
@@ -246,14 +246,8 @@ export const SwipeableMealCard = ({
             
             <p className="text-sm text-muted-foreground line-clamp-2">{meal.description}</p>
             
-            {/* Family adaptation badge */}
-            {isFamilyPlan && meal.adaptations && meal.adaptations.length > 0 && (
-              <div className="pt-1">
-                <MealBestMatchBadge adaptations={meal.adaptations} />
-              </div>
-            )}
-            
-            {/* Benefits / Completion status */}
+
+
             <div className={cn(
               "flex items-center gap-2 p-3 rounded-2xl",
               isCompleted 

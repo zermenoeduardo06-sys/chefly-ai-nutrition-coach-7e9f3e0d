@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ArrowLeft, Check, ExternalLink, Crown, Zap, Gift, Users, RefreshCw } from "lucide-react";
+import { Loader2, ArrowLeft, Check, ExternalLink, Zap, Gift, RefreshCw } from "lucide-react";
 import { useSubscription, SUBSCRIPTION_TIERS } from "@/hooks/useSubscription";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -123,28 +123,6 @@ const Subscription = () => {
 
   const plans = [
     {
-      id: "chefly-family",
-      name: "Chefly Familiar",
-      subtitle: language === "es" ? "Nutrición para toda la familia" : "Nutrition for the whole family",
-      price: "$400 MXN",
-      priceUsd: "$20",
-      period: language === "es" ? "/mes" : "/month",
-      badge: language === "es" ? "5 personas" : "5 people",
-      features: [
-        language === "es" ? "Todo de Chefly Plus incluido" : "Everything in Chefly Plus included",
-        language === "es" ? "Hasta 5 perfiles familiares" : "Up to 5 family profiles",
-        language === "es" ? "Cada miembro con sus propias metas" : "Individual goals per member",
-        language === "es" ? "Panel de administración familiar" : "Family admin panel",
-        language === "es" ? "Sistema de invitación por código" : "Code-based invitation system",
-        language === "es" ? "Ahorra 50% vs 5 suscripciones" : "Save 50% vs 5 subscriptions",
-      ],
-      recommended: true,
-      mascot: mascotLime,
-      gradient: "from-violet-500 via-purple-500 to-fuchsia-500",
-      isCurrentPlan: subscription.is_chefly_family,
-      priceId: SUBSCRIPTION_TIERS.CHEFLY_FAMILY.price_id,
-    },
-    {
       id: "chefly-plus",
       name: "Chefly Plus",
       subtitle: language === "es" ? "Nutrición personalizada sin límites" : "Unlimited personalized nutrition",
@@ -161,10 +139,10 @@ const Subscription = () => {
         language === "es" ? "Lista de compras con cantidades reales" : "Shopping list with real quantities",
         language === "es" ? "Exportar recetas a PDF" : "Export recipes to PDF",
       ],
-      recommended: false,
+      recommended: true,
       mascot: mascotLime,
       gradient: "from-emerald-400 via-teal-500 to-cyan-500",
-      isCurrentPlan: limits.isCheflyPlus && !subscription.is_chefly_family,
+      isCurrentPlan: limits.isCheflyPlus,
       priceId: SUBSCRIPTION_TIERS.CHEFLY_PLUS.price_id,
     },
     {
@@ -230,8 +208,8 @@ const Subscription = () => {
             {plan.recommended && (
               <div className={`bg-gradient-to-r ${plan.gradient} rounded-t-2xl px-4 py-2`}>
                 <span className="text-white font-bold text-sm uppercase tracking-wide flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  {language === "es" ? "MEJOR VALOR" : "BEST VALUE"}
+                  <Zap className="h-4 w-4" />
+                  {language === "es" ? "RECOMENDADO" : "RECOMMENDED"}
                 </span>
               </div>
             )}
@@ -250,11 +228,6 @@ const Subscription = () => {
                       {plan.isCurrentPlan && (
                         <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full font-semibold">
                           {language === "es" ? "Tu plan" : "Your plan"}
-                        </span>
-                      )}
-                      {plan.badge && (
-                        <span className="text-xs bg-violet-500/10 text-violet-600 dark:text-violet-400 px-2 py-0.5 rounded-full font-medium">
-                          {plan.badge}
                         </span>
                       )}
                     </div>
@@ -316,41 +289,7 @@ const Subscription = () => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  {plan.id === "chefly-family" ? (
-                    plan.isCurrentPlan ? (
-                      <div className="flex gap-2">
-                        <Button
-                          onClick={() => navigate("/family")}
-                          variant="duolingoOutline"
-                          className="flex-1 h-11 text-sm font-bold"
-                        >
-                          <Users className="mr-2 h-4 w-4" />
-                          {language === "es" ? "GESTIONAR FAMILIA" : "MANAGE FAMILY"}
-                        </Button>
-                        <Button
-                          onClick={handleManageSubscription}
-                          disabled={portalLoading}
-                          variant="outline"
-                          size="icon"
-                          className="h-11 w-11"
-                        >
-                          {portalLoading ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <ExternalLink className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </div>
-                    ) : (
-                      <Button
-                        onClick={() => handleSelectPlan(plan.priceId!, "Chefly Familiar", "$20")}
-                        className="w-full h-11 text-sm font-bold bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 hover:from-violet-600 hover:via-purple-600 hover:to-fuchsia-600 text-white border-0"
-                      >
-                        <Users className="mr-2 h-4 w-4" />
-                        {language === "es" ? "COMENZAR PLAN FAMILIAR" : "START FAMILY PLAN"}
-                      </Button>
-                    )
-                  ) : plan.id === "chefly-plus" ? (
+                  {plan.id === "chefly-plus" ? (
                     plan.isCurrentPlan ? (
                       <Button
                         onClick={handleManageSubscription}
@@ -416,7 +355,7 @@ const Subscription = () => {
               {language === "es" ? "Tu suscripción se renueva el " : "Your subscription renews on "}
               <span className="font-semibold text-foreground">
                 {new Date(subscription.subscription_end).toLocaleDateString(
-                  language === "es" ? 'es-ES' : 'en-US', 
+                  language === "es" ? "es-MX" : "en-US",
                   { year: 'numeric', month: 'long', day: 'numeric' }
                 )}
               </span>
@@ -424,77 +363,59 @@ const Subscription = () => {
           </motion.div>
         )}
 
-        {/* Apple Required: Subscription Terms Disclosure */}
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.7 }}
-          className="bg-muted/30 rounded-xl p-4 border border-border space-y-3"
-        >
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            {language === "es" 
-              ? "• El pago se cargará a tu cuenta al confirmar la compra."
-              : "• Payment will be charged to your account upon confirmation of purchase."}
-          </p>
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            {language === "es" 
-              ? "• La suscripción se renueva automáticamente a menos que se cancele al menos 24 horas antes del final del período actual."
-              : "• Subscription automatically renews unless cancelled at least 24 hours before the end of the current period."}
-          </p>
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            {language === "es" 
-              ? "• El cargo por renovación se realizará dentro de las 24 horas previas al final del período actual."
-              : "• Renewal charge will be made within 24 hours before the end of the current period."}
-          </p>
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            {language === "es" 
-              ? "• Puedes gestionar y cancelar tu suscripción en cualquier momento desde la configuración de tu cuenta."
-              : "• You can manage and cancel your subscription anytime from your account settings."}
-          </p>
-        </motion.div>
+        {/* Restore purchases button for iOS */}
+        {isNativeIOS && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7 }}
+          >
+            <Button
+              variant="ghost"
+              onClick={handleRestorePurchases}
+              disabled={isRestoring}
+              className="w-full text-sm text-muted-foreground"
+            >
+              {isRestoring ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {language === "es" ? "Restaurando..." : "Restoring..."}
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  {language === "es" ? "Restaurar compras" : "Restore purchases"}
+                </>
+              )}
+            </Button>
+          </motion.div>
+        )}
 
-        {/* Restore Purchases Button - Apple Required */}
+        {/* Legal disclosure for Apple App Store */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
-          className="pt-2"
+          className="space-y-3 pt-2"
         >
-          <Button
-            variant="link"
-            className="w-full text-sm text-muted-foreground hover:text-primary"
-            onClick={handleRestorePurchases}
-            disabled={isRestoring}
-          >
-            {isRestoring ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {language === "es" ? "Restaurando..." : "Restoring..."}
-              </>
-            ) : (
-              <>
-                <RefreshCw className="mr-2 h-4 w-4" />
-                {language === "es" ? "Restaurar Compras" : "Restore Purchases"}
-              </>
-            )}
-          </Button>
+          <p className="text-[10px] text-muted-foreground text-center leading-relaxed px-2">
+            {language === "es" 
+              ? "El pago se cargará a tu cuenta de Apple o Google al confirmar la compra. La suscripción se renueva automáticamente a menos que la auto-renovación sea desactivada al menos 24 horas antes del final del período actual. Tu cuenta será cargada por la renovación dentro de las 24 horas previas al final del período actual."
+              : "Payment will be charged to your Apple or Google account at confirmation of purchase. Subscription automatically renews unless auto-renew is turned off at least 24 hours before the end of the current period. Your account will be charged for renewal within 24 hours prior to the end of the current period."}
+          </p>
+          <div className="flex justify-center gap-4 text-[10px] text-muted-foreground">
+            <a href="/terms" className="hover:underline">
+              {language === "es" ? "Términos de uso" : "Terms of Use"}
+            </a>
+            <a href="/privacy" className="hover:underline">
+              {language === "es" ? "Política de privacidad" : "Privacy Policy"}
+            </a>
+          </div>
         </motion.div>
-
-        {/* Help text */}
-        <motion.p 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.9 }}
-          className="text-xs text-center text-muted-foreground pb-4"
-        >
-          {language === "es" 
-            ? "¿Necesitas ayuda? Contacta soporte desde Configuración."
-            : "Need help? Contact support from Settings."}
-        </motion.p>
       </div>
 
-      {/* In-App Checkout Modal (Stripe - Web/Android) */}
-      {selectedPlan && !isNativeIOS && (
+      {/* In-App Checkout Dialog for Stripe */}
+      {selectedPlan && (
         <InAppCheckout
           open={checkoutOpen}
           onOpenChange={handleCheckoutClose}
@@ -504,15 +425,15 @@ const Subscription = () => {
         />
       )}
 
-      {/* IAP Paywall (Apple - iOS) */}
-      {isNativeIOS && (
-        <IAPPaywall
-          open={iapPaywallOpen}
-          onOpenChange={handleIAPPaywallClose}
-          userId={userId}
-          onPurchaseSuccess={() => subscription.checkSubscription()}
-        />
-      )}
+      {/* IAP Paywall for iOS */}
+      <IAPPaywall
+        open={iapPaywallOpen}
+        onOpenChange={handleIAPPaywallClose}
+        userId={userId}
+        onPurchaseSuccess={() => {
+          subscription.checkSubscription();
+        }}
+      />
     </div>
   );
 };
