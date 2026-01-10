@@ -45,21 +45,19 @@ const Pricing = () => {
   const cheflyPlusFeatures = language === "es" ? [
     "Genera nuevos planes semanales ilimitados",
     "Intercambia comidas entre días",
+    "Reemplaza comidas por alternativas",
     "Chat ilimitado con coach IA",
     "Escaneo de comidas ilimitado",
-    "Check-in semanal adaptativo",
     "Sistema de amigos y comparación",
-    "Lista de compras con cantidades reales",
-    "Exportar recetas a PDF",
+    "Lista de compras inteligente",
   ] : [
     "Generate unlimited weekly plans",
     "Swap meals between days",
+    "Replace meals with alternatives",
     "Unlimited AI coach chat",
     "Unlimited food scanning",
-    "Weekly adaptive check-in",
     "Friends & comparison system",
-    "Shopping list with real quantities",
-    "Export recipes to PDF",
+    "Smart shopping list",
   ];
 
   const freeFeatures = language === "es" ? [

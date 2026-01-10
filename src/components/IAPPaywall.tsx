@@ -80,8 +80,10 @@ export const IAPPaywall = ({ open, onOpenChange, userId, onPurchaseSuccess }: IA
 
   const planFeatures = [
     language === 'es' ? 'Planes semanales ilimitados' : 'Unlimited weekly plans',
+    language === 'es' ? 'Intercambio de comidas' : 'Meal swapping',
     language === 'es' ? 'Chat ilimitado con IA' : 'Unlimited AI chat',
     language === 'es' ? 'Escaneo ilimitado' : 'Unlimited food scanning',
+    language === 'es' ? 'Sistema de amigos' : 'Friends system',
   ];
 
   return (
