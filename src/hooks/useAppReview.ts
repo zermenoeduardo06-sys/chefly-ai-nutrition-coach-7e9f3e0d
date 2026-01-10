@@ -29,9 +29,9 @@ export const useAppReview = () => {
 
     try {
       // Dynamically import to avoid issues on web
-      const { RateApp } = await import('capacitor-rate-app');
+      const { InAppReview } = await import('@capacitor-community/in-app-review');
       
-      await RateApp.requestReview();
+      await InAppReview.requestReview();
       markAsPrompted();
       console.log('App review prompt shown');
     } catch (error) {
