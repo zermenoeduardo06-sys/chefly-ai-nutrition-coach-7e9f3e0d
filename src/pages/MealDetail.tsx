@@ -350,7 +350,7 @@ export default function MealDetail() {
           className="pt-4 pb-safe"
         >
           <Button 
-            onClick={() => navigate(`/dashboard/add-food/${validMealType}`)}
+            onClick={() => navigate(`/dashboard/ai-camera/${validMealType}`)}
             className="w-full h-14 text-lg font-semibold"
             size="lg"
           >
