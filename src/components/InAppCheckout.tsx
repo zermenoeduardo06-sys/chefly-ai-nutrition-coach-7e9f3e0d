@@ -8,7 +8,9 @@ import { Loader2, CreditCard, Lock, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
+import { useAppReview } from '@/hooks/useAppReview';
 import { motion, AnimatePresence } from 'framer-motion';
+import mascotCelebrating from '@/assets/mascot-celebrating.png';
 
 interface InAppCheckoutProps {
   open: boolean;
@@ -120,9 +122,14 @@ const CheckoutForm = ({ onSuccess, onError, planName, planPrice }: CheckoutFormP
   );
 };
 
-const SuccessScreen = ({ onClose }: { onClose: () => void }) => {
+const SuccessScreen = ({ onClose, onReviewRequest }: { onClose: () => void; onReviewRequest: () => void }) => {
   const { language } = useLanguage();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Trigger app review request after delay
+    onReviewRequest();
+  }, []);
 
   const handleContinue = () => {
     onClose();
@@ -139,21 +146,32 @@ const SuccessScreen = ({ onClose }: { onClose: () => void }) => {
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-        className="mx-auto w-20 h-20 bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full flex items-center justify-center"
+        className="mx-auto"
       >
-        <CheckCircle className="h-10 w-10 text-white" />
+        <img 
+          src={mascotCelebrating} 
+          alt="Celebration" 
+          className="h-28 w-28 object-contain mx-auto" 
+        />
       </motion.div>
 
-      <div>
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.3 }}
+      >
+        <div className="mx-auto w-16 h-16 bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full flex items-center justify-center mb-4">
+          <CheckCircle className="h-8 w-8 text-white" />
+        </div>
         <h3 className="text-2xl font-bold text-foreground mb-2">
-          {language === 'es' ? '¡Pago exitoso!' : 'Payment successful!'}
+          {language === 'es' ? '¡Bienvenido a Premium!' : 'Welcome to Premium!'}
         </h3>
         <p className="text-muted-foreground">
           {language === 'es' 
-            ? 'Tu suscripción está activa. ¡Disfruta de Chefly Plus!'
-            : 'Your subscription is active. Enjoy Chefly Plus!'}
+            ? '¡Gracias por tu compra! Ahora tienes acceso a todas las funciones.'
+            : 'Thank you for your purchase! You now have access to all features.'}
         </p>
-      </div>
+      </motion.div>
 
       <Button onClick={handleContinue} variant="duolingo" className="w-full h-12">
         {language === 'es' ? 'Continuar' : 'Continue'}
@@ -169,6 +187,7 @@ export const InAppCheckout = ({ open, onOpenChange, priceId, planName, planPrice
   const [isSuccess, setIsSuccess] = useState(false);
   const { toast } = useToast();
   const { language } = useLanguage();
+  const { requestReviewAfterDelay } = useAppReview();
 
   useEffect(() => {
     if (open && !clientSecret && !isLoading) {
@@ -253,7 +272,10 @@ export const InAppCheckout = ({ open, onOpenChange, priceId, planName, planPrice
 
         <AnimatePresence mode="wait">
           {isSuccess ? (
-            <SuccessScreen onClose={() => onOpenChange(false)} />
+            <SuccessScreen 
+              onClose={() => onOpenChange(false)} 
+              onReviewRequest={() => requestReviewAfterDelay(4000)}
+            />
           ) : isLoading ? (
             <motion.div 
               key="loading"
