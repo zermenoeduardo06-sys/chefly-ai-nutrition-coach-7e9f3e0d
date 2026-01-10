@@ -85,7 +85,6 @@ export const IAPPaywall = ({ open, onOpenChange, userId, onPurchaseSuccess }: IA
     language === 'es' ? 'Chat ilimitado con IA' : 'Unlimited AI chat',
     language === 'es' ? 'Escaneo ilimitado' : 'Unlimited food scanning',
     language === 'es' ? 'Sistema de amigos' : 'Friends system',
-    language === 'es' ? 'Lista de compras inteligente' : 'Smart shopping list',
   ];
 
   return (

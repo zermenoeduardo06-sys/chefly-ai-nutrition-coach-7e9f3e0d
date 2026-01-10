@@ -50,6 +50,7 @@ import AICamera from '@/pages/AICamera';
 import ChefIA from '@/pages/ChefIA';
 import MorePage from '@/pages/MorePage';
 import Recipes from '@/pages/Recipes';
+import PremiumPaywall from '@/pages/PremiumPaywall';
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
   <SidebarProvider>
@@ -115,6 +116,7 @@ export const AnimatedRoutes = () => {
         <Route path="/dashboard/meal/:mealType" element={<PageTransition><MealDetail /></PageTransition>} />
         <Route path="/dashboard/add-food/:mealType" element={<PageTransition><AddFood /></PageTransition>} />
         <Route path="/dashboard/ai-camera/:mealType" element={<PageTransition><AICamera /></PageTransition>} />
+        <Route path="/premium-paywall" element={<PageTransition><PremiumPaywall /></PageTransition>} />
         <Route path="/subscription" element={<DashboardLayout><PageTransition><Subscription /></PageTransition></DashboardLayout>} />
         
         <Route path="/admin/affiliates" element={<DashboardLayout><PageTransition><AdminAffiliatesDashboard /></PageTransition></DashboardLayout>} />
