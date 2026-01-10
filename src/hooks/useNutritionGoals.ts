@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface NutritionGoals {
@@ -110,6 +110,10 @@ export const useNutritionGoals = (userId: string | null) => {
   const [goals, setGoals] = useState<NutritionGoals>(DEFAULT_GOALS);
   const [loading, setLoading] = useState(true);
   const [userMetrics, setUserMetrics] = useState<UserMetrics | null>(null);
+  
+  // Use ref to track if we've already loaded to prevent duplicate calls
+  const hasLoadedRef = useRef(false);
+  const lastUserIdRef = useRef<string | null>(null);
 
   const calculateGoals = useCallback((metrics: UserMetrics): NutritionGoals => {
     const { age, weight, height, gender, activityLevel, goal } = metrics;
@@ -134,11 +138,19 @@ export const useNutritionGoals = (userId: string | null) => {
   }, []);
 
   const loadUserData = useCallback(async () => {
+    // Prevent duplicate loads for the same userId
+    if (userId === lastUserIdRef.current && hasLoadedRef.current) {
+      return;
+    }
+    
     if (!userId) {
       setGoals(DEFAULT_GOALS);
       setLoading(false);
       return;
     }
+    
+    lastUserIdRef.current = userId;
+    hasLoadedRef.current = true;
 
     try {
       const { data: prefs, error } = await supabase
