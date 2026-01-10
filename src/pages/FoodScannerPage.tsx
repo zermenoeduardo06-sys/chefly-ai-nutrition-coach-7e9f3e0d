@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { Camera, History, BarChart3, ArrowLeft, Crown, Lock, Zap, Sparkles } from 'lucide-react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Camera, History, BarChart3, ArrowLeft, Crown, Lock, Zap, Sparkles, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -15,11 +15,14 @@ import { ScanResultCard } from '@/components/scanner/ScanResultCard';
 import { ScanHistory } from '@/components/scanner/ScanHistory';
 import { ScannerStats } from '@/components/scanner/ScannerStats';
 import { ScanCelebration } from '@/components/scanner/ScanCelebration';
+import ScannerFoodSearch from '@/components/scanner/ScannerFoodSearch';
 import mascotLime from '@/assets/mascot-lime.png';
 
 export default function FoodScannerPage() {
   const navigate = useNavigate();
   const { mealType } = useParams<{ mealType?: string }>();
+  const [searchParams] = useSearchParams();
+  const selectedDate = searchParams.get('date') || new Date().toISOString().split('T')[0];
   const { language } = useLanguage();
   const { toast } = useToast();
   
@@ -34,9 +37,14 @@ export default function FoodScannerPage() {
   const { limits, refreshLimits } = useSubscriptionLimits(userId);
   const { analyzeFood, isAnalyzing, result, clearResult } = useFoodScanner();
 
+  const validMealType = mealType && ['breakfast', 'lunch', 'dinner', 'snack'].includes(mealType) 
+    ? mealType 
+    : 'lunch';
+
   const t = {
     title: language === 'es' ? 'Escáner IA' : 'AI Scanner',
     scan: language === 'es' ? 'Escanear' : 'Scan',
+    search: language === 'es' ? 'Buscar' : 'Search',
     history: language === 'es' ? 'Historial' : 'History',
     stats: language === 'es' ? 'Estadísticas' : 'Stats',
     back: language === 'es' ? 'Volver' : 'Back',
@@ -135,7 +143,7 @@ export default function FoodScannerPage() {
           confidence: result.confidence || 'medium',
           notes: result.notes,
           image_url: imageUrl,
-          meal_type: mealType || null,
+          meal_type: validMealType || null,
         });
 
       if (error) throw error;
@@ -161,6 +169,12 @@ export default function FoodScannerPage() {
     handleNewScan();
   };
 
+  const handleFoodAdded = () => {
+    // Switch to history tab after adding food
+    setActiveTab('history');
+    refreshLimits();
+  };
+
   const canScan = limits.canScanFood || subscribed;
   const isFullyLoaded = userId && !subLoading;
 
@@ -173,7 +187,7 @@ export default function FoodScannerPage() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate(-1)}
+              onClick={() => navigate('/dashboard')}
               className="rounded-xl"
             >
               <ArrowLeft className="h-5 w-5" />
@@ -213,26 +227,33 @@ export default function FoodScannerPage() {
       {/* Tabs */}
       <div className="max-w-2xl mx-auto p-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 h-12 rounded-2xl bg-muted/50 p-1">
+          <TabsList className="grid w-full grid-cols-4 h-12 rounded-2xl bg-muted/50 p-1">
             <TabsTrigger 
               value="scan" 
-              className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium"
+              className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium text-xs"
             >
-              <Camera className="h-4 w-4 mr-2" />
+              <Camera className="h-4 w-4 mr-1" />
               {t.scan}
             </TabsTrigger>
             <TabsTrigger 
-              value="history"
-              className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium"
+              value="search" 
+              className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium text-xs"
             >
-              <History className="h-4 w-4 mr-2" />
+              <Search className="h-4 w-4 mr-1" />
+              {t.search}
+            </TabsTrigger>
+            <TabsTrigger 
+              value="history"
+              className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium text-xs"
+            >
+              <History className="h-4 w-4 mr-1" />
               {t.history}
             </TabsTrigger>
             <TabsTrigger 
               value="stats"
-              className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium"
+              className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium text-xs"
             >
-              <BarChart3 className="h-4 w-4 mr-2" />
+              <BarChart3 className="h-4 w-4 mr-1" />
               {t.stats}
             </TabsTrigger>
           </TabsList>
@@ -303,6 +324,25 @@ export default function FoodScannerPage() {
                         />
                       )}
                     </>
+                  )}
+                </motion.div>
+              </TabsContent>
+
+              <TabsContent value="search" className="mt-0">
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.2 }}
+                  className="min-h-[400px]"
+                >
+                  {userId && (
+                    <ScannerFoodSearch
+                      mealType={validMealType}
+                      selectedDate={selectedDate}
+                      userId={userId}
+                      onFoodAdded={handleFoodAdded}
+                    />
                   )}
                 </motion.div>
               </TabsContent>
