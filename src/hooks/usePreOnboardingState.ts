@@ -63,7 +63,7 @@ const defaultData: PreOnboardingData = {
   cookingTime: 30,
   budget: '',
   mealsPerDay: 3,
-  mealComplexity: '',
+  mealComplexity: 'moderate',
 };
 
 export const usePreOnboardingState = () => {

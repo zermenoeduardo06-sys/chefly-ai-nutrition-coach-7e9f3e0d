@@ -38,14 +38,38 @@ const Auth = () => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        navigate("/dashboard");
+        // Check if user has preferences before redirecting to dashboard
+        const { data: preferences } = await supabase
+          .from('user_preferences')
+          .select('id')
+          .eq('user_id', session.user.id)
+          .maybeSingle();
+        
+        if (preferences) {
+          navigate("/dashboard");
+        } else {
+          // User doesn't have preferences, redirect to onboarding
+          navigate("/start");
+        }
       }
     };
     checkSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session) {
-        navigate("/dashboard");
+        // Check if user has preferences before redirecting to dashboard
+        const { data: preferences } = await supabase
+          .from('user_preferences')
+          .select('id')
+          .eq('user_id', session.user.id)
+          .maybeSingle();
+        
+        if (preferences) {
+          navigate("/dashboard");
+        } else {
+          // User doesn't have preferences, redirect to onboarding
+          navigate("/start");
+        }
       }
     });
 
@@ -81,7 +105,8 @@ const Auth = () => {
         description: t("auth.accountCreatedDesc"),
       });
       
-      navigate("/welcome-onboarding");
+      // Redirect new users to start the onboarding flow
+      navigate("/start");
     } catch (error: any) {
       toast({
         variant: "destructive",
