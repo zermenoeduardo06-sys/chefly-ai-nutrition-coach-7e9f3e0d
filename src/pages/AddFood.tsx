@@ -310,7 +310,7 @@ export default function AddFood() {
       <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
-            <button onClick={() => navigate(-1)} className="p-1">
+            <button onClick={() => navigate('/dashboard')} className="p-1">
               <ArrowLeft className="h-5 w-5 text-foreground" />
             </button>
             <div className="flex items-center gap-2">
