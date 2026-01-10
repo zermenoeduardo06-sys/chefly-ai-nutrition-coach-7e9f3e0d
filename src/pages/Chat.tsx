@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Send, ArrowLeft, Sparkles, Volume2, VolumeX } from "lucide-react";
+import { Loader2, Send, ArrowLeft, Sparkles, Volume2, VolumeX, Crown, MessageSquare, Brain, Zap, Target, Search } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +14,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { useHaptics } from "@/hooks/useHaptics";
 import { useChatSounds } from "@/hooks/useChatSounds";
+import { useSubscription } from "@/hooks/useSubscription";
 
 // Import new lime mascots
 import mascotLime from "@/assets/mascot-lime.png";
@@ -248,6 +249,265 @@ const WelcomeScreen = ({ onSuggestionClick }: { onSuggestionClick: (text: string
   );
 };
 
+// Premium Paywall for Chat
+const ChatPaywall = ({ onUpgrade, onBack }: { onUpgrade: () => void; onBack: () => void }) => {
+  const { language } = useLanguage();
+  
+  const texts = {
+    es: {
+      title: "Chat con Coach IA",
+      subtitle: "Tu nutriólogo personal disponible 24/7",
+      cta: "Desbloquear con Chefly Plus",
+      benefitTitle: "Con el Coach IA puedes:",
+      benefit1: "Consultas ilimitadas",
+      benefit1Desc: "Pregunta todo sobre nutrición sin límites",
+      benefit2: "Consejos personalizados",
+      benefit2Desc: "Basados en tu perfil y objetivos",
+      benefit3: "Respuestas instantáneas",
+      benefit3Desc: "IA avanzada que entiende tus necesidades",
+      benefit4: "Ajusta tu plan semanal",
+      benefit4Desc: "Modifica comidas según tus preferencias",
+    },
+    en: {
+      title: "AI Coach Chat",
+      subtitle: "Your personal nutritionist available 24/7",
+      cta: "Unlock with Chefly Plus",
+      benefitTitle: "With AI Coach you can:",
+      benefit1: "Unlimited consultations",
+      benefit1Desc: "Ask anything about nutrition without limits",
+      benefit2: "Personalized advice",
+      benefit2Desc: "Based on your profile and goals",
+      benefit3: "Instant responses",
+      benefit3Desc: "Advanced AI that understands your needs",
+      benefit4: "Adjust your weekly plan",
+      benefit4Desc: "Modify meals according to your preferences",
+    },
+  };
+
+  const t = texts[language];
+
+  const benefits = [
+    { icon: MessageSquare, text: t.benefit1, desc: t.benefit1Desc, color: "from-primary/20 to-primary/5" },
+    { icon: Target, text: t.benefit2, desc: t.benefit2Desc, color: "from-secondary/20 to-secondary/5" },
+    { icon: Zap, text: t.benefit3, desc: t.benefit3Desc, color: "from-orange-500/20 to-orange-500/5" },
+    { icon: Brain, text: t.benefit4, desc: t.benefit4Desc, color: "from-purple-500/20 to-purple-500/5" },
+  ];
+
+  const floatingEmojis = [
+    { emoji: "💬", top: "10%", left: "8%", delay: 0 },
+    { emoji: "🥗", top: "5%", right: "12%", delay: 0.2 },
+    { emoji: "💪", top: "18%", left: "85%", delay: 0.4 },
+    { emoji: "🎯", bottom: "35%", left: "5%", delay: 0.6 },
+    { emoji: "✨", bottom: "40%", right: "8%", delay: 0.3 },
+  ];
+
+  return (
+    <div className="min-h-[100dvh] bg-background flex flex-col overflow-hidden">
+      {/* Header */}
+      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 safe-area-top">
+        <div className="flex items-center p-4">
+          <button onClick={onBack} className="p-2 -ml-2">
+            <ArrowLeft className="h-6 w-6 text-foreground" />
+          </button>
+        </div>
+      </div>
+
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto pb-8">
+        <div className="flex flex-col items-center px-5 relative">
+          {/* Floating Emojis */}
+          {floatingEmojis.map((item, index) => (
+            <motion.div
+              key={index}
+              className="absolute text-2xl pointer-events-none z-0"
+              style={{ 
+                top: item.top, 
+                left: item.left, 
+                right: item.right,
+                bottom: item.bottom 
+              }}
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ 
+                opacity: [0.4, 0.7, 0.4], 
+                y: [0, -10, 0],
+                rotate: [0, 5, -5, 0],
+              }}
+              transition={{ 
+                opacity: { delay: item.delay, duration: 3, repeat: Infinity },
+                y: { delay: item.delay, duration: 3, repeat: Infinity, ease: "easeInOut" },
+                rotate: { delay: item.delay, duration: 4, repeat: Infinity, ease: "easeInOut" }
+              }}
+            >
+              {item.emoji}
+            </motion.div>
+          ))}
+
+          {/* Chat Mockup */}
+          <motion.div
+            className="relative mb-6 z-10"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <motion.div 
+              className="absolute -inset-4 bg-gradient-to-r from-primary/30 via-orange-500/30 to-secondary/30 rounded-[3rem] blur-2xl"
+              animate={{ 
+                scale: [1, 1.05, 1],
+                opacity: [0.5, 0.7, 0.5] 
+              }}
+              transition={{ duration: 3, repeat: Infinity }}
+            />
+            
+            <div className="relative w-56 h-64 bg-gradient-to-br from-card to-muted rounded-3xl border-4 border-border shadow-2xl overflow-hidden p-3">
+              {/* Chat messages mockup */}
+              <div className="space-y-2">
+                <motion.div 
+                  className="flex items-end gap-2"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                    <img src={mascotLime} alt="Chefly" className="w-6 h-6 object-contain" />
+                  </div>
+                  <div className="bg-muted rounded-xl rounded-bl-sm p-2 max-w-[140px]">
+                    <p className="text-[10px] text-muted-foreground">
+                      {language === 'es' ? '¡Hola! ¿En qué puedo ayudarte hoy?' : 'Hi! How can I help you today?'}
+                    </p>
+                  </div>
+                </motion.div>
+
+                <motion.div 
+                  className="flex justify-end"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.6 }}
+                >
+                  <div className="bg-primary text-primary-foreground rounded-xl rounded-br-sm p-2 max-w-[140px]">
+                    <p className="text-[10px]">
+                      {language === 'es' ? '¿Qué snack saludable me recomiendas?' : 'What healthy snack do you recommend?'}
+                    </p>
+                  </div>
+                </motion.div>
+
+                <motion.div 
+                  className="flex items-end gap-2"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.9 }}
+                >
+                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                    <img src={mascotLime} alt="Chefly" className="w-6 h-6 object-contain" />
+                  </div>
+                  <div className="bg-muted rounded-xl rounded-bl-sm p-2 max-w-[140px]">
+                    <motion.div 
+                      className="flex gap-1"
+                      animate={{ opacity: [0.5, 1, 0.5] }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                    >
+                      <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                    </motion.div>
+                  </div>
+                </motion.div>
+              </div>
+
+              {/* Input mockup */}
+              <div className="absolute bottom-3 left-3 right-3">
+                <div className="flex items-center gap-2 bg-background rounded-full px-3 py-2 border border-border">
+                  <div className="flex-1 h-2 bg-muted rounded" />
+                  <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                    <Send className="w-3 h-3 text-primary-foreground" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Mascot */}
+            <motion.img
+              src={mascotLime}
+              alt="Chefly mascot"
+              className="absolute -bottom-6 -right-10 h-28 w-28 object-contain z-20"
+              initial={{ x: 30, opacity: 0, rotate: 10 }}
+              animate={{ x: 0, opacity: 1, rotate: 0 }}
+              transition={{ delay: 0.4, type: "spring", stiffness: 100 }}
+            />
+          </motion.div>
+
+          {/* Title and Subtitle */}
+          <motion.div
+            className="text-center mb-5 z-10"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <h1 className="text-2xl font-bold text-foreground mb-2">{t.title}</h1>
+            <p className="text-sm text-muted-foreground max-w-xs">{t.subtitle}</p>
+          </motion.div>
+
+          {/* Benefits Section */}
+          <motion.div
+            className="w-full max-w-sm z-10 mb-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 text-center">
+              {t.benefitTitle}
+            </p>
+            
+            <div className="space-y-2.5">
+              {benefits.map((benefit, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: -30 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4 + i * 0.1, type: "spring" }}
+                  className={`flex items-center gap-3 bg-gradient-to-r ${benefit.color} rounded-2xl p-3.5 border border-border/50`}
+                >
+                  <motion.div 
+                    className="w-10 h-10 rounded-xl bg-background/80 flex items-center justify-center shadow-sm"
+                    whileHover={{ scale: 1.1 }}
+                  >
+                    <benefit.icon className="h-5 w-5 text-primary" />
+                  </motion.div>
+                  <div className="flex-1">
+                    <span className="text-sm font-semibold text-foreground">{benefit.text}</span>
+                    <p className="text-xs text-muted-foreground mt-0.5">{benefit.desc}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* CTA Button */}
+          <motion.div
+            className="w-full max-w-sm z-10"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
+          >
+            <Button
+              onClick={onUpgrade}
+              size="lg"
+              className="w-full h-14 text-base font-bold bg-gradient-to-r from-primary via-orange-500 to-primary hover:opacity-90 rounded-2xl shadow-xl relative overflow-hidden"
+            >
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0"
+                animate={{ x: ["-100%", "100%"] }}
+                transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+              />
+              <Crown className="h-5 w-5 mr-2" />
+              {t.cta}
+            </Button>
+          </motion.div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Chat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -263,8 +523,13 @@ const Chat = () => {
   const { toast } = useToast();
   const scrollRef = useRef<HTMLDivElement>(null);
   const { limits, refreshLimits } = useSubscriptionLimits(userId);
+  const subscription = useSubscription(userId);
   const { isBlocked, isLoading: trialLoading } = useTrialGuard();
   const { t, language } = useLanguage();
+  
+  // Check if user is premium
+  const isPremium = subscription.isCheflyPlus;
+  const isFullyLoaded = !subscription.isLoading && userId;
   
   // Haptics and sounds
   const { lightImpact, mediumImpact, successNotification, errorNotification } = useHaptics();
@@ -427,7 +692,7 @@ const Chat = () => {
     lightImpact();
   };
 
-  if (initialLoading || trialLoading) {
+  if (initialLoading || trialLoading || subscription.isLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-background">
         <motion.img 
@@ -451,6 +716,16 @@ const Chat = () => {
 
   if (isBlocked) {
     return null;
+  }
+
+  // Show paywall for non-premium users
+  if (!isPremium) {
+    return (
+      <ChatPaywall 
+        onUpgrade={() => navigate('/premium-paywall')} 
+        onBack={() => navigate('/dashboard')} 
+      />
+    );
   }
 
   return (
