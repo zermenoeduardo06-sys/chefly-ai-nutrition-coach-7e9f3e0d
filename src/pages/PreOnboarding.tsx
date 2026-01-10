@@ -91,63 +91,105 @@ const PreOnboarding: React.FC = () => {
     handleNext(); // Move to auth step
   };
 
-  const handleAuthSuccess = async (userId: string) => {
+  const handleAuthSuccess = async (userId: string, isNewUser: boolean) => {
     setIsSubmitting(true);
     
     try {
+      // For login (existing users), check if they already have preferences
+      if (!isNewUser) {
+        const { data: existingPrefs } = await supabase
+          .from('user_preferences')
+          .select('id')
+          .eq('user_id', userId)
+          .maybeSingle();
+        
+        if (existingPrefs) {
+          // User already has data, go directly to dashboard
+          clearData();
+          toast({
+            title: "¡Bienvenido de vuelta! 👋",
+            description: "Te redirigimos a tu dashboard...",
+          });
+          navigate('/dashboard', { replace: true });
+          return;
+        }
+      }
+      
+      // For new users, wait a bit for the profile trigger to complete
+      if (isNewUser) {
+        await new Promise(resolve => setTimeout(resolve, 800));
+      }
+      
+      // Validate required fields
+      if (!data.goal) {
+        toast({
+          title: "Datos incompletos",
+          description: "Por favor completa todos los pasos del onboarding.",
+          variant: "destructive",
+        });
+        setStep(3); // Go back to goal step
+        setIsSubmitting(false);
+        return;
+      }
+      
       const goals = calculateNutritionGoals();
       const age = calculateAge();
       
-      // Save user preferences
-      const { error: prefsError } = await supabase.from('user_preferences').insert({
+      // Use upsert to avoid duplicate key errors
+      const { error: prefsError } = await supabase.from('user_preferences').upsert({
         user_id: userId,
-        goal: data.goal,
+        goal: data.goal || 'eat_healthy',
         diet_type: data.dietType || 'omnivore',
         allergies: data.allergies,
         dislikes: data.dislikes,
-        cooking_skill: data.cookingSkill,
-        cooking_time: data.cookingTime,
-        budget: data.budget,
-        meals_per_day: data.mealsPerDay,
-        activity_level: data.activityLevel,
-        gender: data.gender,
-        age,
-        height: data.heightUnit === 'ft' ? Math.round(data.height * 30.48) : data.height,
-        weight: data.weightUnit === 'lb' ? Math.round(data.weight * 0.453592) : data.weight,
+        cooking_skill: data.cookingSkill || 'intermediate',
+        cooking_time: data.cookingTime || 30,
+        budget: data.budget || 'medium',
+        meals_per_day: data.mealsPerDay || 3,
+        activity_level: data.activityLevel || 'moderate',
+        gender: data.gender || 'other',
+        age: age || 25,
+        height: data.heightUnit === 'ft' ? Math.round(data.height * 30.48) : (data.height || 170),
+        weight: data.weightUnit === 'lb' ? Math.round(data.weight * 0.453592) : (data.weight || 70),
         target_weight: data.targetWeight || null,
-        daily_calorie_goal: goals.calories,
-        daily_protein_goal: goals.protein,
-        daily_carbs_goal: goals.carbs,
-        daily_fats_goal: goals.fats,
+        daily_calorie_goal: goals.calories || 2000,
+        daily_protein_goal: goals.protein || 100,
+        daily_carbs_goal: goals.carbs || 250,
+        daily_fats_goal: goals.fats || 65,
         preferred_cuisines: data.cuisines,
         flavor_preferences: data.flavors,
-        meal_complexity: data.mealComplexity,
+        meal_complexity: data.mealComplexity || 'medium',
         servings: 1,
-      });
+      }, { onConflict: 'user_id' });
 
-      if (prefsError) throw prefsError;
+      if (prefsError) {
+        console.error('Preferences error:', prefsError);
+        throw prefsError;
+      }
 
-      // Save profile with display name
+      // Update profile with display name
       const { error: profileError } = await supabase.from('profiles').update({
-        display_name: data.name,
+        display_name: data.name || 'Usuario',
       }).eq('id', userId);
 
       if (profileError) console.warn('Profile update error:', profileError);
 
-      // Initialize user stats
-      await supabase.from('user_stats').insert({
+      // Use upsert for user_stats too
+      const { error: statsError } = await supabase.from('user_stats').upsert({
         user_id: userId,
         total_points: 0,
         current_streak: 0,
         longest_streak: 0,
         meals_completed: 0,
         level: 1,
-      });
+      }, { onConflict: 'user_id' });
+
+      if (statsError) console.warn('Stats upsert error:', statsError);
 
       // Clear localStorage data
       clearData();
 
-      // Generate initial meal plan
+      // Success notification
       toast({
         title: "¡Bienvenido a Chefly! 🎉",
         description: "Estamos creando tu plan personalizado...",
@@ -158,9 +200,23 @@ const PreOnboarding: React.FC = () => {
       
     } catch (error: any) {
       console.error('Error saving data:', error);
+      
+      let message = "Hubo un problema guardando tus datos. Intenta de nuevo.";
+      
+      // Specific error messages
+      if (error.code === '23505') {
+        // Duplicate key - this shouldn't happen with upsert, but just in case
+        message = "Parece que ya tienes una cuenta configurada. Intenta iniciar sesión.";
+      } else if (error.code === '42501') {
+        // RLS violation
+        message = "Error de permisos. Por favor intenta de nuevo.";
+      } else if (error.message?.includes('JWT')) {
+        message = "Tu sesión expiró. Por favor inicia sesión de nuevo.";
+      }
+      
       toast({
         title: "Error",
-        description: "Hubo un problema guardando tus datos. Intenta de nuevo.",
+        description: message,
         variant: "destructive",
       });
     } finally {
