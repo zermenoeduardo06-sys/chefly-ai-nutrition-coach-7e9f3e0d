@@ -388,9 +388,10 @@ const Dashboard = () => {
     setShowMealPhotoDialog(true);
   };
 
-  // Navigate to add food page for this meal type
+  // Navigate to AI Camera page for this meal type (exposes premium feature first)
   const handleOpenMealEntry = (meal: Meal) => {
-    navigate(`/dashboard/add-food/${meal.meal_type}`);
+    const dateStr = selectedDate.toISOString().split('T')[0];
+    navigate(`/dashboard/ai-camera/${meal.meal_type}?date=${dateStr}`);
   };
 
   // Navigate to meal detail page
