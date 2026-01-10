@@ -34,7 +34,10 @@ export const useSubscriptionLimits = (userId: string | undefined) => {
   });
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) {
+      setLimits(prev => ({ ...prev, isLoading: false }));
+      return;
+    }
     loadSubscriptionLimits();
   }, [userId]);
 
