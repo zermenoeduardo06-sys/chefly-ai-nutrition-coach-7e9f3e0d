@@ -26,8 +26,8 @@ export function MobileBottomNav() {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-[9999] md:hidden bg-card shadow-[0_-4px_20px_rgba(0,0,0,0.15)]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-      <div className="flex items-center justify-around h-[72px] px-1">
+    <nav className="fixed bottom-0 left-0 right-0 z-[9999] lg:hidden bg-card shadow-[0_-4px_20px_rgba(0,0,0,0.15)]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+      <div className="flex items-center justify-around h-[72px] tablet:h-[80px] px-1 tablet:px-4 max-w-2xl mx-auto">
         {navItems.map((item) => {
           const active = isActive(item.path);
           const label = language === 'es' ? item.labelEs : item.labelEn;
@@ -42,7 +42,7 @@ export function MobileBottomNav() {
             >
               <motion.div
                 className={cn(
-                  "relative flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-2xl transition-all duration-200",
+                  "relative flex flex-col items-center justify-center gap-0.5 px-3 tablet:px-5 py-2 rounded-2xl transition-all duration-200",
                   active 
                     ? "bg-primary/10" 
                     : "hover:bg-muted/50"
@@ -54,13 +54,13 @@ export function MobileBottomNav() {
               >
                 <item.icon 
                   className={cn(
-                    "h-5 w-5 transition-all duration-200",
+                    "h-5 w-5 tablet:h-6 tablet:w-6 transition-all duration-200",
                     active ? item.color : "text-muted-foreground"
                   )} 
                   strokeWidth={active ? 2.5 : 2}
                 />
                 <span className={cn(
-                  "text-[10px] font-medium transition-all duration-200",
+                  "text-[10px] tablet:text-xs font-medium transition-all duration-200",
                   active ? item.color : "text-muted-foreground"
                 )}>
                   {label}

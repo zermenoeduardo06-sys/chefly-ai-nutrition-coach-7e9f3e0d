@@ -54,16 +54,19 @@ import Recipes from '@/pages/Recipes';
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
   <SidebarProvider>
     <div className="flex h-[100dvh] w-full bg-background overflow-hidden" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
-      <div className="hidden md:block">
+      {/* Sidebar only visible on lg+ (desktop) */}
+      <div className="hidden lg:block">
         <AppSidebar />
       </div>
       <div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden">
-        <header className="hidden md:flex h-14 border-b bg-card sticky top-0 z-40 items-center px-4 flex-shrink-0">
+        {/* Header only visible on lg+ (desktop) */}
+        <header className="hidden lg:flex h-14 border-b bg-card sticky top-0 z-40 items-center px-4 flex-shrink-0">
           <SidebarTrigger />
         </header>
-        <main className="flex-1 overflow-y-auto overflow-x-hidden pb-mobile-nav md:pb-0 scroll-touch bg-background">{children}</main>
+        <main className="flex-1 overflow-y-auto overflow-x-hidden pb-mobile-nav lg:pb-0 scroll-touch bg-background">{children}</main>
       </div>
     </div>
+    {/* Bottom nav visible on mobile AND tablet (hidden on lg+) */}
     <MobileBottomNav />
   </SidebarProvider>
 );

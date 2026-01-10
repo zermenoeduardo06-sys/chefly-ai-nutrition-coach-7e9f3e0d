@@ -147,8 +147,8 @@ export function MealModulesSection({
     <div className="space-y-3">
       {/* Header */}
       <div className="flex items-center justify-between px-1">
-        <h2 className="text-lg font-bold">{t.title}</h2>
-        <button className="text-primary text-sm font-medium">{t.more}</button>
+        <h2 className="text-lg tablet:text-xl font-bold">{t.title}</h2>
+        <button className="text-primary text-sm tablet:text-base font-medium">{t.more}</button>
       </div>
 
       {/* Modules Container */}
@@ -166,13 +166,13 @@ export function MealModulesSection({
                 key={module.id}
                 onClick={() => handleModuleClick(module.id)}
                 className={cn(
-                  "w-full flex items-center p-4 text-left transition-colors hover:bg-muted/50",
+                  "w-full flex items-center p-4 tablet:p-5 text-left transition-colors hover:bg-muted/50",
                   index !== modules.length - 1 && "border-b border-border/30"
                 )}
                 whileTap={{ scale: 0.98 }}
               >
                 {/* Circular Progress with Icon */}
-                <div className="relative w-12 h-12 mr-4 flex-shrink-0">
+                <div className="relative w-12 h-12 tablet:w-14 tablet:h-14 mr-4 flex-shrink-0">
                   <CircularProgress 
                     value={percentage} 
                     size={48} 
@@ -181,17 +181,17 @@ export function MealModulesSection({
                   />
                   {/* Icon centered inside the ring */}
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <Icon className="h-5 w-5 text-foreground" />
+                    <Icon className="h-5 w-5 tablet:h-6 tablet:w-6 text-foreground" />
                   </div>
                 </div>
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1">
-                    <span className="font-semibold text-foreground">{module.label}</span>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-semibold text-foreground tablet:text-lg">{module.label}</span>
+                    <ChevronRight className="h-4 w-4 tablet:h-5 tablet:w-5 text-muted-foreground" />
                   </div>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-sm tablet:text-base text-muted-foreground">
                     {consumed} / {target} {t.kcal}
                   </div>
                   {recent && (
@@ -205,10 +205,10 @@ export function MealModulesSection({
                 <Button
                   variant="outline"
                   size="icon"
-                  className="h-10 w-10 rounded-full border-2 flex-shrink-0 ml-2"
+                  className="h-10 w-10 tablet:h-12 tablet:w-12 rounded-full border-2 flex-shrink-0 ml-2"
                   onClick={(e) => handleAddClick(e, module.id)}
                 >
-                  <Plus className="h-5 w-5" />
+                  <Plus className="h-5 w-5 tablet:h-6 tablet:w-6" />
                 </Button>
               </motion.button>
             );

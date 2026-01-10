@@ -1094,7 +1094,7 @@ const Dashboard = () => {
   return (
     <TooltipProvider delayDuration={300}>
     <div className="min-h-full bg-gradient-to-b from-background to-muted/30 overflow-x-hidden relative">
-      <main className="container mx-auto px-3 sm:px-4 py-3 sm:py-4 space-y-4 max-w-full overflow-hidden">
+      <main className="container mx-auto px-3 sm:px-4 tablet:px-6 py-3 sm:py-4 tablet:py-6 space-y-4 tablet:space-y-6 max-w-3xl overflow-hidden pb-24 lg:pb-6">
         
         {/* Offline/Syncing Indicator */}
         {(!isOnline || pendingCount > 0) && (
@@ -1128,7 +1128,7 @@ const Dashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           className="pb-2"
         >
-          <h1 className="text-xl font-bold text-foreground">
+          <h1 className="text-xl tablet:text-2xl font-bold text-foreground">
             {(() => {
               const hour = new Date().getHours();
               const greeting = hour < 12 
