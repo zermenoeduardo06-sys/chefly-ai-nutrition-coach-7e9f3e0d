@@ -234,12 +234,32 @@ const Dashboard = () => {
   }, [searchParams, userId, t]);
 
   const checkAuth = async () => {
+    // Prevent multiple simultaneous calls
+    if (redirectingRef.current) return;
+    
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
+      redirectingRef.current = true;
       navigate("/auth");
       return;
     }
 
+    // CRITICAL: Check preferences FIRST before loading anything else
+    // This prevents race conditions with data loading during redirect
+    const { data: preferences } = await supabase
+      .from("user_preferences")
+      .select("id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (!preferences) {
+      // User needs to complete onboarding - redirect immediately
+      redirectingRef.current = true;
+      navigate("/start", { replace: true });
+      return;
+    }
+
+    // User has preferences, safe to load all data
     setUserId(user.id);
     
     // Load essential data in parallel for faster initial load
@@ -673,27 +693,13 @@ const Dashboard = () => {
   };
 
   const loadMealPlan = async (userId: string) => {
-    // Prevent multiple simultaneous load attempts
+    // Prevent execution if redirecting
     if (redirectingRef.current) return;
     
     setLoading(true);
     try {
-      // First check if user has preferences
-      const { data: preferences } = await supabase
-        .from("user_preferences")
-        .select("*")
-        .eq("user_id", userId)
-        .single();
-
-      if (!preferences) {
-        // Prevent multiple redirects
-        if (redirectingRef.current) return;
-        redirectingRef.current = true;
-        // Redirect to start (pre-onboarding) if no preferences
-        navigate("/start", { replace: true });
-        return;
-      }
-
+      // Note: preferences check already done in checkAuth()
+      
       // Try to load from network first, fall back to cache if offline
       if (!isOnline) {
         const cached = getCachedMeals();
