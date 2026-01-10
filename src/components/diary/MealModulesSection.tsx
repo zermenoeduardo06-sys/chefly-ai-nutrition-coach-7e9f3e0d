@@ -140,7 +140,8 @@ export function MealModulesSection({
   const handleAddClick = (e: React.MouseEvent, mealType: string) => {
     e.stopPropagation();
     const dateParam = format(selectedDate, "yyyy-MM-dd");
-    navigate(`/dashboard/add-food/${mealType}?date=${dateParam}`);
+    // Navigate to AI Camera first to expose premium feature
+    navigate(`/dashboard/ai-camera/${mealType}?date=${dateParam}`);
   };
 
   return (
