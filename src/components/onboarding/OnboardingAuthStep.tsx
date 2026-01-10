@@ -9,7 +9,7 @@ import mascotLime from '@/assets/mascot-lime.png';
 
 interface OnboardingAuthStepProps {
   userName: string;
-  onAuthSuccess: (userId: string) => void;
+  onAuthSuccess: (userId: string, isNewUser: boolean) => void;
 }
 
 export const OnboardingAuthStep: React.FC<OnboardingAuthStepProps> = ({
@@ -73,7 +73,7 @@ export const OnboardingAuthStep: React.FC<OnboardingAuthStepProps> = ({
         }
 
         if (data.user) {
-          onAuthSuccess(data.user.id);
+          onAuthSuccess(data.user.id, true); // isNewUser = true for signup
         }
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -84,7 +84,7 @@ export const OnboardingAuthStep: React.FC<OnboardingAuthStepProps> = ({
         if (error) throw error;
 
         if (data.user) {
-          onAuthSuccess(data.user.id);
+          onAuthSuccess(data.user.id, false); // isNewUser = false for login
         }
       }
     } catch (error: any) {
@@ -148,6 +148,16 @@ export const OnboardingAuthStep: React.FC<OnboardingAuthStepProps> = ({
         transition={{ delay: 0.2 }}
         className="w-full max-w-sm space-y-4"
       >
+        {/* Quick login link for returning users */}
+        <p className="text-xs text-muted-foreground text-center">
+          ¿Ya tienes cuenta?{' '}
+          <button
+            onClick={() => setMode('login')}
+            className="text-primary hover:underline font-medium"
+          >
+            Iniciar sesión
+          </button>
+        </p>
         {/* Google button */}
         <Button
           variant="outline"
