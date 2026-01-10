@@ -80,7 +80,7 @@ const Progress = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 pt-safe-top pb-24 md:pb-6">
+    <div className="min-h-full bg-gradient-to-b from-background to-muted/30 pb-24 md:pb-6">
       <main className="container mx-auto px-4 py-4 md:py-6 space-y-4 md:space-y-6">
         <div className="flex items-center gap-2 mb-2">
           <TrendingUp className="h-6 w-6 text-primary" />

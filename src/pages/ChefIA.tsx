@@ -410,7 +410,7 @@ export default function ChefIA() {
 
   if (initialLoading || trialLoading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-background pt-safe-top">
+      <div className="min-h-full flex flex-col items-center justify-center gap-4 bg-background">
         <motion.img 
           src={mascotLime}
           alt="Loading"
@@ -435,12 +435,12 @@ export default function ChefIA() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-primary/5 flex flex-col">
-      {/* Header with safe area */}
+    <div className="min-h-full bg-gradient-to-b from-background via-background to-primary/5 flex flex-col">
+      {/* Header */}
       <motion.header 
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="border-b border-border/50 bg-card/80 backdrop-blur-xl sticky top-0 z-40 pt-safe-top"
+        className="border-b border-border/50 bg-card/80 backdrop-blur-xl sticky top-0 z-40"
       >
         <div className="container mx-auto px-4 py-3 flex items-center gap-3">
           <div className="flex items-center gap-3 flex-1 min-w-0">

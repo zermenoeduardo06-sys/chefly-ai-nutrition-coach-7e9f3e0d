@@ -251,7 +251,7 @@ export default function Recipes() {
 
   if (isLoading) {
     return (
-      <div className="min-h-full bg-background flex items-center justify-center pt-safe-top">
+      <div className="min-h-full bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-10 w-10 animate-spin text-primary" />
           <p className="text-muted-foreground">{t.loading}</p>
@@ -261,9 +261,9 @@ export default function Recipes() {
   }
 
   return (
-    <div className="min-h-full bg-background pb-24 pt-safe-top">
+    <div className="min-h-full bg-background pb-24">
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b pt-safe-top">
+      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
         <div className="flex items-center gap-3 p-4">
           <button onClick={() => navigate(-1)} className="p-1">
             <ArrowLeft className="h-5 w-5 text-foreground" />
