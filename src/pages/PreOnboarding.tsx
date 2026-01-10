@@ -162,6 +162,26 @@ const PreOnboarding: React.FC = () => {
       const goals = calculateNutritionGoals();
       const age = calculateAge();
       
+      // Validate and sanitize data before saving
+      const validMealComplexities = ['simple', 'moderate', 'complex'];
+      const validActivityLevels = ['sedentary', 'light', 'moderate', 'active', 'very_active'];
+      const validBudgets = ['low', 'medium', 'high'];
+      const validCookingSkills = ['beginner', 'intermediate', 'advanced'];
+      
+      const sanitizedData = {
+        mealComplexity: validMealComplexities.includes(data.mealComplexity) ? data.mealComplexity : 'moderate',
+        activityLevel: validActivityLevels.includes(data.activityLevel) ? data.activityLevel : 'moderate',
+        budget: validBudgets.includes(data.budget) ? data.budget : 'medium',
+        cookingSkill: validCookingSkills.includes(data.cookingSkill) ? data.cookingSkill : 'intermediate',
+      };
+      
+      console.log('Saving user_preferences with sanitized data:', {
+        userId,
+        goal: data.goal,
+        mealComplexity: sanitizedData.mealComplexity,
+        activityLevel: sanitizedData.activityLevel,
+      });
+      
       // Use upsert to avoid duplicate key errors
       const { error: prefsError } = await supabase.from('user_preferences').upsert({
         user_id: userId,
@@ -169,11 +189,11 @@ const PreOnboarding: React.FC = () => {
         diet_type: data.dietType || 'omnivore',
         allergies: data.allergies,
         dislikes: data.dislikes,
-        cooking_skill: data.cookingSkill || 'intermediate',
+        cooking_skill: sanitizedData.cookingSkill,
         cooking_time: data.cookingTime || 30,
-        budget: data.budget || 'medium',
+        budget: sanitizedData.budget,
         meals_per_day: data.mealsPerDay || 3,
-        activity_level: data.activityLevel || 'moderate',
+        activity_level: sanitizedData.activityLevel,
         gender: data.gender || 'other',
         age: age || 25,
         height: data.heightUnit === 'ft' ? Math.round(data.height * 30.48) : (data.height || 170),
@@ -185,12 +205,16 @@ const PreOnboarding: React.FC = () => {
         daily_fats_goal: goals.fats || 65,
         preferred_cuisines: data.cuisines,
         flavor_preferences: data.flavors,
-        meal_complexity: data.mealComplexity || 'medium',
+        meal_complexity: sanitizedData.mealComplexity,
         servings: 1,
       }, { onConflict: 'user_id' });
 
       if (prefsError) {
         console.error('Preferences error:', prefsError);
+        // Handle specific constraint violation errors
+        if (prefsError.code === '23514') {
+          console.error('Check constraint violation - data validation failed:', prefsError.message);
+        }
         throw prefsError;
       }
 
