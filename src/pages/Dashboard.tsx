@@ -1093,11 +1093,8 @@ const Dashboard = () => {
 
   return (
     <TooltipProvider delayDuration={300}>
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 overflow-x-hidden relative">
-      {/* Background extension for safe area - prevents black space at top */}
-      <div className="fixed top-0 left-0 right-0 h-[env(safe-area-inset-top,0px)] bg-background z-40" />
-      
-      <main className="container mx-auto px-3 sm:px-4 py-2 sm:py-4 space-y-4 max-w-full overflow-hidden pt-safe-top">
+    <div className="min-h-full bg-gradient-to-b from-background to-muted/30 overflow-x-hidden relative">
+      <main className="container mx-auto px-3 sm:px-4 py-3 sm:py-4 space-y-4 max-w-full overflow-hidden">
         
         {/* Offline/Syncing Indicator */}
         {(!isOnline || pendingCount > 0) && (
