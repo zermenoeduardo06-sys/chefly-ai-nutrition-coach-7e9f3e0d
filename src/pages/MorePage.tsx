@@ -42,6 +42,7 @@ const texts = {
     social: "Social",
     friends: "Amigos",
     settings: "Ajustes",
+    allSettings: "Toda la configuración",
     preferences: "Preferencias nutricionales",
     notifications: "Notificaciones",
     support: "Soporte",
@@ -65,6 +66,7 @@ const texts = {
     social: "Social",
     friends: "Friends",
     settings: "Settings",
+    allSettings: "All settings",
     preferences: "Nutrition preferences",
     notifications: "Notifications",
     support: "Support",
@@ -310,6 +312,11 @@ export default function MorePage() {
           transition={{ delay: 0.15 }}
         >
           <MenuSection title={t.settings}>
+            <MenuItem
+              icon={<Settings className="h-5 w-5" />}
+              label={t.allSettings}
+              onClick={() => navigate("/dashboard/settings")}
+            />
             <MenuItem
               icon={<Utensils className="h-5 w-5" />}
               label={t.preferences}
