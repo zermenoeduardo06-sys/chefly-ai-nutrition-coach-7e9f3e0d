@@ -78,6 +78,7 @@ export const AnimatedRoutes = () => {
         {/* Public pages */}
         <Route path="/" element={<PageTransition><Index /></PageTransition>} />
         <Route path="/start" element={<PageTransition><PreOnboarding /></PageTransition>} />
+        <Route path="/pre-onboarding" element={<PageTransition><PreOnboarding /></PageTransition>} />
         <Route path="/auth" element={<PageTransition><Auth /></PageTransition>} />
         <Route path="/welcome-onboarding" element={<PageTransition><OnboardingWelcome /></PageTransition>} />
         <Route path="/onboarding" element={<PageTransition><Onboarding /></PageTransition>} />
