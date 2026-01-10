@@ -136,7 +136,6 @@ const Subscription = () => {
         language === "es" ? "Chat ilimitado con coach IA" : "Unlimited AI coach chat",
         language === "es" ? "Escaneo de comidas ilimitado" : "Unlimited food scanning",
         language === "es" ? "Sistema de amigos y comparación" : "Friends & comparison system",
-        language === "es" ? "Lista de compras inteligente" : "Smart shopping list",
       ],
       recommended: true,
       mascot: mascotLime,

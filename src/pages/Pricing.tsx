@@ -49,7 +49,6 @@ const Pricing = () => {
     "Chat ilimitado con coach IA",
     "Escaneo de comidas ilimitado",
     "Sistema de amigos y comparación",
-    "Lista de compras inteligente",
   ] : [
     "Generate unlimited weekly plans",
     "Swap meals between days",
@@ -57,7 +56,6 @@ const Pricing = () => {
     "Unlimited AI coach chat",
     "Unlimited food scanning",
     "Friends & comparison system",
-    "Smart shopping list",
   ];
 
   const freeFeatures = language === "es" ? [

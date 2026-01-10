@@ -171,12 +171,9 @@ export default function AddFood() {
   };
 
   const handleScanClick = () => {
-    if (!isPremium && limits.foodScansUsed >= limits.dailyFoodScanLimit) {
-      setPaywallFeature("scan");
-      setShowPaywall(true);
-      return;
-    }
-    setShowScanner(true);
+    // Navigate to AI Camera page (handles premium check internally)
+    const dateParam = selectedDate ? `?date=${selectedDate}` : '';
+    navigate(`/dashboard/ai-camera/${validMealType}${dateParam}`);
   };
 
   const handleAddFood = (food: Food) => {
