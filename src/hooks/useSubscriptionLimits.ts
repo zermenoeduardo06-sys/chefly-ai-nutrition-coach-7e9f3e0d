@@ -78,8 +78,9 @@ export const useSubscriptionLimits = (userId: string | undefined) => {
         .gte("scanned_at", today);
 
       const foodScansUsed = foodScans?.length || 0;
-      const dailyFoodScanLimit = isCheflyPlus ? 999 : 1;
-      const canScanFood = isCheflyPlus || foodScansUsed < 1;
+      // Free users have 0 scans - scanning is a premium-only feature
+      const dailyFoodScanLimit = isCheflyPlus ? 999 : 0;
+      const canScanFood = isCheflyPlus;
 
       setLimits({
         canReplaceMeals: isCheflyPlus,

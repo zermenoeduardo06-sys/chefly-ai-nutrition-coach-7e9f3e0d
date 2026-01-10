@@ -48,13 +48,13 @@ export default function FoodScannerPage() {
     history: language === 'es' ? 'Historial' : 'History',
     stats: language === 'es' ? 'Estadísticas' : 'Stats',
     back: language === 'es' ? 'Volver' : 'Back',
-    limitReached: language === 'es' ? 'Límite alcanzado' : 'Limit reached',
+    limitReached: language === 'es' ? 'Función Premium' : 'Premium Feature',
     upgradeDesc: language === 'es' 
-      ? 'Ya usaste tu escaneo gratuito de hoy'
-      : 'You already used your free scan today',
+      ? 'El escáner de comida con IA es exclusivo de Chefly Plus'
+      : 'AI food scanner is exclusive to Chefly Plus',
     upgrade: language === 'es' ? 'Obtener Chefly Plus' : 'Get Chefly Plus',
     unlimited: language === 'es' ? 'Escaneos ilimitados' : 'Unlimited scans',
-    scansLeft: language === 'es' ? 'escaneo disponible' : 'scan available',
+    scansLeft: language === 'es' ? 'Premium requerido' : 'Premium required',
     aiPowered: language === 'es' ? 'IA Avanzada' : 'Advanced AI',
   };
 
@@ -213,9 +213,9 @@ export default function FoodScannerPage() {
                 </div>
               ) : (
                 <div className="flex items-center gap-1.5 px-3 py-1.5 bg-muted rounded-full">
-                  <div className={`w-2 h-2 rounded-full ${limits.canScanFood ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                  <div className="w-2 h-2 rounded-full bg-orange-500" />
                   <span className="text-xs text-muted-foreground font-medium">
-                    {limits.dailyFoodScanLimit - limits.foodScansUsed} {t.scansLeft}
+                    {t.scansLeft}
                   </span>
                 </div>
               )}
