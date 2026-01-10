@@ -26,7 +26,7 @@ export const useSubscriptionLimits = (userId: string | undefined) => {
     chatMessagesUsed: 0,
     dailyFoodScanLimit: 1,
     foodScansUsed: 0,
-    canScanFood: true,
+    canScanFood: false, // Default to false until we verify subscription
     planName: "Gratuito",
     isFreePlan: true,
     isCheflyPlus: false,
@@ -97,7 +97,7 @@ export const useSubscriptionLimits = (userId: string | undefined) => {
       });
     } catch (error) {
       console.error("Error loading subscription limits:", error);
-      // Default to free plan on error
+      // Default to free plan on error - canScanFood based on actual usage check
       setLimits({
         canReplaceMeals: false,
         canSwapMeals: false,
@@ -106,7 +106,7 @@ export const useSubscriptionLimits = (userId: string | undefined) => {
         chatMessagesUsed: 0,
         dailyFoodScanLimit: 1,
         foodScansUsed: 0,
-        canScanFood: true,
+        canScanFood: false, // Default to false on error for safety
         planName: "Gratuito",
         isFreePlan: true,
         isCheflyPlus: false,
