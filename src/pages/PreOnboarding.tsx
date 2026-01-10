@@ -115,9 +115,27 @@ const PreOnboarding: React.FC = () => {
         }
       }
       
-      // For new users, wait a bit for the profile trigger to complete
+      // For new users, wait for profile trigger to complete with retry
       if (isNewUser) {
-        await new Promise(resolve => setTimeout(resolve, 800));
+        let profileExists = false;
+        let attempts = 0;
+        const maxAttempts = 5;
+        
+        while (!profileExists && attempts < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('id', userId)
+            .maybeSingle();
+          
+          profileExists = !!profile;
+          attempts++;
+        }
+        
+        if (!profileExists) {
+          console.warn('Profile not created by trigger, continuing anyway');
+        }
       }
       
       // Validate required fields
