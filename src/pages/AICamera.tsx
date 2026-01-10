@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Camera, Lock, Search, Sparkles, Check } from "lucide-react";
+import { ArrowLeft, Camera, Lock, Search, Sparkles, Check, Crown, Zap, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
-import { FoodScanner } from "@/components/FoodScanner";
 import mascotHappy from "@/assets/mascot-happy.png";
 
 const mealTypeLabels = {
@@ -31,7 +30,6 @@ export default function AICamera() {
   const [searchParams] = useSearchParams();
   const { language } = useLanguage();
   const [userId, setUserId] = useState<string | undefined>();
-  const [showScanner, setShowScanner] = useState(false);
   const [currentScanState, setCurrentScanState] = useState(0);
 
   const subscription = useSubscription(userId);
@@ -43,7 +41,7 @@ export default function AICamera() {
   const canScan = isFullyLoaded && (isPremium || limits.foodScansUsed < limits.dailyFoodScanLimit);
   
   const validMealType = (mealType as keyof typeof mealTypeLabels) || "breakfast";
-  const selectedDate = searchParams.get('date');
+  const selectedDate = searchParams.get('date') || new Date().toISOString().split('T')[0];
 
   useEffect(() => {
     const loadData = async () => {
@@ -58,12 +56,13 @@ export default function AICamera() {
     loadData();
   }, [navigate]);
 
-  // Open scanner ONLY when fully loaded AND user has permission
+  // Redirect premium users to the full scanner page
   useEffect(() => {
     if (isFullyLoaded && canScan) {
-      setShowScanner(true);
+      const dateParam = selectedDate ? `?date=${selectedDate}` : '';
+      navigate(`/dashboard/scanner/${validMealType}${dateParam}`, { replace: true });
     }
-  }, [isFullyLoaded, canScan]);
+  }, [isFullyLoaded, canScan, validMealType, selectedDate, navigate]);
 
   // Animate through scan states for demo
   useEffect(() => {
@@ -80,16 +79,22 @@ export default function AICamera() {
     es: {
       title: "¡Haz foto y lo registramos!",
       subtitle: "IA que reconoce tu comida al instante",
-      accessWithPro: "🔒 Desbloquear con Chefly Plus",
+      accessWithPro: "Desbloquear con Chefly Plus",
       cameraAI: "Cámara IA",
       search: "Buscar",
+      benefit1: "Escaneos ilimitados",
+      benefit2: "Análisis detallado",
+      benefit3: "Historial completo",
     },
     en: {
       title: "Snap a photo, we'll log it!",
       subtitle: "AI that recognizes your food instantly",
-      accessWithPro: "🔒 Unlock with Chefly Plus",
+      accessWithPro: "Unlock with Chefly Plus",
       cameraAI: "AI Camera",
       search: "Search",
+      benefit1: "Unlimited scans",
+      benefit2: "Detailed analysis",
+      benefit3: "Complete history",
     },
   };
 
@@ -102,13 +107,6 @@ export default function AICamera() {
   const handleGoToSearch = () => {
     const dateParam = selectedDate ? `?date=${selectedDate}` : '';
     navigate(`/dashboard/add-food/${validMealType}${dateParam}`);
-  };
-
-  const handleScannerClose = (open: boolean) => {
-    if (!open) {
-      navigate(-1);
-    }
-    setShowScanner(open);
   };
 
   // Show loading state while checking subscription
@@ -125,21 +123,12 @@ export default function AICamera() {
     );
   }
 
-  // If user can scan, show scanner dialog
-  if (canScan && showScanner) {
-    return (
-      <div className="min-h-screen bg-background">
-        <FoodScanner
-          open={showScanner}
-          onOpenChange={handleScannerClose}
-          mealType={validMealType}
-          onSaveSuccess={() => {
-            setTimeout(() => navigate(-1), 500);
-          }}
-        />
-      </div>
-    );
+  // If redirecting to scanner, show nothing
+  if (canScan) {
+    return null;
   }
+
+  const currentState = scanStates[currentScanState];
 
   // Floating food emojis
   const floatingEmojis = [
@@ -149,16 +138,14 @@ export default function AICamera() {
     { emoji: "🍽️", bottom: "38%", right: "10%", delay: 0.2 },
   ];
 
-  const currentState = scanStates[currentScanState];
-
-  // Paywall screen - compact, no scroll
+  // Paywall screen
   return (
     <div className="min-h-[100dvh] bg-background flex flex-col overflow-hidden">
       {/* Header */}
       <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 safe-area-top">
         <div className="flex items-center p-4">
           <button 
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/dashboard')}
             className="p-2 -ml-2"
           >
             <ArrowLeft className="h-6 w-6 text-foreground" />
@@ -166,7 +153,7 @@ export default function AICamera() {
         </div>
       </div>
 
-      {/* Content - centered, no scroll needed */}
+      {/* Content */}
       <div className="flex-1 flex flex-col items-center justify-center px-6 pb-20 relative">
         {/* Floating Food Emojis */}
         {floatingEmojis.map((item, index) => (
@@ -193,7 +180,7 @@ export default function AICamera() {
           </motion.div>
         ))}
 
-        {/* Compact Phone Mockup with Animation */}
+        {/* Phone Mockup with Animation */}
         <motion.div
           className="relative mb-5 z-10"
           initial={{ opacity: 0, scale: 0.9 }}
@@ -201,7 +188,7 @@ export default function AICamera() {
           transition={{ duration: 0.5 }}
         >
           <div className="relative">
-            {/* Phone frame - smaller */}
+            {/* Phone frame */}
             <div className="w-44 h-56 bg-card rounded-3xl border-4 border-muted shadow-2xl overflow-hidden flex flex-col items-center justify-center">
               {/* Animated Scan Demo */}
               <div className="w-32 h-32 rounded-2xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center relative overflow-hidden">
@@ -265,7 +252,7 @@ export default function AICamera() {
               </div>
             </div>
 
-            {/* Mascot - larger and positioned better */}
+            {/* Mascot */}
             <motion.img
               src={mascotHappy}
               alt="Chefly mascot"
@@ -277,9 +264,9 @@ export default function AICamera() {
           </div>
         </motion.div>
 
-        {/* Title and Subtitle - compact */}
+        {/* Title and Subtitle */}
         <motion.div
-          className="text-center mb-6 z-10"
+          className="text-center mb-4 z-10"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
@@ -288,18 +275,46 @@ export default function AICamera() {
           <p className="text-sm text-muted-foreground">{t.subtitle}</p>
         </motion.div>
 
+        {/* Benefits */}
+        <motion.div
+          className="w-full max-w-xs space-y-2 mb-6 z-10"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          {[
+            { icon: Camera, text: t.benefit1 },
+            { icon: Zap, text: t.benefit2 },
+            { icon: Star, text: t.benefit3 }
+          ].map((benefit, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4 + i * 0.1 }}
+              className="flex items-center gap-3 bg-card rounded-xl p-3 border border-border"
+            >
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <benefit.icon className="h-4 w-4 text-primary" />
+              </div>
+              <span className="text-sm font-medium">{benefit.text}</span>
+            </motion.div>
+          ))}
+        </motion.div>
+
         {/* Upgrade Button */}
         <motion.div
           className="w-full max-w-xs z-10"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
         >
           <Button
             onClick={handleUpgrade}
             size="lg"
-            className="w-full h-14 text-base font-semibold bg-primary hover:bg-primary/90 rounded-2xl shadow-lg"
+            className="w-full h-14 text-base font-semibold bg-gradient-to-r from-primary to-orange-500 hover:opacity-90 rounded-2xl shadow-lg"
           >
+            <Crown className="h-5 w-5 mr-2" />
             {t.accessWithPro}
           </Button>
         </motion.div>
