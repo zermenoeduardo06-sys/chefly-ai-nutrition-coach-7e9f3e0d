@@ -40,22 +40,16 @@ export function RecipeCard({
       layout
     >
       <Card 
-        className="overflow-hidden cursor-pointer group active:scale-[0.98] transition-transform duration-200 border-border/50 h-full bg-card"
+        className="overflow-hidden cursor-pointer group active:scale-[0.98] transition-transform duration-200 border-border/50 bg-card"
         onClick={onClick}
       >
-        {/* Image Container - No fixed positioning */}
+        {/* Image Container - Fixed aspect ratio */}
         <div className="aspect-square relative overflow-hidden bg-muted">
-          <motion.div
-            className="w-full h-full"
-            whileHover={{ scale: 1.05 }}
-            transition={{ duration: 0.3 }}
-          >
-            <MealImageWithSkeleton
-              src={recipe.image_url}
-              alt={recipe.name}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-            />
-          </motion.div>
+          <MealImageWithSkeleton
+            src={recipe.image_url}
+            alt={recipe.name}
+            containerClassName="w-full h-full"
+          />
           
           {/* Meal Type Badge */}
           <div className="absolute top-2 left-2 z-10">
@@ -71,7 +65,7 @@ export function RecipeCard({
           </div>
           
           {/* Calories Overlay */}
-          <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3 pt-8">
+          <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3 pt-8 z-10">
             <div className="flex items-center gap-1.5 text-white">
               <div className="w-5 h-5 rounded-full bg-amber-500/30 flex items-center justify-center">
                 <Flame className="h-3 w-3 text-amber-400" />
