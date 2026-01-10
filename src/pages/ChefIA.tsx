@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Send, Sparkles, Volume2, VolumeX } from "lucide-react";
+import { Loader2, Send, Sparkles, Volume2, VolumeX, Crown, MessageSquare, Brain, Zap, Target, ArrowLeft } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
+import { useSubscription } from "@/hooks/useSubscription";
 import { Badge } from "@/components/ui/badge";
 import { useTrialGuard } from "@/hooks/useTrialGuard";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -242,6 +243,199 @@ const WelcomeScreen = ({ onSuggestionClick }: { onSuggestionClick: (text: string
   );
 };
 
+// Paywall for free users
+const ChatPaywall = () => {
+  const navigate = useNavigate();
+  const { language } = useLanguage();
+
+  const benefits = language === 'es' ? [
+    { icon: MessageSquare, title: "Chat ilimitado", desc: "Pregunta sin límites a tu coach" },
+    { icon: Brain, title: "Respuestas personalizadas", desc: "IA adaptada a tus metas" },
+    { icon: Zap, title: "Consejos instantáneos", desc: "Respuestas en segundos" },
+    { icon: Target, title: "Seguimiento nutricional", desc: "Ayuda con tu dieta diaria" },
+  ] : [
+    { icon: MessageSquare, title: "Unlimited chat", desc: "Ask your coach without limits" },
+    { icon: Brain, title: "Personalized responses", desc: "AI adapted to your goals" },
+    { icon: Zap, title: "Instant tips", desc: "Answers in seconds" },
+    { icon: Target, title: "Nutrition tracking", desc: "Help with your daily diet" },
+  ];
+
+  const floatingEmojis = ["💬", "🧠", "✨", "🎯", "💪", "🥗"];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-background via-primary/5 to-background flex flex-col relative overflow-hidden">
+      {/* Floating emojis */}
+      {floatingEmojis.map((emoji, i) => (
+        <motion.div
+          key={i}
+          className="absolute text-3xl opacity-40 pointer-events-none"
+          style={{
+            left: `${10 + (i * 15)}%`,
+            top: `${20 + (i % 3) * 25}%`,
+          }}
+          animate={{
+            y: [-20, 20, -20],
+            x: [-10, 10, -10],
+            rotate: [-15, 15, -15],
+            scale: [1, 1.1, 1],
+          }}
+          transition={{
+            duration: 4 + i * 0.5,
+            repeat: Infinity,
+            delay: i * 0.3,
+            ease: "easeInOut",
+          }}
+        >
+          {emoji}
+        </motion.div>
+      ))}
+
+      {/* Header */}
+      <header className="p-4 flex items-center gap-3 relative z-10">
+        <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <h1 className="text-lg font-bold">Chef IA</h1>
+      </header>
+
+      <div className="flex-1 flex flex-col items-center justify-center px-6 pb-8 relative z-10">
+        {/* Mascot with glow */}
+        <motion.div
+          className="relative mb-6"
+          animate={{ y: [0, -15, 0] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <div className="absolute inset-0 bg-primary/30 blur-3xl rounded-full scale-150" />
+          <motion.img
+            src={mascotLime}
+            alt="Chefly"
+            className="w-36 h-36 object-contain relative z-10 drop-shadow-2xl"
+            animate={{ rotate: [-3, 3, -3] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div
+            className="absolute -top-2 -right-2 z-20"
+            animate={{ scale: [1, 1.2, 1], rotate: [0, 180, 360] }}
+            transition={{ duration: 3, repeat: Infinity }}
+          >
+            <Sparkles className="w-8 h-8 text-amber-400" />
+          </motion.div>
+        </motion.div>
+
+        {/* Chat mockup */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.3 }}
+          className="w-full max-w-sm mb-6"
+        >
+          <Card className="p-4 bg-card/80 backdrop-blur border-2 border-primary/20 rounded-2xl">
+            <div className="space-y-3">
+              <div className="flex items-start gap-2">
+                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                  <img src={mascotLime} alt="" className="w-6 h-6" />
+                </div>
+                <div className="bg-muted rounded-xl rounded-tl-sm p-3 text-sm max-w-[200px]">
+                  {language === 'es' 
+                    ? "¡Hola! ¿Cómo puedo ayudarte hoy?" 
+                    : "Hi! How can I help you today?"}
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <div className="bg-primary text-primary-foreground rounded-xl rounded-tr-sm p-3 text-sm max-w-[200px]">
+                  {language === 'es'
+                    ? "¿Qué snacks saludables recomiendas?"
+                    : "What healthy snacks do you recommend?"}
+                </div>
+              </div>
+              <motion.div 
+                className="flex items-start gap-2"
+                animate={{ opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+              >
+                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                  <img src={mascotLime} alt="" className="w-6 h-6" />
+                </div>
+                <div className="bg-muted rounded-xl rounded-tl-sm p-3 flex gap-1">
+                  {[0, 1, 2].map((i) => (
+                    <motion.div
+                      key={i}
+                      className="w-2 h-2 rounded-full bg-primary"
+                      animate={{ y: [0, -4, 0] }}
+                      transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.15 }}
+                    />
+                  ))}
+                </div>
+              </motion.div>
+            </div>
+          </Card>
+        </motion.div>
+
+        {/* Premium badge */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="flex items-center gap-2 mb-4"
+        >
+          <Crown className="h-5 w-5 text-amber-500" />
+          <span className="text-lg font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">
+            {language === 'es' ? 'Función Premium' : 'Premium Feature'}
+          </span>
+        </motion.div>
+
+        <p className="text-center text-muted-foreground mb-6 max-w-xs">
+          {language === 'es'
+            ? "Desbloquea conversaciones ilimitadas con tu coach nutricional personalizado"
+            : "Unlock unlimited conversations with your personalized nutrition coach"}
+        </p>
+
+        {/* Benefits */}
+        <div className="grid grid-cols-2 gap-3 w-full max-w-sm mb-8">
+          {benefits.map((benefit, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 + i * 0.1 }}
+              className="flex items-start gap-2 p-3 bg-card/60 rounded-xl border border-border/50"
+            >
+              <benefit.icon className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold">{benefit.title}</p>
+                <p className="text-xs text-muted-foreground">{benefit.desc}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* CTA Button */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.8 }}
+          className="w-full max-w-sm space-y-3"
+        >
+          <Button
+            onClick={() => navigate("/premium-paywall")}
+            className="w-full h-14 text-lg font-bold bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg shadow-amber-500/30"
+          >
+            <Crown className="mr-2 h-5 w-5" />
+            {language === 'es' ? 'Obtener Chefly Plus' : 'Get Chefly Plus'}
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/dashboard")}
+            className="w-full"
+          >
+            {language === 'es' ? 'Volver al inicio' : 'Back to home'}
+          </Button>
+        </motion.div>
+      </div>
+    </div>
+  );
+};
+
 export default function ChefIA() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -257,6 +451,7 @@ export default function ChefIA() {
   const { toast } = useToast();
   const scrollRef = useRef<HTMLDivElement>(null);
   const { limits, refreshLimits } = useSubscriptionLimits(userId);
+  const subscription = useSubscription(userId);
   const { isBlocked, isLoading: trialLoading } = useTrialGuard();
   const { t, language } = useLanguage();
   
@@ -408,7 +603,7 @@ export default function ChefIA() {
     lightImpact();
   };
 
-  if (initialLoading || trialLoading) {
+  if (initialLoading || trialLoading || subscription.isLoading) {
     return (
       <div className="min-h-full flex flex-col items-center justify-center gap-4 bg-background">
         <motion.img 
@@ -432,6 +627,11 @@ export default function ChefIA() {
 
   if (isBlocked) {
     return null;
+  }
+
+  // Show paywall for non-premium users
+  if (!subscription.isCheflyPlus) {
+    return <ChatPaywall />;
   }
 
   return (
