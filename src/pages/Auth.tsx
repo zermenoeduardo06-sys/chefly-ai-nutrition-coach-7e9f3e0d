@@ -35,41 +35,41 @@ const Auth = () => {
   };
 
   useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        // Check if user has preferences before redirecting to dashboard
+    // Helper function to check preferences and navigate
+    const checkPreferencesAndNavigate = async (userId: string) => {
+      try {
         const { data: preferences } = await supabase
           .from('user_preferences')
           .select('id')
-          .eq('user_id', session.user.id)
+          .eq('user_id', userId)
           .maybeSingle();
         
         if (preferences) {
           navigate("/dashboard");
         } else {
-          // User doesn't have preferences, redirect to onboarding
           navigate("/start");
         }
+      } catch (error) {
+        console.error('Error checking preferences:', error);
+        navigate("/start");
       }
     };
-    checkSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    // Check initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        // Check if user has preferences before redirecting to dashboard
-        const { data: preferences } = await supabase
-          .from('user_preferences')
-          .select('id')
-          .eq('user_id', session.user.id)
-          .maybeSingle();
-        
-        if (preferences) {
-          navigate("/dashboard");
-        } else {
-          // User doesn't have preferences, redirect to onboarding
-          navigate("/start");
-        }
+        checkPreferencesAndNavigate(session.user.id);
+      }
+    });
+
+    // CRITICAL: Never use async functions directly in onAuthStateChange callback
+    // This causes deadlocks. Use setTimeout(0) to defer Supabase calls.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        // Defer the Supabase call to prevent deadlock
+        setTimeout(() => {
+          checkPreferencesAndNavigate(session.user.id);
+        }, 0);
       }
     });
 
