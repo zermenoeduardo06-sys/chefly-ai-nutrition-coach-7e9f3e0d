@@ -315,7 +315,7 @@ export const NutritionProgressCharts = () => {
   return (
     <div className="space-y-4">
       {/* Hero Header */}
-      <div className="relative bg-gradient-to-br from-primary via-primary/80 to-secondary overflow-hidden rounded-2xl pt-safe-top">
+      <div className="relative bg-gradient-to-br from-primary via-primary/80 to-secondary overflow-hidden rounded-2xl">
         <div className="absolute inset-0 pointer-events-none">
           <motion.div 
             className="absolute top-4 left-6"
