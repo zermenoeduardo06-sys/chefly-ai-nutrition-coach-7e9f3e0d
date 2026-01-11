@@ -26,16 +26,25 @@ export const IAPPaywall = ({ open, onOpenChange, userId, onPurchaseSuccess }: IA
   const {
     isPurchasing,
     isRestoring,
+    isAvailable,
+    isLoading,
     error,
+    products,
     purchaseProduct,
     restorePurchases,
     clearError,
   } = useInAppPurchases(userId);
 
   const handlePurchase = async () => {
+    console.log('[IAPPaywall] Starting purchase...');
+    console.log('[IAPPaywall] IAP Available:', isAvailable);
+    console.log('[IAPPaywall] Products loaded:', products.length);
+    console.log('[IAPPaywall] User ID:', userId);
+    
     clearError();
     
     const success = await purchaseProduct(APPLE_IAP_PRODUCTS.CHEFLY_PLUS_MONTHLY);
+    console.log('[IAPPaywall] Purchase result:', success);
     
     if (success) {
       // Show success screen first
@@ -44,6 +53,7 @@ export const IAPPaywall = ({ open, onOpenChange, userId, onPurchaseSuccess }: IA
       // Request app review after 4 seconds (only on iOS, only once)
       requestReviewAfterDelay(4000);
     } else if (error) {
+      console.log('[IAPPaywall] Showing error toast:', error);
       toast({
         variant: 'destructive',
         title: language === 'es' ? 'Error en la compra' : 'Purchase failed',
@@ -199,13 +209,29 @@ export const IAPPaywall = ({ open, onOpenChange, userId, onPurchaseSuccess }: IA
                 </div>
               </div>
 
+              {/* IAP Status Indicator (for debugging) */}
+              {!isLoading && !isAvailable && (
+                <div className="mb-3 p-2 rounded-lg bg-destructive/10 border border-destructive/20">
+                  <p className="text-xs text-destructive text-center">
+                    {language === 'es' 
+                      ? '⚠️ Compras no disponibles. Verifica tu conexión.'
+                      : '⚠️ Purchases unavailable. Check your connection.'}
+                  </p>
+                </div>
+              )}
+
               {/* Purchase Button */}
               <Button
                 onClick={handlePurchase}
-                disabled={isPurchasing || isRestoring}
+                disabled={isPurchasing || isRestoring || isLoading}
                 className="w-full h-12 bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white font-bold text-base"
               >
-                {isPurchasing ? (
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    {language === 'es' ? 'Cargando...' : 'Loading...'}
+                  </>
+                ) : isPurchasing ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                     {language === 'es' ? 'Procesando...' : 'Processing...'}
