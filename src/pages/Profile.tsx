@@ -125,7 +125,7 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Header with Settings */}
-      <div className="flex items-center justify-end px-4 py-3 pt-safe-top">
+      <div className="flex items-center justify-end px-4 py-3">
         <Link to="/dashboard/settings">
           <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full">
             <Settings className="h-6 w-6 text-muted-foreground" />

@@ -136,7 +136,7 @@ const ProfileEdit = () => {
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="sticky top-0 z-50 bg-background border-b border-border pt-safe-top"
+        className="sticky top-0 z-50 bg-background border-b border-border"
       >
         <div className="flex items-center justify-between px-4 py-4">
           <button onClick={() => navigate(-1)} className="p-2 -ml-2">

@@ -284,7 +284,7 @@ const FoodHistory = () => {
           </svg>
         </div>
 
-        <div className="relative z-10 pt-safe-top px-4 pb-8">
+        <div className="relative z-10 px-4 pb-8">
           {/* Nav */}
           <div className="flex items-center justify-between py-3">
             <Button 

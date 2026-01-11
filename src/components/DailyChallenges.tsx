@@ -210,8 +210,8 @@ export const DailyChallenges = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-6">
-      {/* Hero Header with safe area */}
-      <div className="relative bg-gradient-to-br from-primary via-primary/80 to-secondary overflow-hidden pt-safe-top">
+      {/* Hero Header */}
+      <div className="relative bg-gradient-to-br from-primary via-primary/80 to-secondary overflow-hidden">
         {/* Sparkle decorations */}
         <div className="absolute inset-0 pointer-events-none">
           <motion.div 
