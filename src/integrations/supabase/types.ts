@@ -610,6 +610,63 @@ export type Database = {
           },
         ]
       }
+      food_analysis_cache: {
+        Row: {
+          calories: number | null
+          carbs: number | null
+          confidence: string | null
+          created_at: string | null
+          dish_name: string
+          fat: number | null
+          fiber: number | null
+          foods_identified: string[] | null
+          hit_count: number | null
+          id: string
+          image_hash: string
+          language: string | null
+          notes: string | null
+          portion_estimate: string | null
+          protein: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          calories?: number | null
+          carbs?: number | null
+          confidence?: string | null
+          created_at?: string | null
+          dish_name: string
+          fat?: number | null
+          fiber?: number | null
+          foods_identified?: string[] | null
+          hit_count?: number | null
+          id?: string
+          image_hash: string
+          language?: string | null
+          notes?: string | null
+          portion_estimate?: string | null
+          protein?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          calories?: number | null
+          carbs?: number | null
+          confidence?: string | null
+          created_at?: string | null
+          dish_name?: string
+          fat?: number | null
+          fiber?: number | null
+          foods_identified?: string[] | null
+          hit_count?: number | null
+          id?: string
+          image_hash?: string
+          language?: string | null
+          notes?: string | null
+          portion_estimate?: string | null
+          protein?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       food_scans: {
         Row: {
           calories: number | null
