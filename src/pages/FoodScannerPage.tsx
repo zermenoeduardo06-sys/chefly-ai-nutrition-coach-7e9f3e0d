@@ -128,6 +128,11 @@ export default function FoodScannerPage() {
         }
       }
 
+      // Build scanned_at timestamp using selected date + current time
+      const now = new Date();
+      const [year, month, day] = selectedDate.split('-').map(Number);
+      const scannedAt = new Date(year, month - 1, day, now.getHours(), now.getMinutes(), now.getSeconds());
+
       const { error } = await supabase
         .from('food_scans')
         .insert({
@@ -144,6 +149,7 @@ export default function FoodScannerPage() {
           notes: result.notes,
           image_url: imageUrl,
           meal_type: validMealType || null,
+          scanned_at: scannedAt.toISOString(),
         });
 
       if (error) throw error;
