@@ -64,17 +64,25 @@ export function useDailyFoodIntake(userId: string | undefined, date: Date = new 
     }
 
     try {
-      // Reconstruct date from stable dateKey to avoid dependency issues
-      const targetDate = new Date(dateKey + 'T00:00:00');
-      const dayStart = startOfDay(targetDate).toISOString();
-      const dayEnd = endOfDay(targetDate).toISOString();
+      // Use the selected date's local boundaries for querying
+      // Parse as local date (not UTC) to match user's timezone
+      const [year, month, day] = dateKey.split('-').map(Number);
+      const targetDate = new Date(year, month - 1, day);
+      
+      // Get local day boundaries
+      const dayStart = startOfDay(targetDate);
+      const dayEnd = endOfDay(targetDate);
+      
+      // Convert to ISO strings for Supabase query
+      const dayStartISO = dayStart.toISOString();
+      const dayEndISO = dayEnd.toISOString();
 
       const { data, error } = await supabase
         .from("food_scans")
         .select("id, dish_name, calories, protein, carbs, fat, meal_type, scanned_at")
         .eq("user_id", userId)
-        .gte("scanned_at", dayStart)
-        .lte("scanned_at", dayEnd)
+        .gte("scanned_at", dayStartISO)
+        .lte("scanned_at", dayEndISO)
         .order("scanned_at", { ascending: false });
 
       if (error) {
