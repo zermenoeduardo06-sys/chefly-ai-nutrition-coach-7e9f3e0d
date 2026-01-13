@@ -9,11 +9,10 @@ interface SubscriptionStatus {
   plan: string | null;
 }
 
-// Subscription tiers
+// Apple IAP Product IDs (RevenueCat)
 export const SUBSCRIPTION_TIERS = {
   CHEFLY_PLUS: {
-    product_id: "prod_TUMZx1BcskL9rK",
-    price_id: "price_1SXNqfRXGCRSzpK7WyaN4yij",
+    product_id: "chefly_plus_monthly_",
     name: "Chefly Plus",
     price: 150, // ~7.99 USD
   },
@@ -75,15 +74,11 @@ export const useSubscription = (userId: string | undefined) => {
   }, [userId]);
 
   const getPlanName = () => {
-    if (!status.product_id) return null;
-    
-    if (status.product_id === SUBSCRIPTION_TIERS.CHEFLY_PLUS.product_id) {
-      return SUBSCRIPTION_TIERS.CHEFLY_PLUS.name;
-    }
-    return "Chefly Plus";
+    if (!status.subscribed) return null;
+    return SUBSCRIPTION_TIERS.CHEFLY_PLUS.name;
   };
 
-  const isCheflyPlus = status.subscribed && status.product_id === SUBSCRIPTION_TIERS.CHEFLY_PLUS.product_id;
+  const isCheflyPlus = status.subscribed;
 
   return {
     ...status,

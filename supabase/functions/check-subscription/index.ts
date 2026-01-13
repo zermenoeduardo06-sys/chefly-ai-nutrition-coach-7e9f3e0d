@@ -6,9 +6,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Stripe Subscription tier
-const CHEFLY_PLUS_PRODUCT_ID = "prod_TUMZx1BcskL9rK";
-
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
@@ -28,9 +25,6 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
-
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header provided");
 
@@ -41,7 +35,7 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Check if user has is_subscribed = true in profiles (Apple IAP)
+    // Check if user has is_subscribed = true in profiles (Apple IAP via RevenueCat)
     const { data: profile } = await supabaseClient
       .from("profiles")
       .select("is_subscribed")
@@ -50,12 +44,13 @@ serve(async (req) => {
 
     logStep("Profile check", { is_subscribed: profile?.is_subscribed });
 
-    // If user has is_subscribed = true in profiles (Apple IAP)
+    // Subscription is managed entirely by Apple IAP via RevenueCat
+    // The is_subscribed field is updated by verify-apple-receipt function
     if (profile?.is_subscribed === true) {
-      logStep("User has active Apple IAP subscription");
+      logStep("User has active subscription via Apple IAP");
       return new Response(JSON.stringify({
         subscribed: true,
-        product_id: CHEFLY_PLUS_PRODUCT_ID,
+        product_id: "chefly_plus_monthly_",
         subscription_end: null,
         plan: "chefly_plus",
         is_chefly_plus: true,
@@ -66,54 +61,25 @@ serve(async (req) => {
       });
     }
 
-    // Check Stripe subscription via API
-    const stripeResponse = await fetch(`https://api.stripe.com/v1/customers?email=${encodeURIComponent(user.email)}&limit=1`, {
-      headers: { Authorization: `Bearer ${stripeKey}` },
-    });
-    const customers = await stripeResponse.json();
-
-    if (!customers.data?.length) {
-      logStep("No Stripe customer - Free plan");
-      return new Response(JSON.stringify({ 
-        subscribed: false, 
-        plan: "free", 
-        is_chefly_plus: false,
-      }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
-    }
-
-    const customerId = customers.data[0].id;
-    const subsResponse = await fetch(`https://api.stripe.com/v1/subscriptions?customer=${customerId}&status=active&limit=1`, {
-      headers: { Authorization: `Bearer ${stripeKey}` },
-    });
-    const subscriptions = await subsResponse.json();
-    
-    const hasActiveSub = subscriptions.data?.length > 0;
-    let productId = null, subscriptionEnd = null, isCheflyPlus = false;
-
-    if (hasActiveSub) {
-      const sub = subscriptions.data[0];
-      subscriptionEnd = sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : null;
-      productId = sub.items?.data?.[0]?.price?.product;
-      isCheflyPlus = productId === CHEFLY_PLUS_PRODUCT_ID;
-      
-      await supabaseClient.from("profiles").update({ is_subscribed: true }).eq("id", user.id);
-    } else {
-      await supabaseClient.from("profiles").update({ is_subscribed: false }).eq("id", user.id);
-    }
-
+    // User is on free plan
+    logStep("User is on free plan");
     return new Response(JSON.stringify({
-      subscribed: hasActiveSub,
-      product_id: productId,
-      subscription_end: subscriptionEnd,
-      plan: isCheflyPlus ? "chefly_plus" : "free",
-      is_chefly_plus: isCheflyPlus,
-      subscription_source: hasActiveSub ? "stripe" : null,
-    }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
+      subscribed: false,
+      product_id: null,
+      subscription_end: null,
+      plan: "free",
+      is_chefly_plus: false,
+      subscription_source: null,
+    }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
+    });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR", { message: errorMessage });
     return new Response(JSON.stringify({ error: errorMessage }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
     });
   }
 });

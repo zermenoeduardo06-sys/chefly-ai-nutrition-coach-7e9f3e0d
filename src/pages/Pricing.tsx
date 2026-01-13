@@ -4,24 +4,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Check, Crown, Sparkles, Star, ArrowLeft, Zap, Gift } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { SUBSCRIPTION_TIERS } from "@/hooks/useSubscription";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "framer-motion";
 import mascotLime from "@/assets/mascot-lime.png";
-import { InAppCheckout } from "@/components/InAppCheckout";
+import { IAPPaywall } from "@/components/IAPPaywall";
 
 const Pricing = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t, language } = useLanguage();
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<{
-    priceId: string;
-    name: string;
-    price: string;
-  } | null>(null);
+  const [iapPaywallOpen, setIapPaywallOpen] = useState(false);
+  const [userId, setUserId] = useState<string | undefined>();
 
-  const handleSelectPlan = async (priceId: string, planKey: string, planName: string, planPrice: string) => {
+  const handleSelectPlan = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -29,9 +24,8 @@ const Pricing = () => {
         return;
       }
 
-      // Open in-app checkout dialog
-      setSelectedPlan({ priceId, name: planName, price: planPrice });
-      setCheckoutOpen(true);
+      setUserId(user.id);
+      setIapPaywallOpen(true);
     } catch (error) {
       console.error("Error:", error);
       toast({
@@ -223,8 +217,8 @@ const Pricing = () => {
                 whileTap={{ scale: 0.98 }}
               >
                 <Button
-                  onClick={() => handleSelectPlan(SUBSCRIPTION_TIERS.CHEFLY_PLUS.price_id, "plus", "Chefly Plus", "$7.99")}
-                  disabled={checkoutOpen}
+                  onClick={handleSelectPlan}
+                  disabled={iapPaywallOpen}
                   variant="duolingo"
                   className="w-full h-12 text-base font-bold"
                 >
@@ -319,16 +313,15 @@ const Pricing = () => {
         </motion.div>
       </div>
 
-      {/* In-App Checkout Dialog */}
-      {selectedPlan && (
-        <InAppCheckout
-          open={checkoutOpen}
-          onOpenChange={setCheckoutOpen}
-          priceId={selectedPlan.priceId}
-          planName={selectedPlan.name}
-          planPrice={selectedPlan.price}
-        />
-      )}
+      {/* IAP Paywall */}
+      <IAPPaywall
+        open={iapPaywallOpen}
+        onOpenChange={setIapPaywallOpen}
+        userId={userId}
+        onPurchaseSuccess={() => {
+          navigate("/dashboard");
+        }}
+      />
     </div>
   );
 };

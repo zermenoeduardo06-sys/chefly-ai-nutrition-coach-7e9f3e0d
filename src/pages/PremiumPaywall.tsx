@@ -5,21 +5,15 @@ import { X, Check, Sparkles, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
-import { SUBSCRIPTION_TIERS } from "@/hooks/useSubscription";
-import { InAppCheckout } from "@/components/InAppCheckout";
 import { IAPPaywall } from "@/components/IAPPaywall";
-import { Capacitor } from "@capacitor/core";
 import mascotCelebrating from "@/assets/mascot-celebrating.png";
 
 export default function PremiumPaywall() {
   const navigate = useNavigate();
   const { language } = useLanguage();
   const [userId, setUserId] = useState<string | undefined>();
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [iapPaywallOpen, setIapPaywallOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<"monthly" | "yearly">("monthly");
-
-  const isNativeIOS = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios';
 
   useEffect(() => {
     const loadUser = async () => {
@@ -80,26 +74,12 @@ export default function PremiumPaywall() {
       return;
     }
 
-    // On iOS, show native IAP
-    if (isNativeIOS) {
-      setIapPaywallOpen(true);
-      return;
-    }
-
-    // On web, show Stripe checkout
-    setCheckoutOpen(true);
+    // Always show native IAP paywall (Apple In-App Purchase)
+    setIapPaywallOpen(true);
   };
 
   const handleClose = () => {
     navigate(-1);
-  };
-
-  const handleCheckoutClose = (open: boolean) => {
-    setCheckoutOpen(open);
-    if (!open) {
-      // Navigate back after successful checkout
-      navigate("/dashboard");
-    }
   };
 
   const handleIAPSuccess = () => {
@@ -279,15 +259,6 @@ export default function PremiumPaywall() {
           {t.cancel}
         </motion.p>
       </div>
-
-      {/* Stripe Checkout */}
-      <InAppCheckout
-        open={checkoutOpen}
-        onOpenChange={handleCheckoutClose}
-        priceId={SUBSCRIPTION_TIERS.CHEFLY_PLUS.price_id}
-        planName="Chefly Plus"
-        planPrice="$7.99"
-      />
 
       {/* iOS IAP Paywall */}
       <IAPPaywall

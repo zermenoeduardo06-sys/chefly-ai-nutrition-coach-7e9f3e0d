@@ -3,37 +3,24 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ArrowLeft, Check, ExternalLink, Zap, Gift, RefreshCw } from "lucide-react";
-import { useSubscription, SUBSCRIPTION_TIERS } from "@/hooks/useSubscription";
+import { Loader2, ArrowLeft, Check, Zap, Gift, RefreshCw, Settings } from "lucide-react";
+import { useSubscription } from "@/hooks/useSubscription";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "framer-motion";
 import mascotLime from "@/assets/mascot-lime.png";
-import { InAppCheckout } from "@/components/InAppCheckout";
 import { IAPPaywall } from "@/components/IAPPaywall";
-import { Browser } from "@capacitor/browser";
-import { Capacitor } from "@capacitor/core";
 import { useInAppPurchases } from "@/hooks/useInAppPurchases";
 
 const Subscription = () => {
   const [loading, setLoading] = useState(true);
-  const [portalLoading, setPortalLoading] = useState(false);
   const [userId, setUserId] = useState<string | undefined>(undefined);
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [iapPaywallOpen, setIapPaywallOpen] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<{
-    priceId: string;
-    name: string;
-    price: string;
-  } | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { language } = useLanguage();
   const subscription = useSubscription(userId);
   const { limits } = useSubscriptionLimits(userId);
-  
-  // Check if running on native iOS
-  const isNativeIOS = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios';
   const { restorePurchases, isRestoring } = useInAppPurchases(userId);
 
   useEffect(() => {
@@ -50,48 +37,8 @@ const Subscription = () => {
     setLoading(false);
   };
 
-  const handleManageSubscription = async () => {
-    setPortalLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("customer-portal");
-
-      if (error) throw error;
-
-      if (data.url) {
-        // Use Capacitor Browser for in-app experience on iOS/Android
-        await Browser.open({ url: data.url, presentationStyle: 'popover' });
-      }
-    } catch (error) {
-      console.error("Error opening customer portal:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: language === "es" 
-          ? "No se pudo abrir el portal de gestión. Intenta de nuevo."
-          : "Could not open management portal. Please try again.",
-      });
-    } finally {
-      setPortalLoading(false);
-    }
-  };
-
-  const handleSelectPlan = (priceId: string, planName: string, planPrice: string) => {
-    // On iOS, show native IAP paywall instead of Stripe
-    if (isNativeIOS) {
-      setIapPaywallOpen(true);
-      return;
-    }
-    
-    setSelectedPlan({ priceId, name: planName, price: planPrice });
-    setCheckoutOpen(true);
-  };
-
-  const handleCheckoutClose = (open: boolean) => {
-    setCheckoutOpen(open);
-    if (!open) {
-      // Refresh subscription status after checkout closes
-      subscription.checkSubscription();
-    }
+  const handleSelectPlan = () => {
+    setIapPaywallOpen(true);
   };
 
   const handleIAPPaywallClose = (open: boolean) => {
@@ -102,14 +49,15 @@ const Subscription = () => {
   };
 
   const handleRestorePurchases = async () => {
-    if (isNativeIOS) {
-      const success = await restorePurchases();
-      if (success) {
-        subscription.checkSubscription();
-      }
-    } else {
-      // For Stripe-based subscriptions, this refreshes the subscription status
+    const success = await restorePurchases();
+    if (success) {
       subscription.checkSubscription();
+      toast({
+        title: language === "es" ? "Compras restauradas" : "Purchases restored",
+        description: language === "es" 
+          ? "Tu suscripción ha sido restaurada correctamente."
+          : "Your subscription has been restored successfully.",
+      });
     }
   };
 
@@ -141,7 +89,6 @@ const Subscription = () => {
       mascot: mascotLime,
       gradient: "from-emerald-400 via-teal-500 to-cyan-500",
       isCurrentPlan: limits.isCheflyPlus,
-      priceId: SUBSCRIPTION_TIERS.CHEFLY_PLUS.price_id,
     },
     {
       id: "free",
@@ -289,27 +236,22 @@ const Subscription = () => {
                 >
                   {plan.id === "chefly-plus" ? (
                     plan.isCurrentPlan ? (
-                      <Button
-                        onClick={handleManageSubscription}
-                        disabled={portalLoading}
-                        variant="duolingoOutline"
-                        className="w-full h-11 text-sm font-bold"
-                      >
-                        {portalLoading ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            {language === "es" ? "Abriendo..." : "Opening..."}
-                          </>
-                        ) : (
-                          <>
-                            <ExternalLink className="mr-2 h-4 w-4" />
-                            {language === "es" ? "GESTIONAR PLAN" : "MANAGE PLAN"}
-                          </>
-                        )}
-                      </Button>
+                      <div className="text-center py-3 bg-muted/50 rounded-xl">
+                        <div className="flex items-center justify-center gap-2 text-muted-foreground mb-2">
+                          <Settings className="h-4 w-4" />
+                          <span className="text-sm font-medium">
+                            {language === "es" ? "Plan activo" : "Active plan"}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground px-4">
+                          {language === "es" 
+                            ? "Gestiona tu suscripción desde Configuración > Apple ID > Suscripciones"
+                            : "Manage your subscription from Settings > Apple ID > Subscriptions"}
+                        </p>
+                      </div>
                     ) : (
                       <Button
-                        onClick={() => handleSelectPlan(plan.priceId!, "Chefly Plus", "$7.99")}
+                        onClick={handleSelectPlan}
                         variant="duolingo"
                         className="w-full h-11 text-sm font-bold"
                       >
@@ -361,33 +303,31 @@ const Subscription = () => {
           </motion.div>
         )}
 
-        {/* Restore purchases button for iOS */}
-        {isNativeIOS && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.7 }}
+        {/* Restore purchases button */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7 }}
+        >
+          <Button
+            variant="ghost"
+            onClick={handleRestorePurchases}
+            disabled={isRestoring}
+            className="w-full text-sm text-muted-foreground"
           >
-            <Button
-              variant="ghost"
-              onClick={handleRestorePurchases}
-              disabled={isRestoring}
-              className="w-full text-sm text-muted-foreground"
-            >
-              {isRestoring ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {language === "es" ? "Restaurando..." : "Restoring..."}
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  {language === "es" ? "Restaurar compras" : "Restore purchases"}
-                </>
-              )}
-            </Button>
-          </motion.div>
-        )}
+            {isRestoring ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {language === "es" ? "Restaurando..." : "Restoring..."}
+              </>
+            ) : (
+              <>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                {language === "es" ? "Restaurar compras" : "Restore purchases"}
+              </>
+            )}
+          </Button>
+        </motion.div>
 
         {/* Legal disclosure for Apple App Store */}
         <motion.div
@@ -398,8 +338,8 @@ const Subscription = () => {
         >
           <p className="text-[10px] text-muted-foreground text-center leading-relaxed px-2">
             {language === "es" 
-              ? "El pago se cargará a tu cuenta de Apple o Google al confirmar la compra. La suscripción se renueva automáticamente a menos que la auto-renovación sea desactivada al menos 24 horas antes del final del período actual. Tu cuenta será cargada por la renovación dentro de las 24 horas previas al final del período actual."
-              : "Payment will be charged to your Apple or Google account at confirmation of purchase. Subscription automatically renews unless auto-renew is turned off at least 24 hours before the end of the current period. Your account will be charged for renewal within 24 hours prior to the end of the current period."}
+              ? "El pago se cargará a tu cuenta de Apple al confirmar la compra. La suscripción se renueva automáticamente a menos que la auto-renovación sea desactivada al menos 24 horas antes del final del período actual. Tu cuenta será cargada por la renovación dentro de las 24 horas previas al final del período actual. Gestiona tus suscripciones desde Configuración > Apple ID > Suscripciones."
+              : "Payment will be charged to your Apple account at confirmation of purchase. Subscription automatically renews unless auto-renew is turned off at least 24 hours before the end of the current period. Your account will be charged for renewal within 24 hours prior to the end of the current period. Manage your subscriptions from Settings > Apple ID > Subscriptions."}
           </p>
           <div className="flex justify-center gap-4 text-[10px] text-muted-foreground">
             <a href="/terms" className="hover:underline">
@@ -412,18 +352,7 @@ const Subscription = () => {
         </motion.div>
       </div>
 
-      {/* In-App Checkout Dialog for Stripe */}
-      {selectedPlan && (
-        <InAppCheckout
-          open={checkoutOpen}
-          onOpenChange={handleCheckoutClose}
-          priceId={selectedPlan.priceId}
-          planName={selectedPlan.name}
-          planPrice={selectedPlan.price}
-        />
-      )}
-
-      {/* IAP Paywall for iOS */}
+      {/* IAP Paywall */}
       <IAPPaywall
         open={iapPaywallOpen}
         onOpenChange={handleIAPPaywallClose}
