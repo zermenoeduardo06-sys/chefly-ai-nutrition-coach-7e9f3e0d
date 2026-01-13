@@ -1,8 +1,5 @@
 project_id = "ppprnzkuivsnhrntkbyj"
 
-[functions.stripe-webhook]
-verify_jwt = false
-
 [functions.generate-meal-plan]
 verify_jwt = true
 
@@ -15,13 +12,7 @@ verify_jwt = true
 [functions.generate-single-meal]
 verify_jwt = true
 
-[functions.create-checkout]
-verify_jwt = true
-
 [functions.check-subscription]
-verify_jwt = true
-
-[functions.customer-portal]
 verify_jwt = true
 
 [functions.track-affiliate-click]
@@ -45,12 +36,8 @@ verify_jwt = false
 [functions.analyze-food]
 verify_jwt = true
 
-
 [functions.process-shopping-list]
 verify_jwt = true
 
 [functions.verify-apple-receipt]
-verify_jwt = true
-
-[functions.create-subscription-intent]
 verify_jwt = true
