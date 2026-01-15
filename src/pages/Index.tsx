@@ -2,15 +2,14 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Capacitor } from "@capacitor/core";
-import heroImage from "@/assets/hero-nutrition.jpg";
 import mascotLime from "@/assets/mascot-lime.png";
 import testimonial1 from "@/assets/testimonial-1.jpg";
 import testimonial2 from "@/assets/testimonial-2.jpg";
 import testimonial3 from "@/assets/testimonial-3.jpg";
-import { Utensils, Brain, TrendingUp, Clock, Star, Users, CheckCircle2, Sparkles, ChefHat, Calendar, Check } from "lucide-react";
+import { Utensils, Brain, TrendingUp, Clock, Star, Users, CheckCircle2, Sparkles, ChefHat, Calendar, Check, Crown } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import mascotCelebrating from "@/assets/mascot-celebrating.png";
 import { Badge } from "@/components/ui/badge";
-import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { InteractiveDemoSection } from "@/components/InteractiveDemoSection";
 import { ContactForm } from "@/components/ContactForm";
@@ -19,17 +18,6 @@ import { useAffiliateTracking } from "@/hooks/useAffiliateTracking";
 import { AffiliatePromoBanner } from "@/components/AffiliatePromoBanner";
 import { HeroParticles } from "@/components/HeroParticles";
 import { LandingNavbar } from "@/components/LandingNavbar";
-
-interface SubscriptionPlan {
-  id: string;
-  name: string;
-  price_mxn: number;
-  billing_period: string;
-  features: string[];
-  display_order: number;
-  coming_soon?: boolean;
-  is_active: boolean;
-}
 
 const Index = () => {
   const navigate = useNavigate();
@@ -69,19 +57,6 @@ const Index = () => {
   // Activar tracking de afiliados
   useAffiliateTracking();
 
-  const { data: plans } = useQuery({
-    queryKey: ["subscription-plans"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("subscription_plans")
-        .select("*")
-        .or("is_active.eq.true,coming_soon.eq.true")
-        .order("display_order", { ascending: true });
-
-      if (error) throw error;
-      return data as SubscriptionPlan[];
-    },
-  });
   const stats = [{
     number: "50K+",
     label: t("stats.users"),
@@ -164,10 +139,10 @@ const Index = () => {
         "operatingSystem": "Web",
         "offers": {
           "@type": "AggregateOffer",
-          "priceCurrency": "MXN",
-          "lowPrice": plans?.[0]?.price_mxn || "0",
-          "highPrice": plans?.[plans.length - 1]?.price_mxn || "999",
-          "offerCount": plans?.length || 3
+          "priceCurrency": "USD",
+          "lowPrice": "0",
+          "highPrice": "7.99",
+          "offerCount": 2
         },
         "aggregateRating": {
           "@type": "AggregateRating",
@@ -349,7 +324,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Pricing Section */}
+      {/* Pricing Section - 2 Tiers: Free + Chefly Plus */}
       <section id="pricing" className="py-12 sm:py-20 scroll-mt-20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-10 sm:mb-16 space-y-3 sm:space-y-4">
@@ -361,64 +336,108 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {plans?.map((plan, index) => (
-              <Card
-                key={plan.id}
-                className={`relative flex flex-col border-border/50 hover:shadow-[0_8px_30px_rgb(255,99,71,0.15)] transition-all hover:-translate-y-2 bg-gradient-to-br from-card to-card/50 animate-fade-in ${
-                  index === 1 ? "md:scale-105 border-primary shadow-lg" : ""
-                } ${plan.coming_soon ? "opacity-90" : ""}`}
-                style={{
-                  animationDelay: `${index * 150}ms`
-                }}
-              >
-                {plan.coming_soon ? (
-                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-muted to-muted-foreground">
-                    {t("pricing.comingSoon")}
-                  </Badge>
-                ) : index === 1 && (
-                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-secondary">
-                    {t("pricing.mostPopular")}
-                  </Badge>
-                )}
-                
-                <CardHeader>
-                  <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                  <CardDescription>
-                    <span className="text-4xl font-bold text-foreground">
-                      ${Math.round(plan.price_mxn / 20)}
-                    </span>
-                    <span className="text-muted-foreground"> USD/{t("pricing.month")}</span>
-                  </CardDescription>
-                </CardHeader>
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {/* Chefly Plus - Premium Plan */}
+            <Card className="relative flex flex-col border-primary shadow-lg md:scale-105 hover:shadow-[0_8px_30px_rgb(255,99,71,0.15)] transition-all hover:-translate-y-2 bg-gradient-to-br from-card to-card/50 animate-fade-in order-1 md:order-2">
+              <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-secondary">
+                {t("pricing.mostPopular")}
+              </Badge>
+              
+              <CardHeader className="text-center">
+                <div className="mx-auto mb-4">
+                  <img 
+                    src={mascotCelebrating} 
+                    alt="Chefly Plus" 
+                    className="w-20 h-20 object-contain"
+                  />
+                </div>
+                <CardTitle className="text-2xl flex items-center justify-center gap-2">
+                  <Crown className="w-5 h-5 text-primary" />
+                  Chefly Plus
+                </CardTitle>
+                <CardDescription>
+                  <span className="text-4xl font-bold text-foreground">$7.99</span>
+                  <span className="text-muted-foreground"> USD/{t("pricing.month")}</span>
+                </CardDescription>
+              </CardHeader>
 
-                <CardContent className="flex-1">
-                  <ul className="space-y-3">
-                    {plan.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-start gap-2">
-                        <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                        <span className="text-sm">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
+              <CardContent className="flex-1">
+                <ul className="space-y-3">
+                  {[
+                    t("pricing.features.unlimitedPlans"),
+                    t("pricing.features.mealSwap"),
+                    t("pricing.features.unlimitedChat"),
+                    t("pricing.features.foodScanner"),
+                    t("pricing.features.friendsSystem"),
+                    t("pricing.features.weeklyCheckin"),
+                    t("pricing.features.achievements"),
+                  ].map((feature, idx) => (
+                    <li key={idx} className="flex items-start gap-2">
+                      <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                      <span className="text-sm">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
 
-                <CardFooter>
-                  <Button
-                    className="w-full"
-                    variant={index === 1 && !plan.coming_soon ? "default" : "outline"}
-                    onClick={() => navigate("/auth")}
-                    disabled={plan.coming_soon}
-                  >
-                    {plan.coming_soon ? t("pricing.comingSoon") : t("pricing.cta")}
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
+              <CardFooter>
+                <Button
+                  className="w-full"
+                  variant="default"
+                  onClick={() => navigate("/auth")}
+                >
+                  {t("pricing.cta")}
+                </Button>
+              </CardFooter>
+            </Card>
+
+            {/* Free Plan */}
+            <Card className="relative flex flex-col border-border/50 hover:shadow-[0_8px_30px_rgb(255,99,71,0.15)] transition-all hover:-translate-y-2 bg-gradient-to-br from-card to-card/50 animate-fade-in order-2 md:order-1" style={{ animationDelay: '150ms' }}>
+              <CardHeader className="text-center">
+                <div className="mx-auto mb-4">
+                  <img 
+                    src={mascotLime} 
+                    alt="Free Plan" 
+                    className="w-20 h-20 object-contain"
+                  />
+                </div>
+                <CardTitle className="text-2xl">{t("pricing.freePlan")}</CardTitle>
+                <CardDescription>
+                  <span className="text-4xl font-bold text-foreground">$0</span>
+                  <span className="text-muted-foreground"> USD/{t("pricing.month")}</span>
+                </CardDescription>
+              </CardHeader>
+
+              <CardContent className="flex-1">
+                <ul className="space-y-3">
+                  {[
+                    t("pricing.features.weeklyPlan"),
+                    t("pricing.features.mealTracking"),
+                    t("pricing.features.basicProgress"),
+                    t("pricing.features.dailyChallenges"),
+                    t("pricing.features.limitedChat"),
+                  ].map((feature, idx) => (
+                    <li key={idx} className="flex items-start gap-2">
+                      <Check className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+                      <span className="text-sm text-muted-foreground">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+
+              <CardFooter>
+                <Button
+                  className="w-full"
+                  variant="outline"
+                  onClick={() => navigate("/auth")}
+                >
+                  {t("pricing.startFree")}
+                </Button>
+              </CardFooter>
+            </Card>
           </div>
 
           <div className="mt-12 text-center text-sm text-muted-foreground space-y-2">
-            <p>🎉 {t("pricing.trialAllPlans")}</p>
             <p>✨ {t("pricing.cancelNoCommitment")}</p>
           </div>
         </div>
