@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { startOfDay, endOfDay } from "date-fns";
+import { syncToWidget, createWidgetData } from "./useWidgetSync";
 
 interface MealCalories {
   breakfast: number;
@@ -148,6 +149,13 @@ export function useDailyFoodIntake(userId: string | undefined, date: Date = new 
       });
       setRecentFoods(recentByMeal);
       setFoodScans(data);
+
+      // Sync to iOS Widget (non-blocking)
+      // Goals will be synced from components that have access to useNutritionGoals
+      syncToWidget(createWidgetData(
+        { calories: totalCalories, protein: totalProtein, carbs: totalCarbs, fats: totalFats },
+        { calories: 2000, protein: 120, carbs: 250, fats: 65 } // Placeholder, real goals synced from NutritionSummaryWidget
+      ));
     } catch (error) {
       console.error("Error in fetchDailyIntake:", error);
     } finally {
