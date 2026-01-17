@@ -203,32 +203,13 @@ const Index = () => {
                 {t("hero.subtitle")}
               </p>
 
-              {/* App Store badges */}
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center md:justify-start">
-                <a 
-                  href="https://apps.apple.com/app/chefly-ai" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="transition-transform hover:scale-105"
-                >
-                  <img 
-                    src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" 
-                    alt="Download on App Store" 
-                    className="h-12 sm:h-14"
-                  />
-                </a>
-                <a 
-                  href="https://play.google.com/store/apps/details?id=app.lovable.833b313101b5463fbcf82a92aa5adcfc" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="transition-transform hover:scale-105"
-                >
-                  <img 
-                    src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" 
-                    alt="Get it on Google Play" 
-                    className="h-12 sm:h-14"
-                  />
-                </a>
+              {/* Coming Soon badge */}
+              <div className="flex justify-center md:justify-start">
+                <div className="px-6 py-3 bg-primary/10 border border-primary/20 rounded-full">
+                  <span className="text-base sm:text-lg font-semibold text-primary">
+                    📱 {t("common.comingSoon")} App Store & Google Play
+                  </span>
+                </div>
               </div>
 
               <div className="flex flex-wrap gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground justify-center md:justify-start">
@@ -399,14 +380,10 @@ const Index = () => {
               </CardContent>
 
               <CardFooter className="flex-col gap-2">
-                <p className="text-xs text-muted-foreground text-center">{t("pricing.downloadApp")}</p>
-                <div className="flex gap-2 justify-center">
-                  <a href="https://apps.apple.com/app/chefly-ai" target="_blank" rel="noopener noreferrer">
-                    <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="App Store" className="h-8" />
-                  </a>
-                  <a href="https://play.google.com/store/apps/details?id=app.lovable.833b313101b5463fbcf82a92aa5adcfc" target="_blank" rel="noopener noreferrer">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Google Play" className="h-8" />
-                  </a>
+                <div className="px-4 py-2 bg-primary/10 border border-primary/20 rounded-full">
+                  <span className="text-xs font-medium text-primary">
+                    📱 {t("common.comingSoon")}
+                  </span>
                 </div>
               </CardFooter>
             </Card>
@@ -446,14 +423,10 @@ const Index = () => {
               </CardContent>
 
               <CardFooter className="flex-col gap-2">
-                <p className="text-xs text-muted-foreground text-center">{t("pricing.downloadApp")}</p>
-                <div className="flex gap-2 justify-center">
-                  <a href="https://apps.apple.com/app/chefly-ai" target="_blank" rel="noopener noreferrer">
-                    <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="App Store" className="h-8" />
-                  </a>
-                  <a href="https://play.google.com/store/apps/details?id=app.lovable.833b313101b5463fbcf82a92aa5adcfc" target="_blank" rel="noopener noreferrer">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Google Play" className="h-8" />
-                  </a>
+                <div className="px-4 py-2 bg-muted/50 border border-border/50 rounded-full">
+                  <span className="text-xs font-medium text-muted-foreground">
+                    📱 {t("common.comingSoon")}
+                  </span>
                 </div>
               </CardFooter>
             </Card>

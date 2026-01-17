@@ -178,6 +178,7 @@ export const translations = {
     "common.next": "Siguiente",
     "common.previous": "Anterior",
     "common.finish": "Finalizar",
+    "common.comingSoon": "Próximamente",
     
     // Sidebar
     "sidebar.dashboard": "Dashboard",
@@ -1457,6 +1458,7 @@ export const translations = {
     "common.next": "Next",
     "common.previous": "Previous",
     "common.finish": "Finish",
+    "common.comingSoon": "Coming Soon",
     
     // Sidebar
     "sidebar.dashboard": "Dashboard",
