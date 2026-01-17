@@ -203,14 +203,32 @@ const Index = () => {
                 {t("hero.subtitle")}
               </p>
 
+              {/* App Store badges */}
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center md:justify-start">
-                <Button variant="hero" size="lg" className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 h-auto group" onClick={() => navigate("/start")}>
-                  {t("hero.cta")}
-                  <Sparkles className="ml-2 w-4 h-4 sm:w-5 sm:h-5 group-hover:rotate-12 transition-transform" />
-                </Button>
-                <Button variant="outline" size="lg" className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 h-auto" onClick={() => navigate("/auth")}>
-                  {t("nav.login")}
-                </Button>
+                <a 
+                  href="https://apps.apple.com/app/chefly-ai" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="transition-transform hover:scale-105"
+                >
+                  <img 
+                    src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" 
+                    alt="Download on App Store" 
+                    className="h-12 sm:h-14"
+                  />
+                </a>
+                <a 
+                  href="https://play.google.com/store/apps/details?id=app.lovable.833b313101b5463fbcf82a92aa5adcfc" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="transition-transform hover:scale-105"
+                >
+                  <img 
+                    src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" 
+                    alt="Get it on Google Play" 
+                    className="h-12 sm:h-14"
+                  />
+                </a>
               </div>
 
               <div className="flex flex-wrap gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground justify-center md:justify-start">
@@ -380,14 +398,16 @@ const Index = () => {
                 </ul>
               </CardContent>
 
-              <CardFooter>
-                <Button
-                  className="w-full"
-                  variant="default"
-                  onClick={() => navigate("/auth")}
-                >
-                  {t("pricing.cta")}
-                </Button>
+              <CardFooter className="flex-col gap-2">
+                <p className="text-xs text-muted-foreground text-center">{t("pricing.downloadApp")}</p>
+                <div className="flex gap-2 justify-center">
+                  <a href="https://apps.apple.com/app/chefly-ai" target="_blank" rel="noopener noreferrer">
+                    <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="App Store" className="h-8" />
+                  </a>
+                  <a href="https://play.google.com/store/apps/details?id=app.lovable.833b313101b5463fbcf82a92aa5adcfc" target="_blank" rel="noopener noreferrer">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Google Play" className="h-8" />
+                  </a>
+                </div>
               </CardFooter>
             </Card>
 
@@ -425,14 +445,16 @@ const Index = () => {
                 </ul>
               </CardContent>
 
-              <CardFooter>
-                <Button
-                  className="w-full"
-                  variant="outline"
-                  onClick={() => navigate("/auth")}
-                >
-                  {t("pricing.startFree")}
-                </Button>
+              <CardFooter className="flex-col gap-2">
+                <p className="text-xs text-muted-foreground text-center">{t("pricing.downloadApp")}</p>
+                <div className="flex gap-2 justify-center">
+                  <a href="https://apps.apple.com/app/chefly-ai" target="_blank" rel="noopener noreferrer">
+                    <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="App Store" className="h-8" />
+                  </a>
+                  <a href="https://play.google.com/store/apps/details?id=app.lovable.833b313101b5463fbcf82a92aa5adcfc" target="_blank" rel="noopener noreferrer">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Google Play" className="h-8" />
+                  </a>
+                </div>
               </CardFooter>
             </Card>
           </div>
@@ -514,11 +536,16 @@ const Index = () => {
               <p className="text-base sm:text-xl text-muted-foreground">
                 Únete a miles de personas que ya están comiendo mejor y sintiéndose increíbles
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button variant="hero" size="lg" className="text-base sm:text-lg px-8 sm:px-12 py-5 sm:py-6 h-auto group" onClick={() => navigate("/auth")}>
-                  Prueba gratis por 4 días
-                  <Sparkles className="ml-2 w-4 h-4 sm:w-5 sm:h-5 group-hover:rotate-12 transition-transform" />
-                </Button>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <p className="text-sm text-muted-foreground">Descarga la app:</p>
+                <div className="flex gap-3">
+                  <a href="https://apps.apple.com/app/chefly-ai" target="_blank" rel="noopener noreferrer" className="transition-transform hover:scale-105">
+                    <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="App Store" className="h-10 sm:h-12" />
+                  </a>
+                  <a href="https://play.google.com/store/apps/details?id=app.lovable.833b313101b5463fbcf82a92aa5adcfc" target="_blank" rel="noopener noreferrer" className="transition-transform hover:scale-105">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Google Play" className="h-10 sm:h-12" />
+                  </a>
+                </div>
               </div>
               <p className="text-xs sm:text-sm text-muted-foreground">
                 🎉 Sin compromiso • 🚫 Sin tarjeta • ✨ Cancela cuando quieras

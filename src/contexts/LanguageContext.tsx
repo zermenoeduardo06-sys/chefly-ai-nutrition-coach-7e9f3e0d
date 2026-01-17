@@ -83,6 +83,7 @@ export const translations = {
     "pricing.features.basicProgress": "Seguimiento de progreso básico",
     "pricing.features.dailyChallenges": "Desafíos diarios",
     "pricing.features.limitedChat": "5 mensajes de chat al día",
+    "pricing.downloadApp": "Disponible en la app",
     
     // Hero extras
     "hero.noCardRequired": "Sin tarjeta requerida",
@@ -1361,6 +1362,7 @@ export const translations = {
     "pricing.features.basicProgress": "Basic progress tracking",
     "pricing.features.dailyChallenges": "Daily challenges",
     "pricing.features.limitedChat": "5 chat messages per day",
+    "pricing.downloadApp": "Available on the app",
     
     // Hero extras
     "hero.noCardRequired": "No card required",
