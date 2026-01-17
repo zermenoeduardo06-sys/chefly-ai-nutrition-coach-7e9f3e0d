@@ -128,32 +128,13 @@ export const LandingNavbar = () => {
               <LanguageToggle />
             </div>
             
-            {/* App Store badges instead of login buttons */}
-            <div className="flex items-center gap-2">
-              <a 
-                href="https://apps.apple.com/app/chefly-ai" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="transition-opacity hover:opacity-80"
-              >
-                <img 
-                  src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" 
-                  alt="Download on App Store" 
-                  className="h-8 sm:h-9"
-                />
-              </a>
-              <a 
-                href="https://play.google.com/store/apps/details?id=app.lovable.833b313101b5463fbcf82a92aa5adcfc" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="transition-opacity hover:opacity-80"
-              >
-                <img 
-                  src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" 
-                  alt="Get it on Google Play" 
-                  className="h-8 sm:h-9"
-                />
-              </a>
+            {/* Coming Soon badge */}
+            <div className="hidden sm:flex items-center">
+              <div className="px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-full">
+                <span className="text-xs font-medium text-primary">
+                  📱 {t("common.comingSoon")}
+                </span>
+              </div>
             </div>
 
             {/* Mobile menu button */}
