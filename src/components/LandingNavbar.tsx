@@ -128,28 +128,33 @@ export const LandingNavbar = () => {
               <LanguageToggle />
             </div>
             
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="hidden sm:block">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate("/auth")}
-                className="bg-background/50 backdrop-blur-sm border-border/50 hover:bg-background/80"
+            {/* App Store badges instead of login buttons */}
+            <div className="flex items-center gap-2">
+              <a 
+                href="https://apps.apple.com/app/chefly-ai" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="transition-opacity hover:opacity-80"
               >
-                {t("nav.login")}
-              </Button>
-            </motion.div>
-
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button
-                variant="default"
-                size="sm"
-                onClick={() => navigate("/auth")}
-                className="bg-gradient-to-r from-primary to-primary-hover shadow-lg shadow-primary/25 text-xs sm:text-sm px-3 sm:px-4"
+                <img 
+                  src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" 
+                  alt="Download on App Store" 
+                  className="h-8 sm:h-9"
+                />
+              </a>
+              <a 
+                href="https://play.google.com/store/apps/details?id=app.lovable.833b313101b5463fbcf82a92aa5adcfc" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="transition-opacity hover:opacity-80"
               >
-                <span className="hidden sm:inline">{t("hero.cta")}</span>
-                <span className="sm:hidden">Empezar</span>
-              </Button>
-            </motion.div>
+                <img 
+                  src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" 
+                  alt="Get it on Google Play" 
+                  className="h-8 sm:h-9"
+                />
+              </a>
+            </div>
 
             {/* Mobile menu button */}
             <motion.button
