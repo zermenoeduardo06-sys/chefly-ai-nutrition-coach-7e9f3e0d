@@ -262,6 +262,21 @@ export const useInAppPurchases = (userId: string | undefined) => {
           } else {
             console.log('[IAP] ✅ Profile updated successfully - user is now subscribed');
           }
+
+          // Process affiliate commission
+          const affiliateCode = localStorage.getItem("affiliate_code");
+          if (affiliateCode) {
+            console.log('[IAP] Processing affiliate commission (direct):', affiliateCode);
+            try {
+              const { data: profileData } = await supabase.from('profiles').select('email').eq('id', userId).single();
+              await supabase.functions.invoke("process-affiliate-sale", {
+                body: { affiliateCode, customerId: userId, customerEmail: profileData?.email || '', productId: "chefly_plus_monthly_" },
+              });
+              console.log('[IAP] ✅ Affiliate commission processed');
+              localStorage.removeItem("affiliate_code");
+              localStorage.removeItem("affiliate_referral_stored");
+            } catch (e) { console.error('[IAP] ⚠️ Affiliate error:', e); }
+          }
           
           console.log('[IAP] ========== PURCHASE END (SUCCESS) ==========');
           setState(prev => ({ ...prev, isPurchasing: false }));
@@ -304,6 +319,21 @@ export const useInAppPurchases = (userId: string | undefined) => {
           } else {
             console.log('[IAP] ✅ Profile updated successfully');
           }
+
+          // Process affiliate commission
+          const affiliateCode = localStorage.getItem("affiliate_code");
+          if (affiliateCode) {
+            console.log('[IAP] Processing affiliate commission (first pkg):', affiliateCode);
+            try {
+              const { data: profileData } = await supabase.from('profiles').select('email').eq('id', userId).single();
+              await supabase.functions.invoke("process-affiliate-sale", {
+                body: { affiliateCode, customerId: userId, customerEmail: profileData?.email || '', productId: "chefly_plus_monthly_" },
+              });
+              console.log('[IAP] ✅ Affiliate commission processed');
+              localStorage.removeItem("affiliate_code");
+              localStorage.removeItem("affiliate_referral_stored");
+            } catch (e) { console.error('[IAP] ⚠️ Affiliate error:', e); }
+          }
           
           console.log('[IAP] ========== PURCHASE END (SUCCESS) ==========');
           setState(prev => ({ ...prev, isPurchasing: false }));
@@ -330,6 +360,35 @@ export const useInAppPurchases = (userId: string | undefined) => {
         console.error('[IAP] ❌ Failed to update profile:', updateError);
       } else {
         console.log('[IAP] ✅ Profile updated successfully - user is now subscribed');
+      }
+
+      // Process affiliate commission if affiliate code exists
+      const affiliateCode = localStorage.getItem("affiliate_code");
+      if (affiliateCode) {
+        console.log('[IAP] Processing affiliate commission for code:', affiliateCode);
+        try {
+          // Get user email from profile
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('email')
+            .eq('id', userId)
+            .single();
+
+          await supabase.functions.invoke("process-affiliate-sale", {
+            body: {
+              affiliateCode,
+              customerId: userId,
+              customerEmail: profileData?.email || '',
+              productId: "chefly_plus_monthly_",
+            },
+          });
+          console.log('[IAP] ✅ Affiliate commission processed successfully');
+          localStorage.removeItem("affiliate_code");
+          localStorage.removeItem("affiliate_referral_stored");
+        } catch (affiliateError) {
+          console.error('[IAP] ⚠️ Failed to process affiliate commission:', affiliateError);
+          // Don't fail the purchase if affiliate processing fails
+        }
       }
       
       console.log('[IAP] ========== PURCHASE END (SUCCESS) ==========');

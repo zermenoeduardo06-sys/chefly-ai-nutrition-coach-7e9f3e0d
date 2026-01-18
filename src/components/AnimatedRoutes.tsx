@@ -27,10 +27,7 @@ import Blog from '@/pages/Blog';
 import BlogArticle from '@/pages/BlogArticle';
 import NotFound from '@/pages/NotFound';
 import AffiliatesDashboard from '@/pages/AffiliatesDashboard';
-import AffiliatesRegister from '@/pages/AffiliatesRegister';
-import AffiliatesLanding from '@/pages/AffiliatesLanding';
-import AffiliatesLogin from '@/pages/AffiliatesLogin';
-import AffiliateTest from '@/pages/AffiliateTest';
+import InfluencerDashboard from '@/pages/InfluencerDashboard';
 import AdminAffiliatesDashboard from '@/pages/AdminAffiliatesDashboard';
 import ShoppingList from '@/pages/ShoppingList';
 import Settings from '@/pages/Settings';
@@ -92,7 +89,7 @@ export const AnimatedRoutes = () => {
         <Route path="/faq" element={<PageTransition><FAQ /></PageTransition>} />
         <Route path="/blog" element={<PageTransition><Blog /></PageTransition>} />
         <Route path="/blog/:articleId" element={<PageTransition><BlogArticle /></PageTransition>} />
-        <Route path="/programa-afiliados" element={<PageTransition><AffiliatesLanding /></PageTransition>} />
+        {/* Affiliate landing page hidden - exclusive influencer system */}
         <Route path="/app-store-demo" element={<AppStoreDemo />} />
         
         {/* Dashboard pages */}
@@ -131,11 +128,8 @@ export const AnimatedRoutes = () => {
         {/* Chat */}
         <Route path="/chat" element={<PageTransition><Chat /></PageTransition>} />
         
-        {/* Affiliates */}
-        <Route path="/affiliates" element={<PageTransition><AffiliatesDashboard /></PageTransition>} />
-        <Route path="/affiliates/login" element={<PageTransition><AffiliatesLogin /></PageTransition>} />
-        <Route path="/affiliates/register" element={<PageTransition><AffiliatesRegister /></PageTransition>} />
-        <Route path="/affiliates/test" element={<PageTransition><AffiliateTest /></PageTransition>} />
+        {/* Influencer Dashboard (exclusive - created by admin only) */}
+        <Route path="/influencer/:code" element={<PageTransition><InfluencerDashboard /></PageTransition>} />
         
         {/* 404 */}
         <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />

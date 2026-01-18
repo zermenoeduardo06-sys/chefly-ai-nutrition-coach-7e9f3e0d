@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Check, X, Eye, Download, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Check, X, Eye, Download, Search, ChevronLeft, ChevronRight, Link2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -22,6 +22,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { CreateInfluencerModal } from "./CreateInfluencerModal";
 
 export function AdminAffiliatesList() {
   const [affiliates, setAffiliates] = useState<any[]>([]);
@@ -184,12 +185,15 @@ export function AdminAffiliatesList() {
     <Card>
       <CardHeader>
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <CardTitle>Gestión de Afiliados ({totalCount})</CardTitle>
-            <Button onClick={exportToCSV} variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              Exportar CSV
-            </Button>
+          <div className="flex items-center justify-between gap-4">
+            <CardTitle>Gestión de Influencers ({totalCount})</CardTitle>
+            <div className="flex gap-2">
+              <CreateInfluencerModal onSuccess={loadAffiliates} />
+              <Button onClick={exportToCSV} variant="outline" size="sm">
+                <Download className="h-4 w-4 mr-2" />
+                Exportar CSV
+              </Button>
+            </div>
           </div>
 
           <div className="flex gap-4 items-center">

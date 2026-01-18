@@ -173,12 +173,15 @@ export type Database = {
           endorsely_referral_link: string | null
           full_name: string
           id: string
+          internal_notes: string | null
+          is_influencer: boolean | null
           last_payout_at: string | null
           lifetime_sales_mxn: number | null
           payout_method: Database["public"]["Enums"]["payout_method"] | null
           paypal_email: string | null
           pending_balance_mxn: number | null
           phone: string | null
+          social_handle: string | null
           status: Database["public"]["Enums"]["affiliate_status"] | null
           stripe_account_id: string | null
           stripe_account_status: string | null
@@ -207,12 +210,15 @@ export type Database = {
           endorsely_referral_link?: string | null
           full_name: string
           id?: string
+          internal_notes?: string | null
+          is_influencer?: boolean | null
           last_payout_at?: string | null
           lifetime_sales_mxn?: number | null
           payout_method?: Database["public"]["Enums"]["payout_method"] | null
           paypal_email?: string | null
           pending_balance_mxn?: number | null
           phone?: string | null
+          social_handle?: string | null
           status?: Database["public"]["Enums"]["affiliate_status"] | null
           stripe_account_id?: string | null
           stripe_account_status?: string | null
@@ -241,12 +247,15 @@ export type Database = {
           endorsely_referral_link?: string | null
           full_name?: string
           id?: string
+          internal_notes?: string | null
+          is_influencer?: boolean | null
           last_payout_at?: string | null
           lifetime_sales_mxn?: number | null
           payout_method?: Database["public"]["Enums"]["payout_method"] | null
           paypal_email?: string | null
           pending_balance_mxn?: number | null
           phone?: string | null
+          social_handle?: string | null
           status?: Database["public"]["Enums"]["affiliate_status"] | null
           stripe_account_id?: string | null
           stripe_account_status?: string | null

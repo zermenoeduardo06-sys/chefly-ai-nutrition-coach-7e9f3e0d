@@ -6,9 +6,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Apple IAP product configuration for Chefly Plus ($7.99 USD ≈ 150 MXN)
 const COMMISSION_RATES = {
-  "prod_TUMZMM3fEINWI3": { rate: 20, plan: "Básico", amount: 240 }, // Plan Básico
-  "prod_TUMZx1BcskL9rK": { rate: 25, plan: "Intermedio", amount: 290 }, // Plan Intermedio
+  "chefly_plus_monthly_": { rate: 25, plan: "Chefly Plus", amount: 150 },
 };
 
 serve(async (req) => {
