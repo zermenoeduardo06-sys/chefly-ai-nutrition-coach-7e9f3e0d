@@ -363,6 +363,7 @@ const PreOnboarding: React.FC = () => {
       default:
         return { message: "¡Vamos muy bien! 🚀", pose: 'default' };
     }
+  };
 
   const getGoalMessage = () => {
     switch (data.goal) {
