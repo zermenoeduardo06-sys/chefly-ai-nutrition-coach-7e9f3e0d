@@ -41,3 +41,9 @@ verify_jwt = true
 
 [functions.verify-apple-receipt]
 verify_jwt = true
+
+[functions.check-ai-budget]
+verify_jwt = false
+
+[functions.record-ai-usage]
+verify_jwt = false

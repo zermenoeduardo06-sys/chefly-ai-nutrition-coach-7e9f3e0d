@@ -449,6 +449,66 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_usage_tracking: {
+        Row: {
+          chat_cost_cents: number | null
+          chat_messages_count: number | null
+          created_at: string | null
+          food_scans_cached_count: number | null
+          food_scans_count: number | null
+          id: string
+          is_limit_reached: boolean | null
+          limit_reached_at: string | null
+          month: number
+          monthly_limit_cents: number | null
+          scan_cost_cents: number | null
+          shopping_cost_cents: number | null
+          shopping_list_count: number | null
+          total_cost_cents: number | null
+          updated_at: string | null
+          user_id: string
+          year: number
+        }
+        Insert: {
+          chat_cost_cents?: number | null
+          chat_messages_count?: number | null
+          created_at?: string | null
+          food_scans_cached_count?: number | null
+          food_scans_count?: number | null
+          id?: string
+          is_limit_reached?: boolean | null
+          limit_reached_at?: string | null
+          month: number
+          monthly_limit_cents?: number | null
+          scan_cost_cents?: number | null
+          shopping_cost_cents?: number | null
+          shopping_list_count?: number | null
+          total_cost_cents?: number | null
+          updated_at?: string | null
+          user_id: string
+          year: number
+        }
+        Update: {
+          chat_cost_cents?: number | null
+          chat_messages_count?: number | null
+          created_at?: string | null
+          food_scans_cached_count?: number | null
+          food_scans_count?: number | null
+          id?: string
+          is_limit_reached?: boolean | null
+          limit_reached_at?: string | null
+          month?: number
+          monthly_limit_cents?: number | null
+          scan_cost_cents?: number | null
+          shopping_cost_cents?: number | null
+          shopping_list_count?: number | null
+          total_cost_cents?: number | null
+          updated_at?: string | null
+          user_id?: string
+          year?: number
+        }
+        Relationships: []
+      }
       body_measurements: {
         Row: {
           arms: number | null
