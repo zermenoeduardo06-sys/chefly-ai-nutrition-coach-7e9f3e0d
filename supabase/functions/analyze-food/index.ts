@@ -6,9 +6,10 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const SCAN_COST_CENTS = 8; // ~$0.08 per food scan (multimodal)
+
 // Generate SHA-256 hash from image data for cache lookup
 async function generateImageHash(imageBase64: string): Promise<string> {
-  // Use first 10KB of image data for hash (avoids minor variations)
   const sampleData = imageBase64.slice(0, 10000);
   const encoder = new TextEncoder();
   const data = encoder.encode(sampleData);
@@ -23,13 +24,12 @@ serve(async (req) => {
   }
 
   try {
-    const { imageBase64, language = 'es' } = await req.json();
+    const { imageBase64, language = 'es', userId } = await req.json();
 
     if (!imageBase64) {
       throw new Error('No image provided');
     }
 
-    // Initialize Supabase client with service role for cache operations
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -50,12 +50,17 @@ serve(async (req) => {
       // Cache hit! Return cached data and increment hit count
       console.log(`[CACHE] HIT for "${cachedResult.dish_name}" - hit_count: ${cachedResult.hit_count}`);
       
-      // Increment hit count in background (don't await)
+      // Increment hit count in background
       supabase
         .from('food_analysis_cache')
         .update({ hit_count: cachedResult.hit_count + 1 })
         .eq('id', cachedResult.id)
         .then(() => console.log('[CACHE] Hit count updated'));
+
+      // Record usage as cached (0 cost) if userId provided
+      if (userId) {
+        recordUsageAsync(supabase, userId, 'scan', 0, true);
+      }
 
       return new Response(JSON.stringify({
         success: true,
@@ -71,13 +76,29 @@ serve(async (req) => {
         },
         confidence: cachedResult.confidence,
         notes: cachedResult.notes,
-        cached: true, // Flag to indicate this was from cache
+        cached: true,
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
     console.log(`[CACHE] MISS for hash: ${imageHash.substring(0, 16)}... - calling AI`);
+
+    // Check AI budget before making expensive API call (only if userId provided)
+    if (userId) {
+      const budgetCheck = await checkBudget(supabase, userId);
+      if (!budgetCheck.allowed) {
+        return new Response(JSON.stringify({ 
+          success: false,
+          error: budgetCheck.message,
+          error_en: budgetCheck.message_en,
+          code: 'BUDGET_LIMIT'
+        }), {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -207,7 +228,6 @@ Respond with the following exact JSON format:
     // Parse the JSON response
     let nutritionData;
     try {
-      // Extract JSON from response (in case there's extra text)
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         nutritionData = JSON.parse(jsonMatch[0]);
@@ -224,6 +244,11 @@ Respond with the following exact JSON format:
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
+    }
+
+    // Record usage after successful AI call (only if userId provided)
+    if (userId) {
+      recordUsageAsync(supabase, userId, 'scan', SCAN_COST_CENTS, false);
     }
 
     // Save to cache for future use
@@ -248,7 +273,6 @@ Respond with the following exact JSON format:
         });
 
       if (insertError) {
-        // Log but don't fail - cache is optional
         console.error('[CACHE] Failed to save:', insertError.message);
       } else {
         console.log('[CACHE] Entry saved successfully');
@@ -271,3 +295,115 @@ Respond with the following exact JSON format:
     });
   }
 });
+
+async function checkBudget(supabase: any, userId: string): Promise<{allowed: boolean, message: string, message_en: string}> {
+  const now = new Date();
+  const currentMonth = now.getMonth() + 1;
+  const currentYear = now.getFullYear();
+
+  let { data: usageRecord, error } = await supabase
+    .from('ai_usage_tracking')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('month', currentMonth)
+    .eq('year', currentYear)
+    .single();
+
+  if (error && error.code === 'PGRST116') {
+    // No record exists, user has full budget
+    return { allowed: true, message: '', message_en: '' };
+  }
+
+  if (error) {
+    console.error('Error checking budget:', error);
+    // Fail open
+    return { allowed: true, message: '', message_en: '' };
+  }
+
+  if (usageRecord.is_limit_reached) {
+    return {
+      allowed: false,
+      message: 'Has alcanzado tu límite de uso de IA este mes. El límite se reinicia el 1 de cada mes.',
+      message_en: 'You have reached your AI usage limit this month. The limit resets on the 1st of each month.'
+    };
+  }
+
+  const monthlyLimit = usageRecord.monthly_limit_cents || 200;
+  const totalUsed = usageRecord.total_cost_cents || 0;
+
+  if (totalUsed + SCAN_COST_CENTS > monthlyLimit) {
+    return {
+      allowed: false,
+      message: 'Has alcanzado tu límite de uso de IA este mes. El límite se reinicia el 1 de cada mes.',
+      message_en: 'You have reached your AI usage limit this month. The limit resets on the 1st of each month.'
+    };
+  }
+
+  return { allowed: true, message: '', message_en: '' };
+}
+
+function recordUsageAsync(supabase: any, userId: string, operationType: string, costCents: number, wasCached: boolean) {
+  // Fire and forget - don't block the response
+  (async () => {
+    try {
+      const now = new Date();
+      const currentMonth = now.getMonth() + 1;
+      const currentYear = now.getFullYear();
+
+      let { data: record, error } = await supabase
+        .from('ai_usage_tracking')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('month', currentMonth)
+        .eq('year', currentYear)
+        .single();
+
+      if (error && error.code === 'PGRST116') {
+        const { data: newRecord, error: insertError } = await supabase
+          .from('ai_usage_tracking')
+          .insert({
+            user_id: userId,
+            month: currentMonth,
+            year: currentYear,
+          })
+          .select()
+          .single();
+
+        if (insertError) {
+          console.error('Error creating usage record:', insertError);
+          return;
+        }
+        record = newRecord;
+      } else if (error) {
+        console.error('Error fetching usage record:', error);
+        return;
+      }
+
+      const updates: Record<string, any> = {
+        total_cost_cents: (record.total_cost_cents || 0) + costCents,
+      };
+
+      if (wasCached) {
+        updates.food_scans_cached_count = (record.food_scans_cached_count || 0) + 1;
+      } else {
+        updates.food_scans_count = (record.food_scans_count || 0) + 1;
+      }
+      updates.scan_cost_cents = (record.scan_cost_cents || 0) + costCents;
+
+      const monthlyLimit = record.monthly_limit_cents || 200;
+      if (updates.total_cost_cents >= monthlyLimit) {
+        updates.is_limit_reached = true;
+        updates.limit_reached_at = new Date().toISOString();
+      }
+
+      await supabase
+        .from('ai_usage_tracking')
+        .update(updates)
+        .eq('id', record.id);
+
+      console.log(`Recorded scan usage: user=${userId}, cost=${costCents}c, cached=${wasCached}, total=${updates.total_cost_cents}c`);
+    } catch (e) {
+      console.error('Error recording usage:', e);
+    }
+  })();
+}

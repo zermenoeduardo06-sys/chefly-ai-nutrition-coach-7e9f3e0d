@@ -1,10 +1,13 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+const SHOPPING_COST_CENTS = 3; // ~$0.03 per shopping list
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -12,13 +15,32 @@ serve(async (req) => {
   }
 
   try {
-    const { ingredients, language = 'es' } = await req.json();
+    const { ingredients, language = 'es', userId } = await req.json();
 
     if (!ingredients || !Array.isArray(ingredients) || ingredients.length === 0) {
       return new Response(
         JSON.stringify({ error: 'No ingredients provided' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Check AI budget before proceeding (only if userId provided)
+    if (userId) {
+      const budgetCheck = await checkBudget(supabase, userId);
+      if (!budgetCheck.allowed) {
+        return new Response(JSON.stringify({ 
+          error: budgetCheck.message,
+          error_en: budgetCheck.message_en,
+          code: 'BUDGET_LIMIT'
+        }), {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
     }
 
     const apiKey = Deno.env.get('LOVABLE_API_KEY');
@@ -81,6 +103,27 @@ Respond ONLY with a JSON array of objects with this structure:
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Lovable API error:', errorText);
+      
+      if (response.status === 429) {
+        return new Response(JSON.stringify({ 
+          error: 'Rate limit exceeded. Please try again later.',
+          code: 'RATE_LIMIT'
+        }), {
+          status: 429,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ 
+          error: 'AI credits exhausted. Please add credits to continue.',
+          code: 'CREDITS_EXHAUSTED'
+        }), {
+          status: 402,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      
       throw new Error(`Lovable API error: ${response.status}`);
     }
 
@@ -91,10 +134,14 @@ Respond ONLY with a JSON array of objects with this structure:
       throw new Error('Empty response from AI');
     }
 
+    // Record usage after successful response (only if userId provided)
+    if (userId) {
+      recordUsageAsync(supabase, userId, SHOPPING_COST_CENTS);
+    }
+
     // Parse JSON from response
     let processedItems;
     try {
-      // Extract JSON from potential markdown code blocks
       const jsonMatch = content.match(/\[[\s\S]*\]/);
       if (jsonMatch) {
         processedItems = JSON.parse(jsonMatch[0]);
@@ -120,3 +167,107 @@ Respond ONLY with a JSON array of objects with this structure:
     );
   }
 });
+
+async function checkBudget(supabase: any, userId: string): Promise<{allowed: boolean, message: string, message_en: string}> {
+  const now = new Date();
+  const currentMonth = now.getMonth() + 1;
+  const currentYear = now.getFullYear();
+
+  let { data: usageRecord, error } = await supabase
+    .from('ai_usage_tracking')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('month', currentMonth)
+    .eq('year', currentYear)
+    .single();
+
+  if (error && error.code === 'PGRST116') {
+    return { allowed: true, message: '', message_en: '' };
+  }
+
+  if (error) {
+    console.error('Error checking budget:', error);
+    return { allowed: true, message: '', message_en: '' };
+  }
+
+  if (usageRecord.is_limit_reached) {
+    return {
+      allowed: false,
+      message: 'Has alcanzado tu límite de uso de IA este mes. El límite se reinicia el 1 de cada mes.',
+      message_en: 'You have reached your AI usage limit this month. The limit resets on the 1st of each month.'
+    };
+  }
+
+  const monthlyLimit = usageRecord.monthly_limit_cents || 200;
+  const totalUsed = usageRecord.total_cost_cents || 0;
+
+  if (totalUsed + SHOPPING_COST_CENTS > monthlyLimit) {
+    return {
+      allowed: false,
+      message: 'Has alcanzado tu límite de uso de IA este mes. El límite se reinicia el 1 de cada mes.',
+      message_en: 'You have reached your AI usage limit this month. The limit resets on the 1st of each month.'
+    };
+  }
+
+  return { allowed: true, message: '', message_en: '' };
+}
+
+function recordUsageAsync(supabase: any, userId: string, costCents: number) {
+  (async () => {
+    try {
+      const now = new Date();
+      const currentMonth = now.getMonth() + 1;
+      const currentYear = now.getFullYear();
+
+      let { data: record, error } = await supabase
+        .from('ai_usage_tracking')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('month', currentMonth)
+        .eq('year', currentYear)
+        .single();
+
+      if (error && error.code === 'PGRST116') {
+        const { data: newRecord, error: insertError } = await supabase
+          .from('ai_usage_tracking')
+          .insert({
+            user_id: userId,
+            month: currentMonth,
+            year: currentYear,
+          })
+          .select()
+          .single();
+
+        if (insertError) {
+          console.error('Error creating usage record:', insertError);
+          return;
+        }
+        record = newRecord;
+      } else if (error) {
+        console.error('Error fetching usage record:', error);
+        return;
+      }
+
+      const updates: Record<string, any> = {
+        total_cost_cents: (record.total_cost_cents || 0) + costCents,
+        shopping_list_count: (record.shopping_list_count || 0) + 1,
+        shopping_cost_cents: (record.shopping_cost_cents || 0) + costCents,
+      };
+
+      const monthlyLimit = record.monthly_limit_cents || 200;
+      if (updates.total_cost_cents >= monthlyLimit) {
+        updates.is_limit_reached = true;
+        updates.limit_reached_at = new Date().toISOString();
+      }
+
+      await supabase
+        .from('ai_usage_tracking')
+        .update(updates)
+        .eq('id', record.id);
+
+      console.log(`Recorded shopping usage: user=${userId}, cost=${costCents}c, total=${updates.total_cost_cents}c`);
+    } catch (e) {
+      console.error('Error recording usage:', e);
+    }
+  })();
+}
