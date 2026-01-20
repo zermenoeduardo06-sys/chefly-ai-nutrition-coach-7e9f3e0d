@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import ModularAvatar from "@/components/avatar/ModularAvatar";
 import { AvatarConfig, defaultAvatarConfig } from "@/components/avatar/AvatarParts";
 import { ProfileMenuLinks } from "@/components/profile/ProfileMenuLinks";
+import { AiUsageIndicator } from "@/components/AiUsageIndicator";
 import { Loader2, Settings, UserPlus, Pencil, Crown, Zap, ChevronRight, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
@@ -259,6 +260,18 @@ const Profile = () => {
           </div>
         </Link>
       </motion.div>
+
+      {/* AI Usage Indicator - Only for Plus users */}
+      {limits.isCheflyPlus && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="px-4 mb-5"
+        >
+          <AiUsageIndicator userId={userId} showDetails />
+        </motion.div>
+      )}
 
       {/* Menu Links */}
       <motion.div 

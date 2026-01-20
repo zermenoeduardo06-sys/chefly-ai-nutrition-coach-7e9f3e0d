@@ -562,6 +562,22 @@ export default function ChefIA() {
 
       if (error) throw error;
 
+      // Check for budget limit error
+      if (data?.code === 'BUDGET_LIMIT') {
+        if (soundEnabled) playError();
+        errorNotification();
+        toast({
+          variant: "destructive",
+          title: language === "es" ? "Límite de IA alcanzado" : "AI Limit Reached",
+          description: language === "es" 
+            ? "Has alcanzado tu límite mensual de uso de IA. El límite se reinicia el 1 de cada mes."
+            : "You've reached your monthly AI usage limit. The limit resets on the 1st of each month.",
+        });
+        // Remove the temp user message since we couldn't process it
+        setMessages((prev) => prev.filter(m => m.id !== tempUserId));
+        return;
+      }
+
       const aiMessageId = `ai-${Date.now()}`;
       const aiMessage: Message = {
         id: aiMessageId,
@@ -586,10 +602,20 @@ export default function ChefIA() {
       if (soundEnabled) playError();
       errorNotification();
       
+      // Check if error contains budget limit info
+      const errorMessage = error?.message || '';
+      const isBudgetError = errorMessage.includes('BUDGET_LIMIT') || errorMessage.includes('límite mensual');
+      
       toast({
         variant: "destructive",
-        title: "Error",
-        description: error.message || (language === "es" ? "No se pudo enviar el mensaje" : "Could not send message"),
+        title: isBudgetError 
+          ? (language === "es" ? "Límite de IA alcanzado" : "AI Limit Reached")
+          : "Error",
+        description: isBudgetError
+          ? (language === "es" 
+              ? "Has alcanzado tu límite mensual de uso de IA. El límite se reinicia el 1 de cada mes."
+              : "You've reached your monthly AI usage limit. The limit resets on the 1st of each month.")
+          : (error.message || (language === "es" ? "No se pudo enviar el mensaje" : "Could not send message")),
       });
     } finally {
       setLoading(false);
