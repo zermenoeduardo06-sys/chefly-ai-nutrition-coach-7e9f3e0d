@@ -89,7 +89,15 @@ export function useFoodScanner() {
       }
 
       if (data.error) {
-        if (data.code === 'RATE_LIMIT') {
+        if (data.code === 'BUDGET_LIMIT') {
+          toast({
+            title: language === 'es' ? 'Límite de IA alcanzado' : 'AI Limit Reached',
+            description: language === 'es'
+              ? 'Has alcanzado tu límite mensual de uso de IA. El límite se reinicia el 1 de cada mes.'
+              : "You've reached your monthly AI usage limit. The limit resets on the 1st of each month.",
+            variant: 'destructive'
+          });
+        } else if (data.code === 'RATE_LIMIT') {
           toast({
             title: language === 'es' ? 'Límite alcanzado' : 'Rate limit reached',
             description: language === 'es'
