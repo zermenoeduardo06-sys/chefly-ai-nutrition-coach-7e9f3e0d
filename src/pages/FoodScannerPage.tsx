@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useSubscriptionLimits } from '@/hooks/useSubscriptionLimits';
+import { AiUsageIndicator } from '@/components/AiUsageIndicator';
 import { useFoodScanner } from '@/hooks/useFoodScanner';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -209,14 +210,11 @@ export default function FoodScannerPage() {
             </div>
           </div>
           
-          {/* Scan counter badge */}
+          {/* Scan counter badge / AI Usage for Plus */}
           {isFullyLoaded && (
             <div className="flex items-center gap-2">
               {limits.isCheflyPlus ? (
-                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-primary/20 to-orange-500/20 rounded-full">
-                  <Crown className="h-3.5 w-3.5 text-primary" />
-                  <span className="text-xs text-primary font-semibold">{t.unlimited}</span>
-                </div>
+                <AiUsageIndicator userId={userId} compact />
               ) : (
                 <div className="flex items-center gap-1.5 px-3 py-1.5 bg-muted rounded-full">
                   <div className="w-2 h-2 rounded-full bg-orange-500" />
