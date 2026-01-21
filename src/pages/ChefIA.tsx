@@ -9,6 +9,7 @@ import { Loader2, Send, Sparkles, Volume2, VolumeX, Crown, MessageSquare, Brain,
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { useSubscription } from "@/hooks/useSubscription";
+import { AiUsageIndicator } from "@/components/AiUsageIndicator";
 import { Badge } from "@/components/ui/badge";
 import { useTrialGuard } from "@/hooks/useTrialGuard";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -712,6 +713,10 @@ export default function ChefIA() {
               <VolumeX className="h-5 w-5 text-muted-foreground" />
             )}
           </motion.button>
+          
+          {limits.isCheflyPlus && (
+            <AiUsageIndicator userId={userId} compact />
+          )}
           
           {limits.isFreePlan && (
             <Badge variant="outline" className="flex-shrink-0 text-xs border-primary/30">

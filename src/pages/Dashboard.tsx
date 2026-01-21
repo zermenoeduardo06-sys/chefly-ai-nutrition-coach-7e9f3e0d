@@ -16,6 +16,7 @@ import { DailySummaryDialog } from "@/components/DailySummaryDialog";
 import { AchievementUnlockAnimation } from "@/components/AchievementUnlockAnimation";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { useSubscription } from "@/hooks/useSubscription";
+import { AiUsageIndicator } from "@/components/AiUsageIndicator";
 import { useTrialGuard } from "@/hooks/useTrialGuard";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useMascot } from "@/contexts/MascotContext";
@@ -1134,6 +1135,11 @@ const Dashboard = () => {
 
         {/* WEIGHT TRACKER - Current weight with +/- controls */}
         <WeightTrackerWidget userId={userId} />
+
+        {/* AI USAGE INDICATOR - Only for Chefly Plus users */}
+        {limits.isCheflyPlus && userId && (
+          <AiUsageIndicator userId={userId} showDetails />
+        )}
 
         {/* Gamification - Simplified with just mascot + level progress */}
         <Card data-tour="gamification" className="border-border/50 shadow-lg bg-gradient-to-br from-card to-muted/20">
