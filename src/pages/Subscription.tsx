@@ -83,6 +83,7 @@ const Subscription = () => {
         language === "es" ? "Reemplaza comidas por alternativas" : "Replace meals with alternatives",
         language === "es" ? "Chat ilimitado con coach IA" : "Unlimited AI coach chat",
         language === "es" ? "Escaneo de comidas ilimitado" : "Unlimited food scanning",
+        language === "es" ? "$2 USD de créditos de IA al mes" : "$2 USD of AI credits per month",
         language === "es" ? "Sistema de amigos y comparación" : "Friends & comparison system",
       ],
       recommended: true,
