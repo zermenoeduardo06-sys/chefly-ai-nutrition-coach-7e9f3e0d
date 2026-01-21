@@ -42,6 +42,7 @@ const Pricing = () => {
     "Reemplaza comidas por alternativas",
     "Chat ilimitado con coach IA",
     "Escaneo de comidas ilimitado",
+    "$2 USD de créditos de IA al mes",
     "Sistema de amigos y comparación",
   ] : [
     "Generate unlimited weekly plans",
@@ -49,6 +50,7 @@ const Pricing = () => {
     "Replace meals with alternatives",
     "Unlimited AI coach chat",
     "Unlimited food scanning",
+    "$2 USD of AI credits per month",
     "Friends & comparison system",
   ];
 
