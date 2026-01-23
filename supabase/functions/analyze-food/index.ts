@@ -8,6 +8,10 @@ const corsHeaders = {
 
 const SCAN_COST_CENTS = 8; // ~$0.08 per food scan (multimodal)
 
+// FEATURE FLAG: Set to true to enable cache (currently disabled for testing)
+// To reactivate cache: change to true and redeploy
+const CACHE_ENABLED = false;
+
 // Generate SHA-256 hash from image data for cache lookup
 async function generateImageHash(imageBase64: string): Promise<string> {
   const sampleData = imageBase64.slice(0, 10000);
@@ -34,55 +38,61 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Generate hash for cache lookup
-    const imageHash = await generateImageHash(imageBase64);
-    console.log(`[CACHE] Looking up hash: ${imageHash.substring(0, 16)}...`);
+    // Cache lookup (only if enabled)
+    let imageHash = '';
+    if (CACHE_ENABLED) {
+      // Generate hash for cache lookup
+      imageHash = await generateImageHash(imageBase64);
+      console.log(`[CACHE] Looking up hash: ${imageHash.substring(0, 16)}...`);
 
-    // Check cache first
-    const { data: cachedResult, error: cacheError } = await supabase
-      .from('food_analysis_cache')
-      .select('*')
-      .eq('image_hash', imageHash)
-      .eq('language', language)
-      .maybeSingle();
-
-    if (cachedResult && !cacheError) {
-      // Cache hit! Return cached data and increment hit count
-      console.log(`[CACHE] HIT for "${cachedResult.dish_name}" - hit_count: ${cachedResult.hit_count}`);
-      
-      // Increment hit count in background
-      supabase
+      // Check cache first
+      const { data: cachedResult, error: cacheError } = await supabase
         .from('food_analysis_cache')
-        .update({ hit_count: cachedResult.hit_count + 1 })
-        .eq('id', cachedResult.id)
-        .then(() => console.log('[CACHE] Hit count updated'));
+        .select('*')
+        .eq('image_hash', imageHash)
+        .eq('language', language)
+        .maybeSingle();
 
-      // Record usage as cached (0 cost) if userId provided
-      if (userId) {
-        recordUsageAsync(supabase, userId, 'scan', 0, true);
+      if (cachedResult && !cacheError) {
+        // Cache hit! Return cached data and increment hit count
+        console.log(`[CACHE] HIT for "${cachedResult.dish_name}" - hit_count: ${cachedResult.hit_count}`);
+        
+        // Increment hit count in background
+        supabase
+          .from('food_analysis_cache')
+          .update({ hit_count: cachedResult.hit_count + 1 })
+          .eq('id', cachedResult.id)
+          .then(() => console.log('[CACHE] Hit count updated'));
+
+        // Record usage as cached (0 cost) if userId provided
+        if (userId) {
+          recordUsageAsync(supabase, userId, 'scan', 0, true);
+        }
+
+        return new Response(JSON.stringify({
+          success: true,
+          dish_name: cachedResult.dish_name,
+          foods_identified: cachedResult.foods_identified || [],
+          portion_estimate: cachedResult.portion_estimate,
+          nutrition: {
+            calories: cachedResult.calories,
+            protein: cachedResult.protein,
+            carbs: cachedResult.carbs,
+            fat: cachedResult.fat,
+            fiber: cachedResult.fiber,
+          },
+          confidence: cachedResult.confidence,
+          notes: cachedResult.notes,
+          cached: true,
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
       }
 
-      return new Response(JSON.stringify({
-        success: true,
-        dish_name: cachedResult.dish_name,
-        foods_identified: cachedResult.foods_identified || [],
-        portion_estimate: cachedResult.portion_estimate,
-        nutrition: {
-          calories: cachedResult.calories,
-          protein: cachedResult.protein,
-          carbs: cachedResult.carbs,
-          fat: cachedResult.fat,
-          fiber: cachedResult.fiber,
-        },
-        confidence: cachedResult.confidence,
-        notes: cachedResult.notes,
-        cached: true,
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      console.log(`[CACHE] MISS for hash: ${imageHash.substring(0, 16)}... - calling AI`);
+    } else {
+      console.log('[CACHE] Cache disabled - calling AI directly');
     }
-
-    console.log(`[CACHE] MISS for hash: ${imageHash.substring(0, 16)}... - calling AI`);
 
     // Check AI budget before making expensive API call (only if userId provided)
     if (userId) {
@@ -251,8 +261,8 @@ Respond with the following exact JSON format:
       recordUsageAsync(supabase, userId, 'scan', SCAN_COST_CENTS, false);
     }
 
-    // Save to cache for future use
-    if (nutritionData.success !== false && nutritionData.dish_name) {
+    // Save to cache for future use (only if cache is enabled)
+    if (CACHE_ENABLED && nutritionData.success !== false && nutritionData.dish_name && imageHash) {
       console.log(`[CACHE] Saving new entry: "${nutritionData.dish_name}"`);
       
       const { error: insertError } = await supabase
