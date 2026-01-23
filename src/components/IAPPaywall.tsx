@@ -92,8 +92,8 @@ export const IAPPaywall = ({ open, onOpenChange, userId, onPurchaseSuccess }: IA
     language === 'es' ? 'Planes semanales ilimitados' : 'Unlimited weekly plans',
     language === 'es' ? 'Intercambio de comidas' : 'Meal swapping',
     language === 'es' ? 'Reemplaza comidas por alternativas' : 'Replace meals with alternatives',
-    language === 'es' ? 'Chat ilimitado con IA' : 'Unlimited AI chat',
-    language === 'es' ? 'Escaneo ilimitado' : 'Unlimited food scanning',
+    language === 'es' ? 'Chat IA + Escáner de comida' : 'AI Chat + Food Scanner',
+    language === 'es' ? '$2 USD/mes en créditos de IA' : '$2 USD/month in AI credits',
     language === 'es' ? 'Sistema de amigos' : 'Friends system',
   ];
 

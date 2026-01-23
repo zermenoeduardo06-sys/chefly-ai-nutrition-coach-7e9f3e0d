@@ -54,7 +54,7 @@ export default function FoodScannerPage() {
       ? 'El escáner de comida con IA es exclusivo de Chefly Plus'
       : 'AI food scanner is exclusive to Chefly Plus',
     upgrade: language === 'es' ? 'Obtener Chefly Plus' : 'Get Chefly Plus',
-    unlimited: language === 'es' ? 'Escaneos ilimitados' : 'Unlimited scans',
+    unlimited: language === 'es' ? 'Escáner IA' : 'AI Scanner',
     scansLeft: language === 'es' ? 'Premium requerido' : 'Premium required',
     aiPowered: language === 'es' ? 'IA Avanzada' : 'Advanced AI',
   };

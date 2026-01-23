@@ -62,19 +62,19 @@ const featureData = {
     icon: MessageSquare,
     gradient: "from-secondary to-secondary/70",
     es: {
-      title: "Chat ilimitado con Chef IA",
-      description: "Pregunta lo que quieras sobre nutrición, recetas y consejos personalizados sin límites",
+      title: "Chat con Chef IA",
+      description: "Pregunta sobre nutrición, recetas y consejos personalizados ($2 USD/mes en créditos)",
       benefits: [
-        "Respuestas ilimitadas",
+        "$2 USD de créditos al mes",
         "Consejos personalizados",
         "Recetas a medida",
       ],
     },
     en: {
-      title: "Unlimited Chef AI chat",
-      description: "Ask anything about nutrition, recipes and personalized tips without limits",
+      title: "Chef AI Chat",
+      description: "Ask about nutrition, recipes and personalized tips ($2 USD/month in credits)",
       benefits: [
-        "Unlimited responses",
+        "$2 USD credits per month",
         "Personalized advice",
         "Custom recipes",
       ],

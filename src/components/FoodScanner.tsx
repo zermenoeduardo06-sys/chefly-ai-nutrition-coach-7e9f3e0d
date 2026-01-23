@@ -48,8 +48,8 @@ export function FoodScanner({ open, onOpenChange, mealType, onSaveSuccess }: Foo
       toast({
         title: language === 'es' ? 'Límite alcanzado' : 'Limit reached',
         description: language === 'es' 
-          ? 'Ya usaste tu escaneo gratuito de hoy. Mejora a Chefly Plus para escaneos ilimitados.'
-          : 'You already used your free scan today. Upgrade to Chefly Plus for unlimited scans.',
+          ? 'Ya usaste tu escaneo gratuito de hoy. Mejora a Chefly Plus para acceso premium.'
+          : 'You already used your free scan today. Upgrade to Chefly Plus for premium access.',
         variant: 'destructive',
       });
       return;

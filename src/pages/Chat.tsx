@@ -601,8 +601,8 @@ const Chat = () => {
         variant: "destructive",
         title: language === 'es' ? "Límite de mensajes alcanzado" : "Message limit reached",
         description: language === 'es' 
-          ? `Has usado tus ${limits.dailyChatLimit} mensajes de hoy. Mejora a Chefly Plus para mensajes ilimitados.`
-          : `You've used your ${limits.dailyChatLimit} messages today. Upgrade to Chefly Plus for unlimited messages.`,
+          ? `Has usado tus ${limits.dailyChatLimit} mensajes de hoy. Mejora a Chefly Plus para acceso premium.`
+          : `You've used your ${limits.dailyChatLimit} messages today. Upgrade to Chefly Plus for premium access.`,
       });
       navigate("/pricing");
       return;

@@ -250,12 +250,12 @@ const ChatPaywall = () => {
   const { language } = useLanguage();
 
   const benefits = language === 'es' ? [
-    { icon: MessageSquare, title: "Chat ilimitado", desc: "Pregunta sin límites a tu coach" },
+    { icon: MessageSquare, title: "Chat con Coach IA", desc: "$2 USD/mes en créditos incluidos" },
     { icon: Brain, title: "Respuestas personalizadas", desc: "IA adaptada a tus metas" },
     { icon: Zap, title: "Consejos instantáneos", desc: "Respuestas en segundos" },
     { icon: Target, title: "Seguimiento nutricional", desc: "Ayuda con tu dieta diaria" },
   ] : [
-    { icon: MessageSquare, title: "Unlimited chat", desc: "Ask your coach without limits" },
+    { icon: MessageSquare, title: "AI Coach Chat", desc: "$2 USD/month in credits included" },
     { icon: Brain, title: "Personalized responses", desc: "AI adapted to your goals" },
     { icon: Zap, title: "Instant tips", desc: "Answers in seconds" },
     { icon: Target, title: "Nutrition tracking", desc: "Help with your daily diet" },
