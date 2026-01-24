@@ -9,6 +9,7 @@ import {
   Camera, CalendarDays, ShoppingCart, Sparkles,
   Lightbulb, Ban, Timer, Zap, Users, Trophy, Gift
 } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
 import { OnboardingLayout } from '@/components/onboarding/OnboardingLayout';
 import { OnboardingOptionCard } from '@/components/onboarding/OnboardingOptionCard';
 import { OnboardingMascotInteraction, MascotPose } from '@/components/onboarding/OnboardingMascotInteraction';
@@ -19,7 +20,9 @@ import { OnboardingAuthStep } from '@/components/onboarding/OnboardingAuthStep';
 import { OnboardingMilestone } from '@/components/onboarding/OnboardingMilestone';
 import { ProgressStages } from '@/components/onboarding/ProgressStages';
 import { NutritionRevealScreen } from '@/components/onboarding/NutritionRevealScreen';
+import { OnboardingLanguageToggle } from '@/components/onboarding/OnboardingLanguageToggle';
 import { usePreOnboardingState } from '@/hooks/usePreOnboardingState';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
@@ -34,6 +37,7 @@ const REFERRAL_STORED_KEY = "affiliate_referral_stored";
 const PreOnboarding: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [customAllergy, setCustomAllergy] = useState('');
@@ -407,13 +411,19 @@ const PreOnboarding: React.FC = () => {
       case 1:
         return (
           <div className="flex-1 flex flex-col items-center justify-center px-6 py-8">
+            {/* Language toggle for native apps */}
+            {Capacitor.isNativePlatform() && (
+              <div className="absolute top-4 left-4">
+                <OnboardingLanguageToggle />
+              </div>
+            )}
             {/* Login link for returning users */}
             <div className="absolute top-4 right-4">
               <a 
                 href="/auth" 
                 className="text-xs text-primary hover:underline font-medium"
               >
-                Iniciar sesión
+                {t('auth.login')}
               </a>
             </div>
             <OnboardingMascotInteraction 
@@ -424,7 +434,7 @@ const PreOnboarding: React.FC = () => {
             <div className="w-full max-w-xs mt-8">
               <Input
                 type="text"
-                placeholder="Tu nombre"
+                placeholder={t('preOnboarding.name.placeholder')}
                 value={data.name}
                 onChange={(e) => updateField('name', e.target.value)}
                 className="text-center text-xl py-6 border-2"
