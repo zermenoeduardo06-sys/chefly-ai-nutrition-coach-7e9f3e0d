@@ -43,6 +43,9 @@ import { WaterTrackerWidget } from "@/components/WaterTrackerWidget";
 import { WeightTrackerWidget } from "@/components/WeightTrackerWidget";
 import { DailyProgressMilestones } from "@/components/celebrations/DailyProgressMilestones";
 import { useCelebrations } from "@/hooks/useCelebrations";
+import { useAppReview } from "@/hooks/useAppReview";
+import { useSubscriptionPromo } from "@/hooks/useSubscriptionPromo";
+import { SubscriptionPromoBanner } from "@/components/SubscriptionPromoBanner";
 
 interface MealAdaptation {
   id: string;
@@ -147,6 +150,15 @@ const Dashboard = () => {
   
   // Celebrations hook for enhanced animations
   const { celebrateMealComplete, celebrateDailyGoal } = useCelebrations();
+  
+  // App review system for iOS
+  const { checkAndRequestReview } = useAppReview();
+  
+  // Subscription promo banner for free users
+  const { shouldShowBanner, isVisible, dismissBanner } = useSubscriptionPromo({
+    isCheflyPlus: limits.isCheflyPlus,
+    isLoading: limits.isLoading,
+  });
   
   // Daily food intake tracking from food_scans - uses selected date
   const { consumedCalories, consumedMacros, recentFoods, refetch: refetchFoodIntake } = useDailyFoodIntake(userId, selectedDate);
@@ -455,6 +467,15 @@ const Dashboard = () => {
 
     // Check if all meals for this day are completed
     checkDayCompletion(mealId);
+    
+    // Check if we should request an iOS app review (based on engagement)
+    if (userStats.meals_completed >= 4 && userStats.current_streak >= 2) {
+      // +1 because we just completed one more
+      checkAndRequestReview({
+        meals_completed: userStats.meals_completed + 1,
+        current_streak: userStats.current_streak,
+      });
+    }
   };
 
   const updateUserStats = async (userId: string) => {
@@ -1106,6 +1127,14 @@ const Dashboard = () => {
             })()}
           </h1>
         </motion.div>
+
+        {/* SUBSCRIPTION PROMO BANNER - For free users on native platforms */}
+        {shouldShowBanner && (
+          <SubscriptionPromoBanner 
+            visible={isVisible}
+            onDismiss={dismissBanner}
+          />
+        )}
 
         {/* YAZIO-Style Date Header with swipe - only past and present */}
         <DiaryDateHeader 
