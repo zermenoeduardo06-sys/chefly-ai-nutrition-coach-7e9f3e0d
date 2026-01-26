@@ -227,18 +227,30 @@ export default function AddFood() {
       const scannedAt = scannedAtDate.toISOString();
 
       // Save each selected food to food_scans with the meal_type
-      const foodScansToInsert = selectedFoods.map(food => ({
-        user_id: userId,
-        dish_name: food.name,
-        calories: Math.round(Number(food.calories) || 0),
-        protein: Math.round(Number(food.protein) || 0),
-        carbs: Math.round(Number(food.carbs) || 0),
-        fat: Math.round(Number(food.fats) || 0),
-        portion_estimate: food.portion,
-        meal_type: validMealType,
-        confidence: 'high',
-        scanned_at: scannedAt,
-      }));
+      // IMPORTANT: Round ALL numeric values to integers to prevent "22P02" errors
+      const foodScansToInsert = selectedFoods.map(food => {
+        const calories = Math.round(Number(food.calories) || 0);
+        const protein = Math.round(Number(food.protein) || 0);
+        const carbs = Math.round(Number(food.carbs) || 0);
+        const fat = Math.round(Number(food.fats) || 0);
+        const fiber = Math.round(Number(food.fiber) || 0);
+        
+        console.log('[AddFood] Processing food:', food.name, { calories, protein, carbs, fat, fiber });
+        
+        return {
+          user_id: userId,
+          dish_name: food.name || 'Unknown food',
+          calories,
+          protein,
+          carbs,
+          fat,
+          fiber,
+          portion_estimate: food.portion || '1 porción',
+          meal_type: validMealType,
+          confidence: 'high',
+          scanned_at: scannedAt,
+        };
+      });
 
       console.log('[AddFood] Inserting food scans:', foodScansToInsert);
 
