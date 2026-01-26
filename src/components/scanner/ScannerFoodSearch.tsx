@@ -115,18 +115,19 @@ const ScannerFoodSearch: React.FC<ScannerFoodSearchProps> = ({
     
     try {
       // Save to food_scans table (same as scanner)
+      // IMPORTANT: Round ALL numeric values to integers to prevent "22P02" errors
       const { error } = await supabase
         .from('food_scans')
         .insert({
           user_id: userId,
-          dish_name: food.name,
-          calories: food.calories,
-          protein: food.protein || 0,
-          carbs: food.carbs || 0,
-          fat: food.fats || 0,
-          fiber: food.fiber || 0,
+          dish_name: food.name || 'Unknown food',
+          calories: Math.round(Number(food.calories) || 0),
+          protein: Math.round(Number(food.protein) || 0),
+          carbs: Math.round(Number(food.carbs) || 0),
+          fat: Math.round(Number(food.fats) || 0),
+          fiber: Math.round(Number(food.fiber) || 0),
           meal_type: mealType,
-          portion_estimate: food.portion,
+          portion_estimate: food.portion || '1 porción',
           confidence: 'high',
           foods_identified: [food.name],
           notes: `${language === 'es' ? 'Añadido manualmente' : 'Added manually'}`,

@@ -100,16 +100,17 @@ export function MealPhotoDialog({ open, onOpenChange, meal, onPhotoSaved }: Meal
         .getPublicUrl(fileName);
 
       // Save to food_scans with meal nutrition data (no AI)
+      // IMPORTANT: Round ALL numeric values to integers to prevent "22P02" errors
       const { error: insertError } = await supabase
         .from('food_scans')
         .insert({
           user_id: user.id,
-          dish_name: meal.name,
+          dish_name: meal.name || 'Unknown meal',
           foods_identified: meal.ingredients || [],
-          calories: meal.calories || 0,
-          protein: meal.protein || 0,
-          carbs: meal.carbs || 0,
-          fat: meal.fats || 0,
+          calories: Math.round(Number(meal.calories) || 0),
+          protein: Math.round(Number(meal.protein) || 0),
+          carbs: Math.round(Number(meal.carbs) || 0),
+          fat: Math.round(Number(meal.fats) || 0),
           fiber: 0,
           confidence: 'high',
           notes: language === 'es' ? 'Comida del plan semanal' : 'Meal from weekly plan',
