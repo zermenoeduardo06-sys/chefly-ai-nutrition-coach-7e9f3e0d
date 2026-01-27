@@ -1,16 +1,20 @@
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { NutritionProgressCharts } from "@/components/NutritionProgressCharts";
 import { BodyMeasurementForm } from "@/components/BodyMeasurementForm";
 import { BodyMeasurementCharts } from "@/components/BodyMeasurementCharts";
 import { WeightMilestones } from "@/components/WeightMilestones";
 import { ProgressAchievementsTab } from "@/components/progress/ProgressAchievementsTab";
 import { ProgressStatsTab } from "@/components/progress/ProgressStatsTab";
+import { ProgressHeader3D } from "@/components/progress/ProgressHeader3D";
+import { WeightCard3D } from "@/components/progress/WeightCard3D";
 import { useTrialGuard } from "@/hooks/useTrialGuard";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card3D, Card3DContent, Card3DHeader } from "@/components/ui/card-3d";
 import { Loader2, Scale, TrendingUp, Trophy, BarChart3 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Icon3D } from "@/components/ui/icon-3d";
+import { cn } from "@/lib/utils";
 
 const Progress = () => {
   const { isBlocked, isLoading } = useTrialGuard();
@@ -18,35 +22,40 @@ const Progress = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [latestWeight, setLatestWeight] = useState<number | undefined>(undefined);
+  const [activeTab, setActiveTab] = useState("nutrition");
 
   const texts = {
     es: {
-      title: "Mi Progreso",
       nutrition: "Nutrición",
       weight: "Peso",
       achievements: "Logros",
-      stats: "Estadísticas",
+      stats: "Stats",
       recordMeasurements: "Registrar Medidas",
       recordMeasurementsDesc: "Actualiza tu peso y medidas corporales",
     },
     en: {
-      title: "My Progress",
       nutrition: "Nutrition",
       weight: "Weight",
       achievements: "Achievements",
-      stats: "Statistics",
+      stats: "Stats",
       recordMeasurements: "Record Measurements",
       recordMeasurementsDesc: "Update your weight and body measurements",
     },
   };
   const tx = texts[language];
 
+  const tabs = [
+    { id: "nutrition", label: tx.nutrition, icon: TrendingUp },
+    { id: "weight", label: tx.weight, icon: Scale },
+    { id: "achievements", label: tx.achievements, icon: Trophy },
+    { id: "stats", label: tx.stats, icon: BarChart3 },
+  ];
+
   useEffect(() => {
     const loadUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setUserId(user.id);
-        // Load latest weight from body measurements
         const { data: latestMeasurement } = await supabase
           .from("body_measurements")
           .select("weight")
@@ -81,81 +90,95 @@ const Progress = () => {
 
   return (
     <div className="min-h-full bg-gradient-to-b from-background to-muted/30 pb-24 lg:pb-6">
-      <main className="container mx-auto px-4 tablet:px-6 py-4 tablet:py-6 space-y-4 tablet:space-y-6 max-w-3xl">
-        <div className="flex items-center gap-2 mb-2">
-          <TrendingUp className="h-6 w-6 tablet:h-7 tablet:w-7 text-primary" />
-          <h1 className="text-2xl tablet:text-3xl font-bold">{tx.title}</h1>
+      <main className="container mx-auto px-4 tablet:px-6 py-4 tablet:py-6 space-y-5 max-w-3xl">
+        {/* 3D Header with stats */}
+        {userId && <ProgressHeader3D userId={userId} />}
+
+        {/* Custom 3D Tabs */}
+        <div className="flex gap-2 p-1.5 bg-muted/50 rounded-2xl overflow-x-auto">
+          {tabs.map((tab) => (
+            <motion.button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={cn(
+                "flex-1 min-w-[70px] flex flex-col items-center gap-1 py-2.5 px-3 rounded-xl text-xs font-semibold transition-all",
+                activeTab === tab.id
+                  ? "bg-card text-primary shadow-[0_4px_0_hsl(var(--border)),0_6px_15px_rgba(0,0,0,0.1)]"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+              whileTap={{ scale: 0.97, y: 2 }}
+            >
+              <tab.icon className={cn(
+                "h-5 w-5 transition-colors",
+                activeTab === tab.id ? "text-primary" : "text-muted-foreground"
+              )} />
+              <span className="hidden sm:inline">{tab.label}</span>
+            </motion.button>
+          ))}
         </div>
 
-        <Tabs defaultValue="nutrition" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 h-11 tablet:h-12">
-            <TabsTrigger value="nutrition" className="text-xs tablet:text-sm px-1">
-              <TrendingUp className="h-4 w-4 mr-1 hidden sm:inline" />
-              {tx.nutrition}
-            </TabsTrigger>
-            <TabsTrigger value="weight" className="text-xs tablet:text-sm px-1">
-              <Scale className="h-4 w-4 mr-1 hidden sm:inline" />
-              {tx.weight}
-            </TabsTrigger>
-            <TabsTrigger value="achievements" className="text-xs tablet:text-sm px-1">
-              <Trophy className="h-4 w-4 mr-1 hidden sm:inline" />
-              {tx.achievements}
-            </TabsTrigger>
-            <TabsTrigger value="stats" className="text-xs tablet:text-sm px-1">
-              <BarChart3 className="h-4 w-4 mr-1 hidden sm:inline" />
-              {tx.stats}
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Nutrition Tab */}
-          <TabsContent value="nutrition" className="mt-4 space-y-4">
-            <NutritionProgressCharts />
-          </TabsContent>
-
-          {/* Weight Tab */}
-          <TabsContent value="weight" className="mt-4 space-y-4">
-            {userId && (
-              <WeightMilestones 
-                userId={userId} 
-                currentWeight={latestWeight}
-              />
+        {/* Tab content with animations */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.2 }}
+          >
+            {/* Nutrition Tab */}
+            {activeTab === "nutrition" && (
+              <div className="space-y-4">
+                <NutritionProgressCharts />
+              </div>
             )}
 
-            <Card>
-              <CardHeader className="p-4">
-                <CardTitle className="text-base">{tx.recordMeasurements}</CardTitle>
-                <CardDescription className="text-sm">
-                  {tx.recordMeasurementsDesc}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-4 pt-0">
-                {userId && (
-                  <BodyMeasurementForm 
-                    userId={userId} 
-                    onSuccess={handleMeasurementSuccess}
-                  />
-                )}
-              </CardContent>
-            </Card>
+            {/* Weight Tab */}
+            {activeTab === "weight" && userId && (
+              <div className="space-y-4">
+                <WeightCard3D userId={userId} />
+                
+                <WeightMilestones 
+                  userId={userId} 
+                  currentWeight={latestWeight}
+                />
 
-            {userId && (
-              <BodyMeasurementCharts 
-                userId={userId} 
-                refreshTrigger={refreshTrigger}
-              />
+                <Card3D variant="default">
+                  <Card3DHeader className="pb-2">
+                    <div className="flex items-center gap-3">
+                      <Icon3D icon={Scale} color="sky" size="md" />
+                      <div>
+                        <h3 className="text-lg font-bold">{tx.recordMeasurements}</h3>
+                        <p className="text-sm text-muted-foreground">{tx.recordMeasurementsDesc}</p>
+                      </div>
+                    </div>
+                  </Card3DHeader>
+                  <Card3DContent>
+                    <BodyMeasurementForm 
+                      userId={userId} 
+                      onSuccess={handleMeasurementSuccess}
+                    />
+                  </Card3DContent>
+                </Card3D>
+
+                <BodyMeasurementCharts 
+                  userId={userId} 
+                  refreshTrigger={refreshTrigger}
+                />
+              </div>
             )}
-          </TabsContent>
 
-          {/* Achievements Tab */}
-          <TabsContent value="achievements" className="mt-4">
-            {userId && <ProgressAchievementsTab userId={userId} />}
-          </TabsContent>
+            {/* Achievements Tab */}
+            {activeTab === "achievements" && userId && (
+              <ProgressAchievementsTab userId={userId} />
+            )}
 
-          {/* Stats Tab */}
-          <TabsContent value="stats" className="mt-4">
-            {userId && <ProgressStatsTab userId={userId} />}
-          </TabsContent>
-        </Tabs>
+            {/* Stats Tab */}
+            {activeTab === "stats" && userId && (
+              <ProgressStatsTab userId={userId} />
+            )}
+          </motion.div>
+        </AnimatePresence>
       </main>
     </div>
   );

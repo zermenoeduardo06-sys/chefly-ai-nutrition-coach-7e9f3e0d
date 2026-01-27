@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Flame, Trophy, Star, Target, Utensils } from "lucide-react";
+import { Flame, Trophy, Star, Target, Utensils, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StreakCounter } from "@/components/streaks/StreakCounter";
+import { Stat3DCard } from "@/components/progress/Stat3DCard";
 import { useSubscription } from "@/hooks/useSubscription";
+import { Card3D } from "@/components/ui/card-3d";
 
 interface UserStats {
   current_streak: number;
@@ -15,6 +16,7 @@ interface UserStats {
   level: number;
   meals_completed: number;
   streak_freeze_available: number;
+  last_activity_date: string | null;
 }
 
 interface ProgressStatsTabProps {
@@ -34,7 +36,8 @@ export function ProgressStatsTab({ userId }: ProgressStatsTabProps) {
       longestStreak: "Mejor racha",
       points: "Puntos totales",
       level: "Nivel",
-      mealsCompleted: "Comidas completadas",
+      mealsCompleted: "Comidas",
+      daysActive: "Días activos",
       days: "días",
       empty: "Aún no hay estadísticas",
     },
@@ -44,7 +47,8 @@ export function ProgressStatsTab({ userId }: ProgressStatsTabProps) {
       longestStreak: "Best streak",
       points: "Total points",
       level: "Level",
-      mealsCompleted: "Meals completed",
+      mealsCompleted: "Meals",
+      daysActive: "Days active",
       days: "days",
       empty: "No stats yet",
     },
@@ -78,10 +82,10 @@ export function ProgressStatsTab({ userId }: ProgressStatsTabProps) {
   if (loading) {
     return (
       <div className="space-y-4">
-        <Skeleton className="h-32 w-full rounded-2xl" />
+        <Skeleton className="h-36 w-full rounded-3xl" />
         <div className="grid grid-cols-2 gap-3">
           {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="h-24 w-full rounded-xl" />
+            <Skeleton key={i} className="h-32 w-full rounded-3xl" />
           ))}
         </div>
       </div>
@@ -90,46 +94,17 @@ export function ProgressStatsTab({ userId }: ProgressStatsTabProps) {
 
   if (!stats) {
     return (
-      <div className="text-center py-12 text-muted-foreground">
-        {t.empty}
-      </div>
+      <Card3D className="p-8">
+        <div className="text-center text-muted-foreground">
+          {t.empty}
+        </div>
+      </Card3D>
     );
   }
 
-  const statItems = [
-    {
-      icon: Star,
-      label: t.points,
-      value: stats.total_points.toLocaleString(),
-      color: "text-amber-500",
-      bg: "bg-amber-500/10",
-    },
-    {
-      icon: Target,
-      label: t.level,
-      value: stats.level,
-      color: "text-primary",
-      bg: "bg-primary/10",
-    },
-    {
-      icon: Utensils,
-      label: t.mealsCompleted,
-      value: stats.meals_completed.toLocaleString(),
-      color: "text-emerald-500",
-      bg: "bg-emerald-500/10",
-    },
-    {
-      icon: Trophy,
-      label: t.longestStreak,
-      value: `${stats.longest_streak} ${t.days}`,
-      color: "text-purple-500",
-      bg: "bg-purple-500/10",
-    },
-  ];
-
   return (
-    <div className="space-y-4">
-      {/* Streak Counter */}
+    <div className="space-y-5">
+      {/* Streak Counter with 3D styling */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -142,26 +117,37 @@ export function ProgressStatsTab({ userId }: ProgressStatsTabProps) {
         />
       </motion.div>
 
-      {/* Stats Grid */}
+      {/* Stats Grid with 3D Cards */}
       <div className="grid grid-cols-2 gap-3">
-        {statItems.map((item, index) => (
-          <motion.div
-            key={item.label}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.1 + index * 0.05 }}
-          >
-            <Card className="border-border/50">
-              <CardContent className="p-4">
-                <div className={`w-10 h-10 rounded-xl ${item.bg} flex items-center justify-center mb-2`}>
-                  <item.icon className={`h-5 w-5 ${item.color}`} />
-                </div>
-                <p className="text-2xl font-bold text-foreground">{item.value}</p>
-                <p className="text-xs text-muted-foreground">{item.label}</p>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
+        <Stat3DCard
+          icon={Star}
+          value={stats.total_points}
+          label={t.points}
+          color="amber"
+          delay={0.1}
+        />
+        <Stat3DCard
+          icon={Target}
+          value={stats.level}
+          label={t.level}
+          color="primary"
+          delay={0.15}
+        />
+        <Stat3DCard
+          icon={Utensils}
+          value={stats.meals_completed}
+          label={t.mealsCompleted}
+          color="emerald"
+          delay={0.2}
+        />
+        <Stat3DCard
+          icon={Trophy}
+          value={`${stats.longest_streak}`}
+          label={t.longestStreak}
+          color="rose"
+          suffix={` ${t.days}`}
+          delay={0.25}
+        />
       </div>
     </div>
   );
