@@ -1,181 +1,265 @@
 
-## Plan: Corregir la fecha de registro de comidas en todos los flujos
+## Plan: Modernización de la Página de Progreso con Elementos 3D y Métricas Visuales
 
-### Problema Identificado
-
-Las entradas de comida aparecen en el día equivocado porque varios componentes **no envían el campo `scanned_at`** al insertar en la tabla `food_scans`. Esto causa que Postgres use el valor por defecto `now()` (hora actual del servidor UTC), en lugar de la fecha que el usuario tiene seleccionada en el Dashboard.
-
-### Análisis de la Base de Datos
-
-Los registros recientes muestran el problema claramente:
-- Registros con `scanned_at: 2026-01-26 01:06:31` fueron creados el 26 de enero, pero el usuario quería registrarlos para el **25 de enero**
-- Registros con `scanned_at: 2026-01-25 14:00:00` SÍ tienen la fecha correcta porque usaron el código ya corregido
-
-### Componentes que Requieren Corrección
-
-| Componente | Problema | Estado |
-|------------|----------|--------|
-| `AddFood.tsx` | Ya tiene `scanned_at` | Correcto |
-| `ScannerFoodSearch.tsx` | Ya tiene `scanned_at` | Correcto |
-| `FoodScannerPage.tsx` | Ya tiene `scanned_at` | Correcto |
-| `FoodScanner.tsx` | **NO tiene `scanned_at`** | A corregir |
-| `MealPhotoDialog.tsx` | **NO tiene `scanned_at`** | A corregir |
-| `MealDetail.tsx` | No pasa `date` al navegar | A corregir |
+### Visión General
+Transformar la página de Progreso en una experiencia visualmente impactante, intuitiva y fácil de usar, aplicando el mismo sistema de diseño 3D implementado en el Dashboard. Se simplificará la navegación, se añadirán métricas con efectos visuales modernos y se mejorará la jerarquía visual.
 
 ---
 
-## Cambios Técnicos
+## 1. Rediseño del Header y Navegación de Tabs
 
-### 1. `src/components/FoodScanner.tsx`
+### Problema Actual
+- Los tabs son pequeños y poco visibles
+- No hay feedback visual claro del tab activo
+- El header es básico sin personalidad
 
-**Problema**: El componente no recibe ni usa la fecha seleccionada del Dashboard.
+### Solución
+- Header con gradiente hero y estadísticas resumidas
+- Tabs 3D con efecto de elevación en el activo
+- Iconos más grandes con `Icon3D`
 
-**Solución**: 
-- Agregar prop `selectedDate?: string` a la interfaz
-- Usar esta fecha para construir el timestamp `scanned_at`
-- Añadir el campo `scanned_at` a la inserción de Supabase
+```text
+╭─────────────────────────────────────────╮
+│  📈  Tu Progreso                        │
+│  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │
+│  🔥 14 días  |  ⭐ 2,450 pts  |  🏆 Lv5 │
+╰─────────────────────────────────────────╯
 
-```typescript
-// Cambio en la interfaz (línea ~15-20)
-interface FoodScannerProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  mealType?: string;
-  selectedDate?: string;  // Agregar esta prop
-  onSaveSuccess?: () => void;
-}
-
-// Cambio en handleSave (línea ~123-139)
-// Construir scanned_at usando selectedDate o fecha actual
-const now = new Date();
-let scannedAt: Date;
-
-if (selectedDate) {
-  const [year, month, day] = selectedDate.split('-').map(Number);
-  scannedAt = new Date(year, month - 1, day, now.getHours(), now.getMinutes(), now.getSeconds());
-} else {
-  scannedAt = now;
-}
-
-const { error } = await supabase
-  .from('food_scans')
-  .insert({
-    // ... campos existentes
-    scanned_at: scannedAt.toISOString(), // Agregar este campo
-  });
+┌─────────────────────────────────────────┐
+│  [Nutrición]   Peso   Logros   Stats    │ ← Tab 3D elevado
+└─────────────────────────────────────────┘
 ```
 
-### 2. `src/pages/Dashboard.tsx`
+---
 
-**Problema**: No pasa `selectedDate` al componente `FoodScanner`.
+## 2. Nuevo Componente: `ProgressHeader3D`
 
-**Solución**: Pasar la fecha seleccionada como prop.
+### Descripción
+Un header compacto que muestra las estadísticas principales del usuario en cards 3D pequeñas.
+
+### Contenido
+- Racha actual con animación de fuego
+- Puntos totales con efecto de brillo
+- Nivel actual con barra de progreso hacia el siguiente
 
 ```typescript
-// Cambio en línea ~1256-1259
-<FoodScanner
-  open={showFoodScanner}
-  onOpenChange={setShowFoodScanner}
-  selectedDate={selectedDate.toISOString().split('T')[0]}  // Agregar esta prop
+// src/components/progress/ProgressHeader3D.tsx
+// Header con 3 métricas principales en cards 3D flotantes
+// - Streak con icono animado
+// - Points con contador animado
+// - Level con mini progress bar
+```
+
+---
+
+## 3. Tab de Nutrición Mejorado
+
+### Cambios en `NutritionProgressCharts.tsx`
+- Aplicar `Card3D` a todas las secciones
+- Selector de días con efecto 3D más pronunciado
+- Gráficos con tooltips mejorados y animaciones
+
+### Nuevas Métricas Visuales
+- **Círculo de calorías promedio** - Grande y central
+- **Barras de macros** - Con gradientes y animación de llenado
+- **Indicador de consistencia** - Días activos de la semana
+
+```text
+╭──────────────────────────────────────╮
+│       ╭────────────╮                 │
+│       │   1,850    │  ← Promedio     │
+│       │  kcal/día  │     semanal     │
+│       ╰────────────╯                 │
+│                                      │
+│  [Lun] [Mar] [Mié] [Jue] [Vie]...   │ ← Días 3D
+╰──────────────────────────────────────╯
+```
+
+---
+
+## 4. Tab de Peso con Cards 3D
+
+### Cambios en `WeightMilestones.tsx`
+- Convertir a Card3D con efecto flotante
+- Milestones como "badges" 3D coleccionables
+- Animación de confetti más sutil
+
+### Nuevo Widget: `CurrentWeightCard3D`
+- Card central grande con peso actual
+- Tendencia con flecha animada (subiendo/bajando)
+- Mini gráfico sparkline de los últimos 7 días
+
+```text
+╭──────────────────────────────────────╮
+│           ╭─────────────╮            │
+│           │   75.4 kg   │ ← Grande   │
+│           │    ↓ -0.3   │ ← Trend    │
+│           │  ▁▂▃▂▁▂▁    │ ← Sparkline│
+│           ╰─────────────╯            │
+╰──────────────────────────────────────╯
+```
+
+---
+
+## 5. Tab de Logros Gamificado
+
+### Cambios en `ProgressAchievementsTab.tsx`
+- Cards de logros con efecto 3D y brillo dorado para desbloqueados
+- Animación de "flip" al desbloquear
+- Barra de progreso hacia el próximo logro
+- Categorías con iconos 3D
+
+### Nuevo Diseño de Achievement Card
+
+```text
+╭──────────────────────────────────────╮
+│  🏆 [═══════════════───] 8/12        │ ← Progress bar
+╰──────────────────────────────────────╯
+
+╭────────────────╮  ╭────────────────╮
+│   ✅ 🔥        │  │   🔒 💪        │
+│  Primera       │  │  Semana        │
+│  Semana        │  │  Perfecta      │
+│  +50 pts       │  │  +100 pts      │
+╰────────────────╯  ╰────────────────╯
+      ↑ 3D elevado       ↑ Opaco/bloqueado
+```
+
+---
+
+## 6. Tab de Estadísticas con Métricas 3D
+
+### Cambios en `ProgressStatsTab.tsx`
+- `StreakCounter` con efecto glassmorphism
+- Stats grid con `Card3D` e iconos 3D
+- Animaciones de entrada escalonadas
+- Números grandes con animación de conteo
+
+### Nuevo Layout de Stats
+
+```text
+╭──────────────────────────────────────╮
+│  🔥  14 días                    💎   │ ← Streak 3D
+│      ▓▓▓▓▓▓▓▓░░  Récord: 21         │
+╰──────────────────────────────────────╯
+
+╭──────────╮  ╭──────────╮
+│  ⭐      │  │  🎯      │
+│  2,450   │  │  Lv 5    │
+│  puntos  │  │  nivel   │
+╰──────────╯  ╰──────────╯
+     ↑ Cards 3D flotantes
+```
+
+---
+
+## 7. Componente: `Stat3DCard`
+
+### Descripción
+Card individual para estadísticas con efecto 3D, número grande animado y label descriptivo.
+
+### Propiedades
+- `icon`: Icono Lucide
+- `value`: Número o string
+- `label`: Descripción corta
+- `color`: Color del tema
+- `animate`: Si animar el número al aparecer
+
+```typescript
+// src/components/progress/Stat3DCard.tsx
+<Stat3DCard
+  icon={Star}
+  value={2450}
+  label="Puntos totales"
+  color="amber"
+  animate
 />
 ```
 
-### 3. `src/components/MealPhotoDialog.tsx`
+---
 
-**Problema**: No incluye `scanned_at` en la inserción a `food_scans`.
+## 8. Componente: `AchievementBadge3D`
 
-**Solución**:
-- Agregar prop `selectedDate?: string` a la interfaz
-- Construir el timestamp usando la fecha seleccionada
-- Añadir `scanned_at` a la inserción
+### Descripción
+Badge individual de logro con efectos 3D, estados bloqueado/desbloqueado y animación de brillo.
 
-```typescript
-// Cambio en la interfaz
-interface MealPhotoDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  meal: Meal | null;
-  selectedDate?: string;  // Agregar esta prop
-  onPhotoSaved: (mealId: string) => void;
-}
-
-// Cambio en handleConfirm (línea ~104-119)
-// Construir timestamp
-const now = new Date();
-let scannedAt: Date;
-
-if (selectedDate) {
-  const [year, month, day] = selectedDate.split('-').map(Number);
-  scannedAt = new Date(year, month - 1, day, now.getHours(), now.getMinutes(), now.getSeconds());
-} else {
-  scannedAt = now;
-}
-
-const { error: insertError } = await supabase
-  .from('food_scans')
-  .insert({
-    // ... campos existentes
-    scanned_at: scannedAt.toISOString(),  // Agregar este campo
-  });
-```
-
-### 4. `src/pages/Dashboard.tsx` (MealPhotoDialog)
-
-**Problema**: No pasa `selectedDate` al componente `MealPhotoDialog`.
-
-**Solución**: Pasar la fecha seleccionada como prop.
-
-```typescript
-// Buscar donde se renderiza MealPhotoDialog y agregar:
-<MealPhotoDialog
-  open={showMealPhotoDialog}
-  onOpenChange={setShowMealPhotoDialog}
-  meal={mealToComplete}
-  selectedDate={selectedDate.toISOString().split('T')[0]}  // Agregar esta prop
-  onPhotoSaved={(mealId) => completeMeal(mealId)}
-/>
-```
-
-### 5. `src/pages/MealDetail.tsx`
-
-**Problema**: El botón "Registrar ahora" navega a AI Camera sin pasar el parámetro `date`.
-
-**Solución**: Agregar el parámetro de fecha a la navegación.
-
-```typescript
-// Línea ~353
-// Necesita obtener date de searchParams primero
-const [searchParams] = useSearchParams();
-const selectedDate = searchParams.get('date') || new Date().toISOString().split('T')[0];
-
-// Cambiar la navegación:
-onClick={() => navigate(`/dashboard/ai-camera/${validMealType}?date=${selectedDate}`)}
-```
+### Estados Visuales
+- **Desbloqueado**: Borde dorado, sombra glow, icono visible
+- **Bloqueado**: Grayscale, icono de candado, opacidad reducida
+- **Nuevo**: Animación de pulso/brillo
 
 ---
 
-## Resumen de Archivos a Modificar
+## 9. Mejoras en Body Measurement Charts
 
-1. **`src/components/FoodScanner.tsx`**
-   - Agregar prop `selectedDate`
-   - Agregar campo `scanned_at` a la inserción
-
-2. **`src/components/MealPhotoDialog.tsx`**
-   - Agregar prop `selectedDate`
-   - Agregar campo `scanned_at` a la inserción
-
-3. **`src/pages/Dashboard.tsx`**
-   - Pasar `selectedDate` a `FoodScanner`
-   - Pasar `selectedDate` a `MealPhotoDialog`
-
-4. **`src/pages/MealDetail.tsx`**
-   - Pasar parámetro `date` en la navegación
+### Cambios en `BodyMeasurementCharts.tsx`
+- Gráficos con área gradiente bajo la línea
+- Puntos de datos más grandes y con tooltip mejorado
+- Card3D como contenedor
+- Indicadores de cambio (+/- desde inicio)
 
 ---
 
-## Resultado Esperado
+## 10. Animaciones y Transiciones
 
-Después de implementar estos cambios:
-- Todas las entradas de comida aparecerán en el día correcto según la selección del usuario
-- Los círculos de progreso en el Dashboard se llenarán para el día visualizado
-- No habrá más confusión entre "día actual" y "día seleccionado"
+### Nuevas Animaciones
+- `count-up`: Número que cuenta desde 0
+- `reveal`: Elementos que aparecen de abajo hacia arriba
+- `glow`: Efecto de brillo para elementos destacados
+- `float-subtle`: Flotación muy sutil para cards importantes
+
+### Transiciones entre Tabs
+- Fade + slide horizontal al cambiar tabs
+- Stagger en elementos hijos
+
+---
+
+## Archivos a Crear
+
+| Archivo | Descripción |
+|---------|-------------|
+| `src/components/progress/ProgressHeader3D.tsx` | Header con stats resumidas |
+| `src/components/progress/Stat3DCard.tsx` | Card de estadística individual |
+| `src/components/progress/AchievementBadge3D.tsx` | Badge de logro 3D |
+| `src/components/progress/WeightCard3D.tsx` | Card de peso actual |
+
+---
+
+## Archivos a Modificar
+
+| Archivo | Cambios |
+|---------|---------|
+| `src/pages/Progress.tsx` | Nuevo layout con header 3D y tabs mejorados |
+| `src/components/progress/ProgressStatsTab.tsx` | Usar Stat3DCard y mejor layout |
+| `src/components/progress/ProgressAchievementsTab.tsx` | Usar AchievementBadge3D y grid |
+| `src/components/NutritionProgressCharts.tsx` | Aplicar Card3D y mejorar selector de días |
+| `src/components/BodyMeasurementCharts.tsx` | Card3D y gráficos mejorados |
+| `src/components/WeightMilestones.tsx` | Convertir a Card3D con milestones 3D |
+
+---
+
+## Principios de Diseño
+
+1. **Jerarquía clara**: Número grande primero, label después
+2. **Feedback visual**: Todo elemento interactivo responde al toque
+3. **Consistencia 3D**: Misma dirección de sombras que el Dashboard
+4. **Gamificación sutil**: Colores, badges y animaciones motivacionales
+5. **Mobile-first**: Touch targets generosos (48px+)
+
+---
+
+## Resultado Visual Esperado
+
+### Antes
+- Tabs planos y pequeños
+- Cards sin profundidad
+- Gráficos básicos
+- Logros en lista simple
+
+### Después
+- Header con resumen visual impactante
+- Tabs con efecto 3D activo
+- Cards flotantes con sombras
+- Logros como badges coleccionables
+- Métricas con números grandes y animaciones
+- Gráficos con gradientes y tooltips elegantes
