@@ -20,6 +20,10 @@ const buttonVariants = cva(
         duolingo: "bg-primary text-primary-foreground shadow-[0_4px_0_hsl(16_90%_45%)] btn-3d hover:brightness-105 active:translate-y-[2px] active:shadow-[0_2px_0_hsl(16_90%_45%)]",
         duolingoSecondary: "bg-secondary text-secondary-foreground shadow-[0_4px_0_hsl(142_60%_35%)] btn-3d hover:brightness-105 active:translate-y-[2px] active:shadow-[0_2px_0_hsl(142_60%_35%)]",
         duolingoOutline: "bg-background border-2 border-border text-foreground shadow-[0_4px_0_hsl(var(--border))] btn-3d hover:border-primary active:translate-y-[2px] active:shadow-[0_2px_0_hsl(var(--border))]",
+        // Modern 3D button with gradient and glow
+        modern3d: "bg-gradient-to-b from-primary to-primary-hover text-primary-foreground shadow-[0_4px_0_hsl(82_80%_35%),0_6px_12px_rgba(0,0,0,0.15)] hover:shadow-[0_4px_0_hsl(82_80%_35%),0_6px_20px_hsl(82_80%_50%/0.3)] active:translate-y-[2px] active:shadow-[0_2px_0_hsl(82_80%_35%)]",
+        modern3dSecondary: "bg-gradient-to-b from-secondary to-secondary/90 text-secondary-foreground shadow-[0_4px_0_hsl(188_85%_30%),0_6px_12px_rgba(0,0,0,0.15)] hover:shadow-[0_4px_0_hsl(188_85%_30%),0_6px_20px_hsl(188_85%_40%/0.3)] active:translate-y-[2px] active:shadow-[0_2px_0_hsl(188_85%_30%)]",
+        modern3dOutline: "bg-card border-2 border-border text-foreground shadow-[0_4px_0_hsl(var(--border)),0_6px_12px_rgba(0,0,0,0.08)] hover:border-primary/50 hover:shadow-[0_4px_0_hsl(var(--primary)/0.2),0_6px_20px_hsl(var(--primary)/0.1)] active:translate-y-[2px] active:shadow-[0_2px_0_hsl(var(--border))]",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -27,6 +31,8 @@ const buttonVariants = cva(
         lg: "h-12 rounded-xl px-8 text-base",
         xl: "h-14 rounded-2xl px-10 text-lg",
         icon: "h-10 w-10",
+        // Larger touch targets for mobile
+        touch: "h-14 min-w-14 rounded-2xl px-6 text-base",
       },
     },
     defaultVariants: {
