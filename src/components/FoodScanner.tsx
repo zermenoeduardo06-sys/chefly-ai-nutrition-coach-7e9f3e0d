@@ -16,10 +16,11 @@ interface FoodScannerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   mealType?: string;
+  selectedDate?: string; // YYYY-MM-DD format
   onSaveSuccess?: () => void;
 }
 
-export function FoodScanner({ open, onOpenChange, mealType, onSaveSuccess }: FoodScannerProps) {
+export function FoodScanner({ open, onOpenChange, mealType, selectedDate, onSaveSuccess }: FoodScannerProps) {
   const { language } = useLanguage();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -120,6 +121,16 @@ export function FoodScanner({ open, onOpenChange, mealType, onSaveSuccess }: Foo
         }
       }
 
+      // Construct scanned_at using selectedDate (or now if not provided)
+      const now = new Date();
+      let scannedAt: Date;
+      if (selectedDate) {
+        const [year, month, day] = selectedDate.split('-').map(Number);
+        scannedAt = new Date(year, month - 1, day, now.getHours(), now.getMinutes(), now.getSeconds());
+      } else {
+        scannedAt = now;
+      }
+
       const { error } = await supabase
         .from('food_scans')
         .insert({
@@ -136,6 +147,7 @@ export function FoodScanner({ open, onOpenChange, mealType, onSaveSuccess }: Foo
           notes: result.notes,
           image_url: imageUrl,
           meal_type: mealType || null,
+          scanned_at: scannedAt.toISOString(),
         });
 
       if (error) throw error;
