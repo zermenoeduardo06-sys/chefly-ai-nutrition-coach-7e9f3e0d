@@ -346,8 +346,9 @@ const FloatingMascot: React.FC = () => {
     getUser();
   }, []);
 
-  // Hide on certain pages
-  const shouldHide = hiddenPages.includes(location.pathname) || !state.isVisible;
+  // Hide on certain pages - TEMPORARILY DISABLED: Return null to hide mascot entirely
+  // To re-enable, change this to: const shouldHide = hiddenPages.includes(location.pathname) || !state.isVisible;
+  const shouldHide = true; // Mascot temporarily hidden
 
   // Show page-specific message when navigating
   useEffect(() => {
