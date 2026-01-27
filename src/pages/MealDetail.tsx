@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Camera, Lock, Coffee, Salad, Moon, Cookie } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -39,7 +39,11 @@ const mealTypeLabels = {
 export default function MealDetail() {
   const navigate = useNavigate();
   const { mealType } = useParams<{ mealType: string }>();
+  const [searchParams] = useSearchParams();
   const { language } = useLanguage();
+  
+  // Get selected date from URL or default to today
+  const selectedDate = searchParams.get('date') || new Date().toISOString().split('T')[0];
   const [userId, setUserId] = useState<string | undefined>();
   const [dailyNutrition, setDailyNutrition] = useState<DailyNutrition>({
     calories: 0,
@@ -350,7 +354,7 @@ export default function MealDetail() {
           className="pt-4 pb-safe"
         >
           <Button 
-            onClick={() => navigate(`/dashboard/ai-camera/${validMealType}`)}
+            onClick={() => navigate(`/dashboard/ai-camera/${validMealType}?date=${selectedDate}`)}
             className="w-full h-14 text-lg font-semibold"
             size="lg"
           >

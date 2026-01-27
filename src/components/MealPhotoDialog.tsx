@@ -22,10 +22,11 @@ interface MealPhotoDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   meal: Meal | null;
+  selectedDate?: string; // YYYY-MM-DD format
   onPhotoSaved: (mealId: string) => void;
 }
 
-export function MealPhotoDialog({ open, onOpenChange, meal, onPhotoSaved }: MealPhotoDialogProps) {
+export function MealPhotoDialog({ open, onOpenChange, meal, selectedDate, onPhotoSaved }: MealPhotoDialogProps) {
   const [preview, setPreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const cameraRef = useRef<HTMLInputElement>(null);
@@ -99,6 +100,16 @@ export function MealPhotoDialog({ open, onOpenChange, meal, onPhotoSaved }: Meal
         .from('food-scans')
         .getPublicUrl(fileName);
 
+      // Construct scanned_at using selectedDate (or now if not provided)
+      const now = new Date();
+      let scannedAt: Date;
+      if (selectedDate) {
+        const [year, month, day] = selectedDate.split('-').map(Number);
+        scannedAt = new Date(year, month - 1, day, now.getHours(), now.getMinutes(), now.getSeconds());
+      } else {
+        scannedAt = now;
+      }
+
       // Save to food_scans with meal nutrition data (no AI)
       // IMPORTANT: Round ALL numeric values to integers to prevent "22P02" errors
       const { error: insertError } = await supabase
@@ -116,6 +127,7 @@ export function MealPhotoDialog({ open, onOpenChange, meal, onPhotoSaved }: Meal
           notes: language === 'es' ? 'Comida del plan semanal' : 'Meal from weekly plan',
           image_url: publicUrl,
           portion_estimate: language === 'es' ? '1 porción' : '1 serving',
+          scanned_at: scannedAt.toISOString(),
         });
 
       if (insertError) throw insertError;

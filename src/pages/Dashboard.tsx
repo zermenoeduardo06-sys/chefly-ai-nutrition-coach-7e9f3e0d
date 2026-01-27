@@ -1256,12 +1256,14 @@ const Dashboard = () => {
       <FoodScanner
         open={showFoodScanner}
         onOpenChange={setShowFoodScanner}
+        selectedDate={selectedDate.toISOString().split('T')[0]}
       />
 
       <MealPhotoDialog
         open={showMealPhotoDialog}
         onOpenChange={setShowMealPhotoDialog}
         meal={mealToComplete}
+        selectedDate={selectedDate.toISOString().split('T')[0]}
         onPhotoSaved={(mealId) => {
           completeMeal(mealId);
           setMealToComplete(null);
