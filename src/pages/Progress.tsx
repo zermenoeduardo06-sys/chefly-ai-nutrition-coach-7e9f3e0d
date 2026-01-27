@@ -91,8 +91,6 @@ const Progress = () => {
   return (
     <div className="min-h-full bg-gradient-to-b from-background to-muted/30 pb-24 lg:pb-6">
       <main className="container mx-auto px-4 tablet:px-6 py-4 tablet:py-6 space-y-5 max-w-3xl">
-        {/* 3D Header with stats */}
-        {userId && <ProgressHeader3D userId={userId} />}
 
         {/* Custom 3D Tabs */}
         <div className="flex gap-2 p-1.5 bg-muted/50 rounded-2xl overflow-x-auto">
