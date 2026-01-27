@@ -8,7 +8,7 @@ import { useHaptics } from "@/hooks/useHaptics";
 const navItems = [
   { icon: BookOpen, path: "/dashboard", color: "text-primary", tourId: "nav-diary", labelEs: "Diario", labelEn: "Diary" },
   { icon: TrendingUp, path: "/dashboard/progress", color: "text-emerald-500", tourId: "nav-progress", labelEs: "Progreso", labelEn: "Progress" },
-  { icon: ChefHat, path: "/recipes", color: "text-violet-500", tourId: "nav-recipes", labelEs: "Recetas", labelEn: "Recipes" },
+  { icon: ChefHat, path: "/recipes", color: "text-violet-500", tourId: "nav-recipes", labelEs: "Recetas", labelEn: "Recipes", isCenter: true },
   { icon: Sparkles, path: "/chef-ia", color: "text-amber-500", tourId: "nav-chef", labelEs: "Chef IA", labelEn: "Chef AI" },
   { icon: Menu, path: "/dashboard/more", color: "text-purple-500", tourId: "nav-more", labelEs: "Más", labelEn: "More" },
 ];
@@ -27,7 +27,7 @@ export function MobileBottomNav() {
 
   return (
     <nav 
-      className="fixed bottom-0 left-0 right-0 z-[9999] lg:hidden bg-card shadow-[0_-4px_20px_rgba(0,0,0,0.15)]" 
+      className="fixed bottom-0 left-0 right-0 z-[9999] lg:hidden" 
       style={{ 
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         transform: 'translateZ(0)',
@@ -37,10 +37,14 @@ export function MobileBottomNav() {
         WebkitBackfaceVisibility: 'hidden',
       }}
     >
-      <div className="flex items-center justify-around h-[72px] tablet:h-[80px] px-1 tablet:px-4 max-w-2xl mx-auto">
-        {navItems.map((item) => {
+      {/* Glassmorphism background */}
+      <div className="absolute inset-0 bg-card/85 backdrop-blur-xl border-t border-white/10 shadow-[0_-8px_32px_rgba(0,0,0,0.12)]" />
+      
+      <div className="relative flex items-center justify-around h-[76px] tablet:h-[84px] px-2 tablet:px-6 max-w-2xl mx-auto">
+        {navItems.map((item, index) => {
           const active = isActive(item.path);
           const label = language === 'es' ? item.labelEs : item.labelEn;
+          const isCenter = item.isCenter;
           
           return (
             <NavLink
@@ -52,37 +56,67 @@ export function MobileBottomNav() {
             >
               <motion.div
                 className={cn(
-                  "relative flex flex-col items-center justify-center gap-0.5 px-3 tablet:px-5 py-2 rounded-2xl transition-all duration-200",
-                  active 
-                    ? "bg-primary/10" 
-                    : "hover:bg-muted/50"
+                  "relative flex flex-col items-center justify-center gap-1 transition-all duration-200",
+                  isCenter ? "px-4 py-2" : "px-3 py-2",
+                  active && !isCenter && "bg-primary/10 rounded-2xl",
                 )}
-                whileTap={{ scale: 0.85 }}
-                whileHover={{ scale: 1.05 }}
-                animate={active ? { y: -2 } : { y: 0 }}
+                whileTap={{ scale: 0.9 }}
+                animate={active && !isCenter ? { y: -2 } : { y: 0 }}
                 transition={{ type: "spring", stiffness: 500, damping: 25 }}
               >
-                <item.icon 
-                  className={cn(
-                    "h-5 w-5 tablet:h-6 tablet:w-6 transition-all duration-200",
+                {/* Center elevated button (Recetas) */}
+                {isCenter ? (
+                  <motion.div
+                    className={cn(
+                      "flex items-center justify-center w-14 h-14 tablet:w-16 tablet:h-16 rounded-2xl -mt-4",
+                      active 
+                        ? "bg-gradient-to-b from-primary to-primary-hover shadow-[0_4px_0_hsl(82_80%_35%),0_8px_24px_hsl(82_80%_50%/0.4)]" 
+                        : "bg-gradient-to-b from-violet-500 to-violet-600 shadow-[0_4px_0_hsl(270_60%_35%),0_8px_20px_rgba(139,92,246,0.3)]"
+                    )}
+                    whileTap={{ y: 2, boxShadow: "0 2px 0 hsl(82 80% 35%), 0 4px 12px hsl(82 80% 50% / 0.3)" }}
+                  >
+                    <item.icon 
+                      className="h-7 w-7 tablet:h-8 tablet:w-8 text-white" 
+                      strokeWidth={2.5}
+                    />
+                  </motion.div>
+                ) : (
+                  <div
+                    className={cn(
+                      "flex items-center justify-center w-12 h-12 tablet:w-14 tablet:h-14 rounded-2xl transition-all duration-200",
+                      active 
+                        ? "bg-gradient-to-b from-primary/20 to-primary/10 shadow-[0_2px_0_hsl(var(--primary)/0.2)]" 
+                        : "bg-transparent"
+                    )}
+                  >
+                    <item.icon 
+                      className={cn(
+                        "h-6 w-6 tablet:h-7 tablet:w-7 transition-all duration-200",
+                        active ? item.color : "text-muted-foreground"
+                      )} 
+                      strokeWidth={active ? 2.5 : 2}
+                    />
+                  </div>
+                )}
+                
+                {/* Label - only show for non-center items */}
+                {!isCenter && (
+                  <span className={cn(
+                    "text-[11px] tablet:text-xs font-medium transition-all duration-200",
                     active ? item.color : "text-muted-foreground"
-                  )} 
-                  strokeWidth={active ? 2.5 : 2}
-                />
-                <span className={cn(
-                  "text-[10px] tablet:text-xs font-medium transition-all duration-200",
-                  active ? item.color : "text-muted-foreground"
-                )}>
-                  {label}
-                </span>
-                {active && (
-                  <motion.div 
-                    className="absolute -top-1 left-1/2 -translate-x-1/2 w-8 h-1 rounded-full bg-primary"
-                    layoutId="navIndicator"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                  />
+                  )}>
+                    {label}
+                  </span>
+                )}
+                
+                {/* Center label below elevated button */}
+                {isCenter && (
+                  <span className={cn(
+                    "text-[11px] tablet:text-xs font-semibold mt-1",
+                    active ? "text-primary" : "text-violet-400"
+                  )}>
+                    {label}
+                  </span>
                 )}
               </motion.div>
             </NavLink>

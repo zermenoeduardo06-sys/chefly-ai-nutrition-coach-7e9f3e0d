@@ -400,4 +400,48 @@ All colors MUST be HSL.
   .icon-circle-secondary {
     @apply icon-circle bg-secondary/10 text-secondary;
   }
+
+  /* Glass card styles for modern 3D look */
+  .glass-card {
+    @apply bg-card/80 backdrop-blur-xl border border-white/10 rounded-3xl;
+    box-shadow: 
+      0 4px 0 rgba(255, 255, 255, 0.05),
+      0 8px 32px rgba(0, 0, 0, 0.12);
+  }
+
+  .glass-card-elevated {
+    @apply bg-card/90 backdrop-blur-xl border border-white/15 rounded-3xl;
+    box-shadow: 
+      0 6px 0 rgba(255, 255, 255, 0.08),
+      0 12px 40px rgba(0, 0, 0, 0.15);
+  }
+
+  /* 3D shadow utilities */
+  .shadow-3d {
+    box-shadow: 
+      0 4px 0 hsl(var(--border)),
+      0 8px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .shadow-3d-primary {
+    box-shadow: 
+      0 4px 0 hsl(var(--primary) / 0.3),
+      0 8px 24px hsl(var(--primary) / 0.15);
+  }
+
+  .shadow-3d-hover {
+    box-shadow: 
+      0 6px 0 hsl(var(--border)),
+      0 12px 30px rgba(0, 0, 0, 0.12);
+  }
+
+  /* Float animation utility */
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
 }
