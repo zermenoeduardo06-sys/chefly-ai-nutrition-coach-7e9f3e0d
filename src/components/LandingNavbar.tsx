@@ -128,14 +128,23 @@ export const LandingNavbar = () => {
               <LanguageToggle />
             </div>
             
-            {/* Coming Soon badge */}
-            <div className="hidden sm:flex items-center">
-              <div className="px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-full">
-                <span className="text-xs font-medium text-primary">
-                  📱 {t("common.comingSoon")}
-                </span>
-              </div>
-            </div>
+            {/* Login button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate("/auth")}
+              className="hidden sm:flex"
+            >
+              {t("auth.login")}
+            </Button>
+            
+            <Button
+              size="sm"
+              onClick={() => navigate("/start")}
+              className="hidden sm:flex"
+            >
+              {t("auth.signup")}
+            </Button>
 
             {/* Mobile menu button */}
             <motion.button
@@ -173,7 +182,20 @@ export const LandingNavbar = () => {
                 {t(section.labelKey)}
               </motion.button>
             ))}
-            <div className="pt-2 flex items-center gap-2">
+            <div className="pt-2 flex flex-col gap-2">
+              <Button
+                variant="outline"
+                onClick={() => { navigate("/auth"); setIsMenuOpen(false); }}
+                className="w-full"
+              >
+                {t("auth.login")}
+              </Button>
+              <Button
+                onClick={() => { navigate("/start"); setIsMenuOpen(false); }}
+                className="w-full"
+              >
+                {t("auth.signup")}
+              </Button>
               <LanguageToggle />
             </div>
           </div>

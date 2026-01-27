@@ -203,13 +203,23 @@ const Index = () => {
                 {t("hero.subtitle")}
               </p>
 
-              {/* Coming Soon badge */}
-              <div className="flex justify-center md:justify-start">
-                <div className="px-6 py-3 bg-primary/10 border border-primary/20 rounded-full">
-                  <span className="text-base sm:text-lg font-semibold text-primary">
-                    📱 {t("common.comingSoon")} App Store & Google Play
-                  </span>
-                </div>
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
+                <Button
+                  size="lg"
+                  className="text-base sm:text-lg px-8 py-6"
+                  onClick={() => navigate("/start")}
+                >
+                  {t("auth.signup")} - {t("hero.trial")}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="text-base sm:text-lg px-8 py-6"
+                  onClick={() => navigate("/auth")}
+                >
+                  {t("auth.login")}
+                </Button>
               </div>
 
               <div className="flex flex-wrap gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground justify-center md:justify-start">
