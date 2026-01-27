@@ -729,12 +729,12 @@ const Chat = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-primary/5 flex flex-col">
-      {/* Header with safe area */}
+    <div className="h-[100dvh] bg-gradient-to-b from-background via-background to-primary/5 flex flex-col overflow-hidden">
+      {/* Header - no pt-safe-top as DashboardLayout handles it */}
       <motion.header 
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="border-b border-border/50 bg-card/80 backdrop-blur-xl sticky top-0 z-40 pt-safe-top"
+        className="border-b border-border/50 bg-card/80 backdrop-blur-xl sticky top-0 z-40 flex-shrink-0"
       >
         <div className="container mx-auto px-4 py-3 flex items-center gap-3">
           <Button 
@@ -801,7 +801,7 @@ const Chat = () => {
       </motion.header>
 
       {/* Messages area */}
-      <div className="flex-1 container mx-auto px-4 py-4 flex flex-col max-w-2xl overflow-hidden">
+      <div className="flex-1 container mx-auto px-4 py-4 flex flex-col max-w-2xl min-h-0">
         <ScrollArea className="flex-1 -mx-4 px-4">
           <div className="space-y-4 pb-4">
             <AnimatePresence mode="wait">
@@ -831,7 +831,7 @@ const Chat = () => {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           onSubmit={handleSend} 
-          className="mt-3 flex gap-2 bg-background/80 backdrop-blur-sm pt-2 pb-safe-area-bottom"
+          className="mt-3 flex gap-2 bg-background/80 backdrop-blur-sm pt-2 pb-safe flex-shrink-0"
         >
           <motion.div 
             className="flex-1 relative"
