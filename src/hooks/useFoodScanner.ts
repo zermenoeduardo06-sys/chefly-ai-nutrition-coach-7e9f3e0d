@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
@@ -58,8 +58,18 @@ async function compressImage(base64: string, maxWidth = 800, quality = 0.7): Pro
 export function useFoodScanner() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<FoodAnalysisResult | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const { language } = useLanguage();
   const { toast } = useToast();
+
+  // Get current user on mount
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUserId(user?.id || null);
+    };
+    getUser();
+  }, []);
 
   const analyzeFood = async (imageBase64: string): Promise<FoodAnalysisResult | null> => {
     setIsAnalyzing(true);
@@ -72,7 +82,8 @@ export function useFoodScanner() {
       const { data, error } = await supabase.functions.invoke('analyze-food', {
         body: { 
           imageBase64: compressedImage,
-          language 
+          language,
+          userId // Pass userId for AI usage tracking
         }
       });
 
