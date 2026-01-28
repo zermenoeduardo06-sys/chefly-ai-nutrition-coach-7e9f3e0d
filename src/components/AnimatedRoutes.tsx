@@ -49,6 +49,7 @@ import MorePage from '@/pages/MorePage';
 import Recipes from '@/pages/Recipes';
 import FoodScannerPage from '@/pages/FoodScannerPage';
 import PremiumPaywall from '@/pages/PremiumPaywall';
+import Wellness from '@/pages/Wellness';
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
   <SidebarProvider>
@@ -116,6 +117,7 @@ export const AnimatedRoutes = () => {
         <Route path="/dashboard/ai-camera/:mealType" element={<PageTransition><AICamera /></PageTransition>} />
         <Route path="/dashboard/scanner" element={<DashboardLayout><PageTransition><FoodScannerPage /></PageTransition></DashboardLayout>} />
         <Route path="/dashboard/scanner/:mealType" element={<DashboardLayout><PageTransition><FoodScannerPage /></PageTransition></DashboardLayout>} />
+        <Route path="/dashboard/wellness" element={<DashboardLayout><PageTransition><Wellness /></PageTransition></DashboardLayout>} />
         <Route path="/premium-paywall" element={<PageTransition><PremiumPaywall /></PageTransition>} />
         <Route path="/subscription" element={<DashboardLayout><PageTransition><Subscription /></PageTransition></DashboardLayout>} />
         

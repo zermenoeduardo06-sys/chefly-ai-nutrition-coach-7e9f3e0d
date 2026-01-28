@@ -15,7 +15,8 @@ import {
   Star,
   UserPlus,
   Utensils,
-  Sparkles
+  Sparkles,
+  Heart
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
@@ -41,6 +42,8 @@ const texts = {
     manage: "Gestionar",
     social: "Social",
     friends: "Amigos",
+    wellness: "Bienestar",
+    wellnessDesc: "Ánimo y escáner corporal",
     settings: "Ajustes",
     allSettings: "Toda la configuración",
     preferences: "Preferencias nutricionales",
@@ -65,6 +68,8 @@ const texts = {
     manage: "Manage",
     social: "Social",
     friends: "Friends",
+    wellness: "Wellness",
+    wellnessDesc: "Mood & body scanner",
     settings: "Settings",
     allSettings: "All settings",
     preferences: "Nutrition preferences",
@@ -288,11 +293,26 @@ export default function MorePage() {
           </MenuSection>
         </motion.div>
 
-        {/* Social */}
+        {/* Wellness */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
+        >
+          <MenuSection title={t.wellness}>
+            <MenuItem
+              icon={<Heart className="h-5 w-5" />}
+              label={t.wellness}
+              onClick={() => navigate("/dashboard/wellness")}
+            />
+          </MenuSection>
+        </motion.div>
+
+        {/* Social */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
         >
           <MenuSection title={t.social}>
             <MenuItem
