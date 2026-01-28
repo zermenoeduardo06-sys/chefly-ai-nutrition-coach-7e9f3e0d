@@ -18,6 +18,7 @@ import { ScannerStats } from '@/components/scanner/ScannerStats';
 import { ScanCelebration } from '@/components/scanner/ScanCelebration';
 import ScannerFoodSearch from '@/components/scanner/ScannerFoodSearch';
 import mascotLime from '@/assets/mascot-lime.png';
+import { createScanTimestamp } from '@/lib/dateUtils';
 
 export default function FoodScannerPage() {
   const navigate = useNavigate();
@@ -129,10 +130,8 @@ export default function FoodScannerPage() {
         }
       }
 
-      // Build scanned_at timestamp using selected date + current time
-      const now = new Date();
-      const [year, month, day] = selectedDate.split('-').map(Number);
-      const scannedAt = new Date(year, month - 1, day, now.getHours(), now.getMinutes(), now.getSeconds());
+      // Use createScanTimestamp to preserve the selected date with current time
+      const scannedAt = createScanTimestamp(selectedDate);
 
       const { error } = await supabase
         .from('food_scans')
@@ -150,7 +149,7 @@ export default function FoodScannerPage() {
           notes: result.notes,
           image_url: imageUrl,
           meal_type: validMealType || null,
-          scanned_at: scannedAt.toISOString(),
+          scanned_at: scannedAt,
         });
 
       if (error) throw error;

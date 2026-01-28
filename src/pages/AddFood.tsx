@@ -19,6 +19,7 @@ import { useXPAnimation } from "@/contexts/XPAnimationContext";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { createMealTimestamp } from "@/lib/dateUtils";
 
 type Category = "foods" | "meals" | "recipes";
 type FilterTab = "frequent" | "recent" | "favorites";
@@ -188,16 +189,6 @@ export default function AddFood() {
     toggleFavorite(foodId);
   }, [toggleFavorite]);
 
-  const getTimeForMeal = (mealType: string): string => {
-    switch(mealType) {
-      case 'breakfast': return '08:00:00';
-      case 'lunch': return '13:00:00';
-      case 'dinner': return '20:00:00';
-      case 'snack': return '16:00:00';
-      default: return '12:00:00';
-    }
-  };
-
   const handleDone = async () => {
     console.log('[AddFood] handleDone called', { userId, selectedFoodsCount: selectedFoods.length });
     
@@ -214,17 +205,8 @@ export default function AddFood() {
       Promise.all(selectedFoods.map(food => trackFoodUsage(food.id)))
         .catch(err => console.warn('[AddFood] trackFoodUsage failed (non-blocking):', err));
 
-      // Calculate the correct timestamp based on selected date and meal type
-      const mealTime = getTimeForMeal(validMealType);
-      let scannedAtDate = new Date(`${selectedDate}T${mealTime}`);
-      
-      // Validate the date - use current date as fallback if invalid
-      if (isNaN(scannedAtDate.getTime())) {
-        console.warn('[AddFood] Invalid date constructed, using current date:', { selectedDate, mealTime });
-        scannedAtDate = new Date();
-      }
-      
-      const scannedAt = scannedAtDate.toISOString();
+      // Use createMealTimestamp to preserve the selected date without timezone conversion
+      const scannedAt = createMealTimestamp(selectedDate, validMealType);
 
       // Save each selected food to food_scans with the meal_type
       // IMPORTANT: Round ALL numeric values to integers to prevent "22P02" errors

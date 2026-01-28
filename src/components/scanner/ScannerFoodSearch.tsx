@@ -9,7 +9,7 @@ import { useXPAnimation } from '@/contexts/XPAnimationContext';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
-
+import { createMealTimestamp } from '@/lib/dateUtils';
 interface ScannerFoodSearchProps {
   mealType: string;
   selectedDate: string;
@@ -110,32 +110,12 @@ const ScannerFoodSearch: React.FC<ScannerFoodSearchProps> = ({
     return () => clearTimeout(timer);
   }, [searchQuery, searchFoods]);
 
-  // Helper to calculate appropriate time for meal type
-  const getTimeForMeal = (type: string): string => {
-    switch (type) {
-      case 'breakfast': return '08:00:00';
-      case 'lunch': return '13:00:00';
-      case 'dinner': return '20:00:00';
-      case 'snack': return '16:00:00';
-      default: return '12:00:00';
-    }
-  };
-
   const handleAddFood = async (food: Food) => {
     setAddingFoodId(food.id);
     
     try {
-      // Calculate the correct timestamp based on selected date and meal type
-      const mealTime = getTimeForMeal(mealType);
-      let scannedAtDate = new Date(`${selectedDate}T${mealTime}`);
-      
-      // Validate the date - use current date as fallback if invalid
-      if (isNaN(scannedAtDate.getTime())) {
-        console.warn('[ScannerFoodSearch] Invalid date constructed, using current date:', { selectedDate, mealTime });
-        scannedAtDate = new Date();
-      }
-      
-      const scannedAt = scannedAtDate.toISOString();
+      // Use createMealTimestamp to preserve the selected date without timezone conversion
+      const scannedAt = createMealTimestamp(selectedDate, mealType);
 
       // Save to food_scans table (same as scanner)
       // IMPORTANT: Round ALL numeric values to integers to prevent "22P02" errors
