@@ -1,5 +1,6 @@
-import { motion } from "framer-motion";
-import { Droplets, Plus, Minus, Check } from "lucide-react";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Droplets, Plus, Minus, Check, Sparkles } from "lucide-react";
 import { Card3D, Card3DContent } from "@/components/ui/card-3d";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -14,14 +15,27 @@ interface WaterTrackerWidgetProps {
 export function WaterTrackerWidget({ userId, selectedDate }: WaterTrackerWidgetProps) {
   const { language } = useLanguage();
   const { glasses, dailyGoal, addGlass, removeGlass } = useWaterIntake(userId, selectedDate);
-  const { selectionChanged } = useHaptics();
+  const { selectionChanged, successNotification } = useHaptics();
+  const [showSplash, setShowSplash] = useState(false);
+  const [justCompleted, setJustCompleted] = useState(false);
 
   const progress = Math.min((glasses / dailyGoal) * 100, 100);
   const isComplete = glasses >= dailyGoal;
 
   const handleAdd = async () => {
     await selectionChanged();
+    setShowSplash(true);
+    setTimeout(() => setShowSplash(false), 600);
+    
+    const wasNotComplete = glasses < dailyGoal;
     addGlass();
+    
+    // Celebrate completion
+    if (wasNotComplete && glasses + 1 >= dailyGoal) {
+      await successNotification();
+      setJustCompleted(true);
+      setTimeout(() => setJustCompleted(false), 2000);
+    }
   };
 
   const handleRemove = async () => {
@@ -34,18 +48,54 @@ export function WaterTrackerWidget({ userId, selectedDate }: WaterTrackerWidgetP
       title: "Agua",
       glasses: "vasos",
       complete: "¡Meta!",
+      perfect: "¡Perfecto!",
     },
     en: {
       title: "Water",
       glasses: "glasses",
       complete: "Goal!",
+      perfect: "Perfect!",
     },
   };
 
   const t = texts[language];
 
   return (
-    <Card3D variant="default" hover={false} className="overflow-hidden">
+    <Card3D variant="default" hover={false} className="overflow-hidden relative">
+      {/* Splash effect overlay */}
+      <AnimatePresence>
+        {showSplash && (
+          <motion.div
+            initial={{ scale: 0, opacity: 1 }}
+            animate={{ scale: 2.5, opacity: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="absolute top-1/2 left-1/4 w-8 h-8 rounded-full bg-sky-400/40 z-10 pointer-events-none"
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Celebration overlay */}
+      <AnimatePresence>
+        {justCompleted && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-20 flex items-center justify-center bg-emerald-500/10 backdrop-blur-[1px] rounded-2xl"
+          >
+            <motion.div
+              initial={{ scale: 0, rotate: -20 }}
+              animate={{ scale: [0, 1.2, 1], rotate: 0 }}
+              className="flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500 text-white font-bold shadow-lg"
+            >
+              <Sparkles className="w-5 h-5" />
+              {t.perfect}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <Card3DContent className="p-5">
         <div className="flex items-center justify-between gap-4">
           {/* Left: Animated Water Drop with fill */}
@@ -81,7 +131,7 @@ export function WaterTrackerWidget({ userId, selectedDate }: WaterTrackerWidgetP
                     transition={{ duration: 0.5, ease: "easeOut" }}
                     className={isComplete ? "fill-emerald-400" : "fill-sky-400"}
                   />
-                  {/* Wave effect */}
+                  {/* Wave effect - enhanced animation */}
                   <motion.path
                     d="M0 40 Q16 35 32 40 T64 40 V64 H0 Z"
                     initial={{ y: 24 }}
@@ -95,7 +145,7 @@ export function WaterTrackerWidget({ userId, selectedDate }: WaterTrackerWidgetP
                     }}
                     transition={{ 
                       y: { duration: 0.5, ease: "easeOut" },
-                      d: { repeat: Infinity, duration: 2, ease: "easeInOut" }
+                      d: { repeat: Infinity, duration: 1.5, ease: "easeInOut" }
                     }}
                     className={isComplete ? "fill-emerald-300/50" : "fill-sky-300/50"}
                   />
@@ -105,8 +155,9 @@ export function WaterTrackerWidget({ userId, selectedDate }: WaterTrackerWidgetP
               {/* Check icon when complete */}
               {isComplete && (
                 <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
+                  initial={{ scale: 0, rotate: -45 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 15 }}
                   className="absolute inset-0 flex items-center justify-center"
                 >
                   <Check className="h-6 w-6 text-white drop-shadow-lg" strokeWidth={3} />
@@ -115,22 +166,27 @@ export function WaterTrackerWidget({ userId, selectedDate }: WaterTrackerWidgetP
             </motion.div>
           </div>
 
-          {/* Center: Count display */}
+          {/* Center: Count display with animated number */}
           <div className="flex-1 text-center">
             <div className="flex items-baseline justify-center gap-1">
               <motion.span 
                 key={glasses}
-                initial={{ scale: 1.2, opacity: 0 }}
+                initial={{ scale: 1.3, opacity: 0.5 }}
                 animate={{ scale: 1, opacity: 1 }}
-                className="text-4xl font-bold text-foreground"
+                transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                className="text-4xl font-bold text-foreground tabular-nums"
               >
                 {glasses}
               </motion.span>
               <span className="text-lg text-muted-foreground">/ {dailyGoal}</span>
             </div>
-            <p className={`text-sm font-medium ${isComplete ? "text-emerald-500" : "text-muted-foreground"}`}>
+            <motion.p 
+              className={`text-sm font-medium transition-colors ${isComplete ? "text-emerald-500" : "text-muted-foreground"}`}
+              animate={isComplete ? { scale: [1, 1.05, 1] } : {}}
+              transition={{ duration: 0.3 }}
+            >
               {isComplete ? t.complete + " 💧" : t.glasses}
-            </p>
+            </motion.p>
           </div>
 
           {/* Right: +/- buttons stacked vertically */}

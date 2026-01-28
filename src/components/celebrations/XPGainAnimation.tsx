@@ -24,30 +24,64 @@ const XPFloater: React.FC<{ gain: XPGain; onComplete: () => void }> = ({ gain, o
     <motion.div
       initial={{ 
         opacity: 0, 
-        scale: 0.5, 
+        scale: 0.3, 
         x: gain.x, 
         y: gain.y,
+        rotate: -10,
       }}
       animate={{ 
-        opacity: [0, 1, 1, 0], 
-        scale: [0.5, 1.2, 1, 0.8],
-        y: gain.y - 80,
+        opacity: [0, 1, 1, 0.8, 0], 
+        scale: [0.3, 1.3, 1.1, 1, 0.9],
+        y: gain.y - 100,
+        x: gain.x + (Math.random() > 0.5 ? 15 : -15), // Slight curve
+        rotate: [10, -5, 0],
       }}
       exit={{ opacity: 0 }}
       transition={{ 
-        duration: 1.2,
-        times: [0, 0.2, 0.7, 1],
+        duration: 1.4,
+        times: [0, 0.15, 0.4, 0.7, 1],
         ease: "easeOut",
       }}
       className="fixed pointer-events-none z-[9999]"
       style={{ left: 0, top: 0 }}
     >
-      <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${config.bgColor} backdrop-blur-sm border border-white/10 shadow-lg`}>
-        <Icon className={`w-4 h-4 ${config.color}`} />
-        <span className={`font-bold text-sm ${config.color}`}>
+      <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${config.bgColor} backdrop-blur-sm border border-white/20 shadow-lg`}>
+        <motion.div
+          animate={{ rotate: [0, 15, -15, 0] }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+        >
+          <Icon className={`w-4 h-4 ${config.color}`} />
+        </motion.div>
+        <motion.span 
+          className={`font-bold text-sm ${config.color}`}
+          initial={{ scale: 0.8 }}
+          animate={{ scale: [0.8, 1.2, 1] }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+        >
           +{gain.amount}
-        </span>
+        </motion.span>
       </div>
+      
+      {/* Trailing particles */}
+      {[...Array(3)].map((_, i) => (
+        <motion.div
+          key={i}
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ 
+            opacity: [0, 0.8, 0],
+            scale: [0, 0.6, 0],
+            y: [0, -20 - i * 10],
+            x: [0, (i - 1) * 8],
+          }}
+          transition={{ 
+            duration: 0.8,
+            delay: 0.2 + i * 0.1,
+            ease: "easeOut",
+          }}
+          className={`absolute w-2 h-2 rounded-full ${config.bgColor}`}
+          style={{ left: '50%', top: '50%' }}
+        />
+      ))}
     </motion.div>
   );
 };
