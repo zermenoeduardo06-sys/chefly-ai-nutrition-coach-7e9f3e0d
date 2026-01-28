@@ -18,7 +18,7 @@ serve(async (req) => {
       throw new Error('Invalid userId');
     }
 
-    if (!operationType || !['chat', 'scan', 'shopping'].includes(operationType)) {
+    if (!operationType || !['chat', 'scan', 'shopping', 'body_scan'].includes(operationType)) {
       throw new Error('Invalid operationType');
     }
 
@@ -90,6 +90,11 @@ serve(async (req) => {
         } else {
           updates.food_scans_count = (usageRecord.food_scans_count || 0) + 1;
         }
+        updates.scan_cost_cents = (usageRecord.scan_cost_cents || 0) + costCents;
+        break;
+      case 'body_scan':
+        // Body scan uses the same scan counters but we could track separately in future
+        updates.food_scans_count = (usageRecord.food_scans_count || 0) + 1;
         updates.scan_cost_cents = (usageRecord.scan_cost_cents || 0) + costCents;
         break;
       case 'shopping':
