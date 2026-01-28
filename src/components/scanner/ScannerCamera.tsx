@@ -1,8 +1,10 @@
-import { useRef } from 'react';
-import { Camera, Upload, Scan, Sparkles, ChefHat } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Camera as CameraIcon, Upload, Scan, Sparkles, ChefHat } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { Capacitor } from '@capacitor/core';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import mascotLime from '@/assets/mascot-lime.png';
 
 interface ScannerCameraProps {
@@ -99,7 +101,9 @@ function ScanningFrame({ isAnalyzing }: { isAnalyzing: boolean }) {
 export function ScannerCamera({ onImageCapture, isAnalyzing, previewImage }: ScannerCameraProps) {
   const { language } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const [isCapturing, setIsCapturing] = useState(false);
+
+  const isNative = Capacitor.isNativePlatform();
 
   const t = {
     takePhoto: language === 'es' ? 'Cámara' : 'Camera',
@@ -111,6 +115,37 @@ export function ScannerCamera({ onImageCapture, isAnalyzing, previewImage }: Sca
     aiPowered: language === 'es' ? 'IA Avanzada' : 'Advanced AI',
   };
 
+  // Native camera capture using Capacitor Camera plugin
+  const captureWithNativeCamera = async (source: CameraSource) => {
+    if (isCapturing) return;
+    
+    setIsCapturing(true);
+    try {
+      const image = await Camera.getPhoto({
+        quality: 80,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        source: source,
+        width: 800,
+        height: 800,
+        correctOrientation: true,
+      });
+
+      if (image.dataUrl) {
+        onImageCapture(image.dataUrl);
+      }
+    } catch (error: unknown) {
+      // User cancelled or permission denied - don't show error
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (!errorMessage.includes('cancelled') && !errorMessage.includes('User cancelled')) {
+        console.error('Camera error:', error);
+      }
+    } finally {
+      setIsCapturing(false);
+    }
+  };
+
+  // Web fallback using file input
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -124,6 +159,38 @@ export function ScannerCamera({ onImageCapture, isAnalyzing, previewImage }: Sca
     
     // Reset input so same file can be selected again
     event.target.value = '';
+  };
+
+  const handleCameraClick = () => {
+    if (isNative) {
+      captureWithNativeCamera(CameraSource.Camera);
+    } else {
+      // For web, we'll use a file input with capture
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.capture = 'environment';
+      input.onchange = (e) => {
+        const file = (e.target as HTMLInputElement).files?.[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            const base64 = ev.target?.result as string;
+            onImageCapture(base64);
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+      input.click();
+    }
+  };
+
+  const handleGalleryClick = () => {
+    if (isNative) {
+      captureWithNativeCamera(CameraSource.Photos);
+    } else {
+      fileInputRef.current?.click();
+    }
   };
 
   return (
@@ -201,14 +268,7 @@ export function ScannerCamera({ onImageCapture, isAnalyzing, previewImage }: Sca
               <p className="text-muted-foreground mb-6 text-lg">{t.instructions}</p>
               
               <div className="flex gap-3 justify-center">
-                <input
-                  ref={cameraInputRef}
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
+                {/* Hidden file input for web gallery fallback */}
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -218,16 +278,18 @@ export function ScannerCamera({ onImageCapture, isAnalyzing, previewImage }: Sca
                 />
                 
                 <Button
-                  onClick={() => cameraInputRef.current?.click()}
+                  onClick={handleCameraClick}
+                  disabled={isCapturing}
                   size="lg"
                   className="gap-2 rounded-2xl px-6 h-14 text-base font-semibold shadow-lg"
                 >
-                  <Camera className="h-5 w-5" />
+                  <CameraIcon className="h-5 w-5" />
                   {t.takePhoto}
                 </Button>
                 
                 <Button
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={handleGalleryClick}
+                  disabled={isCapturing}
                   variant="outline"
                   size="lg"
                   className="gap-2 rounded-2xl px-6 h-14 text-base font-semibold"
