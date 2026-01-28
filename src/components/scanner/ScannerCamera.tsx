@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react';
-import { Camera, Upload, Loader2, Scan, Sparkles, ChefHat } from 'lucide-react';
+import { useRef } from 'react';
+import { Camera, Upload, Scan, Sparkles, ChefHat } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -9,6 +9,91 @@ interface ScannerCameraProps {
   onImageCapture: (base64: string) => void;
   isAnalyzing: boolean;
   previewImage: string | null;
+}
+
+// Scanning frame overlay component
+function ScanningFrame({ isAnalyzing }: { isAnalyzing: boolean }) {
+  return (
+    <div className="absolute inset-0 pointer-events-none">
+      {/* Corner brackets */}
+      <div className="absolute inset-4">
+        {/* Top Left */}
+        <motion.div 
+          className="absolute top-0 left-0 w-12 h-12"
+          animate={isAnalyzing ? { opacity: [0.5, 1, 0.5] } : {}}
+          transition={{ duration: 1.5, repeat: Infinity }}
+        >
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-primary to-transparent rounded-full" />
+          <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-primary via-primary to-transparent rounded-full" />
+        </motion.div>
+        
+        {/* Top Right */}
+        <motion.div 
+          className="absolute top-0 right-0 w-12 h-12"
+          animate={isAnalyzing ? { opacity: [0.5, 1, 0.5] } : {}}
+          transition={{ duration: 1.5, repeat: Infinity, delay: 0.2 }}
+        >
+          <div className="absolute top-0 right-0 w-full h-1 bg-gradient-to-l from-primary via-primary to-transparent rounded-full" />
+          <div className="absolute top-0 right-0 w-1 h-full bg-gradient-to-b from-primary via-primary to-transparent rounded-full" />
+        </motion.div>
+        
+        {/* Bottom Left */}
+        <motion.div 
+          className="absolute bottom-0 left-0 w-12 h-12"
+          animate={isAnalyzing ? { opacity: [0.5, 1, 0.5] } : {}}
+          transition={{ duration: 1.5, repeat: Infinity, delay: 0.4 }}
+        >
+          <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-primary to-transparent rounded-full" />
+          <div className="absolute bottom-0 left-0 w-1 h-full bg-gradient-to-t from-primary via-primary to-transparent rounded-full" />
+        </motion.div>
+        
+        {/* Bottom Right */}
+        <motion.div 
+          className="absolute bottom-0 right-0 w-12 h-12"
+          animate={isAnalyzing ? { opacity: [0.5, 1, 0.5] } : {}}
+          transition={{ duration: 1.5, repeat: Infinity, delay: 0.6 }}
+        >
+          <div className="absolute bottom-0 right-0 w-full h-1 bg-gradient-to-l from-primary via-primary to-transparent rounded-full" />
+          <div className="absolute bottom-0 right-0 w-1 h-full bg-gradient-to-t from-primary via-primary to-transparent rounded-full" />
+        </motion.div>
+      </div>
+
+      {/* Scanning line animation when analyzing */}
+      {isAnalyzing && (
+        <motion.div
+          className="absolute left-4 right-4 h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent shadow-lg shadow-primary/50"
+          initial={{ top: "15%" }}
+          animate={{ top: ["15%", "85%", "15%"] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+        />
+      )}
+
+      {/* Subtle grid overlay */}
+      <div 
+        className="absolute inset-8 opacity-10"
+        style={{
+          backgroundImage: `
+            linear-gradient(to right, hsl(var(--primary)) 1px, transparent 1px),
+            linear-gradient(to bottom, hsl(var(--primary)) 1px, transparent 1px)
+          `,
+          backgroundSize: '20px 20px'
+        }}
+      />
+
+      {/* Center crosshair */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <motion.div 
+          className="relative"
+          animate={isAnalyzing ? { scale: [1, 1.1, 1], opacity: [0.3, 0.6, 0.3] } : { opacity: 0.3 }}
+          transition={{ duration: 1.5, repeat: Infinity }}
+        >
+          <div className="w-8 h-0.5 bg-primary/50 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+          <div className="w-0.5 h-8 bg-primary/50 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+          <div className="w-3 h-3 border border-primary/50 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+        </motion.div>
+      </div>
+    </div>
+  );
 }
 
 export function ScannerCamera({ onImageCapture, isAnalyzing, previewImage }: ScannerCameraProps) {
@@ -57,23 +142,17 @@ export function ScannerCamera({ onImageCapture, isAnalyzing, previewImage }: Sca
               alt="Food preview" 
               className="w-full h-64 object-cover"
             />
+            
+            {/* Scanning frame overlay */}
+            <ScanningFrame isAnalyzing={isAnalyzing} />
+            
             {isAnalyzing && (
               <motion.div 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/60 to-black/40 backdrop-blur-sm flex items-center justify-center"
+                className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-black/20 flex items-center justify-center"
               >
                 <div className="flex flex-col items-center gap-4">
-                  {/* Scanning line animation */}
-                  <div className="relative w-full h-full absolute inset-0">
-                    <motion.div
-                      className="absolute left-4 right-4 h-1 bg-gradient-to-r from-transparent via-primary to-transparent rounded-full shadow-lg shadow-primary/50"
-                      initial={{ top: "10%" }}
-                      animate={{ top: ["10%", "90%", "10%"] }}
-                      transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                    />
-                  </div>
-                  
                   <motion.div 
                     className="relative z-10"
                     animate={{ rotate: 360 }}
@@ -89,7 +168,7 @@ export function ScannerCamera({ onImageCapture, isAnalyzing, previewImage }: Sca
                       </motion.div>
                     </div>
                   </motion.div>
-                  <span className="text-white font-semibold text-lg relative z-10">{t.analyzing}</span>
+                  <span className="text-white font-semibold text-lg relative z-10 drop-shadow-lg">{t.analyzing}</span>
                 </div>
               </motion.div>
             )}
