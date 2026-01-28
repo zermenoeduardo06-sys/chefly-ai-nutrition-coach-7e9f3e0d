@@ -26,12 +26,6 @@ export const DashboardHeader = ({ displayName, currentStreak, level, avatarUrl }
   const name = displayName || (language === 'es' ? 'Chef' : 'Chef');
   const greeting = getGreeting();
   
-  const today = new Date();
-  const dateStr = today.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long'
-  });
 
   return (
     <motion.div 
@@ -44,7 +38,6 @@ export const DashboardHeader = ({ displayName, currentStreak, level, avatarUrl }
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
             {greeting}, <span className="text-primary">{name}</span>! 👋
           </h1>
-          <p className="text-sm text-muted-foreground capitalize">{dateStr}</p>
         </div>
         
         {/* Profile avatar & Streak & Level badges */}
