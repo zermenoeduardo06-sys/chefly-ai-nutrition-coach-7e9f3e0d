@@ -48,6 +48,7 @@ import { useCelebrations } from "@/hooks/useCelebrations";
 import { useAppReview } from "@/hooks/useAppReview";
 import { useSubscriptionPromo } from "@/hooks/useSubscriptionPromo";
 import { SubscriptionPromoBanner } from "@/components/SubscriptionPromoBanner";
+import { DashboardHeader } from "@/components/DashboardHeader";
 
 interface MealAdaptation {
   id: string;
@@ -1160,25 +1161,13 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* GREETING HEADER - Welcome message with name */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="pb-2"
-        >
-          <h1 className="text-xl tablet:text-2xl font-bold text-foreground">
-            {(() => {
-              const hour = new Date().getHours();
-              const greeting = hour < 12 
-                ? (language === 'es' ? '¡Buenos días' : 'Good morning')
-                : hour < 18 
-                  ? (language === 'es' ? '¡Buenas tardes' : 'Good afternoon')
-                  : (language === 'es' ? '¡Buenas noches' : 'Good evening');
-              const name = profile?.display_name || (language === 'es' ? 'Chef' : 'Chef');
-              return <>{greeting}, <span className="text-primary">{name}</span>! 👋</>;
-            })()}
-          </h1>
-        </motion.div>
+        {/* GREETING HEADER - Welcome message with name and profile avatar */}
+        <DashboardHeader
+          displayName={profile?.display_name}
+          currentStreak={userStats.current_streak}
+          level={userStats.level}
+          avatarUrl={profile?.avatar_url}
+        />
 
         {/* SUBSCRIPTION PROMO BANNER - For free users on native platforms */}
         {shouldShowBanner && (

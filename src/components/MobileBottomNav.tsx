@@ -1,4 +1,4 @@
-import { BookOpen, TrendingUp, ChefHat, Sparkles, Menu } from "lucide-react";
+import { BookOpen, TrendingUp, ChefHat, Sparkles, Heart } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -10,7 +10,7 @@ const navItems = [
   { icon: ChefHat, path: "/recipes", color: "text-violet-500", tourId: "nav-recipes", labelEs: "Recetas", labelEn: "Recipes" },
   { icon: TrendingUp, path: "/dashboard/progress", color: "text-emerald-500", tourId: "nav-progress", labelEs: "Progreso", labelEn: "Progress", isCenter: true },
   { icon: Sparkles, path: "/chef-ia", color: "text-amber-500", tourId: "nav-chef", labelEs: "Chef IA", labelEn: "Chef AI" },
-  { icon: Menu, path: "/dashboard/more", color: "text-purple-500", tourId: "nav-more", labelEs: "Más", labelEn: "More" },
+  { icon: Heart, path: "/dashboard/wellness", color: "text-pink-500", tourId: "nav-wellness", labelEs: "Bienestar", labelEn: "Wellness" },
 ];
 
 export function MobileBottomNav() {
