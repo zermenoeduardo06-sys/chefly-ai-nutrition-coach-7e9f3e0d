@@ -26,6 +26,8 @@ import { InAppTour } from "@/components/InAppTour";
 import MobileWelcomeTutorial from "@/components/MobileWelcomeTutorial";
 import { clearAllShoppingListCaches } from "@/utils/shoppingListCache";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useNotificationPrompts } from "@/hooks/useNotificationPrompts";
+import { NotificationPermissionPrompt } from "@/components/NotificationPermissionPrompt";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useHaptics } from "@/hooks/useHaptics";
 import { useOfflineMode } from "@/hooks/useOfflineMode";
@@ -125,6 +127,7 @@ const Dashboard = () => {
   const [showTutorial, setShowTutorial] = useState(false);
   const [showInAppTour, setShowInAppTour] = useState(false);
   const [showMobileWelcome, setShowMobileWelcome] = useState(false);
+  const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
   const [showFoodScanner, setShowFoodScanner] = useState(false);
   const [showMealPhotoDialog, setShowMealPhotoDialog] = useState(false);
   const [mealToComplete, setMealToComplete] = useState<Meal | null>(null);
@@ -141,7 +144,7 @@ const Dashboard = () => {
   const [searchParams] = useSearchParams();
   const { t, getArray, language, setLanguage } = useLanguage();
   const { triggerCelebration: triggerMascotCelebration } = useMascot();
-  const { scheduleMealReminders, scheduleStreakRiskAlert, permissionGranted, isNative } = useNotifications();
+  const { scheduleMealReminders, scheduleStreakRiskAlert, permissionGranted, isNative, requestPermissions } = useNotifications();
   const { successNotification, celebrationPattern, errorNotification, selectionChanged } = useHaptics();
   const { isOnline, isSyncing, pendingCount, cacheMeals, getCachedMeals, addPendingCompletion } = useOfflineMode(userId);
   
@@ -160,6 +163,8 @@ const Dashboard = () => {
     isLoading: limits.isLoading,
   });
   
+  // Notification prompt system
+  const notificationPrompts = useNotificationPrompts();
   // Daily food intake tracking from food_scans - uses selected date
   const { consumedCalories, consumedMacros, recentFoods, refetch: refetchFoodIntake } = useDailyFoodIntake(userId, selectedDate);
   
@@ -324,6 +329,16 @@ const Dashboard = () => {
       localStorage.setItem(`mobile_welcome_seen_${userId}`, 'true');
     }
     setShowMobileWelcome(false);
+    
+    // Show notification prompt after tutorial for new users on native
+    if (isNative && !permissionGranted && notificationPrompts.isLoaded) {
+      setTimeout(() => {
+        if (notificationPrompts.shouldShowPrompt('post_onboarding', { isNative: true, permissionGranted, isNewUser: true })) {
+          setShowNotificationPrompt(true);
+          notificationPrompts.markPromptShown();
+        }
+      }, 2000);
+    }
   };
 
   const handleInAppTourComplete = () => {
@@ -332,6 +347,43 @@ const Dashboard = () => {
     }
     setShowInAppTour(false);
   };
+
+  const handleNotificationPromptAccept = async () => {
+    const granted = await requestPermissions();
+    if (granted) {
+      notificationPrompts.markPromptAccepted();
+      scheduleMealReminders(language);
+      toast({
+        title: language === 'es' ? '¡Notificaciones activadas!' : 'Notifications enabled!',
+        description: language === 'es' ? 'Te avisaremos en cada comida' : 'We\'ll remind you at each meal',
+      });
+    }
+    setShowNotificationPrompt(false);
+  };
+
+  const handleNotificationPromptDismiss = () => {
+    notificationPrompts.markPromptDismissed();
+    setShowNotificationPrompt(false);
+  };
+
+  // Periodic notification prompt check for returning users
+  useEffect(() => {
+    if (!isNative || permissionGranted || !notificationPrompts.isLoaded || !initialLoadComplete) return;
+    
+    // Check if we should show periodic prompt (not for new users who just completed tutorial)
+    const shouldShowPeriodic = notificationPrompts.shouldShowPrompt('periodic', { 
+      isNative: true, 
+      permissionGranted,
+      isNewUser: false,
+    });
+    
+    if (shouldShowPeriodic && !showMobileWelcome && !showInAppTour) {
+      setTimeout(() => {
+        setShowNotificationPrompt(true);
+        notificationPrompts.markPromptShown();
+      }, 5000);
+    }
+  }, [isNative, permissionGranted, notificationPrompts.isLoaded, initialLoadComplete]);
 
   const loadUserStats = async (userId: string) => {
     const { data, error } = await supabase
@@ -1268,6 +1320,13 @@ const Dashboard = () => {
           completeMeal(mealId);
           setMealToComplete(null);
         }}
+      />
+
+      {/* Notification Permission Prompt */}
+      <NotificationPermissionPrompt
+        open={showNotificationPrompt}
+        onAccept={handleNotificationPromptAccept}
+        onDismiss={handleNotificationPromptDismiss}
       />
 
       {/* MealEntryOptionsModal removed - using page navigation now */}
