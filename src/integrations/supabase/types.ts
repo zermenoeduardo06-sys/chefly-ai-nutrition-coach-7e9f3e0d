@@ -554,6 +554,60 @@ export type Database = {
         }
         Relationships: []
       }
+      body_scans: {
+        Row: {
+          ai_notes: string | null
+          body_fat_category: string | null
+          body_type: string | null
+          confidence: string | null
+          created_at: string | null
+          estimated_body_fat_max: number | null
+          estimated_body_fat_min: number | null
+          fat_distribution: string | null
+          id: string
+          image_url: string
+          raw_analysis: Json | null
+          recommendations: string[] | null
+          scan_type: string | null
+          scanned_at: string | null
+          user_id: string
+        }
+        Insert: {
+          ai_notes?: string | null
+          body_fat_category?: string | null
+          body_type?: string | null
+          confidence?: string | null
+          created_at?: string | null
+          estimated_body_fat_max?: number | null
+          estimated_body_fat_min?: number | null
+          fat_distribution?: string | null
+          id?: string
+          image_url: string
+          raw_analysis?: Json | null
+          recommendations?: string[] | null
+          scan_type?: string | null
+          scanned_at?: string | null
+          user_id: string
+        }
+        Update: {
+          ai_notes?: string | null
+          body_fat_category?: string | null
+          body_type?: string | null
+          confidence?: string | null
+          created_at?: string | null
+          estimated_body_fat_max?: number | null
+          estimated_body_fat_min?: number | null
+          fat_distribution?: string | null
+          id?: string
+          image_url?: string
+          raw_analysis?: Json | null
+          recommendations?: string[] | null
+          scan_type?: string | null
+          scanned_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           content: string
@@ -1052,6 +1106,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      mood_logs: {
+        Row: {
+          created_at: string | null
+          factors: string[] | null
+          id: string
+          logged_at: string | null
+          mood_score: number
+          note: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          factors?: string[] | null
+          id?: string
+          logged_at?: string | null
+          mood_score: number
+          note?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          factors?: string[] | null
+          id?: string
+          logged_at?: string | null
+          mood_score?: number
+          note?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       notification_preferences: {
         Row: {
@@ -1710,6 +1794,42 @@ export type Database = {
           percentage?: number
           starting_weight?: number
           target_weight?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wellness_insights: {
+        Row: {
+          created_at: string | null
+          description: string
+          generated_at: string | null
+          id: string
+          insight_type: string
+          is_read: boolean | null
+          related_data: Json | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          generated_at?: string | null
+          id?: string
+          insight_type: string
+          is_read?: boolean | null
+          related_data?: Json | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          generated_at?: string | null
+          id?: string
+          insight_type?: string
+          is_read?: boolean | null
+          related_data?: Json | null
+          title?: string
           user_id?: string
         }
         Relationships: []
