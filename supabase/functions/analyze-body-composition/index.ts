@@ -237,6 +237,22 @@ Respond ONLY in valid JSON with this exact format:
       raw_analysis: analysis,
     };
 
+    // Record AI usage for body scan (~8 cents, same as food scan with vision)
+    const BODY_SCAN_COST_CENTS = 8;
+    try {
+      await supabase.functions.invoke('record-ai-usage', {
+        body: {
+          userId: user.id,
+          operationType: 'body_scan',
+          costCents: BODY_SCAN_COST_CENTS,
+          wasCached: false,
+        },
+      });
+    } catch (usageError) {
+      console.error("Failed to record AI usage:", usageError);
+      // Don't fail the request if usage tracking fails
+    }
+
     return new Response(JSON.stringify({
       success: true,
       analysis: normalizedAnalysis,
