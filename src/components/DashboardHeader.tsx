@@ -1,16 +1,20 @@
 import { motion } from "framer-motion";
-import { Flame, Sparkles } from "lucide-react";
+import { Flame, Sparkles, User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { InfoTooltip } from "@/components/InfoTooltip";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface DashboardHeaderProps {
   displayName?: string;
   currentStreak: number;
   level: number;
+  avatarUrl?: string | null;
 }
 
-export const DashboardHeader = ({ displayName, currentStreak, level }: DashboardHeaderProps) => {
+export const DashboardHeader = ({ displayName, currentStreak, level, avatarUrl }: DashboardHeaderProps) => {
   const { language } = useLanguage();
+  const navigate = useNavigate();
   
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -43,8 +47,24 @@ export const DashboardHeader = ({ displayName, currentStreak, level }: Dashboard
           <p className="text-sm text-muted-foreground capitalize">{dateStr}</p>
         </div>
         
-        {/* Streak & Level badges */}
+        {/* Profile avatar & Streak & Level badges */}
         <div className="flex items-center gap-2">
+          {/* Profile avatar - navigates to More page */}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate('/dashboard/more')}
+            className="relative"
+          >
+            <Avatar className="h-10 w-10 border-2 border-primary/30 shadow-lg">
+              <AvatarImage src={avatarUrl || undefined} alt={displayName || 'Profile'} />
+              <AvatarFallback className="bg-gradient-to-br from-primary/20 to-secondary/20">
+                <User className="h-5 w-5 text-primary" />
+              </AvatarFallback>
+            </Avatar>
+            {/* Small indicator dot */}
+            <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-primary border-2 border-background" />
+          </motion.button>
           {currentStreak > 0 && (
             <motion.div 
               initial={{ scale: 0 }}
