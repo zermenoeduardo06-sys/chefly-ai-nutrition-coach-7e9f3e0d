@@ -1,288 +1,158 @@
 
-
-# Plan: Agregar Caché de React Query al NutritionSummaryWidget
+# Plan: Actualizar Tutorial de Bienvenida para Nuevos Usuarios
 
 ## Diagnóstico
 
 ### Estado Actual
-El `NutritionSummaryWidget` usa el patrón antiguo de `useState` + `useEffect` para cargar datos, causando:
 
-1. **Re-fetch cada vez que se monta** - No hay caché
-2. **4 queries a Supabase** por cada carga:
-   - `meal_completions` (con join a `meals`)
-   - `food_scans`
-   - `meal_plans` (para obtener el plan activo)
-   - `meals` (para contar comidas del día)
-3. **Latencia visible** - Skeleton loader cada vez que abres el Dashboard
+El tutorial de bienvenida tiene 3 versiones:
+| Componente | Uso | Estado |
+|------------|-----|--------|
+| `MobileWelcomeTutorial.tsx` | Móvil/Nativo | **Desactualizado** - rutas y pasos incorrectos |
+| `DashboardTutorial.tsx` | Desktop (diálogo) | Traducciones obsoletas |
+| `InAppTour.tsx` | Desktop (spotlight) | Necesita actualizar targets |
 
-### Fuentes de Datos del Widget
-```text
-NutritionSummaryWidget calcula:
-├── meal_completions → Comidas del plan marcadas como completadas
-├── food_scans → Alimentos escaneados/añadidos manualmente  
-├── meal_plans → Para saber cuántas comidas hay en el día
-└── useNutritionGoals → Objetivos personalizados (YA usa React Query ✓)
-```
+### Problemas Identificados
+
+1. **Mascota incorrecta**: Usa `mascot-lime.png` en lugar de `mascot-happy.png` (la mascota oficial Chefly)
+
+2. **Navegación obsoleta**: Los pasos del tutorial hacen referencia a rutas que ya no existen:
+   - `/dashboard/shopping` → ahora no existe (lista de compras movida)
+   - `/dashboard/food-history` → obsoleto
+   - `/dashboard/profile` → ahora el perfil está en el avatar del header
+
+3. **Pestañas actuales no reflejadas**: La navegación actual es:
+   - **Diario** (`/dashboard`) - Ver plan y registrar comidas
+   - **Recetas** (`/recipes`) - Explorar recetas
+   - **Progreso** (`/dashboard/progress`) - Estadísticas y body scan
+   - **Chef IA** (`/chef-ia`) - Chat con el coach
+   - **Bienestar** (`/dashboard/wellness`) - Mood y tips
+
+4. **Contenido faltante**:
+   - No menciona el escáner de alimentos (feature premium importante)
+   - No menciona el seguimiento de bienestar
+   - No explica cómo acceder al perfil (avatar en header)
 
 ---
 
 ## Solución
 
-### Crear un nuevo hook: `useNutritionSummary`
+### Actualizar MobileWelcomeTutorial
 
-Seguir el mismo patrón de `useDailyFoodIntake` y `useNutritionGoals`:
-
-```typescript
-// src/hooks/useNutritionSummary.ts
-
-// Función pura de fetch
-async function fetchNutritionSummary(userId: string, dateKey: string) {
-  // Las 4 queries actuales consolidadas
-  const [completions, scans, mealPlan] = await Promise.all([...]);
-  
-  // Cálculos de totales
-  return { calories, protein, carbs, fats, mealsCompleted, totalMeals };
-}
-
-// Hook con React Query
-export function useNutritionSummary(userId: string, date: Date) {
-  return useQuery({
-    queryKey: ['nutritionSummary', userId, dateKey],
-    queryFn: () => fetchNutritionSummary(userId, dateKey),
-    staleTime: 2 * 60 * 1000, // 2 min
-    gcTime: 5 * 60 * 1000,
-  });
-}
-
-// Hook de invalidación
-export const useInvalidateNutritionSummary = () => {
-  const queryClient = useQueryClient();
-  return useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ['nutritionSummary'] });
-  }, [queryClient]);
-};
-```
-
----
-
-## Archivos a Modificar/Crear
-
-| Archivo | Acción | Cambio |
-|---------|--------|--------|
-| `src/hooks/useNutritionSummary.ts` | **CREAR** | Nuevo hook con React Query + invalidación |
-| `src/components/NutritionSummaryWidget.tsx` | Modificar | Usar el nuevo hook en lugar de useState/useEffect |
-| `src/pages/FoodScannerPage.tsx` | Modificar | Agregar invalidación del nuevo hook |
-| `src/pages/AddFood.tsx` | Modificar | Agregar invalidación del nuevo hook |
-| `src/components/scanner/ScannerFoodSearch.tsx` | Modificar | Agregar invalidación del nuevo hook |
-| `src/components/FoodScanner.tsx` | Modificar | Agregar invalidación del nuevo hook |
-| `src/components/MealPhotoDialog.tsx` | Modificar | Agregar invalidación del nuevo hook |
-| `src/components/ChallengePhotoDialog.tsx` | Modificar | Agregar invalidación del nuevo hook |
-| `src/pages/Dashboard.tsx` | Modificar | Agregar invalidación cuando se complete una comida del plan |
-
----
-
-## Estructura del Hook `useNutritionSummary.ts`
-
-```typescript
-import { useMemo, useCallback } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-
-interface NutritionSummaryData {
-  calories: number;
-  protein: number;
-  carbs: number;
-  fats: number;
-  mealsCompleted: number;
-  totalMeals: number;
-}
-
-const DEFAULT_SUMMARY: NutritionSummaryData = {
-  calories: 0,
-  protein: 0,
-  carbs: 0,
-  fats: 0,
-  mealsCompleted: 0,
-  totalMeals: 3,
-};
-
-async function fetchNutritionSummary(
-  userId: string, 
-  dateKey: string,
-  dayOfWeek: number
-): Promise<NutritionSummaryData> {
-  const dayStartISO = `${dateKey}T00:00:00.000Z`;
-  const dayEndISO = `${dateKey}T23:59:59.999Z`;
-
-  // Ejecutar queries en paralelo para mayor velocidad
-  const [completionsResult, scansResult, mealPlanResult] = await Promise.all([
-    supabase
-      .from("meal_completions")
-      .select(`id, meal_id, completed_at, meals (calories, protein, carbs, fats)`)
-      .eq("user_id", userId)
-      .gte("completed_at", dayStartISO)
-      .lt("completed_at", dayEndISO),
-    
-    supabase
-      .from("food_scans")
-      .select("calories, protein, carbs, fat")
-      .eq("user_id", userId)
-      .gte("scanned_at", dayStartISO)
-      .lt("scanned_at", dayEndISO),
-    
-    supabase
-      .from("meal_plans")
-      .select("id")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-  ]);
-
-  const completions = completionsResult.data || [];
-  const scans = scansResult.data || [];
-  const mealPlan = mealPlanResult.data;
-
-  // Contar comidas del día
-  let totalMealsForDate = 3;
-  if (mealPlan) {
-    const { count } = await supabase
-      .from("meals")
-      .select("id", { count: "exact" })
-      .eq("meal_plan_id", mealPlan.id)
-      .eq("day_of_week", dayOfWeek);
-    totalMealsForDate = count || 3;
-  }
-
-  // Calcular totales
-  let totalCalories = 0, totalProtein = 0, totalCarbs = 0, totalFats = 0;
-
-  completions.forEach((completion: any) => {
-    if (completion.meals) {
-      totalCalories += completion.meals.calories || 0;
-      totalProtein += completion.meals.protein || 0;
-      totalCarbs += completion.meals.carbs || 0;
-      totalFats += completion.meals.fats || 0;
-    }
-  });
-
-  scans.forEach((scan) => {
-    totalCalories += scan.calories || 0;
-    totalProtein += scan.protein || 0;
-    totalCarbs += scan.carbs || 0;
-    totalFats += scan.fat || 0;
-  });
-
-  return {
-    calories: totalCalories,
-    protein: totalProtein,
-    carbs: totalCarbs,
-    fats: totalFats,
-    mealsCompleted: completions.length,
-    totalMeals: totalMealsForDate,
-  };
-}
-
-export function useNutritionSummary(userId: string | undefined, date: Date = new Date()) {
-  const dateKey = useMemo(() => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  }, [date.getTime()]);
-
-  const dayOfWeek = date.getDay();
-
-  const query = useQuery({
-    queryKey: ['nutritionSummary', userId, dateKey],
-    queryFn: () => fetchNutritionSummary(userId!, dateKey, dayOfWeek),
-    enabled: !!userId,
-    staleTime: 2 * 60 * 1000, // 2 min
-    gcTime: 5 * 60 * 1000,
-  });
-
-  return {
-    data: query.data ?? DEFAULT_SUMMARY,
-    isLoading: query.isLoading && !query.isFetched,
-    refetch: query.refetch,
-  };
-}
-
-// Hook de invalidación para llamar después de agregar comida
-export const useInvalidateNutritionSummary = () => {
-  const queryClient = useQueryClient();
-  
-  return useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ['nutritionSummary'] });
-  }, [queryClient]);
-};
-```
-
----
-
-## Cambios en NutritionSummaryWidget
-
-### Antes (useState/useEffect)
-```typescript
-const [nutrition, setNutrition] = useState<DailyNutrition | null>(null);
-const [loading, setLoading] = useState(true);
-
-useEffect(() => {
-  loadDateNutrition();
-}, [userId, selectedDate]);
-
-const loadDateNutrition = async () => {
-  // 4 queries manuales...
-};
-```
-
-### Después (useNutritionSummary)
-```typescript
-import { useNutritionSummary } from "@/hooks/useNutritionSummary";
-
-const { data: nutrition, isLoading } = useNutritionSummary(userId, selectedDate);
-const { goals: dailyGoals, loading: goalsLoading } = useNutritionGoals(userId);
-
-// Eliminar useState, useEffect y loadDateNutrition
-```
-
----
-
-## Puntos de Invalidación
-
-Todos los lugares donde ya se invalida `foodIntake`, también invalidar `nutritionSummary`:
-
-```typescript
-// En cada archivo que agrega comida:
-import { useInvalidateFoodIntake } from '@/hooks/useDailyFoodIntake';
-import { useInvalidateNutritionSummary } from '@/hooks/useNutritionSummary';
-
-const invalidateFoodIntake = useInvalidateFoodIntake();
-const invalidateNutritionSummary = useInvalidateNutritionSummary();
-
-// Después de insert exitoso:
-invalidateFoodIntake();
-invalidateNutritionSummary();
-```
-
----
-
-## Flujo Resultante
+Rediseñar los pasos del tour para reflejar la navegación actual:
 
 ```text
-Usuario abre Dashboard
-├── Primera vez: fetch desde Supabase → guardar en caché
-├── Siguientes veces: datos del caché (instantáneo)
-└── Después de agregar comida: invalidar → refetch automático
+Paso 1: Bienvenida (pantalla central con mascota)
+Paso 2: Diario - Tu centro de nutrición diario  
+Paso 3: Recetas - Explora recetas personalizadas
+Paso 4: Progreso - Estadísticas y body scan
+Paso 5: Chef IA - Tu coach nutricional 24/7
+Paso 6: Bienestar - Cuida tu mente y cuerpo
+Paso 7: Tu Perfil - Accede desde tu avatar (¡NUEVO!)
 ```
+
+### Nuevos Pasos del Tour
+
+| Paso | Target | Icono | Título ES | Título EN | Descripción ES | Descripción EN |
+|------|--------|-------|-----------|-----------|----------------|----------------|
+| 1 | welcome | Mascota | ¡Bienvenido a Chefly! | Welcome to Chefly! | Soy tu coach de nutrición con IA. Te guiaré por la app para que saques el máximo provecho. | I'm your AI nutrition coach. I'll guide you through the app. |
+| 2 | nav-diary | BookOpen | Tu Diario | Your Diary | Aquí verás tu resumen del día: calorías, macros y comidas. Registra lo que comes y completa tu plan. | Here you'll see your daily summary: calories, macros and meals. Log what you eat and complete your plan. |
+| 3 | nav-recipes | ChefHat | Recetas | Recipes | Explora recetas personalizadas según tus preferencias. Cada una incluye ingredientes, pasos y valores nutricionales. | Explore personalized recipes based on your preferences. Each includes ingredients, steps and nutritional values. |
+| 4 | nav-progress | TrendingUp | Tu Progreso | Your Progress | Visualiza gráficas de tu evolución nutricional y medidas corporales. ¡También puedes hacer un body scan con IA! | Visualize charts of your nutritional evolution and body measurements. You can also do an AI body scan! |
+| 5 | nav-chef | Sparkles | Chef IA | Chef AI | ¿Dudas sobre nutrición? Pregúntame lo que quieras. Estoy aquí 24/7 para ayudarte con recetas, sustituciones y más. | Questions about nutrition? Ask me anything. I'm here 24/7 to help with recipes, substitutions and more. |
+| 6 | nav-wellness | Heart | Bienestar | Wellness | Registra cómo te sientes cada día. Descubre patrones entre tu alimentación y tu estado de ánimo. | Track how you feel each day. Discover patterns between your nutrition and mood. |
+| 7 | profile | User | Tu Perfil | Your Profile | Toca tu avatar en la esquina superior para acceder a tu perfil, ajustes y notificaciones. | Tap your avatar in the top corner to access your profile, settings and notifications. |
 
 ---
 
-## Impacto
+## Cambios por Archivo
 
-| Métrica | Antes | Después |
-|---------|-------|---------|
-| Queries al abrir Dashboard | 4 cada vez | 0 (si está en caché) |
-| Tiempo de carga | ~500ms | Instantáneo |
-| Actualización post-scan | Manual/delay | Automática |
+### 1. `src/components/MobileWelcomeTutorial.tsx`
 
+**Cambios:**
+- Cambiar import de `mascot-lime.png` → `mascot-happy.png`
+- Actualizar array `tourSteps` con los 7 nuevos pasos
+- Actualizar `pathMap` con las rutas correctas:
+  ```typescript
+  const pathMap: Record<string, string> = {
+    diary: "/dashboard",
+    recipes: "/recipes", 
+    progress: "/dashboard/progress",
+    chef: "/chef-ia",
+    wellness: "/dashboard/wellness",
+    profile: "", // Avatar en header, no es nav item
+  };
+  ```
+- Agregar iconos `BookOpen`, `Heart`, `User` de lucide-react
+- Añadir lógica especial para el paso "profile" que no necesita highlight de nav
+
+### 2. `src/components/DashboardTutorial.tsx`
+
+**Cambios:**
+- Actualizar los `steps` para reflejar las nuevas features
+- Agregar paso de "Bienestar" 
+- Agregar paso de "Escáner de Alimentos" (feature premium importante)
+- Cambiar iconos para mayor consistencia con la navegación
+
+### 3. `src/contexts/LanguageContext.tsx`
+
+**Cambios:**
+- Actualizar traducciones de `tutorial.*` para ambos idiomas
+- Hacer los textos más cortos y orientados a la acción
+- Añadir nuevas keys para bienestar y escáner
+
+---
+
+## Antes vs Después
+
+### Pasos del Tour Móvil
+
+| Antes | Después |
+|-------|---------|
+| 1. Bienvenida | 1. Bienvenida (con mascota oficial) |
+| 2. Tu menú semanal (Home) | 2. Tu Diario (BookOpen icon) |
+| 3. Lista de compras ❌ obsoleto | 3. Recetas (ChefHat icon) |
+| 4. Escanea tu comida (Camera) | 4. Tu Progreso (TrendingUp) |
+| 5. Tu progreso | 5. Chef IA (Sparkles) |
+| 6. Chat con coach | 6. Bienestar (Heart) ✨ nuevo |
+| 7. Tu perfil ❌ nav obsoleto | 7. Tu Perfil (acceso por avatar) |
+
+---
+
+## Detalles Técnicos
+
+### Selector para Avatar/Perfil
+
+Como el perfil ahora está en el header (no en la navegación inferior), necesitamos un selector especial:
+
+```typescript
+// Para el paso de "profile", buscar el avatar en el header
+if (step.target === "profile") {
+  element = document.querySelector('[data-tour="user-avatar"]');
+}
+```
+
+Agregar `data-tour="user-avatar"` al componente del avatar en `DashboardHeader.tsx`.
+
+---
+
+## Archivos a Modificar
+
+| Archivo | Cambio |
+|---------|--------|
+| `src/components/MobileWelcomeTutorial.tsx` | Actualizar pasos, rutas, iconos y mascota |
+| `src/components/DashboardTutorial.tsx` | Actualizar pasos y descripciones |
+| `src/contexts/LanguageContext.tsx` | Actualizar traducciones del tutorial |
+| `src/components/DashboardHeader.tsx` | Agregar `data-tour="user-avatar"` al avatar |
+
+---
+
+## Resultado Final
+
+Un tutorial de bienvenida que:
+
+1. **Es visualmente consistente** - Usa la mascota oficial Chefly
+2. **Refleja la UI actual** - Todas las pestañas y rutas correctas
+3. **Destaca features clave** - Bienestar, Chef IA, Progreso con body scan
+4. **Es más corto y accionable** - Textos concisos orientados al valor
+5. **Funciona en móvil y desktop** - Responsive con ambos componentes actualizados
