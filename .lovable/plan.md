@@ -1,260 +1,303 @@
 
-# Plan: Modernización de Pantallas de Pago Estilo Apps Premium
+# Plan: Carga Automática sin Espera para Diario y Progreso
 
 ## Objetivo
-Rediseñar todas las pantallas de pago, paywalls y promociones aplicando el estilo visual 3D de la app e inspirándose en los patrones de alta conversión de Duolingo, CalAI, Snapchat y Fitia que compartiste.
+Migrar los hooks y componentes restantes a React Query para que las páginas de **Diario (Dashboard)** y **Progreso** carguen instantáneamente sin ningún tiempo de espera visible.
 
 ---
 
-## Inspiración de los Ejemplos
+## Problema Actual
 
-| App | Patrón a adoptar |
-|-----|------------------|
-| **Duolingo** | Gradiente vibrante en hero, mascota grande central, beneficios con iconos coloridos, CTA fijo en bottom |
-| **Fitia** | Mascota celebrando con elementos flotantes (comida), mensaje personalizado, cards de plan seleccionables |
-| **CalAI** | Mockup visual del feature, "No Payment Due Now" como reassurance, botón full-width fijo |
-| **CalApp** | Split hero negro/blanco, estrellas de rating, badge "Ahorra X%", planes seleccionables |
-| **Snapchat** | Card premium dorada destacada, lista de beneficios dentro de la card, CTA amarillo llamativo |
-
----
-
-## Cambios por Componente
-
-### 1. `IAPPaywall.tsx` - Modal de Compra Principal
-
-Este es el punto de conversión final. Rediseño completo inspirado en Duolingo/Fitia:
-
-**Cambios visuales:**
-- Expandir a modal más grande (casi full-screen en móvil)
-- Hero con gradiente oscuro/vibrante y mascota `mascot-celebrating.png` grande
-- Elementos decorativos flotantes (emojis de comida animados)
-- Título emocional: "Te ayudaremos a alcanzar tu meta"
-- Beneficios con `Icon3D` coloridos (no solo checks)
-- Social proof: "4.8★ en App Store"
-- CTA fijo en bottom con botón `modern3d` prominente
-- Texto de reassurance: "Cancela cuando quieras"
-- Restaurar compras menos prominente (link pequeño)
-
-**Layout:**
-```
-┌─────────────────────────────────────┐
-│        [X close button]             │
-│                                     │
-│  🍎    ✨    🥕    🧀    🥦       │ ← Emojis flotantes
-│                                     │
-│      [Mascota celebrando]           │
-│                                     │
-│  "Te ayudaremos a alcanzar         │
-│   tu meta nutricional"              │
-│                                     │
-│  ┌───────────────────────────────┐ │
-│  │ Lo más popular    $7.99/mes   │ │ ← Card seleccionable
-│  └───────────────────────────────┘ │
-│                                     │
-│  ⚡ Planes frescos cada semana      │ ← Beneficios con Icon3D
-│  📷 Escanea cualquier platillo      │
-│  💬 Tu nutriólogo 24/7              │
-│  🔄 Cambia comidas cuando quieras   │
-│                                     │
-├─────────────────────────────────────┤ ← Fixed bottom
-│      Cancela cuando quieras         │
-│  [═══ COMENZAR AHORA ═══]          │ ← Button modern3d
-│      Restaurar compras              │
-└─────────────────────────────────────┘
-```
-
-### 2. `ContextualPaywall.tsx` - Paywall Contextual
-
-Cuando un usuario free intenta usar scanner/chat. Inspirado en Duolingo Max:
-
-**Cambios:**
-- Usar `Card3D` variant="elevated" como contenedor
-- Gradiente de fondo más dramático (como Duolingo purple)
-- Mascota más grande con animación floating
-- Mockup/preview del feature (como CalAI muestra el scanner)
-- Beneficios con `Icon3D` en lugar de simples checks
-- CTA fijo en bottom, no en el contenido scrolleable
-- Copy emocional por feature
-
-**Copy mejorado:**
-- scan: "Conoce lo que comes en segundos" + mockup del scanner
-- chat: "Tu nutriólogo de bolsillo 24/7" + preview de conversación
-- swap: "Cambia comidas cuando quieras" + visual de intercambio
-
-### 3. `Subscription.tsx` - Página Principal de Planes
-
-Inspirado en Snapchat/CalApp con cards seleccionables:
-
-**Cambios:**
-- Header más compacto con gradiente y mascota pequeña
-- Cards de plan con `Card3D` y efecto de selección
-- Badge "Lo más popular" flotante estilo Snapchat
-- Rating "4.8★ App Store" como social proof
-- Beneficios dentro de la card premium (como Snapchat)
-- CTA fijo en bottom
-- Gestión de suscripción más discreta
-
-**Layout:**
-```
-┌─────────────────────────────────────┐
-│ ← Suscripción          4.8★ +50k   │
-├─────────────────────────────────────┤
-│                                     │
-│  [Mascota + "Elige tu plan"]        │
-│                                     │
-│  ┌───────────────────────────────┐ │
-│  │ ★ LO MÁS POPULAR              │ │
-│  │ ─────────────────────────     │ │
-│  │  Chefly Plus      $7.99/mes   │ │
-│  │                               │ │
-│  │  ✓ Planes ilimitados          │ │
-│  │  ✓ Escaneo de comidas         │ │
-│  │  ✓ Chat IA 24/7               │ │
-│  └───────────────────────────────┘ │
-│                                     │
-│  ┌───────────────────────────────┐ │
-│  │  Plan Gratuito    GRATIS      │ │
-│  │  ✓ Ver plan semanal           │ │
-│  │  ✓ Seguimiento básico         │ │
-│  └───────────────────────────────┘ │
-│                                     │
-├─────────────────────────────────────┤
-│      Cancela cuando quieras         │
-│  [═══ MEJORAR AHORA ═══]           │
-│      Restaurar compras              │
-└─────────────────────────────────────┘
-```
-
-### 4. `PremiumPaywall.tsx` - Paywall Full-Screen
-
-Inspirado en Fitia con mascota central y elementos flotantes:
-
-**Cambios:**
-- Fondo oscuro con gradiente sutil
-- Mascota `mascot-celebrating.png` grande y central
-- Elementos flotantes (🍎🥕🧀🥦✨) animados
-- Título personalizado tipo Fitia
-- Solo plan mensual (eliminar yearly que no existe)
-- Beneficios con iconos coloridos
-- CTA fijo en bottom
-
-### 5. `SubscriptionBanner.tsx` - Banner en Configuración
-
-Modernizar con estilo 3D:
-
-**Cambios:**
-- Usar `Card3D` variant="glass"
-- Icono con `Icon3D`
-- Gradiente más vibrante
-- CTA más prominente
-
-### 6. `SubscriptionPromoBanner.tsx` - Banner Promocional
-
-Mejorar visualmente:
-
-**Cambios:**
-- Sombra 3D más pronunciada
-- Mascota pequeña animada
-- Efecto glassmorphism más visible
+| Componente | Problema |
+|------------|----------|
+| `useDailyFoodIntake.ts` | Usa `useState/useEffect` - no comparte caché, recarga cada vez |
+| `ProgressStatsTab.tsx` | `useEffect` interno con `setLoading(true)` bloqueante |
+| `ProgressAchievementsTab.tsx` | `useEffect` interno con `setLoading(true)` bloqueante |
+| `NutritionProgressCharts.tsx` | Carga datos internamente con `getUser()` + queries |
+| Prefetch actual | No incluye `useDailyFoodIntake` ni datos del Diario |
 
 ---
 
-## Mejoras de Copy
+## Solución
 
-### Principios aplicados:
-1. **Beneficios > Características**
-2. **Emocional > Racional**
-3. **Acción > Pasivo**
+### Estrategia de 3 Partes:
 
-### Copy actualizado por feature:
-
-| Feature | Antes | Después ES | Después EN |
-|---------|-------|------------|------------|
-| Plans | "Genera planes semanales ilimitados" | "Planes frescos cada semana" | "Fresh plans every week" |
-| Scanner | "Escaneo de comidas ilimitado" | "Escanea cualquier platillo" | "Scan any dish" |
-| Chat | "Chat IA + Escáner" | "Tu nutriólogo 24/7" | "Your 24/7 nutritionist" |
-| Swap | "Intercambia comidas entre días" | "Cambia comidas cuando quieras" | "Swap meals anytime" |
-| Friends | "Sistema de amigos" | "Motívate con amigos" | "Stay motivated with friends" |
+```text
+┌─────────────────────────────────────────────────┐
+│  1. Migrar hooks a React Query                   │
+│     → useDailyFoodIntake con useQuery            │
+│     → NutritionProgressCharts con useQuery       │
+└─────────────────────────────────────────────────┘
+               ↓
+┌─────────────────────────────────────────────────┐
+│  2. Componentes usan datos cacheados             │
+│     → ProgressStatsTab usa useProgressData       │
+│     → ProgressAchievementsTab usa useQuery       │
+└─────────────────────────────────────────────────┘
+               ↓
+┌─────────────────────────────────────────────────┐
+│  3. Prefetch expandido en Dashboard              │
+│     → Incluye datos del diario (food_scans)      │
+│     → Datos de achievements                      │
+└─────────────────────────────────────────────────┘
+```
 
 ---
 
-## Sección Técnica
+## Cambios por Archivo
 
-### Archivos a modificar:
+### 1. `src/hooks/useDailyFoodIntake.ts` - Migrar a React Query
 
-| Archivo | Tipo de cambio |
-|---------|---------------|
-| `src/components/IAPPaywall.tsx` | Rediseño completo |
-| `src/components/ContextualPaywall.tsx` | Rediseño completo |
-| `src/pages/Subscription.tsx` | Reestructurar con cards y CTA fijo |
-| `src/pages/PremiumPaywall.tsx` | Simplificar y mejorar visual |
-| `src/pages/Pricing.tsx` | Unificar estilo y CTA fijo |
-| `src/components/SubscriptionBanner.tsx` | Aplicar Card3D |
-| `src/components/SubscriptionPromoBanner.tsx` | Mejorar efectos |
+**Antes:** `useState` + `useEffect` + `fetchDailyIntake()`
 
-### Componentes a reutilizar:
-- `Card3D` (variant: elevated, glass)
-- `Icon3D` (colores: primary, emerald, amber, rose, sky)
-- Button variants: `modern3d`, `duolingo`
-- Framer Motion para animaciones
-
-### Mascots a usar:
-- `mascot-celebrating.png` - Hero principal de paywalls
-- `mascot-money.png` - Banners promocionales
-- `mascot-happy.png` - Estados de éxito
-
-### Patrón de layout fijo:
-
-```tsx
-// Estructura para CTA fijo en bottom
-<div className="min-h-screen flex flex-col">
-  {/* Contenido scrolleable */}
-  <div className="flex-1 overflow-y-auto pb-32">
-    {/* Hero, cards, beneficios */}
-  </div>
+**Después:**
+```typescript
+export function useDailyFoodIntake(userId: string | undefined, date: Date = new Date()) {
+  const dateKey = useMemo(() => date.toISOString().split('T')[0], [date.getTime()]);
   
-  {/* Footer fijo */}
-  <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-lg border-t border-border p-4 pb-safe">
-    <p className="text-center text-sm text-muted-foreground mb-2">
-      Cancela cuando quieras
-    </p>
-    <Button variant="modern3d" size="xl" className="w-full">
-      COMENZAR AHORA - $7.99/mes
-    </Button>
-    <button className="w-full text-center text-sm text-muted-foreground mt-3">
-      Restaurar compras
-    </button>
-  </div>
-</div>
+  const query = useQuery({
+    queryKey: ['foodIntake', userId, dateKey],
+    queryFn: () => fetchDailyIntakeData(userId!, dateKey),
+    enabled: !!userId,
+    staleTime: 2 * 60 * 1000, // 2 min
+    gcTime: 5 * 60 * 1000,
+  });
+
+  return {
+    consumedCalories: query.data?.consumedCalories ?? DEFAULT_CALORIES,
+    consumedMacros: query.data?.consumedMacros ?? DEFAULT_MACROS,
+    recentFoods: query.data?.recentFoods ?? {},
+    foodScans: query.data?.foodScans ?? [],
+    isLoading: query.isLoading && !query.isFetched,
+    refetch: query.refetch,
+  };
+}
 ```
 
-### Animaciones clave:
-- Floating emojis con `y: [0, -10, 0]` y `repeat: Infinity`
-- Stagger en lista de beneficios
-- Scale + spring en mascota
-- Pulse sutil en CTA
+### 2. `src/hooks/usePrefetch.ts` - Añadir prefetch del diario
+
+**Añadir `prefetchDiary()`:**
+```typescript
+const prefetchDiary = useCallback(() => {
+  if (!userId) return;
+  const today = new Date().toISOString().split('T')[0];
+  
+  // Today's food intake
+  queryClient.prefetchQuery({
+    queryKey: ['foodIntake', userId, today],
+    queryFn: () => fetchDailyIntakeData(userId, today),
+    staleTime: 2 * 60 * 1000,
+  });
+
+  // Weekly nutrition data
+  queryClient.prefetchQuery({
+    queryKey: ['nutritionProgress', 'weekly', userId],
+    queryFn: () => fetchWeeklyNutrition(userId),
+    staleTime: 5 * 60 * 1000,
+  });
+}, [userId, queryClient]);
+
+// Añadir achievements
+const prefetchAchievements = useCallback(() => {
+  if (!userId) return;
+  
+  queryClient.prefetchQuery({
+    queryKey: ['achievements', 'all'],
+    queryFn: fetchAllAchievements,
+    staleTime: 30 * 60 * 1000, // 30 min - logros cambian poco
+  });
+
+  queryClient.prefetchQuery({
+    queryKey: ['achievements', 'user', userId],
+    queryFn: () => fetchUserAchievements(userId),
+    staleTime: 5 * 60 * 1000,
+  });
+}, [userId, queryClient]);
+```
+
+**Actualizar `prefetchAll()`:**
+```typescript
+const prefetchAll = useCallback(() => {
+  if (!userId) return;
+  prefetchDiary();        // NUEVO
+  prefetchProgress();
+  prefetchWellness();
+  prefetchRecipes();
+  prefetchChat();
+  prefetchAchievements(); // NUEVO
+}, [...]);
+```
+
+### 3. `src/components/progress/ProgressStatsTab.tsx` - Usar React Query
+
+**Antes:** `useEffect` + `loadStats()` con `setLoading(true)`
+
+**Después:**
+```typescript
+export function ProgressStatsTab({ userId }: ProgressStatsTabProps) {
+  const { stats, isLoading } = useProgressData(userId);
+
+  // Skeleton solo si es la primera carga sin datos en caché
+  if (isLoading) {
+    return <Skeleton ... />;
+  }
+
+  // Resto del componente igual
+}
+```
+
+### 4. `src/components/progress/ProgressAchievementsTab.tsx` - Migrar a React Query
+
+**Antes:** `useEffect` + dos queries separadas
+
+**Después:**
+```typescript
+export function ProgressAchievementsTab({ userId }: ProgressAchievementsTabProps) {
+  // Achievements definition (cambia poco, staleTime largo)
+  const achievementsQuery = useQuery({
+    queryKey: ['achievements', 'all'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("achievements")
+        .select("*")
+        .order("requirement_value", { ascending: true });
+      return data || [];
+    },
+    staleTime: 30 * 60 * 1000, // 30 min
+  });
+
+  // User's unlocked achievements
+  const userAchievementsQuery = useQuery({
+    queryKey: ['achievements', 'user', userId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("user_achievements")
+        .select("achievement_id")
+        .eq("user_id", userId);
+      return new Set(data?.map(ua => ua.achievement_id) || []);
+    },
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // isLoading solo en primera carga
+  const isLoading = achievementsQuery.isLoading && !achievementsQuery.data;
+  
+  // ...resto del componente
+}
+```
+
+### 5. `src/components/NutritionProgressCharts.tsx` - Migrar a React Query
+
+**Problema:** Carga userId con `getUser()` y luego hace queries internas.
+
+**Solución:** Recibir `userId` como prop + usar `useQuery`:
+
+```typescript
+// Nuevo hook interno o extraer a hook separado
+const useWeeklyNutrition = (userId: string | null, selectedDate: Date) => {
+  return useQuery({
+    queryKey: ['nutritionProgress', 'weekly', userId, format(selectedDate, 'yyyy-ww')],
+    queryFn: () => loadWeeklyNutritionData(userId!, selectedDate),
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
+export const NutritionProgressCharts = ({ userId }: { userId: string }) => {
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const { data: weeklyData, isLoading } = useWeeklyNutrition(userId, selectedDate);
+  
+  // Skeleton-first en vez de loader bloqueante
+  // ...
+};
+```
+
+### 6. `src/hooks/useProgressData.ts` - Añadir stats
+
+El hook ya existe, pero necesita incluir stats para `ProgressStatsTab`:
+
+```typescript
+// Ya tienes:
+// - latestWeight
+// - measurements
+
+// Añadir user_stats al hook existente
+const statsQuery = useQuery({
+  queryKey: ['progress', 'stats', userId],
+  queryFn: () => fetchUserStats(userId!),
+  enabled: !!userId,
+  staleTime: 5 * 60 * 1000,
+});
+
+return {
+  latestWeight: ...,
+  measurements: ...,
+  stats: statsQuery.data ?? null,  // NUEVO
+  isLoading: ...,
+  refetchStats: statsQuery.refetch,
+};
+```
+
+---
+
+## Flujo de Datos Optimizado
+
+```text
+Usuario abre Dashboard
+         │
+         ├── Carga datos del Dashboard (diario)
+         │
+         └── [Background] prefetchAll():
+                  ├── prefetchDiary() - food_scans de hoy
+                  ├── prefetchProgress() - weight, measurements, stats
+                  ├── prefetchWellness() - moods
+                  ├── prefetchRecipes() - meal plan
+                  ├── prefetchChat() - messages
+                  └── prefetchAchievements() - achievements
+         
+Usuario toca "Progreso" 
+         │
+         └── Datos YA en caché → Render instantáneo (0ms)
+
+Usuario cambia de fecha en Diario
+         │
+         └── Prefetch de fecha siguiente/anterior en background
+```
 
 ---
 
 ## Resultado Esperado
 
-| Aspecto | Antes | Después |
+| Métrica | Antes | Después |
 |---------|-------|---------|
-| Claridad del valor | Lista densa de features | Beneficios visuales claros |
-| Jerarquía visual | Plana | Hero impactante + CTA destacado |
-| Posición CTA | Dentro del scroll | Siempre visible fijo |
-| Estilo visual | Básico | 3D moderno con gradientes |
-| Reassurance | Poco visible | "Cancela cuando quieras" prominente |
-| Social proof | Ninguno | Rating + usuarios |
+| Dashboard → Progress | 200-500ms | 0ms (datos en caché) |
+| Cambio de tab en Progress | 100-300ms | 0ms |
+| Skeleton visible | Cada navegación | Solo primera carga de sesión |
+| Refetch en navegación | Siempre | Nunca (usa staleTime) |
+
+---
+
+## Archivos a Modificar
+
+| Archivo | Cambio |
+|---------|--------|
+| `src/hooks/useDailyFoodIntake.ts` | Migrar a useQuery |
+| `src/hooks/usePrefetch.ts` | Añadir prefetchDiary, prefetchAchievements |
+| `src/hooks/useProgressData.ts` | Añadir stats query |
+| `src/components/progress/ProgressStatsTab.tsx` | Usar useProgressData |
+| `src/components/progress/ProgressAchievementsTab.tsx` | Migrar a useQuery |
+| `src/components/NutritionProgressCharts.tsx` | Recibir userId + useQuery |
+| `src/pages/Progress.tsx` | Pasar userId a NutritionProgressCharts |
 
 ---
 
 ## Orden de Implementación
 
-1. **IAPPaywall.tsx** - Impacto directo en conversión
-2. **ContextualPaywall.tsx** - Alto tráfico de usuarios free
-3. **PremiumPaywall.tsx** - Punto de entrada común
-4. **Subscription.tsx** - Página principal de planes
-5. **Pricing.tsx** - Unificar estilo
-6. **SubscriptionBanner.tsx** - Quick win
-7. **SubscriptionPromoBanner.tsx** - Quick win
+1. **useDailyFoodIntake.ts** - Base del diario
+2. **useProgressData.ts** - Añadir stats
+3. **usePrefetch.ts** - Expandir con diary + achievements
+4. **ProgressStatsTab.tsx** - Consumir desde useProgressData
+5. **ProgressAchievementsTab.tsx** - Migrar a useQuery
+6. **NutritionProgressCharts.tsx** - Recibir userId + useQuery
+7. **Progress.tsx** - Pasar userId al componente
