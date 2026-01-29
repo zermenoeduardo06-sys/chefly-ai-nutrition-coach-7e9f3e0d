@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { 
   ChefHat, 
   Flame, 
@@ -27,6 +28,7 @@ import { MealImageWithSkeleton } from "@/components/MealImageWithSkeleton";
 import { cn } from "@/lib/utils";
 import { RecipeCard } from "@/components/recipes/RecipeCard";
 import { useAuth } from "@/contexts/AuthContext";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Recipe {
   id: string;
@@ -117,28 +119,19 @@ const texts = {
 export default function Recipes() {
   const navigate = useNavigate();
   const { language } = useLanguage();
-  const [userId, setUserId] = useState<string>();
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [filteredRecipes, setFilteredRecipes] = useState<Recipe[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isGenerating, setIsGenerating] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [showRecipeDetail, setShowRecipeDetail] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
-  const { isCheflyPlus } = useSubscription(userId);
   const t = texts[language];
 
   // Use AuthContext for immediate user access
   const { user: authUser, isLoading: authLoading, isAuthenticated } = useAuth();
+  const userId = authUser?.id;
 
-  // Set userId from auth context immediately
-  useEffect(() => {
-    if (authUser?.id) {
-      setUserId(authUser.id);
-    }
-  }, [authUser?.id]);
+  const { isCheflyPlus } = useSubscription(userId);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -147,30 +140,21 @@ export default function Recipes() {
     }
   }, [authLoading, isAuthenticated, navigate]);
 
-  useEffect(() => {
-    if (!userId) return;
-    loadRecipes();
-  }, [userId]);
-
-  const loadRecipes = async () => {
-    if (!userId) return;
-    setIsLoading(true);
-
-    try {
+  // Fetch recipes with React Query for caching
+  const { data: recipes = [], isLoading } = useQuery({
+    queryKey: ['recipes', userId],
+    queryFn: async () => {
+      if (!userId) return [];
+      
       const { data: mealPlan } = await supabase
         .from("meal_plans")
         .select("id")
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
-      if (!mealPlan) {
-        setRecipes([]);
-        setFilteredRecipes([]);
-        setIsLoading(false);
-        return;
-      }
+      if (!mealPlan) return [];
 
       const { data: meals } = await supabase
         .from("meals")
@@ -179,23 +163,22 @@ export default function Recipes() {
         .order("day_of_week", { ascending: true })
         .order("meal_type", { ascending: true });
 
-      if (meals) {
-        const uniqueRecipes = meals.reduce((acc: Recipe[], meal) => {
-          if (!acc.find(r => r.name === meal.name)) {
-            acc.push(meal);
-          }
-          return acc;
-        }, []);
-        setRecipes(uniqueRecipes);
-        setFilteredRecipes(uniqueRecipes);
-      }
-    } catch (error) {
-      console.error("Error loading recipes:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      if (!meals) return [];
+      
+      // Deduplicate by name
+      return meals.reduce((acc: Recipe[], meal) => {
+        if (!acc.find(r => r.name === meal.name)) {
+          acc.push(meal);
+        }
+        return acc;
+      }, []);
+    },
+    enabled: !!userId,
+    staleTime: 10 * 60 * 1000, // 10 min - recipes don't change often
+    gcTime: 15 * 60 * 1000,
+  });
 
+  const queryClient = useQueryClient();
   const handleGeneratePlan = async () => {
     if (!userId || isGenerating) return;
     
@@ -222,7 +205,8 @@ export default function Recipes() {
         return;
       }
 
-      await loadRecipes();
+      // Invalidate recipes query to refetch
+      queryClient.invalidateQueries({ queryKey: ['recipes', userId] });
     } catch (error) {
       console.error("Error generating plan:", error);
     } finally {
@@ -230,7 +214,8 @@ export default function Recipes() {
     }
   };
 
-  useEffect(() => {
+  // Filter recipes using useMemo instead of useEffect + state
+  const filteredRecipes = useMemo(() => {
     let filtered = recipes;
 
     if (searchQuery) {
@@ -245,7 +230,7 @@ export default function Recipes() {
       filtered = filtered.filter(r => r.meal_type === activeFilter);
     }
 
-    setFilteredRecipes(filtered);
+    return filtered;
   }, [searchQuery, activeFilter, recipes]);
 
   const handleRecipeClick = (recipe: Recipe) => {
@@ -255,12 +240,18 @@ export default function Recipes() {
 
   const mealTypes = ["all", "desayuno", "almuerzo", "cena", "snack"];
 
-  if (isLoading) {
+  // Skeleton-first loading
+  if (authLoading || (isLoading && recipes.length === 0)) {
     return (
-      <div className="min-h-full bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-10 w-10 animate-spin text-primary" />
-          <p className="text-muted-foreground">{t.loading}</p>
+      <div className="min-h-full bg-background pb-24 lg:pb-6">
+        <div className="p-4 space-y-4 max-w-4xl mx-auto">
+          <Skeleton className="h-12 w-full rounded-xl" />
+          <Skeleton className="h-10 w-full rounded-xl" />
+          <div className="grid grid-cols-2 tablet:grid-cols-3 gap-3">
+            {[...Array(6)].map((_, i) => (
+              <Skeleton key={i} className="aspect-square rounded-2xl" />
+            ))}
+          </div>
         </div>
       </div>
     );

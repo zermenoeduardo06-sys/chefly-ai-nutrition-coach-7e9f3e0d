@@ -13,7 +13,7 @@ import { MoodCheckInWidget } from "@/components/wellness/MoodCheckInWidget";
 import { MoodHistoryChart } from "@/components/wellness/MoodHistoryChart";
 import { MoodInsightsCard } from "@/components/wellness/MoodInsightsCard";
 import { WellnessTips } from "@/components/wellness/WellnessTips";
-import { Loader2, Heart, Brain } from "lucide-react";
+import { Heart, Brain } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const Wellness = () => {
@@ -102,10 +102,18 @@ const Wellness = () => {
     }
   };
 
-  if (wellness.isLoading) {
+  // Skeleton-first: show skeleton only on initial auth load
+  if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-full bg-gradient-to-b from-background to-muted/30 pb-24 lg:pb-6">
+        <main className="container mx-auto px-4 tablet:px-6 py-4 tablet:py-6 space-y-5 max-w-3xl">
+          <div className="flex gap-2 p-1.5 bg-muted/50 rounded-2xl">
+            <div className="flex-1 h-10 bg-muted rounded-xl animate-pulse" />
+            <div className="flex-1 h-10 bg-muted rounded-xl animate-pulse" />
+          </div>
+          <div className="h-48 bg-muted rounded-2xl animate-pulse" />
+          <div className="h-64 bg-muted rounded-2xl animate-pulse" />
+        </main>
       </div>
     );
   }

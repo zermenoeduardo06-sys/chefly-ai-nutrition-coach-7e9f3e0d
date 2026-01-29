@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { NutritionProgressCharts } from "@/components/NutritionProgressCharts";
@@ -26,21 +26,24 @@ import { BodyScanCamera } from "@/components/body-scan/BodyScanCamera";
 import { BodyScanResultCard } from "@/components/body-scan/BodyScanResultCard";
 import { TransformationGallery } from "@/components/body-scan/TransformationGallery";
 import { BodyTypeIndicator } from "@/components/body-scan/BodyTypeIndicator";
+import { useProgressData } from "@/hooks/useProgressData";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Progress = () => {
-  const { isBlocked, isLoading } = useTrialGuard();
+  const { isBlocked, isLoading: trialLoading } = useTrialGuard();
   const { t, language } = useLanguage();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [userId, setUserId] = useState<string | null>(null);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [latestWeight, setLatestWeight] = useState<number | undefined>(undefined);
   const [activeTab, setActiveTab] = useState("nutrition");
   
   // Body scan states
   const [showCamera, setShowCamera] = useState(false);
   const [scanType, setScanType] = useState<'front' | 'side'>('front');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  // Use AuthContext for immediate user access
+  const { user: authUser, isLoading: authLoading } = useAuth();
+  const userId = authUser?.id || null;
 
   const subscription = useSubscription(userId || undefined);
   const wellness = useWellness(userId || undefined);
@@ -97,41 +100,24 @@ const Progress = () => {
     { id: "stats", label: tx.stats, icon: BarChart3 },
   ];
 
-  // Use AuthContext for immediate user access
-  const { user: authUser, isLoading: authLoading, isAuthenticated } = useAuth();
+  // Import useProgressData for cached weight
+  const { latestWeight, refetchWeight } = useProgressData(userId || undefined);
 
-  // Set userId from auth context immediately
-  useEffect(() => {
-    if (authUser?.id) {
-      setUserId(authUser.id);
-    }
-  }, [authUser?.id]);
+  const handleMeasurementSuccess = () => {
+    refetchWeight();
+  };
 
-  // Load latest weight when userId changes
-  useEffect(() => {
-    if (!userId) return;
-    
-    const loadLatestWeight = async () => {
-      const { data: latestMeasurement } = await supabase
-        .from("body_measurements")
-        .select("weight")
-        .eq("user_id", userId)
-        .order("measurement_date", { ascending: false })
-        .limit(1)
-        .single();
-      
-      if (latestMeasurement?.weight) {
-        setLatestWeight(latestMeasurement.weight);
-      }
-    };
-    
-    loadLatestWeight();
-  }, [userId, refreshTrigger]);
-
-  if (isLoading) {
+  // Skeleton-first: show skeleton only on initial auth load
+  if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-full bg-gradient-to-b from-background to-muted/30 pb-24 lg:pb-6">
+        <main className="container mx-auto px-4 tablet:px-6 py-4 tablet:py-6 space-y-5 max-w-3xl">
+          <Skeleton className="h-12 w-full rounded-2xl" />
+          <div className="space-y-4">
+            <Skeleton className="h-40 w-full rounded-2xl" />
+            <Skeleton className="h-32 w-full rounded-2xl" />
+          </div>
+        </main>
       </div>
     );
   }
@@ -139,10 +125,6 @@ const Progress = () => {
   if (isBlocked) {
     return null;
   }
-
-  const handleMeasurementSuccess = () => {
-    setRefreshTrigger(prev => prev + 1);
-  };
 
   const handleCapture = async (imageData: string) => {
     if (!userId) return;
@@ -309,10 +291,7 @@ const Progress = () => {
                   </Card3DContent>
                 </Card3D>
 
-                <BodyMeasurementCharts 
-                  userId={userId} 
-                  refreshTrigger={refreshTrigger}
-                />
+                <BodyMeasurementCharts userId={userId} />
               </div>
             )}
 
