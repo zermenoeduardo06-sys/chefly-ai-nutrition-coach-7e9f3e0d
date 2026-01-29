@@ -1,5 +1,4 @@
-import { Routes, Route, useLocation } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
+import { Routes, Route, useLocation, Outlet } from 'react-router-dom';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
@@ -51,7 +50,11 @@ import FoodScannerPage from '@/pages/FoodScannerPage';
 import PremiumPaywall from '@/pages/PremiumPaywall';
 import Wellness from '@/pages/Wellness';
 
-const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
+/**
+ * Persistent DashboardLayout shell - mounts ONCE and stays mounted
+ * across all dashboard/* navigations. Only the <Outlet /> content changes.
+ */
+const DashboardLayout = () => (
   <SidebarProvider>
     <div className="flex h-[100dvh] w-full bg-background overflow-hidden" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
       {/* Sidebar only visible on lg+ (desktop) */}
@@ -63,7 +66,9 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
         <header className="hidden lg:flex h-14 border-b bg-card sticky top-0 z-40 items-center px-4 flex-shrink-0">
           <SidebarTrigger />
         </header>
-        <main className="flex-1 overflow-y-auto overflow-x-hidden pb-mobile-nav lg:pb-0 scroll-touch bg-background">{children}</main>
+        <main className="flex-1 overflow-y-auto overflow-x-hidden pb-mobile-nav lg:pb-0 scroll-touch bg-background">
+          <Outlet />
+        </main>
       </div>
     </div>
     {/* Bottom nav visible on mobile AND tablet (hidden on lg+) */}
@@ -75,67 +80,80 @@ export const AnimatedRoutes = () => {
   const location = useLocation();
 
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
-        {/* Public pages */}
-        <Route path="/" element={<PageTransition><Index /></PageTransition>} />
-        <Route path="/start" element={<PageTransition><PreOnboarding /></PageTransition>} />
-        <Route path="/pre-onboarding" element={<PageTransition><PreOnboarding /></PageTransition>} />
-        <Route path="/auth" element={<PageTransition><Auth /></PageTransition>} />
-        <Route path="/welcome-onboarding" element={<PageTransition><OnboardingWelcome /></PageTransition>} />
-        <Route path="/pricing" element={<PageTransition><Pricing /></PageTransition>} />
-        <Route path="/welcome" element={<PageTransition><Welcome /></PageTransition>} />
-        <Route path="/privacy" element={<PageTransition><Privacy /></PageTransition>} />
-        <Route path="/terms" element={<PageTransition><Terms /></PageTransition>} />
-        <Route path="/faq" element={<PageTransition><FAQ /></PageTransition>} />
-        <Route path="/blog" element={<PageTransition><Blog /></PageTransition>} />
-        <Route path="/blog/:articleId" element={<PageTransition><BlogArticle /></PageTransition>} />
-        {/* Affiliate landing page hidden - exclusive influencer system */}
-        <Route path="/app-store-demo" element={<AppStoreDemo />} />
-        
-        {/* Dashboard pages */}
-        <Route path="/dashboard" element={<DashboardLayout><PageTransition><Dashboard /></PageTransition></DashboardLayout>} />
-        <Route path="/dashboard/progress" element={<DashboardLayout><PageTransition><Progress /></PageTransition></DashboardLayout>} />
-        <Route path="/dashboard/more" element={<DashboardLayout><PageTransition><MorePage /></PageTransition></DashboardLayout>} />
-        <Route path="/dashboard/achievements" element={<DashboardLayout><PageTransition><Achievements /></PageTransition></DashboardLayout>} />
-        <Route path="/dashboard/challenges" element={<DashboardLayout><PageTransition><Challenges /></PageTransition></DashboardLayout>} />
-        <Route path="/dashboard/leaderboard" element={<DashboardLayout><PageTransition><Leaderboard /></PageTransition></DashboardLayout>} />
-        <Route path="/dashboard/friends" element={<DashboardLayout><PageTransition><Friends /></PageTransition></DashboardLayout>} />
-        <Route path="/dashboard/profile" element={<DashboardLayout><PageTransition><Profile /></PageTransition></DashboardLayout>} />
-        <Route path="/dashboard/settings" element={<DashboardLayout><PageTransition><Settings /></PageTransition></DashboardLayout>} />
-        <Route path="/dashboard/settings/profile" element={<DashboardLayout><PageTransition><ProfileEdit /></PageTransition></DashboardLayout>} />
-        <Route path="/dashboard/settings/avatar" element={<DashboardLayout><PageTransition><AvatarEdit /></PageTransition></DashboardLayout>} />
-        <Route path="/dashboard/avatar" element={<DashboardLayout><PageTransition><AvatarEdit /></PageTransition></DashboardLayout>} />
-        <Route path="/dashboard/settings/preferences" element={<DashboardLayout><PageTransition><Preferences /></PageTransition></DashboardLayout>} />
-        <Route path="/dashboard/settings/notifications" element={<DashboardLayout><PageTransition><NotificationSettings /></PageTransition></DashboardLayout>} />
-        <Route path="/dashboard/settings/contact" element={<DashboardLayout><PageTransition><Contact /></PageTransition></DashboardLayout>} />
-        <Route path="/dashboard/shopping" element={<DashboardLayout><PageTransition><ShoppingList /></PageTransition></DashboardLayout>} />
-        <Route path="/dashboard/food-history" element={<DashboardLayout><PageTransition><FoodHistory /></PageTransition></DashboardLayout>} />
-        <Route path="/dashboard/food-search" element={<DashboardLayout><PageTransition><FoodSearch /></PageTransition></DashboardLayout>} />
-        <Route path="/dashboard/meal/:mealType" element={<PageTransition><MealDetail /></PageTransition>} />
-        <Route path="/dashboard/add-food/:mealType" element={<PageTransition><AddFood /></PageTransition>} />
-        <Route path="/dashboard/ai-camera/:mealType" element={<PageTransition><AICamera /></PageTransition>} />
-        <Route path="/dashboard/scanner" element={<DashboardLayout><PageTransition><FoodScannerPage /></PageTransition></DashboardLayout>} />
-        <Route path="/dashboard/scanner/:mealType" element={<DashboardLayout><PageTransition><FoodScannerPage /></PageTransition></DashboardLayout>} />
-        <Route path="/dashboard/wellness" element={<DashboardLayout><PageTransition><Wellness /></PageTransition></DashboardLayout>} />
-        <Route path="/premium-paywall" element={<PageTransition><PremiumPaywall /></PageTransition>} />
-        <Route path="/subscription" element={<DashboardLayout><PageTransition><Subscription /></PageTransition></DashboardLayout>} />
-        
-        <Route path="/admin/affiliates" element={<DashboardLayout><PageTransition><AdminAffiliatesDashboard /></PageTransition></DashboardLayout>} />
-        
-        {/* Chef IA Hub */}
-        <Route path="/chef-ia" element={<DashboardLayout><PageTransition><ChefIA /></PageTransition></DashboardLayout>} />
-        <Route path="/recipes" element={<DashboardLayout><PageTransition><Recipes /></PageTransition></DashboardLayout>} />
-        
-        {/* Chat */}
-        <Route path="/chat" element={<PageTransition><Chat /></PageTransition>} />
-        
-        {/* Influencer Dashboard (exclusive - created by admin only) */}
-        <Route path="/influencer/:code" element={<PageTransition><InfluencerDashboard /></PageTransition>} />
-        
-        {/* 404 */}
-        <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
-      </Routes>
-    </AnimatePresence>
+    <Routes location={location}>
+      {/* ============================================ */}
+      {/* PUBLIC PAGES - with page transitions        */}
+      {/* ============================================ */}
+      <Route path="/" element={<PageTransition><Index /></PageTransition>} />
+      <Route path="/start" element={<PageTransition><PreOnboarding /></PageTransition>} />
+      <Route path="/pre-onboarding" element={<PageTransition><PreOnboarding /></PageTransition>} />
+      <Route path="/auth" element={<PageTransition><Auth /></PageTransition>} />
+      <Route path="/welcome-onboarding" element={<PageTransition><OnboardingWelcome /></PageTransition>} />
+      <Route path="/pricing" element={<PageTransition><Pricing /></PageTransition>} />
+      <Route path="/welcome" element={<PageTransition><Welcome /></PageTransition>} />
+      <Route path="/privacy" element={<PageTransition><Privacy /></PageTransition>} />
+      <Route path="/terms" element={<PageTransition><Terms /></PageTransition>} />
+      <Route path="/faq" element={<PageTransition><FAQ /></PageTransition>} />
+      <Route path="/blog" element={<PageTransition><Blog /></PageTransition>} />
+      <Route path="/blog/:articleId" element={<PageTransition><BlogArticle /></PageTransition>} />
+      <Route path="/app-store-demo" element={<AppStoreDemo />} />
+      <Route path="/premium-paywall" element={<PageTransition><PremiumPaywall /></PageTransition>} />
+      <Route path="/chat" element={<PageTransition><Chat /></PageTransition>} />
+      <Route path="/influencer/:code" element={<PageTransition><InfluencerDashboard /></PageTransition>} />
+
+      {/* ============================================ */}
+      {/* DASHBOARD PAGES - persistent shell          */}
+      {/* Layout mounts once, only Outlet changes     */}
+      {/* ============================================ */}
+      <Route path="/dashboard" element={<DashboardLayout />}>
+        <Route index element={<Dashboard />} />
+        <Route path="progress" element={<Progress />} />
+        <Route path="more" element={<MorePage />} />
+        <Route path="achievements" element={<Achievements />} />
+        <Route path="challenges" element={<Challenges />} />
+        <Route path="leaderboard" element={<Leaderboard />} />
+        <Route path="friends" element={<Friends />} />
+        <Route path="profile" element={<Profile />} />
+        <Route path="settings" element={<Settings />} />
+        <Route path="settings/profile" element={<ProfileEdit />} />
+        <Route path="settings/avatar" element={<AvatarEdit />} />
+        <Route path="avatar" element={<AvatarEdit />} />
+        <Route path="settings/preferences" element={<Preferences />} />
+        <Route path="settings/notifications" element={<NotificationSettings />} />
+        <Route path="settings/contact" element={<Contact />} />
+        <Route path="shopping" element={<ShoppingList />} />
+        <Route path="food-history" element={<FoodHistory />} />
+        <Route path="food-search" element={<FoodSearch />} />
+        <Route path="scanner" element={<FoodScannerPage />} />
+        <Route path="scanner/:mealType" element={<FoodScannerPage />} />
+        <Route path="wellness" element={<Wellness />} />
+      </Route>
+
+      {/* Dashboard pages that need full-screen (no persistent nav) */}
+      <Route path="/dashboard/meal/:mealType" element={<PageTransition><MealDetail /></PageTransition>} />
+      <Route path="/dashboard/add-food/:mealType" element={<PageTransition><AddFood /></PageTransition>} />
+      <Route path="/dashboard/ai-camera/:mealType" element={<PageTransition><AICamera /></PageTransition>} />
+
+      {/* Subscription page within dashboard shell */}
+      <Route path="/subscription" element={<DashboardLayout />}>
+        <Route index element={<Subscription />} />
+      </Route>
+
+      {/* Admin pages within dashboard shell */}
+      <Route path="/admin/affiliates" element={<DashboardLayout />}>
+        <Route index element={<AdminAffiliatesDashboard />} />
+      </Route>
+
+      {/* Chef IA and Recipes - within dashboard shell */}
+      <Route path="/chef-ia" element={<DashboardLayout />}>
+        <Route index element={<ChefIA />} />
+      </Route>
+      <Route path="/recipes" element={<DashboardLayout />}>
+        <Route index element={<Recipes />} />
+      </Route>
+
+      {/* 404 */}
+      <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
+    </Routes>
   );
 };

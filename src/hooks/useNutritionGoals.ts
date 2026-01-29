@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 interface NutritionGoals {
@@ -106,115 +106,86 @@ const calculateMacros = (
   };
 };
 
-export const useNutritionGoals = (userId: string | null) => {
-  const [goals, setGoals] = useState<NutritionGoals>(DEFAULT_GOALS);
-  const [loading, setLoading] = useState(true);
-  const [userMetrics, setUserMetrics] = useState<UserMetrics | null>(null);
-  
-  // Use ref to track if we've already loaded to prevent duplicate calls
-  const hasLoadedRef = useRef(false);
-  const lastUserIdRef = useRef<string | null>(null);
+const calculateGoals = (metrics: UserMetrics): NutritionGoals => {
+  const { age, weight, height, gender, activityLevel, goal } = metrics;
 
-  const calculateGoals = useCallback((metrics: UserMetrics): NutritionGoals => {
-    const { age, weight, height, gender, activityLevel, goal } = metrics;
+  // If we don't have essential data, return defaults
+  if (!weight || !height || !age || !gender) {
+    return DEFAULT_GOALS;
+  }
 
-    // If we don't have essential data, return defaults
-    if (!weight || !height || !age || !gender) {
-      return DEFAULT_GOALS;
-    }
+  const bmr = calculateBMR(weight, height, age, gender);
+  const tdee = calculateTDEE(bmr, activityLevel || "moderate");
+  const adjustedCalories = adjustForGoal(tdee, goal || "eat_healthy");
+  const { protein, carbs, fats } = calculateMacros(adjustedCalories, weight, goal || "eat_healthy");
 
-    const bmr = calculateBMR(weight, height, age, gender);
-    const tdee = calculateTDEE(bmr, activityLevel || "moderate");
-    const adjustedCalories = adjustForGoal(tdee, goal || "eat_healthy");
-    const { protein, carbs, fats } = calculateMacros(adjustedCalories, weight, goal || "eat_healthy");
+  return {
+    calories: Math.round(adjustedCalories),
+    protein,
+    carbs,
+    fats,
+    isPersonalized: true,
+  };
+};
 
+interface NutritionQueryData {
+  goals: NutritionGoals;
+  userMetrics: UserMetrics | null;
+}
+
+const fetchNutritionGoals = async (userId: string): Promise<NutritionQueryData> => {
+  const { data: prefs, error } = await supabase
+    .from("user_preferences")
+    .select("age, weight, height, gender, activity_level, goal, target_weight, daily_calorie_goal, daily_protein_goal, daily_carbs_goal, daily_fats_goal")
+    .eq("user_id", userId)
+    .single();
+
+  if (error || !prefs) {
+    return { goals: DEFAULT_GOALS, userMetrics: null };
+  }
+
+  const userMetrics: UserMetrics = {
+    age: prefs.age,
+    weight: prefs.weight,
+    height: prefs.height,
+    gender: prefs.gender,
+    activityLevel: prefs.activity_level,
+    goal: prefs.goal,
+    targetWeight: prefs.target_weight,
+  };
+
+  // If we have pre-calculated goals stored in DB, use them
+  if (prefs.daily_calorie_goal && prefs.daily_protein_goal) {
     return {
-      calories: Math.round(adjustedCalories),
-      protein,
-      carbs,
-      fats,
-      isPersonalized: true,
+      goals: {
+        calories: prefs.daily_calorie_goal,
+        protein: prefs.daily_protein_goal,
+        carbs: prefs.daily_carbs_goal || DEFAULT_GOALS.carbs,
+        fats: prefs.daily_fats_goal || DEFAULT_GOALS.fats,
+        isPersonalized: true,
+      },
+      userMetrics,
     };
-  }, []);
+  }
 
-  const loadUserData = useCallback(async () => {
-    // Prevent duplicate loads for the same userId
-    if (userId === lastUserIdRef.current && hasLoadedRef.current) {
-      return;
-    }
-    
-    if (!userId) {
-      setGoals(DEFAULT_GOALS);
-      setLoading(false);
-      return;
-    }
-    
-    lastUserIdRef.current = userId;
-    hasLoadedRef.current = true;
+  // Calculate goals from user metrics
+  const calculatedGoals = calculateGoals(userMetrics);
+  return { goals: calculatedGoals, userMetrics };
+};
 
-    try {
-      const { data: prefs, error } = await supabase
-        .from("user_preferences")
-        .select("age, weight, height, gender, activity_level, goal, target_weight, daily_calorie_goal, daily_protein_goal, daily_carbs_goal, daily_fats_goal")
-        .eq("user_id", userId)
-        .single();
+export const useNutritionGoals = (userId: string | null) => {
+  const queryClient = useQueryClient();
 
-      if (error || !prefs) {
-        setGoals(DEFAULT_GOALS);
-        setLoading(false);
-        return;
-      }
-
-      // If we have pre-calculated goals stored in DB, use them
-      if (prefs.daily_calorie_goal && prefs.daily_protein_goal) {
-        setGoals({
-          calories: prefs.daily_calorie_goal,
-          protein: prefs.daily_protein_goal,
-          carbs: prefs.daily_carbs_goal || DEFAULT_GOALS.carbs,
-          fats: prefs.daily_fats_goal || DEFAULT_GOALS.fats,
-          isPersonalized: true,
-        });
-        setUserMetrics({
-          age: prefs.age,
-          weight: prefs.weight,
-          height: prefs.height,
-          gender: prefs.gender,
-          activityLevel: prefs.activity_level,
-          goal: prefs.goal,
-          targetWeight: prefs.target_weight,
-        });
-        setLoading(false);
-        return;
-      }
-
-      // Calculate goals from user metrics
-      const metrics: UserMetrics = {
-        age: prefs.age,
-        weight: prefs.weight,
-        height: prefs.height,
-        gender: prefs.gender,
-        activityLevel: prefs.activity_level,
-        goal: prefs.goal,
-        targetWeight: prefs.target_weight,
-      };
-
-      setUserMetrics(metrics);
-      const calculatedGoals = calculateGoals(metrics);
-      setGoals(calculatedGoals);
-    } catch (error) {
-      console.error("Error loading nutrition goals:", error);
-      setGoals(DEFAULT_GOALS);
-    } finally {
-      setLoading(false);
-    }
-  }, [userId, calculateGoals]);
-
-  useEffect(() => {
-    loadUserData();
-  }, [loadUserData]);
+  const query = useQuery({
+    queryKey: ["nutritionGoals", userId],
+    queryFn: () => fetchNutritionGoals(userId!),
+    enabled: !!userId,
+    staleTime: 10 * 60 * 1000, // 10 min
+    gcTime: 30 * 60 * 1000, // 30 min
+  });
 
   // Function to save calculated goals to DB
-  const saveGoalsToDB = useCallback(async (newGoals: NutritionGoals) => {
+  const saveGoalsToDB = async (newGoals: NutritionGoals) => {
     if (!userId) return;
 
     try {
@@ -230,24 +201,34 @@ export const useNutritionGoals = (userId: string | null) => {
     } catch (error) {
       console.error("Error saving nutrition goals:", error);
     }
-  }, [userId]);
+  };
 
   // Function to recalculate goals when weight changes
-  const recalculateWithNewWeight = useCallback(async (newWeight: number) => {
-    if (!userMetrics) return;
+  const recalculateWithNewWeight = async (newWeight: number) => {
+    const currentData = query.data;
+    if (!currentData?.userMetrics) return;
 
-    const updatedMetrics = { ...userMetrics, weight: newWeight };
+    const updatedMetrics = { ...currentData.userMetrics, weight: newWeight };
     const newGoals = calculateGoals(updatedMetrics);
-    setGoals(newGoals);
-    setUserMetrics(updatedMetrics);
+    
+    // Update cache optimistically
+    queryClient.setQueryData(["nutritionGoals", userId], {
+      goals: newGoals,
+      userMetrics: updatedMetrics,
+    });
+    
     await saveGoalsToDB(newGoals);
-  }, [userMetrics, calculateGoals, saveGoalsToDB]);
+  };
+
+  const refresh = () => {
+    queryClient.invalidateQueries({ queryKey: ["nutritionGoals", userId] });
+  };
 
   return {
-    goals,
-    loading,
-    userMetrics,
+    goals: query.data?.goals ?? DEFAULT_GOALS,
+    loading: query.isLoading,
+    userMetrics: query.data?.userMetrics ?? null,
     recalculateWithNewWeight,
-    refresh: loadUserData,
+    refresh,
   };
 };

@@ -11,6 +11,7 @@ import { ProgressHeader3D } from "@/components/progress/ProgressHeader3D";
 import { WeightCard3D } from "@/components/progress/WeightCard3D";
 import { useTrialGuard } from "@/hooks/useTrialGuard";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card3D, Card3DContent, Card3DHeader } from "@/components/ui/card-3d";
 import { Loader2, Scale, TrendingUp, Trophy, BarChart3, User, Camera, Lock, Sparkles, ChevronRight } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -96,26 +97,36 @@ const Progress = () => {
     { id: "stats", label: tx.stats, icon: BarChart3 },
   ];
 
+  // Use AuthContext for immediate user access
+  const { user: authUser, isLoading: authLoading, isAuthenticated } = useAuth();
+
+  // Set userId from auth context immediately
   useEffect(() => {
-    const loadUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUserId(user.id);
-        const { data: latestMeasurement } = await supabase
-          .from("body_measurements")
-          .select("weight")
-          .eq("user_id", user.id)
-          .order("measurement_date", { ascending: false })
-          .limit(1)
-          .single();
-        
-        if (latestMeasurement?.weight) {
-          setLatestWeight(latestMeasurement.weight);
-        }
+    if (authUser?.id) {
+      setUserId(authUser.id);
+    }
+  }, [authUser?.id]);
+
+  // Load latest weight when userId changes
+  useEffect(() => {
+    if (!userId) return;
+    
+    const loadLatestWeight = async () => {
+      const { data: latestMeasurement } = await supabase
+        .from("body_measurements")
+        .select("weight")
+        .eq("user_id", userId)
+        .order("measurement_date", { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (latestMeasurement?.weight) {
+        setLatestWeight(latestMeasurement.weight);
       }
     };
-    loadUser();
-  }, [refreshTrigger]);
+    
+    loadLatestWeight();
+  }, [userId, refreshTrigger]);
 
   if (isLoading) {
     return (

@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -216,9 +217,29 @@ const Dashboard = () => {
     dinner: t("dashboard.meals.dinner"),
   };
 
+  // Use AuthContext for immediate user access
+  const { user: authUser, isLoading: authLoading, isAuthenticated } = useAuth();
+
+  // Redirect if not authenticated
   useEffect(() => {
-    checkAuth();
-  }, []);
+    if (!authLoading && !isAuthenticated) {
+      navigate("/auth");
+    }
+  }, [authLoading, isAuthenticated, navigate]);
+
+  // Set userId from auth context immediately
+  useEffect(() => {
+    if (authUser?.id && !userId) {
+      setUserId(authUser.id);
+    }
+  }, [authUser?.id, userId]);
+
+  // Load data when userId is available
+  useEffect(() => {
+    if (userId) {
+      checkPreferencesAndLoadData();
+    }
+  }, [userId]);
 
   // Safety timeout: show error message if loading takes too long (15 seconds)
   useEffect(() => {
@@ -252,41 +273,28 @@ const Dashboard = () => {
     }
   }, [searchParams, userId, t]);
 
-  const checkAuth = async () => {
-    // Prevent multiple simultaneous calls
-    if (redirectingRef.current) return;
-    
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      redirectingRef.current = true;
-      navigate("/auth");
-      return;
-    }
+  const checkPreferencesAndLoadData = async () => {
+    if (!userId || redirectingRef.current) return;
 
     // CRITICAL: Check preferences FIRST before loading anything else
-    // This prevents race conditions with data loading during redirect
     const { data: preferences } = await supabase
       .from("user_preferences")
       .select("id")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .maybeSingle();
 
     if (!preferences) {
-      // User needs to complete onboarding - redirect immediately
       redirectingRef.current = true;
       navigate("/start", { replace: true });
       return;
     }
 
     // User has preferences, safe to load all data
-    setUserId(user.id);
-    
-    // Load essential data in parallel for faster initial load
     try {
       await Promise.all([
-        loadProfile(user.id),
-        loadUserStats(user.id),
-        loadMealPlan(user.id),
+        loadProfile(userId),
+        loadUserStats(userId),
+        loadMealPlan(userId),
       ]);
     } catch (error) {
       console.error("Error loading initial data:", error);
@@ -295,20 +303,17 @@ const Dashboard = () => {
     }
     
     // Check if user has seen the welcome tutorial (after initial load)
-    // Use mobile tutorial for native apps OR mobile web views
-    // Only show to truly new users (created within last 24 hours)
     const useMobileTutorial = isNativePlatform || isMobile;
-    const tutorialKey = useMobileTutorial ? `mobile_welcome_seen_${user.id}` : `in_app_tour_seen_${user.id}`;
+    const tutorialKey = useMobileTutorial ? `mobile_welcome_seen_${userId}` : `in_app_tour_seen_${userId}`;
     const tutorialSeen = localStorage.getItem(tutorialKey);
     
     // Check if user was created in the last 24 hours
-    const userCreatedAt = new Date(user.created_at || Date.now());
+    const userCreatedAt = new Date(authUser?.created_at || Date.now());
     const now = new Date();
     const hoursSinceCreation = (now.getTime() - userCreatedAt.getTime()) / (1000 * 60 * 60);
     const isNewUser = hoursSinceCreation < 24;
     
     if (!tutorialSeen && isNewUser) {
-      // Small delay to let the dashboard render first
       setTimeout(() => {
         if (useMobileTutorial) {
           setShowMobileWelcome(true);
