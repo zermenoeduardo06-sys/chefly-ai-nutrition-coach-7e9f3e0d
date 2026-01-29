@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { startOfDay, endOfDay } from "date-fns";
 import { syncToWidget, createWidgetData } from "./useWidgetSync";
 
 interface MealCalories {
@@ -59,17 +58,11 @@ const DEFAULT_MACROS: MealMacros = {
 
 // Pure fetch function for React Query
 async function fetchDailyIntakeData(userId: string, dateKey: string): Promise<DailyIntakeData> {
-  // Parse as local date (not UTC) to match user's timezone
-  const [year, month, day] = dateKey.split('-').map(Number);
-  const targetDate = new Date(year, month - 1, day);
-  
-  // Get local day boundaries
-  const dayStart = startOfDay(targetDate);
-  const dayEnd = endOfDay(targetDate);
-  
-  // Convert to ISO strings for Supabase query
-  const dayStartISO = dayStart.toISOString();
-  const dayEndISO = dayEnd.toISOString();
+  // Construir rango UTC directamente para coincidir con cómo se guardan los datos
+  // Los datos se guardan como "YYYY-MM-DDThh:mm:ss.000Z" usando createMealTimestamp
+  // Por lo tanto, la consulta debe usar el mismo formato UTC directo
+  const dayStartISO = `${dateKey}T00:00:00.000Z`;
+  const dayEndISO = `${dateKey}T23:59:59.999Z`;
 
   const { data, error } = await supabase
     .from("food_scans")
