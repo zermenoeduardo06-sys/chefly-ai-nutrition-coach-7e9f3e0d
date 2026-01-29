@@ -196,29 +196,18 @@ export function ScanResultCard({ result, onSave, onNewScan, isSaving, saved }: S
         </motion.div>
       )}
 
-      {/* Action Buttons - 3D Style */}
+      {/* Action Buttons - 3D Style - Stacked on mobile */}
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.8 }}
-        className="flex gap-3 pt-2"
+        className="flex flex-col gap-3 pt-2 pb-4"
       >
-        <Button
-          onClick={onNewScan}
-          variant="outline"
-          size="lg"
-          className="flex-1 gap-2 rounded-2xl h-14 text-base font-bold shadow-[0_4px_0_hsl(var(--border)),0_6px_12px_rgba(0,0,0,0.08)] active:translate-y-1 active:shadow-[0_2px_0_hsl(var(--border))] transition-all border-2"
-          disabled={isSaving}
-        >
-          <RefreshCw className="h-5 w-5" />
-          {t.scanAgain}
-        </Button>
-        
         <Button
           onClick={onSave}
           size="lg"
           disabled={saved || isSaving}
-          className={`flex-1 gap-2 rounded-2xl h-14 text-base font-bold transition-all ${
+          className={`w-full gap-2 rounded-2xl h-14 text-base font-bold transition-all ${
             saved 
               ? 'bg-emerald-500 hover:bg-emerald-500 shadow-[0_4px_0_hsl(160_80%_35%),0_6px_12px_rgba(0,0,0,0.15)]' 
               : 'bg-gradient-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-500/90 shadow-[0_4px_0_hsl(var(--primary)/0.5),0_8px_16px_rgba(0,0,0,0.2)] active:translate-y-1 active:shadow-[0_2px_0_hsl(var(--primary)/0.5)]'
@@ -234,6 +223,17 @@ export function ScanResultCard({ result, onSave, onNewScan, isSaving, saved }: S
           ) : (
             t.save
           )}
+        </Button>
+        
+        <Button
+          onClick={onNewScan}
+          variant="outline"
+          size="lg"
+          className="w-full gap-2 rounded-2xl h-12 text-base font-bold shadow-[0_4px_0_hsl(var(--border)),0_6px_12px_rgba(0,0,0,0.08)] active:translate-y-1 active:shadow-[0_2px_0_hsl(var(--border))] transition-all border-2"
+          disabled={isSaving}
+        >
+          <RefreshCw className="h-5 w-5" />
+          {t.scanAgain}
         </Button>
       </motion.div>
     </motion.div>
