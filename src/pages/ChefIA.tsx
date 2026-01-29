@@ -679,13 +679,41 @@ export default function ChefIA() {
     return <ChatPaywall />;
   }
 
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+    // Auto-resize textarea
+    const textarea = e.target;
+    textarea.style.height = '48px';
+    textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  const resetTextareaHeight = () => {
+    if (inputRef.current) {
+      inputRef.current.style.height = '48px';
+    }
+  };
+
+  const handleSendWithReset = async (e?: React.FormEvent) => {
+    await handleSend(e);
+    resetTextareaHeight();
+  };
+
   return (
-    <div className="min-h-full bg-gradient-to-b from-background via-background to-primary/5 flex flex-col">
-      {/* Header */}
+    <div className="h-[100dvh] bg-background flex flex-col overflow-hidden">
+      {/* Header - Fixed */}
       <motion.header 
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="border-b border-border/50 bg-card/80 backdrop-blur-xl sticky top-0 z-40"
+        className="border-b border-border/50 bg-card/80 backdrop-blur-xl flex-shrink-0 z-40"
       >
         <div className="container mx-auto px-4 tablet:px-6 py-3 tablet:py-4 flex items-center gap-3 max-w-3xl">
           <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -744,51 +772,58 @@ export default function ChefIA() {
         </div>
       </motion.header>
 
-      {/* Messages area */}
-      <div className="flex-1 container mx-auto px-4 tablet:px-6 py-4 tablet:py-6 flex flex-col max-w-3xl overflow-hidden">
-        <ScrollArea className="flex-1 -mx-4 tablet:-mx-6 px-4 tablet:px-6">
-          <div className="space-y-4 pb-4">
-            <AnimatePresence mode="wait">
-              {messages.length === 0 ? (
-                <WelcomeScreen onSuggestionClick={handleSuggestionClick} />
-              ) : (
-                <>
-                  {messages.map((message) => (
-                    <MessageBubble 
-                      key={message.id} 
-                      message={message} 
-                      isNew={message.id === newMessageId}
-                    />
-                  ))}
-                  
-                  {loading && <TypingIndicator />}
-                </>
-              )}
-            </AnimatePresence>
-            <div ref={scrollRef} />
-          </div>
-        </ScrollArea>
+      {/* Messages area - Scrollable */}
+      <ScrollArea className="flex-1 min-h-0">
+        <div className="px-4 tablet:px-6 py-4 tablet:py-6 space-y-4 max-w-3xl mx-auto">
+          <AnimatePresence mode="wait">
+            {messages.length === 0 ? (
+              <WelcomeScreen onSuggestionClick={handleSuggestionClick} />
+            ) : (
+              <>
+                {messages.map((message) => (
+                  <MessageBubble 
+                    key={message.id} 
+                    message={message} 
+                    isNew={message.id === newMessageId}
+                  />
+                ))}
+                
+                {loading && <TypingIndicator />}
+              </>
+            )}
+          </AnimatePresence>
+          <div ref={scrollRef} />
+        </div>
+      </ScrollArea>
 
-        {/* Input area */}
-        <motion.form 
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          onSubmit={handleSend} 
-          className="mt-3 flex gap-2 bg-background/80 backdrop-blur-sm pt-2 pb-24"
+      {/* Input area - Always visible at bottom */}
+      <motion.div 
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="flex-shrink-0 border-t border-border/50 bg-card/90 backdrop-blur-xl"
+        style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 16px)' }}
+      >
+        <form 
+          onSubmit={handleSendWithReset} 
+          className="flex items-end gap-3 px-4 tablet:px-6 py-3 max-w-3xl mx-auto"
         >
-          <motion.div 
-            className="flex-1 relative"
-            whileFocus={{ scale: 1.01 }}
-          >
-            <Input
+          <div className="flex-1 relative">
+            <textarea
+              ref={inputRef}
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
               placeholder={t("chat.placeholder")}
               disabled={loading}
-              className="flex-1 h-12 text-base rounded-full border-2 border-border focus:border-primary/50 pl-4 pr-4 bg-card"
-              enterKeyHint="send"
+              rows={1}
+              className="w-full resize-none rounded-2xl border-2 border-border bg-background px-4 py-3 text-[15px] placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-0 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ 
+                minHeight: '48px', 
+                maxHeight: '120px',
+                height: '48px'
+              }}
             />
-          </motion.div>
+          </div>
           
           <motion.div
             whileHover={{ scale: 1.05 }}
@@ -797,7 +832,7 @@ export default function ChefIA() {
             <Button 
               type="submit" 
               disabled={loading || !input.trim()} 
-              className="h-12 w-12 rounded-full bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25"
+              className="h-12 w-12 rounded-full bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 flex-shrink-0"
             >
               {loading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
@@ -806,8 +841,8 @@ export default function ChefIA() {
               )}
             </Button>
           </motion.div>
-        </motion.form>
-      </div>
+        </form>
+      </motion.div>
     </div>
   );
 }
