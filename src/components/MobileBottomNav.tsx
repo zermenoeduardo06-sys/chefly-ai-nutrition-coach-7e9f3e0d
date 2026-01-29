@@ -47,13 +47,12 @@ export function MobileBottomNav() {
         touchAction: 'none',
       }}
     >
-      {/* Glassmorphism background - extends below safe area */}
+      {/* Glassmorphism background - extends below safe area to cover entire bottom */}
       <div 
-        className="absolute inset-0 bg-card/95 backdrop-blur-xl border-t border-white/10 shadow-[0_-8px_32px_rgba(0,0,0,0.12)]"
+        className="absolute inset-x-0 top-0 bg-card/95 backdrop-blur-xl border-t border-white/10 shadow-[0_-8px_32px_rgba(0,0,0,0.12)]"
         style={{
-          // Extend background below safe area
-          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-          marginBottom: 'calc(-1 * env(safe-area-inset-bottom, 0px))',
+          // Extend from top of nav all the way to true bottom of screen
+          bottom: 'calc(-1 * env(safe-area-inset-bottom, 0px))',
         }}
       />
       
