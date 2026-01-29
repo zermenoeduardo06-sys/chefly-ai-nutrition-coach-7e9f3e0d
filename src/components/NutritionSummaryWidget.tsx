@@ -1,29 +1,130 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Beef, Wheat, Droplet } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Flame, Beef, Wheat, Droplet } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import { useNutritionGoals } from "@/hooks/useNutritionGoals";
-import { useDailyFoodIntake } from "@/hooks/useDailyFoodIntake";
+import { cn } from "@/lib/utils";
 
 interface NutritionSummaryWidgetProps {
   userId: string;
   selectedDate?: Date;
 }
 
+interface DailyNutrition {
+  calories: number;
+  protein: number;
+  carbs: number;
+  fats: number;
+  mealsCompleted: number;
+  totalMeals: number;
+}
+
 export const NutritionSummaryWidget = ({ userId, selectedDate = new Date() }: NutritionSummaryWidgetProps) => {
   const { language } = useLanguage();
+  const [nutrition, setNutrition] = useState<DailyNutrition | null>(null);
+  const [loading, setLoading] = useState(true);
   const { goals: dailyGoals, loading: goalsLoading } = useNutritionGoals(userId);
-  
-  // Use the same hook as MealModulesSection for consistent data
-  const { consumedMacros, isLoading: intakeLoading } = useDailyFoodIntake(userId, selectedDate);
+
+  useEffect(() => {
+    loadDateNutrition();
+  }, [userId, selectedDate]);
+
+  const loadDateNutrition = async () => {
+    if (!userId) return;
+    setLoading(true);
+
+    try {
+      const dateStart = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+      const dateEnd = new Date(dateStart.getTime() + 86400000);
+      
+      const { data: completions } = await supabase
+        .from("meal_completions")
+        .select(`
+          id,
+          meal_id,
+          completed_at,
+          meals (
+            calories,
+            protein,
+            carbs,
+            fats
+          )
+        `)
+        .eq("user_id", userId)
+        .gte("completed_at", dateStart.toISOString())
+        .lt("completed_at", dateEnd.toISOString());
+
+      const { data: scans } = await supabase
+        .from("food_scans")
+        .select("calories, protein, carbs, fat")
+        .eq("user_id", userId)
+        .gte("scanned_at", dateStart.toISOString())
+        .lt("scanned_at", dateEnd.toISOString());
+
+      const { data: mealPlan } = await supabase
+        .from("meal_plans")
+        .select("id")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      let totalMealsForDate = 0;
+      if (mealPlan) {
+        const dayOfWeek = selectedDate.getDay();
+        const { count } = await supabase
+          .from("meals")
+          .select("id", { count: "exact" })
+          .eq("meal_plan_id", mealPlan.id)
+          .eq("day_of_week", dayOfWeek);
+        totalMealsForDate = count || 3;
+      }
+
+      let totalCalories = 0;
+      let totalProtein = 0;
+      let totalCarbs = 0;
+      let totalFats = 0;
+
+      completions?.forEach((completion: any) => {
+        if (completion.meals) {
+          totalCalories += completion.meals.calories || 0;
+          totalProtein += completion.meals.protein || 0;
+          totalCarbs += completion.meals.carbs || 0;
+          totalFats += completion.meals.fats || 0;
+        }
+      });
+
+      scans?.forEach((scan) => {
+        totalCalories += scan.calories || 0;
+        totalProtein += scan.protein || 0;
+        totalCarbs += scan.carbs || 0;
+        totalFats += scan.fat || 0;
+      });
+
+      setNutrition({
+        calories: totalCalories,
+        protein: totalProtein,
+        carbs: totalCarbs,
+        fats: totalFats,
+        mealsCompleted: completions?.length || 0,
+        totalMeals: totalMealsForDate || 3,
+      });
+    } catch (error) {
+      console.error("Error loading nutrition:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const formatNumber = (num: number) => {
     return Math.round(num).toLocaleString();
   };
 
-  if (intakeLoading || goalsLoading) {
+  if (loading || goalsLoading) {
     return (
       <Card className="border border-border/50 bg-card/80 backdrop-blur-sm">
         <CardContent className="p-4">
@@ -42,11 +143,11 @@ export const NutritionSummaryWidget = ({ userId, selectedDate = new Date() }: Nu
     );
   }
 
-  const caloriesConsumed = consumedMacros.calories;
+  const caloriesConsumed = nutrition?.calories || 0;
   const caloriesRemaining = Math.max(dailyGoals.calories - caloriesConsumed, 0);
-  const proteinConsumed = consumedMacros.protein;
-  const carbsConsumed = consumedMacros.carbs;
-  const fatsConsumed = consumedMacros.fats;
+  const proteinConsumed = nutrition?.protein || 0;
+  const carbsConsumed = nutrition?.carbs || 0;
+  const fatsConsumed = nutrition?.fats || 0;
 
   const proteinPercentage = Math.min((proteinConsumed / dailyGoals.protein) * 100, 100);
   const carbsPercentage = Math.min((carbsConsumed / dailyGoals.carbs) * 100, 100);
@@ -60,7 +161,7 @@ export const NutritionSummaryWidget = ({ userId, selectedDate = new Date() }: Nu
     >
       <Card className="border border-border/50 bg-card/95 backdrop-blur-sm overflow-hidden">
         <CardContent className="p-4">
-          {/* Top Row: Consumed | Remaining | Goal - YAZIO Style */}
+          {/* Top Row: Consumed | Remaining | Burned - YAZIO Style */}
           <div className="grid grid-cols-3 gap-2 mb-4">
             {/* Consumed */}
             <div className="text-center">
