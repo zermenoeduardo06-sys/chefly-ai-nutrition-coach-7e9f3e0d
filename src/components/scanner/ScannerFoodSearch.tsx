@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Star, Clock, TrendingUp, Plus, Loader2 } from 'lucide-react';
+import { Search, Star, Clock, TrendingUp, Plus, Loader2, Utensils } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useFoodDatabase, Food } from '@/hooks/useFoodDatabase';
 import { useXPAnimation } from '@/contexts/XPAnimationContext';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { createMealTimestamp } from '@/lib/dateUtils';
+import { Card3D } from '@/components/ui/card-3d';
+import { cn } from '@/lib/utils';
+
 interface ScannerFoodSearchProps {
   mealType: string;
   selectedDate: string;
@@ -70,6 +72,12 @@ const ScannerFoodSearch: React.FC<ScannerFoodSearchProps> = ({
 
   const t = texts[language];
 
+  const filters = [
+    { id: 'frequent', label: t.frequent, icon: TrendingUp },
+    { id: 'recent', label: t.recent, icon: Clock },
+    { id: 'favorites', label: t.favorites, icon: Star },
+  ];
+
   // Load filtered foods based on active filter
   useEffect(() => {
     const loadFoods = async () => {
@@ -83,7 +91,6 @@ const ScannerFoodSearch: React.FC<ScannerFoodSearchProps> = ({
           break;
         case 'favorites':
           foods = await getFavoriteFoods();
-          // Track favorites from this list
           const favIds = new Set(foods.map(f => f.id));
           setFavorites(favIds);
           break;
@@ -114,11 +121,8 @@ const ScannerFoodSearch: React.FC<ScannerFoodSearchProps> = ({
     setAddingFoodId(food.id);
     
     try {
-      // Use createMealTimestamp to preserve the selected date without timezone conversion
       const scannedAt = createMealTimestamp(selectedDate, mealType);
 
-      // Save to food_scans table (same as scanner)
-      // IMPORTANT: Round ALL numeric values to integers to prevent "22P02" errors
       const { error } = await supabase
         .from('food_scans')
         .insert({
@@ -134,15 +138,13 @@ const ScannerFoodSearch: React.FC<ScannerFoodSearchProps> = ({
           confidence: 'high',
           foods_identified: [food.name],
           notes: `${language === 'es' ? 'Añadido manualmente' : 'Added manually'}`,
-          scanned_at: scannedAt, // Use selected date instead of server default
+          scanned_at: scannedAt,
         });
 
       if (error) throw error;
 
-      // Track usage for frequent foods
       await trackFoodUsage(food.id);
 
-      // Trigger XP animation
       triggerXP(10, 'food', { x: window.innerWidth / 2, y: window.innerHeight / 2 });
 
       toast({
@@ -175,48 +177,62 @@ const ScannerFoodSearch: React.FC<ScannerFoodSearchProps> = ({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Search Input */}
+      {/* Search Input - 3D Inset Style */}
       <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder={t.searchPlaceholder}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 bg-card border-border"
+          className="pl-11 h-12 bg-muted/50 border-2 border-border/50 rounded-2xl shadow-[inset_0_2px_4px_rgba(0,0,0,0.06)] focus:shadow-[inset_0_2px_4px_rgba(0,0,0,0.06),0_0_0_2px_hsl(var(--primary)/0.2)] transition-shadow"
         />
       </div>
 
-      {/* Filter Tabs */}
+      {/* Filter Tabs - 3D Pills */}
       {!searchQuery && (
-        <Tabs value={activeFilter} onValueChange={(v) => setActiveFilter(v as typeof activeFilter)} className="mb-4">
-          <TabsList className="grid w-full grid-cols-3 bg-muted/50">
-            <TabsTrigger value="frequent" className="text-xs gap-1">
-              <TrendingUp className="h-3 w-3" />
-              {t.frequent}
-            </TabsTrigger>
-            <TabsTrigger value="recent" className="text-xs gap-1">
-              <Clock className="h-3 w-3" />
-              {t.recent}
-            </TabsTrigger>
-            <TabsTrigger value="favorites" className="text-xs gap-1">
-              <Star className="h-3 w-3" />
-              {t.favorites}
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="flex gap-2 mb-4">
+          {filters.map((filter) => {
+            const isActive = activeFilter === filter.id;
+            const Icon = filter.icon;
+            
+            return (
+              <motion.button
+                key={filter.id}
+                onClick={() => setActiveFilter(filter.id as typeof activeFilter)}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-semibold transition-all",
+                  isActive 
+                    ? "bg-primary text-primary-foreground shadow-[0_3px_0_hsl(var(--primary)/0.4),0_5px_10px_rgba(0,0,0,0.15)]"
+                    : "bg-muted/50 text-muted-foreground hover:bg-muted shadow-[0_2px_0_hsl(var(--border)),0_3px_6px_rgba(0,0,0,0.05)]"
+                )}
+                whileTap={{ y: 1 }}
+              >
+                <Icon className="h-3.5 w-3.5" />
+                {filter.label}
+              </motion.button>
+            );
+          })}
+        </div>
       )}
 
       {/* Food List */}
       <div className="flex-1 overflow-y-auto space-y-2">
         {isLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : displayFoods.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <p>{t.noResults}</p>
-            <p className="text-sm">{t.trySearch}</p>
-          </div>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-12"
+          >
+            <div className="w-16 h-16 mx-auto bg-muted rounded-2xl flex items-center justify-center mb-4 shadow-[0_4px_0_hsl(var(--border))]">
+              <Utensils className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <p className="font-semibold text-foreground">{t.noResults}</p>
+            <p className="text-sm text-muted-foreground mt-1">{t.trySearch}</p>
+          </motion.div>
         ) : (
           <AnimatePresence mode="popLayout">
             {displayFoods.map((food, index) => (
@@ -226,40 +242,43 @@ const ScannerFoodSearch: React.FC<ScannerFoodSearchProps> = ({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ delay: index * 0.03 }}
-                className="bg-card rounded-xl p-3 border border-border flex items-center justify-between"
+                whileHover={{ y: -2 }}
+                whileTap={{ y: 1 }}
               >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium text-foreground truncate">
-                      {language === 'en' && food.name_en ? food.name_en : food.name}
+                <Card3D variant="default" hover={false} className="p-3 flex items-center justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-foreground truncate">
+                        {language === 'en' && food.name_en ? food.name_en : food.name}
+                      </p>
+                      <button
+                        onClick={() => handleToggleFavorite(food.id)}
+                        className="flex-shrink-0"
+                      >
+                        <Star 
+                          className={`h-4 w-4 transition-colors ${favorites.has(food.id) ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground hover:text-amber-400'}`} 
+                        />
+                      </button>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {food.portion} · <span className="font-semibold text-primary">{food.calories} {t.cal}</span>
                     </p>
-                    <button
-                      onClick={() => handleToggleFavorite(food.id)}
-                      className="flex-shrink-0"
-                    >
-                      <Star 
-                        className={`h-4 w-4 ${favorites.has(food.id) ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground'}`} 
-                      />
-                    </button>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    {food.portion} · {food.calories} {t.cal}
-                  </p>
-                </div>
 
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-8 w-8 p-0 rounded-full bg-primary/10 hover:bg-primary/20 text-primary"
-                  onClick={() => handleAddFood(food)}
-                  disabled={addingFoodId === food.id}
-                >
-                  {addingFoodId === food.id ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Plus className="h-4 w-4" />
-                  )}
-                </Button>
+                  <Button
+                    size="sm"
+                    className="h-9 w-9 p-0 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary shadow-[0_2px_0_hsl(var(--primary)/0.2)] active:translate-y-0.5 active:shadow-none transition-all"
+                    variant="ghost"
+                    onClick={() => handleAddFood(food)}
+                    disabled={addingFoodId === food.id}
+                  >
+                    {addingFoodId === food.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Plus className="h-4 w-4" />
+                    )}
+                  </Button>
+                </Card3D>
               </motion.div>
             ))}
           </AnimatePresence>
