@@ -1,11 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Crown, X, Sparkles, Star } from 'lucide-react';
+import { Crown, X, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useHaptics } from '@/hooks/useHaptics';
-import mascotMoney from '@/assets/mascot-money.png';
 
 interface SubscriptionPromoBannerProps {
   visible: boolean;
@@ -30,21 +29,6 @@ export const SubscriptionPromoBanner: React.FC<SubscriptionPromoBannerProps> = (
     onDismiss();
   };
 
-  const texts = {
-    es: {
-      title: "Chefly Plus",
-      subtitle: "Desbloquea todas las funciones",
-      cta: "Ver más",
-    },
-    en: {
-      title: "Chefly Plus",
-      subtitle: "Unlock all features",
-      cta: "Learn more",
-    },
-  };
-
-  const t = texts[language];
-
   return (
     <AnimatePresence>
       {visible && (
@@ -55,22 +39,14 @@ export const SubscriptionPromoBanner: React.FC<SubscriptionPromoBannerProps> = (
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           className="mx-4 mb-4"
         >
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary via-primary/90 to-secondary p-4 shadow-[0_4px_0_hsl(var(--primary)/0.4),0_8px_20px_rgba(0,0,0,0.15)]">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary via-primary/90 to-secondary p-4 shadow-lg">
             {/* Decorative sparkles */}
-            <motion.div 
-              className="absolute top-2 right-14"
-              animate={{ scale: [1, 1.2, 1], opacity: [0.6, 1, 0.6] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              <Sparkles className="h-4 w-4 text-primary-foreground" />
-            </motion.div>
-            <motion.div 
-              className="absolute bottom-2 left-8"
-              animate={{ scale: [1, 1.3, 1], opacity: [0.4, 0.8, 0.4] }}
-              transition={{ duration: 2.5, repeat: Infinity, delay: 0.5 }}
-            >
-              <Star className="h-3 w-3 text-primary-foreground" />
-            </motion.div>
+            <div className="absolute top-2 right-12 opacity-60">
+              <Sparkles className="h-4 w-4 text-primary-foreground animate-pulse" />
+            </div>
+            <div className="absolute bottom-2 left-8 opacity-40">
+              <Sparkles className="h-3 w-3 text-primary-foreground animate-pulse delay-300" />
+            </div>
 
             {/* Close button */}
             <button
@@ -82,29 +58,20 @@ export const SubscriptionPromoBanner: React.FC<SubscriptionPromoBannerProps> = (
             </button>
 
             <div className="flex items-center gap-3">
-              {/* Mascot */}
-              <motion.div 
-                className="flex-shrink-0"
-                animate={{ y: [0, -3, 0] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-              >
-                <img 
-                  src={mascotMoney}
-                  alt="Chefly"
-                  className="h-14 w-14 object-contain"
-                />
-              </motion.div>
+              {/* Crown icon */}
+              <div className="flex-shrink-0 p-2.5 rounded-xl bg-primary-foreground/20 backdrop-blur-sm">
+                <Crown className="h-6 w-6 text-primary-foreground" />
+              </div>
 
               {/* Content */}
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <Crown className="h-4 w-4 text-primary-foreground" />
-                  <h3 className="text-sm font-bold text-primary-foreground">
-                    {t.title}
-                  </h3>
-                </div>
+                <h3 className="text-sm font-bold text-primary-foreground">
+                  Chefly Plus
+                </h3>
                 <p className="text-xs text-primary-foreground/80 line-clamp-1">
-                  {t.subtitle}
+                  {language === 'es'
+                    ? 'Desbloquea todas las funciones premium'
+                    : 'Unlock all premium features'}
                 </p>
               </div>
 
@@ -112,9 +79,10 @@ export const SubscriptionPromoBanner: React.FC<SubscriptionPromoBannerProps> = (
               <Button
                 onClick={handleUpgrade}
                 size="sm"
+                variant="secondary"
                 className="flex-shrink-0 bg-white text-primary hover:bg-white/90 font-semibold shadow-md"
               >
-                {t.cta}
+                {language === 'es' ? 'Ver más' : 'Learn more'}
               </Button>
             </div>
           </div>
