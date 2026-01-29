@@ -4,6 +4,8 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useHaptics } from "@/hooks/useHaptics";
+import { useAuth } from "@/contexts/AuthContext";
+import { usePrefetch } from "@/hooks/usePrefetch";
 
 const navItems = [
   { icon: BookOpen, path: "/dashboard", color: "text-primary", tourId: "nav-diary", labelEs: "Diario", labelEn: "Diary" },
@@ -17,6 +19,8 @@ export function MobileBottomNav() {
   const location = useLocation();
   const { language } = useLanguage();
   const { lightImpact } = useHaptics();
+  const { user } = useAuth();
+  const { prefetchProgress, prefetchWellness, prefetchRecipes } = usePrefetch(user?.id);
 
   const isActive = (path: string) => {
     if (path === "/dashboard") {
@@ -53,6 +57,18 @@ export function MobileBottomNav() {
               data-tour={item.tourId}
               className="flex items-center justify-center flex-1 h-full"
               onClick={() => lightImpact()}
+              onMouseEnter={() => {
+                // Prefetch on hover for high-probability targets
+                if (item.path === "/dashboard/progress") prefetchProgress();
+                if (item.path === "/dashboard/wellness") prefetchWellness();
+                if (item.path === "/recipes") prefetchRecipes();
+              }}
+              onTouchStart={() => {
+                // Prefetch on touch for mobile
+                if (item.path === "/dashboard/progress") prefetchProgress();
+                if (item.path === "/dashboard/wellness") prefetchWellness();
+                if (item.path === "/recipes") prefetchRecipes();
+              }}
             >
               <motion.div
                 className={cn(

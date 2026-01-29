@@ -26,6 +26,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { MealImageWithSkeleton } from "@/components/MealImageWithSkeleton";
 import { cn } from "@/lib/utils";
 import { RecipeCard } from "@/components/recipes/RecipeCard";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Recipe {
   id: string;
@@ -129,17 +130,22 @@ export default function Recipes() {
   const { isCheflyPlus } = useSubscription(userId);
   const t = texts[language];
 
+  // Use AuthContext for immediate user access
+  const { user: authUser, isLoading: authLoading, isAuthenticated } = useAuth();
+
+  // Set userId from auth context immediately
   useEffect(() => {
-    const loadUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        navigate("/auth");
-        return;
-      }
-      setUserId(user.id);
-    };
-    loadUser();
-  }, [navigate]);
+    if (authUser?.id) {
+      setUserId(authUser.id);
+    }
+  }, [authUser?.id]);
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      navigate("/auth");
+    }
+  }, [authLoading, isAuthenticated, navigate]);
 
   useEffect(() => {
     if (!userId) return;

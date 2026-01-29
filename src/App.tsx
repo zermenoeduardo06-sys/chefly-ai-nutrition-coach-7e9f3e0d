@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { MascotProvider } from "@/contexts/MascotContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { Capacitor } from "@capacitor/core";
 import CookieConsent from "@/components/CookieConsent";
 import { AnimatedRoutes } from "@/components/AnimatedRoutes";
@@ -36,28 +37,30 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-        <LanguageProvider>
-          <MascotProvider>
-            <TooltipProvider>
-              <CelebrationLayer>
-                <Toaster />
-                <Sonner />
-                <AnimatePresence mode="wait">
-                  {showSplash && (
-                    <SplashScreen onComplete={() => setShowSplash(false)} />
-                  )}
-                </AnimatePresence>
-                <BrowserRouter>
-                  {!Capacitor.isNativePlatform() && <CookieConsent />}
-                  <AnimatedRoutes />
-                  {!showSplash && <FloatingMascot />}
-                </BrowserRouter>
-              </CelebrationLayer>
-            </TooltipProvider>
-          </MascotProvider>
-        </LanguageProvider>
-      </ThemeProvider>
+      <AuthProvider>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+          <LanguageProvider>
+            <MascotProvider>
+              <TooltipProvider>
+                <CelebrationLayer>
+                  <Toaster />
+                  <Sonner />
+                  <AnimatePresence mode="wait">
+                    {showSplash && (
+                      <SplashScreen onComplete={() => setShowSplash(false)} />
+                    )}
+                  </AnimatePresence>
+                  <BrowserRouter>
+                    {!Capacitor.isNativePlatform() && <CookieConsent />}
+                    <AnimatedRoutes />
+                    {!showSplash && <FloatingMascot />}
+                  </BrowserRouter>
+                </CelebrationLayer>
+              </TooltipProvider>
+            </MascotProvider>
+          </LanguageProvider>
+        </ThemeProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 };

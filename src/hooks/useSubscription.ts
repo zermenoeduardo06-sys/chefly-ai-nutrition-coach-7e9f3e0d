@@ -1,11 +1,10 @@
-import { useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-interface SubscriptionStatus {
+interface SubscriptionData {
   subscribed: boolean;
   product_id: string | null;
   subscription_end: string | null;
-  isLoading: boolean;
   plan: string | null;
 }
 
@@ -18,72 +17,55 @@ export const SUBSCRIPTION_TIERS = {
   },
 };
 
+const fetchSubscription = async (): Promise<SubscriptionData> => {
+  const { data, error } = await supabase.functions.invoke("check-subscription");
+
+  if (error) {
+    console.error("Error checking subscription:", error);
+    return {
+      subscribed: false,
+      product_id: null,
+      subscription_end: null,
+      plan: "free",
+    };
+  }
+
+  return {
+    subscribed: data?.subscribed || false,
+    product_id: data?.product_id || null,
+    subscription_end: data?.subscription_end || null,
+    plan: data?.plan || "free",
+  };
+};
+
 export const useSubscription = (userId: string | undefined) => {
-  const [status, setStatus] = useState<SubscriptionStatus>({
-    subscribed: false,
-    product_id: null,
-    subscription_end: null,
-    isLoading: true,
-    plan: null,
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
+    queryKey: ["subscription", userId],
+    queryFn: fetchSubscription,
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000, // 5 min - no refetch on navigation
+    gcTime: 10 * 60 * 1000, // 10 min garbage collection
   });
 
-  const checkSubscription = async () => {
-    if (!userId) {
-      setStatus(prev => ({ ...prev, isLoading: false }));
-      return;
-    }
-
-    try {
-      setStatus(prev => ({ ...prev, isLoading: true }));
-      
-      const { data, error } = await supabase.functions.invoke("check-subscription");
-
-      if (error) {
-        console.error("Error checking subscription:", error);
-        setStatus({
-          subscribed: false,
-          product_id: null,
-          subscription_end: null,
-          isLoading: false,
-          plan: "free",
-        });
-        return;
-      }
-
-      setStatus({
-        subscribed: data.subscribed || false,
-        product_id: data.product_id || null,
-        subscription_end: data.subscription_end || null,
-        isLoading: false,
-        plan: data.plan || "free",
-      });
-    } catch (error) {
-      console.error("Error in checkSubscription:", error);
-      setStatus({
-        subscribed: false,
-        product_id: null,
-        subscription_end: null,
-        isLoading: false,
-        plan: "free",
-      });
-    }
-  };
-
-  useEffect(() => {
-    checkSubscription();
-  }, [userId]);
-
   const getPlanName = () => {
-    if (!status.subscribed) return null;
+    if (!query.data?.subscribed) return null;
     return SUBSCRIPTION_TIERS.CHEFLY_PLUS.name;
   };
 
-  const isCheflyPlus = status.subscribed;
+  const checkSubscription = async () => {
+    await queryClient.invalidateQueries({ queryKey: ["subscription", userId] });
+  };
 
   return {
-    ...status,
+    subscribed: query.data?.subscribed ?? false,
+    product_id: query.data?.product_id ?? null,
+    subscription_end: query.data?.subscription_end ?? null,
+    plan: query.data?.plan ?? null,
+    isLoading: query.isLoading,
     checkSubscription,
     planName: getPlanName(),
-    isCheflyPlus,
+    isCheflyPlus: query.data?.subscribed ?? false,
   };
 };

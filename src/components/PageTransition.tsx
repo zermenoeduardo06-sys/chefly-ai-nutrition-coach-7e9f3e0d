@@ -6,25 +6,23 @@ interface PageTransitionProps {
   className?: string;
 }
 
+// Optimized for SPA - minimal animation, no X offset to maximize perceived speed
 const pageVariants = {
   initial: {
     opacity: 0,
-    x: 20,
   },
   in: {
     opacity: 1,
-    x: 0,
   },
   out: {
     opacity: 0,
-    x: -20,
   },
 };
 
 const pageTransition = {
   type: 'tween' as const,
-  ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number], // iOS-like easing
-  duration: 0.3,
+  ease: 'easeOut' as const,
+  duration: 0.1, // 100ms - almost instant
 };
 
 export const PageTransition = ({ children, className = '' }: PageTransitionProps) => {

@@ -16,6 +16,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { useHaptics } from "@/hooks/useHaptics";
 import { useChatSounds } from "@/hooks/useChatSounds";
+import { useAuth } from "@/contexts/AuthContext";
 
 import mascotLime from "@/assets/mascot-lime.png";
 
@@ -469,9 +470,27 @@ export default function ChefIA() {
     }
   };
 
+  // Use AuthContext for immediate user access
+  const { user: authUser, isLoading: authLoading, isAuthenticated } = useAuth();
+
+  // Set userId from auth context immediately
   useEffect(() => {
-    checkAuth();
-  }, []);
+    if (authUser?.id) {
+      setUserId(authUser.id);
+      loadMessages(authUser.id);
+    }
+  }, [authUser?.id]);
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      navigate("/auth");
+      return;
+    }
+    if (authUser?.id) {
+      setInitialLoading(false);
+    }
+  }, [authLoading, isAuthenticated, authUser?.id, navigate]);
 
   useEffect(() => {
     scrollToBottom();
@@ -494,12 +513,13 @@ export default function ChefIA() {
     await loadMessages(user.id);
   };
 
-  const loadMessages = async (userId: string) => {
+  const loadMessages = async (uid: string) => {
     try {
+      localStorage.setItem('chefly_chat_used', 'true');
       const { data, error } = await supabase
         .from("chat_messages")
         .select("*")
-        .eq("user_id", userId)
+        .eq("user_id", uid)
         .order("created_at", { ascending: true });
 
       if (error) throw error;
@@ -509,8 +529,6 @@ export default function ChefIA() {
       }
     } catch (error: any) {
       console.error("Error loading messages:", error);
-    } finally {
-      setInitialLoading(false);
     }
   };
 

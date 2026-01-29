@@ -6,6 +6,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useWellness } from "@/hooks/useWellness";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Components
 import { MoodCheckInWidget } from "@/components/wellness/MoodCheckInWidget";
@@ -46,17 +47,22 @@ const Wellness = () => {
     { id: 'insights' as const, label: t.insightsTab, icon: Brain },
   ];
 
+  // Use AuthContext for immediate user access
+  const { user: authUser, isLoading: authLoading, isAuthenticated } = useAuth();
+
+  // Set userId from auth context immediately
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        navigate("/auth");
-        return;
-      }
-      setUserId(user.id);
-    };
-    checkAuth();
-  }, [navigate]);
+    if (authUser?.id) {
+      setUserId(authUser.id);
+    }
+  }, [authUser?.id]);
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      navigate("/auth");
+    }
+  }, [authLoading, isAuthenticated, navigate]);
 
   const handleMoodSubmit = async (score: number, factors: string[], note?: string) => {
     const success = await wellness.logMood(score, factors, note);
