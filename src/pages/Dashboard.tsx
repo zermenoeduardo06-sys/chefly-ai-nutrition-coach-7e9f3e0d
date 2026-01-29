@@ -97,7 +97,8 @@ interface UserStats {
 
 
 const Dashboard = () => {
-  const [loading, setLoading] = useState(true);
+  // Preferences check state - shows loader only during initial check
+  const [preferencesChecked, setPreferencesChecked] = useState(false);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const redirectingRef = useRef(false);
   const [generating, setGenerating] = useState(false);
@@ -247,11 +248,13 @@ const Dashboard = () => {
     }
   }, [userId, prefetchAll]);
 
-  // Safety timeout: show error message if loading takes too long (15 seconds)
+  // Safety timeout: show error message if preferences check takes too long (10 seconds)
   useEffect(() => {
+    if (preferencesChecked) return; // Already checked, no timeout needed
+    
     const timeout = setTimeout(() => {
-      if (loading && !initialLoadComplete) {
-        setLoading(false);
+      if (!preferencesChecked && !initialLoadComplete && userId) {
+        setPreferencesChecked(true);
         setInitialLoadComplete(true);
         toast({
           variant: "destructive",
@@ -261,10 +264,10 @@ const Dashboard = () => {
             : "We couldn't load your data. Try refreshing the page.",
         });
       }
-    }, 15000);
+    }, 10000);
     
     return () => clearTimeout(timeout);
-  }, [loading, initialLoadComplete, language]);
+  }, [preferencesChecked, initialLoadComplete, userId, language]);
 
   // Check subscription status on return from Stripe
   useEffect(() => {
@@ -295,18 +298,18 @@ const Dashboard = () => {
       return;
     }
 
-    // User has preferences, safe to load all data
-    try {
-      await Promise.all([
-        loadProfile(userId),
-        loadUserStats(userId),
-        loadMealPlan(userId),
-      ]);
-    } catch (error) {
+    // Preferences exist - mark as checked so UI can render immediately
+    setPreferencesChecked(true);
+    setInitialLoadComplete(true);
+
+    // Load secondary data in background (non-blocking)
+    Promise.all([
+      loadProfile(userId),
+      loadUserStats(userId),
+      loadMealPlan(userId),
+    ]).catch(error => {
       console.error("Error loading initial data:", error);
-    } finally {
-      setInitialLoadComplete(true);
-    }
+    });
     
     // Check if user has seen the welcome tutorial (after initial load)
     const useMobileTutorial = isNativePlatform || isMobile;
@@ -783,7 +786,7 @@ const Dashboard = () => {
     // Prevent execution if redirecting
     if (redirectingRef.current) return;
     
-    setLoading(true);
+    // Removed: setLoading(true) - we don't want to block UI for meal plan loading
     try {
       // Note: preferences check already done in checkAuth()
       
@@ -800,7 +803,7 @@ const Dashboard = () => {
             title: language === 'es' ? 'Modo offline' : 'Offline mode',
             description: language === 'es' ? 'Mostrando comidas guardadas' : 'Showing cached meals',
           });
-          setLoading(false);
+          // Removed: setLoading(false) - not blocking anymore
           return;
         }
       }
@@ -823,7 +826,7 @@ const Dashboard = () => {
             week_start_date: cached.week_start_date,
             meals: cached.meals,
           });
-          setLoading(false);
+          // Removed: setLoading(false) - not blocking anymore
           return;
         }
         throw planError;
@@ -928,7 +931,7 @@ const Dashboard = () => {
         description: t("dashboard.tryAgain"),
       });
     } finally {
-      setLoading(false);
+      // Removed: setLoading(false) - meal plan loading is non-blocking
     }
   };
 
@@ -1124,15 +1127,19 @@ const Dashboard = () => {
 
   // handleManageSubscription removed - moved to MorePage
 
-  if (loading || trialLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-muted/30">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
-          <p className="text-muted-foreground">{t("dashboard.loading")}</p>
+  // Show loading only while checking preferences (not for data loading)
+  if (!preferencesChecked && !initialLoadComplete) {
+    // Show skeleton loader only during initial preferences check
+    if (trialLoading || !userId) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-muted/30">
+          <div className="text-center space-y-4">
+            <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+            <p className="text-muted-foreground">{t("dashboard.loading")}</p>
+          </div>
         </div>
-      </div>
-    );
+      );
+    }
   }
 
   if (isBlocked) {
