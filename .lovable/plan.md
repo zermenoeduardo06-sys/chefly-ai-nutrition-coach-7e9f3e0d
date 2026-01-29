@@ -1,280 +1,145 @@
 
-# Plan: Carga Automática sin Espera para Diario y Progreso
+# Plan: Corrección Definitiva del Registro de Comidas por Tipo de Comida
 
-## Objetivo
-Migrar los hooks y componentes restantes a React Query para que las páginas de **Diario (Dashboard)** y **Progreso** carguen instantáneamente sin ningún tiempo de espera visible.
+## Problema Identificado
 
----
+El problema es una **desincronización de timezone entre el guardado y la consulta** de comidas.
 
-## Problema Actual
+### Análisis del Flujo Actual:
 
-| Componente | Problema |
-|------------|----------|
-| `useDailyFoodIntake.ts` | Usa `useState/useEffect` - no comparte caché, recarga cada vez |
-| `ProgressStatsTab.tsx` | `useEffect` interno con `setLoading(true)` bloqueante |
-| `ProgressAchievementsTab.tsx` | `useEffect` interno con `setLoading(true)` bloqueante |
-| `NutritionProgressCharts.tsx` | Carga datos internamente con `getUser()` + queries |
-| Prefetch actual | No incluye `useDailyFoodIntake` ni datos del Diario |
+**Al GUARDAR (funciona correctamente):**
+```
+createMealTimestamp("2026-01-29", "breakfast") 
+→ "2026-01-29T08:00:00.000Z"
+```
+El timestamp se construye como string UTC directo, preservando la fecha seleccionada.
+
+**Al CONSULTAR (tiene el bug):**
+```typescript
+// useDailyFoodIntake.ts
+const targetDate = new Date(year, month - 1, day); // Hora LOCAL
+const dayStart = startOfDay(targetDate);           // 00:00 LOCAL
+const dayEnd = endOfDay(targetDate);               // 23:59 LOCAL
+const dayStartISO = dayStart.toISOString();        // ¡CONVIERTE A UTC!
+```
+
+**Ejemplo para usuario en UTC-6 (Ciudad de México):**
+
+| Hora Local | dayStartISO (actual) | dayEndISO (actual) |
+|------------|---------------------|-------------------|
+| dateKey="2026-01-29" | "2026-01-29T06:00:00Z" | "2026-01-30T05:59:59Z" |
+
+**Pero las comidas se guardan como:**
+- breakfast → "2026-01-29T08:00:00Z" ✓ (dentro del rango)
+- lunch → "2026-01-29T13:00:00Z" ✓ (dentro del rango)
+- dinner → "2026-01-29T20:00:00Z" ✓ (dentro del rango)
+
+**¿Por qué falla "a veces"?**
+
+El problema ocurre cuando:
+1. El usuario está en una zona horaria negativa (UTC-X)
+2. Las comidas se registran con horas UTC tempranas (ej: 00:00-05:59 UTC)
+3. En ese caso, la consulta NO las encuentra porque el `dayStartISO` empieza después
+
+**Ejemplo específico del bug:**
+- Usuario en UTC-6 registra "breakfast" para el día 29
+- Si son las 2am local (08:00 UTC), `createScanTimestamp` genera "2026-01-29T08:00:00Z"
+- Pero si la consulta se hace a las 11pm local del día anterior:
+  - `dayStartISO` = "2026-01-29T05:00:00Z" (11pm + 6 = 5am UTC)
+  - El registro "2026-01-29T08:00:00Z" SÍ cae dentro del rango
+  
+El bug real es más sutil: **la inconsistencia entre usar hora local vs hora UTC fija** causa que ciertos registros queden fuera del rango dependiendo de cuándo se hizo la consulta.
 
 ---
 
 ## Solución
 
-### Estrategia de 3 Partes:
+**Unificar ambos sistemas a UTC fijo:**
 
-```text
-┌─────────────────────────────────────────────────┐
-│  1. Migrar hooks a React Query                   │
-│     → useDailyFoodIntake con useQuery            │
-│     → NutritionProgressCharts con useQuery       │
-└─────────────────────────────────────────────────┘
-               ↓
-┌─────────────────────────────────────────────────┐
-│  2. Componentes usan datos cacheados             │
-│     → ProgressStatsTab usa useProgressData       │
-│     → ProgressAchievementsTab usa useQuery       │
-└─────────────────────────────────────────────────┘
-               ↓
-┌─────────────────────────────────────────────────┐
-│  3. Prefetch expandido en Dashboard              │
-│     → Incluye datos del diario (food_scans)      │
-│     → Datos de achievements                      │
-└─────────────────────────────────────────────────┘
+Como los datos se guardan con formato `YYYY-MM-DDThh:mm:ss.000Z` (UTC directo), la consulta debe usar el mismo enfoque:
+
+```typescript
+// Antes (buggy)
+const dayStart = startOfDay(targetDate);
+const dayStartISO = dayStart.toISOString(); // Conversión problemática
+
+// Después (correcto)
+const dayStartISO = `${dateKey}T00:00:00.000Z`; // UTC directo
+const dayEndISO = `${dateKey}T23:59:59.999Z`;   // UTC directo
 ```
+
+Esto garantiza que:
+- `dateKey = "2026-01-29"` siempre consulta desde `2026-01-29T00:00:00Z` hasta `2026-01-29T23:59:59Z`
+- Los registros guardados como `2026-01-29T08:00:00Z`, `2026-01-29T13:00:00Z`, etc. siempre caen dentro del rango
 
 ---
 
-## Cambios por Archivo
+## Cambios Específicos
 
-### 1. `src/hooks/useDailyFoodIntake.ts` - Migrar a React Query
+### Archivo: `src/hooks/useDailyFoodIntake.ts`
 
-**Antes:** `useState` + `useEffect` + `fetchDailyIntake()`
+**Líneas 61-79 - Cambiar la construcción del rango de consulta:**
 
-**Después:**
 ```typescript
-export function useDailyFoodIntake(userId: string | undefined, date: Date = new Date()) {
-  const dateKey = useMemo(() => date.toISOString().split('T')[0], [date.getTime()]);
+// ANTES (buggy)
+async function fetchDailyIntakeData(userId: string, dateKey: string): Promise<DailyIntakeData> {
+  const [year, month, day] = dateKey.split('-').map(Number);
+  const targetDate = new Date(year, month - 1, day);
   
-  const query = useQuery({
-    queryKey: ['foodIntake', userId, dateKey],
-    queryFn: () => fetchDailyIntakeData(userId!, dateKey),
-    enabled: !!userId,
-    staleTime: 2 * 60 * 1000, // 2 min
-    gcTime: 5 * 60 * 1000,
-  });
-
-  return {
-    consumedCalories: query.data?.consumedCalories ?? DEFAULT_CALORIES,
-    consumedMacros: query.data?.consumedMacros ?? DEFAULT_MACROS,
-    recentFoods: query.data?.recentFoods ?? {},
-    foodScans: query.data?.foodScans ?? [],
-    isLoading: query.isLoading && !query.isFetched,
-    refetch: query.refetch,
-  };
-}
-```
-
-### 2. `src/hooks/usePrefetch.ts` - Añadir prefetch del diario
-
-**Añadir `prefetchDiary()`:**
-```typescript
-const prefetchDiary = useCallback(() => {
-  if (!userId) return;
-  const today = new Date().toISOString().split('T')[0];
+  const dayStart = startOfDay(targetDate);
+  const dayEnd = endOfDay(targetDate);
   
-  // Today's food intake
-  queryClient.prefetchQuery({
-    queryKey: ['foodIntake', userId, today],
-    queryFn: () => fetchDailyIntakeData(userId, today),
-    staleTime: 2 * 60 * 1000,
-  });
-
-  // Weekly nutrition data
-  queryClient.prefetchQuery({
-    queryKey: ['nutritionProgress', 'weekly', userId],
-    queryFn: () => fetchWeeklyNutrition(userId),
-    staleTime: 5 * 60 * 1000,
-  });
-}, [userId, queryClient]);
-
-// Añadir achievements
-const prefetchAchievements = useCallback(() => {
-  if (!userId) return;
-  
-  queryClient.prefetchQuery({
-    queryKey: ['achievements', 'all'],
-    queryFn: fetchAllAchievements,
-    staleTime: 30 * 60 * 1000, // 30 min - logros cambian poco
-  });
-
-  queryClient.prefetchQuery({
-    queryKey: ['achievements', 'user', userId],
-    queryFn: () => fetchUserAchievements(userId),
-    staleTime: 5 * 60 * 1000,
-  });
-}, [userId, queryClient]);
-```
-
-**Actualizar `prefetchAll()`:**
-```typescript
-const prefetchAll = useCallback(() => {
-  if (!userId) return;
-  prefetchDiary();        // NUEVO
-  prefetchProgress();
-  prefetchWellness();
-  prefetchRecipes();
-  prefetchChat();
-  prefetchAchievements(); // NUEVO
-}, [...]);
-```
-
-### 3. `src/components/progress/ProgressStatsTab.tsx` - Usar React Query
-
-**Antes:** `useEffect` + `loadStats()` con `setLoading(true)`
-
-**Después:**
-```typescript
-export function ProgressStatsTab({ userId }: ProgressStatsTabProps) {
-  const { stats, isLoading } = useProgressData(userId);
-
-  // Skeleton solo si es la primera carga sin datos en caché
-  if (isLoading) {
-    return <Skeleton ... />;
-  }
-
-  // Resto del componente igual
-}
-```
-
-### 4. `src/components/progress/ProgressAchievementsTab.tsx` - Migrar a React Query
-
-**Antes:** `useEffect` + dos queries separadas
-
-**Después:**
-```typescript
-export function ProgressAchievementsTab({ userId }: ProgressAchievementsTabProps) {
-  // Achievements definition (cambia poco, staleTime largo)
-  const achievementsQuery = useQuery({
-    queryKey: ['achievements', 'all'],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("achievements")
-        .select("*")
-        .order("requirement_value", { ascending: true });
-      return data || [];
-    },
-    staleTime: 30 * 60 * 1000, // 30 min
-  });
-
-  // User's unlocked achievements
-  const userAchievementsQuery = useQuery({
-    queryKey: ['achievements', 'user', userId],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("user_achievements")
-        .select("achievement_id")
-        .eq("user_id", userId);
-      return new Set(data?.map(ua => ua.achievement_id) || []);
-    },
-    enabled: !!userId,
-    staleTime: 5 * 60 * 1000,
-  });
-
-  // isLoading solo en primera carga
-  const isLoading = achievementsQuery.isLoading && !achievementsQuery.data;
-  
-  // ...resto del componente
-}
-```
-
-### 5. `src/components/NutritionProgressCharts.tsx` - Migrar a React Query
-
-**Problema:** Carga userId con `getUser()` y luego hace queries internas.
-
-**Solución:** Recibir `userId` como prop + usar `useQuery`:
-
-```typescript
-// Nuevo hook interno o extraer a hook separado
-const useWeeklyNutrition = (userId: string | null, selectedDate: Date) => {
-  return useQuery({
-    queryKey: ['nutritionProgress', 'weekly', userId, format(selectedDate, 'yyyy-ww')],
-    queryFn: () => loadWeeklyNutritionData(userId!, selectedDate),
-    enabled: !!userId,
-    staleTime: 5 * 60 * 1000,
-  });
-};
-
-export const NutritionProgressCharts = ({ userId }: { userId: string }) => {
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const { data: weeklyData, isLoading } = useWeeklyNutrition(userId, selectedDate);
-  
-  // Skeleton-first en vez de loader bloqueante
+  const dayStartISO = dayStart.toISOString();
+  const dayEndISO = dayEnd.toISOString();
   // ...
-};
+}
+
+// DESPUÉS (correcto)
+async function fetchDailyIntakeData(userId: string, dateKey: string): Promise<DailyIntakeData> {
+  // Construir rango UTC directamente para coincidir con cómo se guardan los datos
+  // Los datos se guardan como "YYYY-MM-DDThh:mm:ss.000Z" usando createMealTimestamp
+  // Por lo tanto, la consulta debe usar el mismo formato UTC directo
+  const dayStartISO = `${dateKey}T00:00:00.000Z`;
+  const dayEndISO = `${dateKey}T23:59:59.999Z`;
+  // ...query sigue igual...
+}
 ```
 
-### 6. `src/hooks/useProgressData.ts` - Añadir stats
-
-El hook ya existe, pero necesita incluir stats para `ProgressStatsTab`:
-
+**Eliminar imports innecesarios:**
 ```typescript
-// Ya tienes:
-// - latestWeight
-// - measurements
-
-// Añadir user_stats al hook existente
-const statsQuery = useQuery({
-  queryKey: ['progress', 'stats', userId],
-  queryFn: () => fetchUserStats(userId!),
-  enabled: !!userId,
-  staleTime: 5 * 60 * 1000,
-});
-
-return {
-  latestWeight: ...,
-  measurements: ...,
-  stats: statsQuery.data ?? null,  // NUEVO
-  isLoading: ...,
-  refetchStats: statsQuery.refetch,
-};
+// Eliminar
+import { startOfDay, endOfDay } from "date-fns";
 ```
 
 ---
 
-## Flujo de Datos Optimizado
+## Verificación de Consistencia
 
-```text
-Usuario abre Dashboard
-         │
-         ├── Carga datos del Dashboard (diario)
-         │
-         └── [Background] prefetchAll():
-                  ├── prefetchDiary() - food_scans de hoy
-                  ├── prefetchProgress() - weight, measurements, stats
-                  ├── prefetchWellness() - moods
-                  ├── prefetchRecipes() - meal plan
-                  ├── prefetchChat() - messages
-                  └── prefetchAchievements() - achievements
-         
-Usuario toca "Progreso" 
-         │
-         └── Datos YA en caché → Render instantáneo (0ms)
+### Flujo de Guardado (ya correcto):
 
-Usuario cambia de fecha en Diario
-         │
-         └── Prefetch de fecha siguiente/anterior en background
-```
+| Origen | Función | Resultado |
+|--------|---------|-----------|
+| AddFood.tsx | `createMealTimestamp(selectedDate, mealType)` | "2026-01-29T08:00:00.000Z" |
+| ScannerFoodSearch.tsx | `createMealTimestamp(selectedDate, mealType)` | "2026-01-29T13:00:00.000Z" |
+| FoodScannerPage.tsx | `createScanTimestamp(selectedDate)` | "2026-01-29T14:35:22.000Z" |
+
+### Flujo de Consulta (será corregido):
+
+| Entrada | Rango Generado |
+|---------|---------------|
+| dateKey="2026-01-29" | 00:00:00Z → 23:59:59Z del día 29 |
+
+**Ahora todos los registros del día 29 caerán dentro del rango, sin importar la timezone del usuario.**
 
 ---
 
-## Resultado Esperado
+## Impacto
 
-| Métrica | Antes | Después |
-|---------|-------|---------|
-| Dashboard → Progress | 200-500ms | 0ms (datos en caché) |
-| Cambio de tab en Progress | 100-300ms | 0ms |
-| Skeleton visible | Cada navegación | Solo primera carga de sesión |
-| Refetch en navegación | Siempre | Nunca (usa staleTime) |
+| Antes | Después |
+|-------|---------|
+| Comidas desaparecen dependiendo de la hora local | Comidas siempre visibles en el día correcto |
+| Funciona "a veces" | Funciona siempre (100%) |
+| Depende de timezone del navegador | Independiente de timezone |
 
 ---
 
@@ -282,22 +147,6 @@ Usuario cambia de fecha en Diario
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/hooks/useDailyFoodIntake.ts` | Migrar a useQuery |
-| `src/hooks/usePrefetch.ts` | Añadir prefetchDiary, prefetchAchievements |
-| `src/hooks/useProgressData.ts` | Añadir stats query |
-| `src/components/progress/ProgressStatsTab.tsx` | Usar useProgressData |
-| `src/components/progress/ProgressAchievementsTab.tsx` | Migrar a useQuery |
-| `src/components/NutritionProgressCharts.tsx` | Recibir userId + useQuery |
-| `src/pages/Progress.tsx` | Pasar userId a NutritionProgressCharts |
+| `src/hooks/useDailyFoodIntake.ts` | Cambiar construcción del rango de consulta a UTC directo |
 
----
-
-## Orden de Implementación
-
-1. **useDailyFoodIntake.ts** - Base del diario
-2. **useProgressData.ts** - Añadir stats
-3. **usePrefetch.ts** - Expandir con diary + achievements
-4. **ProgressStatsTab.tsx** - Consumir desde useProgressData
-5. **ProgressAchievementsTab.tsx** - Migrar a useQuery
-6. **NutritionProgressCharts.tsx** - Recibir userId + useQuery
-7. **Progress.tsx** - Pasar userId al componente
+**Total: 1 archivo, ~10 líneas modificadas**
