@@ -1,14 +1,13 @@
-import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useInAppPurchases, APPLE_IAP_PRODUCTS } from '@/hooks/useInAppPurchases';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { useAppReview } from '@/hooks/useAppReview';
-import { Check, Crown, Loader2, Zap, RefreshCw, CheckCircle } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Check, Crown, Loader2, Zap, RefreshCw } from 'lucide-react';
+import { motion } from 'framer-motion';
 import mascotLime from '@/assets/mascot-lime.png';
-import mascotCelebrating from '@/assets/mascot-celebrating.png';
 
 interface IAPPaywallProps {
   open: boolean;
@@ -18,10 +17,10 @@ interface IAPPaywallProps {
 }
 
 export const IAPPaywall = ({ open, onOpenChange, userId, onPurchaseSuccess }: IAPPaywallProps) => {
+  const navigate = useNavigate();
   const { language } = useLanguage();
   const { toast } = useToast();
   const { requestReviewAfterDelay } = useAppReview();
-  const [showSuccess, setShowSuccess] = useState(false);
   
   const {
     isPurchasing,
@@ -47,11 +46,12 @@ export const IAPPaywall = ({ open, onOpenChange, userId, onPurchaseSuccess }: IA
     console.log('[IAPPaywall] Purchase result:', success);
     
     if (success) {
-      // Show success screen first
-      setShowSuccess(true);
-      
       // Request app review after 4 seconds (only on iOS, only once)
       requestReviewAfterDelay(4000);
+      
+      // Navigate to welcome plus screen
+      onOpenChange(false);
+      navigate('/welcome-plus');
     } else if (error) {
       console.log('[IAPPaywall] Showing error toast:', error);
       toast({
@@ -62,21 +62,17 @@ export const IAPPaywall = ({ open, onOpenChange, userId, onPurchaseSuccess }: IA
     }
   };
 
-  const handleSuccessContinue = () => {
-    setShowSuccess(false);
-    onPurchaseSuccess?.();
-    onOpenChange(false);
-  };
 
   const handleRestore = async () => {
     const success = await restorePurchases();
     
     if (success) {
-      // Show success screen for restored purchases too
-      setShowSuccess(true);
-      
       // Request app review after restore as well
       requestReviewAfterDelay(4000);
+      
+      // Navigate to welcome plus screen
+      onOpenChange(false);
+      navigate('/welcome-plus');
     } else {
       toast({
         variant: 'destructive',
@@ -98,66 +94,9 @@ export const IAPPaywall = ({ open, onOpenChange, userId, onPurchaseSuccess }: IA
   ];
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => {
-      if (!isOpen) setShowSuccess(false);
-      onOpenChange(isOpen);
-    }}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto bg-gradient-to-b from-card to-background border-border">
-        <AnimatePresence mode="wait">
-          {showSuccess ? (
-            <motion.div
-              key="success"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              className="text-center py-8 space-y-6"
-            >
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-                className="mx-auto"
-              >
-                <img 
-                  src={mascotCelebrating} 
-                  alt="Celebration" 
-                  className="h-28 w-28 object-contain mx-auto" 
-                />
-              </motion.div>
-
-              <motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.3 }}
-              >
-                <div className="mx-auto w-16 h-16 bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full flex items-center justify-center mb-4">
-                  <CheckCircle className="h-8 w-8 text-white" />
-                </div>
-                <h3 className="text-2xl font-bold text-foreground mb-2">
-                  {language === 'es' ? '¡Bienvenido a Premium!' : 'Welcome to Premium!'}
-                </h3>
-                <p className="text-muted-foreground">
-                  {language === 'es' 
-                    ? '¡Gracias por tu compra! Ahora tienes acceso a todas las funciones.'
-                    : 'Thank you for your purchase! You now have access to all features.'}
-                </p>
-              </motion.div>
-
-              <motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.5 }}
-              >
-                <Button 
-                  onClick={handleSuccessContinue}
-                  className="w-full h-12 bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white font-bold"
-                >
-                  {language === 'es' ? 'Continuar' : 'Continue'}
-                </Button>
-              </motion.div>
-            </motion.div>
-          ) : (
-            <motion.div key="form" initial={{ opacity: 1 }} exit={{ opacity: 0 }}>
+        <motion.div initial={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <DialogHeader className="text-center pb-2">
                 <motion.div 
                   className="mx-auto mb-2"
@@ -281,8 +220,6 @@ export const IAPPaywall = ({ open, onOpenChange, userId, onPurchaseSuccess }: IA
                 </div>
               </div>
             </motion.div>
-          )}
-        </AnimatePresence>
       </DialogContent>
     </Dialog>
   );
