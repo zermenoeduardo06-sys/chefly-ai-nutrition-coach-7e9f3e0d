@@ -8,6 +8,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { useInvalidateProgressData } from "@/hooks/useProgressData";
 
 interface WeightTrackerWidgetProps {
   userId?: string;
@@ -25,6 +26,7 @@ export const WeightTrackerWidget = ({ userId }: WeightTrackerWidgetProps) => {
   const { toast } = useToast();
   const { language } = useLanguage();
   const navigate = useNavigate();
+  const invalidateProgressData = useInvalidateProgressData();
 
   useEffect(() => {
     if (userId) {
@@ -132,6 +134,9 @@ export const WeightTrackerWidget = ({ userId }: WeightTrackerWidgetProps) => {
         .eq("user_id", userId);
 
       setCurrentWeight(newWeight);
+      
+      // Invalidate progress cache so Progress page updates
+      invalidateProgressData();
       
       // Show trend indicator
       setShowTrend(true);

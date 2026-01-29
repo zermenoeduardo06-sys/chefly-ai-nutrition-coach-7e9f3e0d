@@ -1,5 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useCallback } from "react";
 
 export interface BodyMeasurement {
   id: string;
@@ -104,4 +105,16 @@ export const useProgressData = (userId: string | undefined) => {
     refetchMeasurements: measurementsQuery.refetch,
     refetchStats: statsQuery.refetch,
   };
+};
+
+/**
+ * Hook to invalidate all progress-related caches
+ * Call this after any weight, measurement, or stats update
+ */
+export const useInvalidateProgressData = () => {
+  const queryClient = useQueryClient();
+  
+  return useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['progress'] });
+  }, [queryClient]);
 };

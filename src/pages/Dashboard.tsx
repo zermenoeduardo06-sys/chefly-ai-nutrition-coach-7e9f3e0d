@@ -48,6 +48,7 @@ import { WaterTrackerWidget } from "@/components/WaterTrackerWidget";
 import { WeightTrackerWidget } from "@/components/WeightTrackerWidget";
 import { DailyProgressMilestones } from "@/components/celebrations/DailyProgressMilestones";
 import { useCelebrations } from "@/hooks/useCelebrations";
+import { useInvalidateProgressData } from "@/hooks/useProgressData";
 import { useAppReview } from "@/hooks/useAppReview";
 import { useSubscriptionPromo } from "@/hooks/useSubscriptionPromo";
 import { SubscriptionPromoBanner } from "@/components/SubscriptionPromoBanner";
@@ -159,6 +160,9 @@ const Dashboard = () => {
   
   // Celebrations hook for enhanced animations
   const { celebrateMealComplete, celebrateDailyGoal } = useCelebrations();
+  
+  // Progress data invalidation for instant updates
+  const invalidateProgressData = useInvalidateProgressData();
   
   // App review system for iOS
   const { checkAndRequestReview } = useAppReview();
@@ -619,6 +623,9 @@ const Dashboard = () => {
 
     if (updatedStats) {
       setUserStats(updatedStats);
+      
+      // Invalidate progress data cache for instant updates on Progress page
+      invalidateProgressData();
       
       // Check for achievement unlocks
       await checkAchievementUnlocks(userId, updatedStats);
