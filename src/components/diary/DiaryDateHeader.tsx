@@ -149,7 +149,9 @@ export function DiaryDateHeader({ selectedDate, onDateChange }: DiaryDateHeaderP
       {/* Day dots indicator - only past days and today */}
       <div className="flex justify-center gap-1.5 pb-2">
         {[-4, -3, -2, -1, 0].map((offset) => {
-          const dotDate = addDays(new Date(), offset);
+          // Use startOfDay to ensure we're working with local dates, not UTC
+          const today = startOfDay(new Date());
+          const dotDate = addDays(today, offset);
           const isSelected = format(selectedDate, 'yyyy-MM-dd') === format(dotDate, 'yyyy-MM-dd');
           const isTodayDot = offset === 0;
           

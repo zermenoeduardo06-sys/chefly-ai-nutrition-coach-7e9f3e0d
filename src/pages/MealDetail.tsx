@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
+import { getLocalDateString } from "@/lib/dateUtils";
 
 interface DailyNutrition {
   calories: number;
@@ -42,8 +43,8 @@ export default function MealDetail() {
   const [searchParams] = useSearchParams();
   const { language } = useLanguage();
   
-  // Get selected date from URL or default to today
-  const selectedDate = searchParams.get('date') || new Date().toISOString().split('T')[0];
+  // Get selected date from URL or default to today (using local date, NOT UTC)
+  const selectedDate = searchParams.get('date') || getLocalDateString();
   const [userId, setUserId] = useState<string | undefined>();
   const [dailyNutrition, setDailyNutrition] = useState<DailyNutrition>({
     calories: 0,

@@ -7,6 +7,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
+import { getLocalDateString } from "@/lib/dateUtils";
 import mascotHappy from "@/assets/mascot-happy.png";
 
 const mealTypeLabels = {
@@ -41,7 +42,8 @@ export default function AICamera() {
   const canScan = isFullyLoaded && isPremium;
   
   const validMealType = (mealType as keyof typeof mealTypeLabels) || "breakfast";
-  const selectedDate = searchParams.get('date') || new Date().toISOString().split('T')[0];
+  // CRITICAL: Use getLocalDateString() to preserve local date
+  const selectedDate = searchParams.get('date') || getLocalDateString();
 
   useEffect(() => {
     const loadData = async () => {
