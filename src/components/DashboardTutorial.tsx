@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { 
-  Utensils, 
+  BookOpen, 
   Check, 
   Trophy, 
-  MessageCircle, 
-  Calendar, 
-  Sparkles,
+  Sparkles, 
+  Heart, 
+  Camera,
   ChevronLeft,
   ChevronRight,
   X
@@ -33,9 +33,9 @@ const DashboardTutorial = ({ open, onOpenChange, onComplete }: DashboardTutorial
       color: "from-primary to-secondary",
     },
     {
-      icon: Calendar,
-      titleKey: "tutorial.mealPlan.title",
-      descKey: "tutorial.mealPlan.desc",
+      icon: BookOpen,
+      titleKey: "tutorial.diary.title",
+      descKey: "tutorial.diary.desc",
       color: "from-blue-500 to-cyan-500",
     },
     {
@@ -45,19 +45,25 @@ const DashboardTutorial = ({ open, onOpenChange, onComplete }: DashboardTutorial
       color: "from-green-500 to-emerald-500",
     },
     {
+      icon: Camera,
+      titleKey: "tutorial.scanner.title",
+      descKey: "tutorial.scanner.desc",
+      color: "from-violet-500 to-purple-500",
+    },
+    {
       icon: Trophy,
       titleKey: "tutorial.gamification.title",
       descKey: "tutorial.gamification.desc",
       color: "from-yellow-500 to-orange-500",
     },
     {
-      icon: MessageCircle,
-      titleKey: "tutorial.coach.title",
-      descKey: "tutorial.coach.desc",
-      color: "from-purple-500 to-pink-500",
+      icon: Heart,
+      titleKey: "tutorial.wellness.title",
+      descKey: "tutorial.wellness.desc",
+      color: "from-pink-500 to-rose-500",
     },
     {
-      icon: Utensils,
+      icon: Sparkles,
       titleKey: "tutorial.ready.title",
       descKey: "tutorial.ready.desc",
       color: "from-primary to-secondary",
