@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Capacitor } from '@capacitor/core';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Card3D } from '@/components/ui/card-3d';
 import mascotLime from '@/assets/mascot-lime.png';
 
 interface ScannerCameraProps {
@@ -13,74 +14,62 @@ interface ScannerCameraProps {
   previewImage: string | null;
 }
 
-// Scanning frame overlay component
+// Scanning frame overlay component with 3D styling
 function ScanningFrame({ isAnalyzing }: { isAnalyzing: boolean }) {
   return (
     <div className="absolute inset-0 pointer-events-none">
-      {/* Corner brackets */}
+      {/* Corner brackets with glow */}
       <div className="absolute inset-4">
         {/* Top Left */}
         <motion.div 
-          className="absolute top-0 left-0 w-12 h-12"
+          className="absolute top-0 left-0 w-14 h-14"
           animate={isAnalyzing ? { opacity: [0.5, 1, 0.5] } : {}}
           transition={{ duration: 1.5, repeat: Infinity }}
         >
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-primary to-transparent rounded-full" />
-          <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-primary via-primary to-transparent rounded-full" />
+          <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary via-primary to-transparent rounded-full shadow-[0_0_8px_hsl(var(--primary))]" />
+          <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-primary via-primary to-transparent rounded-full shadow-[0_0_8px_hsl(var(--primary))]" />
         </motion.div>
         
         {/* Top Right */}
         <motion.div 
-          className="absolute top-0 right-0 w-12 h-12"
+          className="absolute top-0 right-0 w-14 h-14"
           animate={isAnalyzing ? { opacity: [0.5, 1, 0.5] } : {}}
           transition={{ duration: 1.5, repeat: Infinity, delay: 0.2 }}
         >
-          <div className="absolute top-0 right-0 w-full h-1 bg-gradient-to-l from-primary via-primary to-transparent rounded-full" />
-          <div className="absolute top-0 right-0 w-1 h-full bg-gradient-to-b from-primary via-primary to-transparent rounded-full" />
+          <div className="absolute top-0 right-0 w-full h-1.5 bg-gradient-to-l from-primary via-primary to-transparent rounded-full shadow-[0_0_8px_hsl(var(--primary))]" />
+          <div className="absolute top-0 right-0 w-1.5 h-full bg-gradient-to-b from-primary via-primary to-transparent rounded-full shadow-[0_0_8px_hsl(var(--primary))]" />
         </motion.div>
         
         {/* Bottom Left */}
         <motion.div 
-          className="absolute bottom-0 left-0 w-12 h-12"
+          className="absolute bottom-0 left-0 w-14 h-14"
           animate={isAnalyzing ? { opacity: [0.5, 1, 0.5] } : {}}
           transition={{ duration: 1.5, repeat: Infinity, delay: 0.4 }}
         >
-          <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-primary to-transparent rounded-full" />
-          <div className="absolute bottom-0 left-0 w-1 h-full bg-gradient-to-t from-primary via-primary to-transparent rounded-full" />
+          <div className="absolute bottom-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary via-primary to-transparent rounded-full shadow-[0_0_8px_hsl(var(--primary))]" />
+          <div className="absolute bottom-0 left-0 w-1.5 h-full bg-gradient-to-t from-primary via-primary to-transparent rounded-full shadow-[0_0_8px_hsl(var(--primary))]" />
         </motion.div>
         
         {/* Bottom Right */}
         <motion.div 
-          className="absolute bottom-0 right-0 w-12 h-12"
+          className="absolute bottom-0 right-0 w-14 h-14"
           animate={isAnalyzing ? { opacity: [0.5, 1, 0.5] } : {}}
           transition={{ duration: 1.5, repeat: Infinity, delay: 0.6 }}
         >
-          <div className="absolute bottom-0 right-0 w-full h-1 bg-gradient-to-l from-primary via-primary to-transparent rounded-full" />
-          <div className="absolute bottom-0 right-0 w-1 h-full bg-gradient-to-t from-primary via-primary to-transparent rounded-full" />
+          <div className="absolute bottom-0 right-0 w-full h-1.5 bg-gradient-to-l from-primary via-primary to-transparent rounded-full shadow-[0_0_8px_hsl(var(--primary))]" />
+          <div className="absolute bottom-0 right-0 w-1.5 h-full bg-gradient-to-t from-primary via-primary to-transparent rounded-full shadow-[0_0_8px_hsl(var(--primary))]" />
         </motion.div>
       </div>
 
       {/* Scanning line animation when analyzing */}
       {isAnalyzing && (
         <motion.div
-          className="absolute left-4 right-4 h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent shadow-lg shadow-primary/50"
+          className="absolute left-4 right-4 h-1 bg-gradient-to-r from-transparent via-primary to-transparent rounded-full shadow-[0_0_20px_hsl(var(--primary)),0_0_40px_hsl(var(--primary)/0.5)]"
           initial={{ top: "15%" }}
           animate={{ top: ["15%", "85%", "15%"] }}
           transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
         />
       )}
-
-      {/* Subtle grid overlay */}
-      <div 
-        className="absolute inset-8 opacity-10"
-        style={{
-          backgroundImage: `
-            linear-gradient(to right, hsl(var(--primary)) 1px, transparent 1px),
-            linear-gradient(to bottom, hsl(var(--primary)) 1px, transparent 1px)
-          `,
-          backgroundSize: '20px 20px'
-        }}
-      />
 
       {/* Center crosshair */}
       <div className="absolute inset-0 flex items-center justify-center">
@@ -89,9 +78,9 @@ function ScanningFrame({ isAnalyzing }: { isAnalyzing: boolean }) {
           animate={isAnalyzing ? { scale: [1, 1.1, 1], opacity: [0.3, 0.6, 0.3] } : { opacity: 0.3 }}
           transition={{ duration: 1.5, repeat: Infinity }}
         >
-          <div className="w-8 h-0.5 bg-primary/50 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-          <div className="w-0.5 h-8 bg-primary/50 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-          <div className="w-3 h-3 border border-primary/50 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+          <div className="w-10 h-0.5 bg-primary/60 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full" />
+          <div className="w-0.5 h-10 bg-primary/60 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full" />
+          <div className="w-4 h-4 border-2 border-primary/60 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
         </motion.div>
       </div>
     </div>
@@ -135,7 +124,6 @@ export function ScannerCamera({ onImageCapture, isAnalyzing, previewImage }: Sca
         onImageCapture(image.dataUrl);
       }
     } catch (error: unknown) {
-      // User cancelled or permission denied - don't show error
       const errorMessage = error instanceof Error ? error.message : String(error);
       if (!errorMessage.includes('cancelled') && !errorMessage.includes('User cancelled')) {
         console.error('Camera error:', error);
@@ -156,8 +144,6 @@ export function ScannerCamera({ onImageCapture, isAnalyzing, previewImage }: Sca
       onImageCapture(base64);
     };
     reader.readAsDataURL(file);
-    
-    // Reset input so same file can be selected again
     event.target.value = '';
   };
 
@@ -165,7 +151,6 @@ export function ScannerCamera({ onImageCapture, isAnalyzing, previewImage }: Sca
     if (isNative) {
       captureWithNativeCamera(CameraSource.Camera);
     } else {
-      // For web, we'll use a file input with capture
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = 'image/*';
@@ -202,43 +187,46 @@ export function ScannerCamera({ onImageCapture, isAnalyzing, previewImage }: Sca
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            className="relative rounded-3xl overflow-hidden shadow-2xl ring-1 ring-border/50"
           >
-            <img 
-              src={previewImage} 
-              alt="Food preview" 
-              className="w-full h-64 object-cover"
-            />
-            
-            {/* Scanning frame overlay */}
-            <ScanningFrame isAnalyzing={isAnalyzing} />
-            
-            {isAnalyzing && (
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-black/20 flex items-center justify-center"
-              >
-                <div className="flex flex-col items-center gap-4">
+            <Card3D variant="elevated" hover={false} className="overflow-hidden p-0">
+              <div className="relative">
+                <img 
+                  src={previewImage} 
+                  alt="Food preview" 
+                  className="w-full h-72 object-cover"
+                />
+                
+                {/* Scanning frame overlay */}
+                <ScanningFrame isAnalyzing={isAnalyzing} />
+                
+                {isAnalyzing && (
                   <motion.div 
-                    className="relative z-10"
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/30 flex items-center justify-center backdrop-blur-[2px]"
                   >
-                    <div className="h-20 w-20 rounded-full border-[3px] border-white/20 border-t-primary" />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <motion.div
-                        animate={{ scale: [1, 1.1, 1] }}
-                        transition={{ duration: 1, repeat: Infinity }}
+                    <div className="flex flex-col items-center gap-4">
+                      <motion.div 
+                        className="relative z-10"
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                       >
-                        <Scan className="h-8 w-8 text-white" />
+                        <div className="h-24 w-24 rounded-full border-4 border-white/20 border-t-primary shadow-[0_0_30px_hsl(var(--primary)/0.5)]" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <motion.div
+                            animate={{ scale: [1, 1.15, 1] }}
+                            transition={{ duration: 1, repeat: Infinity }}
+                          >
+                            <Scan className="h-10 w-10 text-white drop-shadow-lg" />
+                          </motion.div>
+                        </div>
                       </motion.div>
+                      <span className="text-white font-bold text-lg relative z-10 drop-shadow-lg">{t.analyzing}</span>
                     </div>
                   </motion.div>
-                  <span className="text-white font-semibold text-lg relative z-10 drop-shadow-lg">{t.analyzing}</span>
-                </div>
-              </motion.div>
-            )}
+                )}
+              </div>
+            </Card3D>
           </motion.div>
         ) : (
           <motion.div 
@@ -246,59 +234,70 @@ export function ScannerCamera({ onImageCapture, isAnalyzing, previewImage }: Sca
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="relative overflow-hidden bg-gradient-to-br from-muted/50 to-muted/30 rounded-3xl p-10 border-2 border-dashed border-primary/30 hover:border-primary/50 transition-colors"
           >
-            {/* Decorative elements */}
-            <div className="absolute top-4 right-4 opacity-10">
-              <ChefHat className="h-24 w-24 text-primary" />
-            </div>
-            <div className="absolute bottom-4 left-4 opacity-10">
-              <Sparkles className="h-16 w-16 text-primary" />
-            </div>
-            
-            <div className="relative text-center">
-              <motion.div 
-                className="w-24 h-24 mx-auto bg-gradient-to-br from-primary/20 to-primary/10 rounded-3xl flex items-center justify-center mb-6 shadow-inner"
-                whileHover={{ scale: 1.05, rotate: 5 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <img src={mascotLime} alt="Chefly" className="h-16 w-16 object-contain" />
-              </motion.div>
-
-              <p className="text-muted-foreground mb-6 text-lg">{t.instructions}</p>
-              
-              <div className="flex gap-3 justify-center">
-                {/* Hidden file input for web gallery fallback */}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
-                
-                <Button
-                  onClick={handleCameraClick}
-                  disabled={isCapturing}
-                  size="lg"
-                  className="gap-2 rounded-2xl px-6 h-14 text-base font-semibold shadow-lg"
-                >
-                  <CameraIcon className="h-5 w-5" />
-                  {t.takePhoto}
-                </Button>
-                
-                <Button
-                  onClick={handleGalleryClick}
-                  disabled={isCapturing}
-                  variant="outline"
-                  size="lg"
-                  className="gap-2 rounded-2xl px-6 h-14 text-base font-semibold"
-                >
-                  <Upload className="h-5 w-5" />
-                  {t.uploadImage}
-                </Button>
+            <Card3D variant="glass" className="p-8 relative overflow-hidden">
+              {/* Decorative elements */}
+              <div className="absolute top-4 right-4 opacity-10">
+                <ChefHat className="h-20 w-20 text-primary" />
               </div>
-            </div>
+              <div className="absolute bottom-4 left-4 opacity-10">
+                <Sparkles className="h-14 w-14 text-primary" />
+              </div>
+              
+              <div className="relative text-center">
+                {/* Floating Mascot */}
+                <motion.div 
+                  className="w-28 h-28 mx-auto bg-gradient-to-br from-primary/20 to-primary/5 rounded-3xl flex items-center justify-center mb-6 shadow-[0_6px_0_hsl(var(--primary)/0.2),0_10px_20px_rgba(0,0,0,0.1)]"
+                  animate={{ y: [0, -8, 0] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                  whileHover={{ scale: 1.05, rotate: 3 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <img src={mascotLime} alt="Chefly" className="h-20 w-20 object-contain" />
+                </motion.div>
+
+                <h3 className="text-lg font-bold mb-2 text-foreground">{t.instructions}</h3>
+                <p className="text-muted-foreground text-sm mb-8">
+                  {language === 'es' 
+                    ? 'Nuestra IA analizará los nutrientes automáticamente' 
+                    : 'Our AI will analyze the nutrients automatically'}
+                </p>
+                
+                <div className="flex gap-3 justify-center">
+                  {/* Hidden file input for web gallery fallback */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                  
+                  {/* Camera Button - 3D Style */}
+                  <Button
+                    onClick={handleCameraClick}
+                    disabled={isCapturing}
+                    size="lg"
+                    className="gap-2 rounded-2xl px-6 h-14 text-base font-bold shadow-[0_4px_0_hsl(var(--primary)/0.4),0_8px_16px_rgba(0,0,0,0.2)] active:translate-y-1 active:shadow-[0_2px_0_hsl(var(--primary)/0.4)] transition-all bg-primary hover:bg-primary/90"
+                  >
+                    <CameraIcon className="h-5 w-5" />
+                    {t.takePhoto}
+                  </Button>
+                  
+                  {/* Gallery Button - 3D Style */}
+                  <Button
+                    onClick={handleGalleryClick}
+                    disabled={isCapturing}
+                    variant="outline"
+                    size="lg"
+                    className="gap-2 rounded-2xl px-6 h-14 text-base font-bold shadow-[0_4px_0_hsl(var(--border)),0_8px_16px_rgba(0,0,0,0.08)] active:translate-y-1 active:shadow-[0_2px_0_hsl(var(--border))] transition-all border-2"
+                  >
+                    <Upload className="h-5 w-5" />
+                    {t.uploadImage}
+                  </Button>
+                </div>
+              </div>
+            </Card3D>
           </motion.div>
         )}
       </AnimatePresence>
