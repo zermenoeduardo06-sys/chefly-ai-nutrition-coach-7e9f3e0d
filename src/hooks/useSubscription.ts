@@ -64,6 +64,8 @@ export const useSubscription = (userId: string | undefined) => {
     subscription_end: query.data?.subscription_end ?? null,
     plan: query.data?.plan ?? null,
     isLoading: query.isLoading,
+    isError: query.isError,
+    error: query.error,
     checkSubscription,
     planName: getPlanName(),
     isCheflyPlus: query.data?.subscribed ?? false,
