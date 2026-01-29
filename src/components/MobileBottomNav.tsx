@@ -31,30 +31,18 @@ export function MobileBottomNav() {
 
   return (
     <nav 
-      className="fixed left-0 right-0 z-[9999] lg:hidden"
+      className="fixed bottom-0 left-0 right-0 z-[9999] lg:hidden" 
       style={{ 
-        // Use bottom: 0 with safe area in padding, never changes
-        bottom: 0,
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        // Force GPU layer to prevent movement during overscroll
-        transform: 'translate3d(0, 0, 0)',
-        WebkitTransform: 'translate3d(0, 0, 0)',
-        // Lock position during iOS overscroll
-        position: 'fixed',
-        // Prevent any layout shifts
-        contain: 'layout style',
-        // Disable touch on the nav background to prevent drag
-        touchAction: 'none',
+        transform: 'translateZ(0)',
+        WebkitTransform: 'translateZ(0)',
+        willChange: 'transform',
+        backfaceVisibility: 'hidden',
+        WebkitBackfaceVisibility: 'hidden',
       }}
     >
-      {/* Glassmorphism background - extends below safe area to cover entire bottom */}
-      <div 
-        className="absolute inset-x-0 top-0 bg-card/95 backdrop-blur-xl border-t border-white/10 shadow-[0_-8px_32px_rgba(0,0,0,0.12)]"
-        style={{
-          // Extend from top of nav all the way to true bottom of screen
-          bottom: 'calc(-1 * env(safe-area-inset-bottom, 0px))',
-        }}
-      />
+      {/* Glassmorphism background */}
+      <div className="absolute inset-0 bg-card/85 backdrop-blur-xl border-t border-white/10 shadow-[0_-8px_32px_rgba(0,0,0,0.12)]" />
       
       <div className="relative flex items-center justify-around h-[76px] tablet:h-[84px] px-2 tablet:px-6 max-w-2xl mx-auto">
         {navItems.map((item, index) => {
