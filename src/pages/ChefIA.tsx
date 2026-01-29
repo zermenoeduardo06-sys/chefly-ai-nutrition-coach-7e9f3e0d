@@ -451,6 +451,7 @@ export default function ChefIA() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const { limits, refreshLimits } = useSubscriptionLimits(userId);
   const subscription = useSubscription(userId);
   const { isBlocked, isLoading: trialLoading } = useTrialGuard();
@@ -678,8 +679,6 @@ export default function ChefIA() {
   if (!subscription?.isCheflyPlus) {
     return <ChatPaywall />;
   }
-
-  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
