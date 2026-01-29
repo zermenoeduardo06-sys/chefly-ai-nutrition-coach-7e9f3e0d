@@ -1,228 +1,166 @@
 
-# Plan: Actualización Instantánea del Cache de Comidas
 
-## Diagnóstico
+# Plan: Input de Chat Siempre Visible (Estilo WhatsApp/ChatGPT)
 
-### Causa Raíz
-Cuando se agrega una comida a la base de datos, el cache de React Query **NO se invalida**, lo que causa que los usuarios tengan que esperar hasta 2 minutos (el `staleTime`) para ver sus comidas reflejadas en el dashboard.
+## Problema Identificado
 
-### Flujo Actual (con problema)
-```
-Usuario agrega comida → Insert a Supabase → ✅ Éxito
-                      → Cache sigue "fresco" por 2 min
-                      → UI muestra datos viejos
-                      → Después de 2 min → React Query refetch → UI actualizada
-```
+En **ChefIA.tsx**, el input de texto está dentro del área scrollable, lo que causa que pueda desplazarse fuera de la vista. En apps como WhatsApp, Messenger y ChatGPT, el input siempre está fijo en la parte inferior.
 
-### Lugares donde se insertan comidas (sin invalidación)
-| Archivo | Contexto |
-|---------|----------|
-| `FoodScannerPage.tsx` | Escaneo con IA desde cámara |
-| `AddFood.tsx` | Selección manual de alimentos |
-| `ScannerFoodSearch.tsx` | Búsqueda y añadir alimento rápido |
-| `FoodScanner.tsx` | Componente de escáner (dialog) |
-| `MealPhotoDialog.tsx` | Foto de comida del plan semanal |
-| `ChallengePhotoDialog.tsx` | Foto de reto diario |
+### Comparación de Layouts
+
+| Archivo | Estructura Actual | Problema |
+|---------|-------------------|----------|
+| **Chat.tsx** | Input fuera del scroll, `flex-shrink-0` | Correcto |
+| **ChefIA.tsx** | Input dentro del contenedor scrollable | Se mueve con el scroll |
 
 ---
 
-## Solución
+## Solución: Reestructurar ChefIA.tsx
 
-### Estrategia: Invalidar cache después de cada insert
-
-Crear un **hook centralizado** o exportar una función de invalidación que se llame después de cada insert exitoso a `food_scans`.
-
-### Opción Elegida: Hook de Invalidación
-
-```typescript
-// En useDailyFoodIntake.ts o nuevo archivo
-export const useInvalidateFoodIntake = () => {
-  const queryClient = useQueryClient();
+### Estructura Actual (ChefIA.tsx líneas 682-810)
+```
+<div className="min-h-full flex flex-col">
+  <header>...</header>
   
-  return useCallback((dateKey?: string) => {
-    // Invalida el cache para una fecha específica o todas
-    if (dateKey) {
-      queryClient.invalidateQueries({ 
-        queryKey: ['foodIntake'],
-        predicate: (query) => query.queryKey[2] === dateKey
-      });
-    } else {
-      // Invalida todo el cache de foodIntake
-      queryClient.invalidateQueries({ queryKey: ['foodIntake'] });
-    }
-  }, [queryClient]);
-};
+  <div className="flex-1 container px-4 py-4 flex flex-col overflow-hidden">
+    <ScrollArea className="flex-1">
+      {/* Messages */}
+    </ScrollArea>
+    
+    <form className="mt-3 pb-24">  ← DENTRO del contenedor scrollable
+      {/* Input */}
+    </form>
+  </div>
+</div>
 ```
 
----
-
-## Cambios por Archivo
-
-### 1. `src/hooks/useDailyFoodIntake.ts`
-**Agregar hook de invalidación exportable:**
-
-```typescript
-import { useQueryClient } from "@tanstack/react-query";
-
-// Nueva función para invalidar cache
-export const useInvalidateFoodIntake = () => {
-  const queryClient = useQueryClient();
+### Estructura Nueva (estilo Chat.tsx)
+```
+<div className="h-[100dvh] flex flex-col overflow-hidden">
+  <header className="flex-shrink-0">...</header>
   
-  return useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ['foodIntake'] });
-  }, [queryClient]);
-};
-```
-
-### 2. `src/pages/FoodScannerPage.tsx`
-**Después de guardar escaneo exitoso (línea ~170):**
-
-```typescript
-// Importar el hook
-import { useInvalidateFoodIntake } from '@/hooks/useDailyFoodIntake';
-
-// Dentro del componente
-const invalidateFoodIntake = useInvalidateFoodIntake();
-
-// En handleSave, después del insert exitoso:
-if (!error) {
-  setSaved(true);
-  setShowCelebration(true);
-  refreshLimits();
-  invalidateFoodIntake(); // ← Nuevo
-}
-```
-
-### 3. `src/pages/AddFood.tsx`
-**Después de guardar alimentos (línea ~260):**
-
-```typescript
-// Importar
-import { useInvalidateFoodIntake } from '@/hooks/useDailyFoodIntake';
-
-// Dentro del componente
-const invalidateFoodIntake = useInvalidateFoodIntake();
-
-// En handleDone, después del insert exitoso:
-if (!error) {
-  // ... celebration code ...
-  invalidateFoodIntake(); // ← Nuevo
-}
-```
-
-### 4. `src/components/scanner/ScannerFoodSearch.tsx`
-**Después de añadir alimento (línea ~150):**
-
-```typescript
-// Importar
-import { useInvalidateFoodIntake } from '@/hooks/useDailyFoodIntake';
-
-// Dentro del componente
-const invalidateFoodIntake = useInvalidateFoodIntake();
-
-// En handleAddFood, después del insert:
-if (!error) {
-  await trackFoodUsage(food.id);
-  triggerXP(10, 'food', ...);
-  invalidateFoodIntake(); // ← Nuevo
-  onFoodAdded();
-}
-```
-
-### 5. `src/components/FoodScanner.tsx`
-**Después de guardar escaneo (línea ~155):**
-
-```typescript
-// Importar
-import { useInvalidateFoodIntake } from '@/hooks/useDailyFoodIntake';
-
-// Dentro del componente
-const invalidateFoodIntake = useInvalidateFoodIntake();
-
-// En handleSave:
-if (!error) {
-  setSaved(true);
-  refreshLimits();
-  invalidateFoodIntake(); // ← Nuevo
-  onSaveSuccess?.();
-}
-```
-
-### 6. `src/components/MealPhotoDialog.tsx`
-**Después de guardar foto de comida (línea ~140):**
-
-```typescript
-// Importar
-import { useInvalidateFoodIntake } from '@/hooks/useDailyFoodIntake';
-
-// Dentro del componente
-const invalidateFoodIntake = useInvalidateFoodIntake();
-
-// En handleSavePhoto, después del insert:
-if (!insertError) {
-  invalidateFoodIntake(); // ← Nuevo
-  onPhotoSaved(meal.id);
-  handleClose();
-}
-```
-
-### 7. `src/components/ChallengePhotoDialog.tsx`
-**Después de guardar foto de reto:**
-
-```typescript
-// Importar
-import { useInvalidateFoodIntake } from '@/hooks/useDailyFoodIntake';
-
-// Dentro del componente
-const invalidateFoodIntake = useInvalidateFoodIntake();
-
-// Después del insert exitoso:
-invalidateFoodIntake(); // ← Nuevo
+  <ScrollArea className="flex-1 min-h-0">
+    {/* Messages */}
+  </ScrollArea>
+  
+  <div className="flex-shrink-0 border-t pb-safe">  ← FUERA del scroll
+    {/* Input siempre visible */}
+  </div>
+</div>
 ```
 
 ---
 
-## Flujo Corregido
+## Cambios Específicos
 
+### 1. Contenedor Principal
+**Antes:**
+```tsx
+<div className="min-h-full bg-gradient-to-b ... flex flex-col">
 ```
-Usuario agrega comida → Insert a Supabase → ✅ Éxito
-                      → invalidateFoodIntake() ← NUEVO
-                      → Cache marcado como "stale"
-                      → React Query refetch automático
-                      → UI actualizada instantáneamente
+
+**Después:**
+```tsx
+<div className="h-[100dvh] bg-background flex flex-col overflow-hidden">
+```
+
+### 2. Área de Mensajes
+**Antes:**
+```tsx
+<div className="flex-1 container mx-auto px-4 ... flex flex-col max-w-3xl overflow-hidden">
+  <ScrollArea className="flex-1 -mx-4 ...">
+    {/* mensajes */}
+  </ScrollArea>
+  
+  <motion.form className="mt-3 ... pb-24">
+    {/* input */}
+  </motion.form>
+</div>
+```
+
+**Después:**
+```tsx
+<ScrollArea className="flex-1 min-h-0">
+  <div className="px-4 py-4 space-y-4 max-w-3xl mx-auto">
+    {/* mensajes */}
+  </div>
+</ScrollArea>
+
+{/* Input FUERA del scroll, siempre visible */}
+<motion.div className="border-t border-border/50 bg-card/90 backdrop-blur-xl px-4 py-3 flex-shrink-0 pb-safe">
+  <form onSubmit={handleSend} className="flex items-end gap-2 max-w-3xl mx-auto">
+    {/* Textarea auto-expandible en lugar de Input */}
+  </form>
+</motion.div>
+```
+
+### 3. Mejorar el Input (textarea auto-expandible)
+**Antes:** `<Input />` de una sola línea
+
+**Después:** `<textarea>` que crece con el contenido (como WhatsApp)
+```tsx
+<textarea
+  ref={inputRef}
+  value={input}
+  onChange={handleInputChange}
+  onKeyDown={handleKeyDown}
+  placeholder={t("chat.placeholder")}
+  disabled={loading}
+  rows={1}
+  className="w-full resize-none rounded-2xl border-2 border-border bg-background px-4 py-3 text-[15px] placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 min-h-[48px] max-h-[120px]"
+  style={{ height: '48px' }}
+/>
 ```
 
 ---
 
-## Resumen de Cambios
+## Mejoras Visuales Adicionales
+
+| Elemento | Mejora |
+|----------|--------|
+| **Borde superior** | `border-t border-border/50` para separar del chat |
+| **Backdrop blur** | `backdrop-blur-xl` para efecto glass moderno |
+| **Safe area** | `pb-safe` para dispositivos con home indicator |
+| **Botón enviar** | Sombra `shadow-lg shadow-primary/20` para profundidad |
+| **Animación** | Entrada suave con `initial/animate` de framer-motion |
+
+---
+
+## Archivo a Modificar
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/hooks/useDailyFoodIntake.ts` | Agregar `useInvalidateFoodIntake` hook |
-| `src/pages/FoodScannerPage.tsx` | Llamar invalidación después de save |
-| `src/pages/AddFood.tsx` | Llamar invalidación después de save |
-| `src/components/scanner/ScannerFoodSearch.tsx` | Llamar invalidación después de add |
-| `src/components/FoodScanner.tsx` | Llamar invalidación después de save |
-| `src/components/MealPhotoDialog.tsx` | Llamar invalidación después de save |
-| `src/components/ChallengePhotoDialog.tsx` | Llamar invalidación después de save |
-
-**Total: 7 archivos, ~15 líneas nuevas**
+| `src/pages/ChefIA.tsx` | Reestructurar layout: sacar input del scroll, usar textarea |
 
 ---
 
-## Impacto
+## Resultado Visual Esperado
 
-| Métrica | Antes | Después |
-|---------|-------|---------|
-| Tiempo para ver comida agregada | ~2 minutos | Instantáneo (~100ms) |
-| Experiencia de usuario | Confusa ("¿se guardó?") | Clara y responsiva |
-| Llamadas extra a DB | 0 | 1 por inserción (mínimo) |
+```
+┌────────────────────────────────────┐
+│  [←]  🍋 Chefly                  🔊 │  ← Header fijo
+├────────────────────────────────────┤
+│                                    │
+│  [🍋] Hola! ¿Cómo puedo ayudarte? │  ↑
+│                                    │  │
+│            Pregunta aquí  [Tú]    │  │ Área scrollable
+│                                    │  │
+│  [🍋] Respuesta del coach...      │  ↓
+│                                    │
+├────────────────────────────────────┤
+│  ┌─────────────────────────┐  [→] │  ← Input SIEMPRE visible
+│  │ Escribe tu mensaje...   │      │
+│  └─────────────────────────┘      │
+└────────────────────────────────────┘
+    ↑ Safe area respetada
+```
 
 ---
 
-## Por qué esta solución es segura
+## Funcionalidad del Textarea
 
-1. **No rompe nada existente** - Solo agrega invalidación después de operaciones exitosas
-2. **Eficiente** - `invalidateQueries` solo marca como stale, no fuerza refetch inmediato si el componente no está montado
-3. **Centralizada** - Un hook reutilizable evita código duplicado
-4. **Sin impacto en costos** - No agrega llamadas a APIs de IA ni servicios externos
+- **Enter** = Enviar mensaje
+- **Shift+Enter** = Nueva línea
+- **Auto-expand** = Crece hasta 120px máximo
+- **Auto-shrink** = Vuelve a 48px al enviar
+
