@@ -10,6 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useInvalidateProgressData } from "@/hooks/useProgressData";
 
 const formSchema = z.object({
   measurement_date: z.string(),
@@ -31,6 +32,7 @@ interface BodyMeasurementFormProps {
 export const BodyMeasurementForm = ({ userId, onSuccess }: BodyMeasurementFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const { t } = useLanguage();
+  const invalidateProgressData = useInvalidateProgressData();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -71,6 +73,9 @@ export const BodyMeasurementForm = ({ userId, onSuccess }: BodyMeasurementFormPr
         });
 
       if (error) throw error;
+
+      // Invalidate progress cache for instant updates
+      invalidateProgressData();
 
       toast.success(t('bodyMeasurements.saveSuccess'));
       form.reset({
