@@ -10,9 +10,16 @@ interface DashboardHeaderProps {
   currentStreak: number;
   level: number;
   avatarUrl?: string | null;
+  isProfileLoading?: boolean;
 }
 
-export const DashboardHeader = ({ displayName, currentStreak, level, avatarUrl }: DashboardHeaderProps) => {
+export const DashboardHeader = ({ 
+  displayName, 
+  currentStreak, 
+  level, 
+  avatarUrl,
+  isProfileLoading = false 
+}: DashboardHeaderProps) => {
   const { language } = useLanguage();
   const navigate = useNavigate();
   
@@ -23,7 +30,10 @@ export const DashboardHeader = ({ displayName, currentStreak, level, avatarUrl }
     return language === 'es' ? '¡Buenas noches' : 'Good evening';
   };
   
-  const name = displayName || (language === 'es' ? 'Chef' : 'Chef');
+  // Show fallback "Chef" while loading to prevent flash of previous user's name
+  const name = isProfileLoading 
+    ? (language === 'es' ? 'Chef' : 'Chef')
+    : (displayName || (language === 'es' ? 'Chef' : 'Chef'));
   const greeting = getGreeting();
   
 

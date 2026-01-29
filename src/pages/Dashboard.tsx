@@ -231,12 +231,34 @@ const Dashboard = () => {
     }
   }, [authLoading, isAuthenticated, navigate]);
 
-  // Set userId from auth context immediately
+  // Set userId from auth context immediately - always sync with authUser
   useEffect(() => {
-    if (authUser?.id && !userId) {
+    if (authUser?.id) {
       setUserId(authUser.id);
+    } else {
+      setUserId(undefined);
     }
-  }, [authUser?.id, userId]);
+  }, [authUser?.id]);
+
+  // Clear all local state when userId changes to prevent flash of previous user's data
+  useEffect(() => {
+    if (userId === undefined) return; // Skip on initial mount
+    
+    // Reset all user-specific state to prevent showing previous user's data
+    setProfile(null);
+    setMealPlan(null);
+    setUserStats({
+      total_points: 0,
+      current_streak: 0,
+      longest_streak: 0,
+      meals_completed: 0,
+      level: 1,
+    });
+    setCompletedMeals(new Set());
+    setPreferencesChecked(false);
+    setInitialLoadComplete(false);
+    redirectingRef.current = false;
+  }, [userId]);
 
   // Import prefetch hook
   const { prefetchAll } = usePrefetch(userId);
@@ -1191,6 +1213,7 @@ const Dashboard = () => {
           currentStreak={userStats.current_streak}
           level={userStats.level}
           avatarUrl={profile?.avatar_url}
+          isProfileLoading={!profile && initialLoadComplete}
         />
 
         {/* SUBSCRIPTION PROMO BANNER - For free users on native platforms */}
