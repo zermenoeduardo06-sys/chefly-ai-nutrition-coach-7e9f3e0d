@@ -17,7 +17,7 @@ import { ScannerStats } from '@/components/scanner/ScannerStats';
 import { ScanCelebration } from '@/components/scanner/ScanCelebration';
 import ScannerFoodSearch from '@/components/scanner/ScannerFoodSearch';
 import mascotLime from '@/assets/mascot-lime.png';
-import { createScanTimestamp } from '@/lib/dateUtils';
+import { createScanTimestamp, getLocalDateString } from '@/lib/dateUtils';
 import { cn } from '@/lib/utils';
 
 const tabs = [
@@ -31,7 +31,8 @@ export default function FoodScannerPage() {
   const navigate = useNavigate();
   const { mealType } = useParams<{ mealType?: string }>();
   const [searchParams] = useSearchParams();
-  const selectedDate = searchParams.get('date') || new Date().toISOString().split('T')[0];
+  // CRITICAL: Use getLocalDateString() instead of toISOString() to preserve local date
+  const selectedDate = searchParams.get('date') || getLocalDateString();
   const { language } = useLanguage();
   const { toast } = useToast();
   

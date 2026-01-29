@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { startOfDay, subDays, startOfWeek, endOfWeek, eachDayOfInterval, format } from "date-fns";
 import { fetchDailyIntakeData } from "./useDailyFoodIntake";
+import { getLocalDateString } from "@/lib/dateUtils";
 
 /**
  * Selective prefetch hook for high-probability navigation targets.
@@ -16,7 +17,8 @@ export const usePrefetch = (userId: string | undefined) => {
   const prefetchDiary = useCallback(() => {
     if (!userId) return;
     
-    const today = new Date().toISOString().split('T')[0];
+    // CRITICAL: Use getLocalDateString() to preserve local date for food queries
+    const today = getLocalDateString();
     
     // Today's food intake
     queryClient.prefetchQuery({

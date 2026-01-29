@@ -15,6 +15,19 @@ const MEAL_TIME_MAP: Record<string, string> = {
 };
 
 /**
+ * Obtiene la fecha local actual en formato YYYY-MM-DD.
+ * NUNCA usa toISOString() que convierte a UTC.
+ * 
+ * @returns Fecha local como string (ej: "2026-01-29")
+ */
+export function getLocalDateString(date: Date = new Date()): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/**
  * Construye un timestamp ISO que preserva la fecha local seleccionada
  * sin sufrir conversiones de timezone al guardarse en la base de datos.
  * 
@@ -41,7 +54,7 @@ export function createMealTimestamp(
   // Validar formato de fecha
   if (!selectedDate || !/^\d{4}-\d{2}-\d{2}$/.test(selectedDate)) {
     console.warn('[dateUtils] Invalid selectedDate format, using today:', selectedDate);
-    selectedDate = new Date().toISOString().split('T')[0];
+    selectedDate = getLocalDateString();
   }
   
   const time = MEAL_TIME_MAP[mealType] || '12:00:00';
@@ -66,7 +79,7 @@ export function createScanTimestamp(selectedDate: string): string {
   // Validar formato de fecha
   if (!selectedDate || !/^\d{4}-\d{2}-\d{2}$/.test(selectedDate)) {
     console.warn('[dateUtils] Invalid selectedDate format, using today:', selectedDate);
-    selectedDate = new Date().toISOString().split('T')[0];
+    selectedDate = getLocalDateString();
   }
   
   const now = new Date();

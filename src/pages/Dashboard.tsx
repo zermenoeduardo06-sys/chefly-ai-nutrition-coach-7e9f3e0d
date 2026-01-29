@@ -1,6 +1,8 @@
 import { useEffect, useState, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { format } from "date-fns";
+import { getLocalDateString } from "@/lib/dateUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -443,7 +445,8 @@ const Dashboard = () => {
 
 
   const loadCompletedMeals = async (userId: string) => {
-    const today = new Date().toISOString().split('T')[0];
+    // Use getLocalDateString() for consistency with food logging
+    const today = getLocalDateString();
     const { data } = await supabase
       .from("meal_completions")
       .select("meal_id")
@@ -470,7 +473,8 @@ const Dashboard = () => {
 
   // Navigate to AI Camera page for this meal type (exposes premium feature first)
   const handleOpenMealEntry = (meal: Meal) => {
-    const dateStr = selectedDate.toISOString().split('T')[0];
+    // Use format() to preserve local date, not toISOString() which converts to UTC
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
     navigate(`/dashboard/ai-camera/${meal.meal_type}?date=${dateStr}`);
   };
 
@@ -546,7 +550,8 @@ const Dashboard = () => {
   };
 
   const updateUserStats = async (userId: string) => {
-    const today = new Date().toISOString().split('T')[0];
+    // Use getLocalDateString() for consistency
+    const today = getLocalDateString();
     
     // Calculate new streak
     const { data: stats } = await supabase
@@ -560,7 +565,8 @@ const Dashboard = () => {
     const lastActivity = stats.last_activity_date;
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = yesterday.toISOString().split('T')[0];
+    // Also use getLocalDateString for yesterday
+    const yesterdayStr = getLocalDateString(yesterday);
 
     let newStreak = stats.current_streak;
     if (!lastActivity || lastActivity === yesterdayStr) {
@@ -1315,14 +1321,14 @@ const Dashboard = () => {
       <FoodScanner
         open={showFoodScanner}
         onOpenChange={setShowFoodScanner}
-        selectedDate={selectedDate.toISOString().split('T')[0]}
+        selectedDate={format(selectedDate, 'yyyy-MM-dd')}
       />
 
       <MealPhotoDialog
         open={showMealPhotoDialog}
         onOpenChange={setShowMealPhotoDialog}
         meal={mealToComplete}
-        selectedDate={selectedDate.toISOString().split('T')[0]}
+        selectedDate={format(selectedDate, 'yyyy-MM-dd')}
         onPhotoSaved={(mealId) => {
           completeMeal(mealId);
           setMealToComplete(null);

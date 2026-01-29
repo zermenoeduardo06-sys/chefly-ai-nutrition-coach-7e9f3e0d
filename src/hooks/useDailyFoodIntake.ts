@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { startOfDay, endOfDay } from "date-fns";
 import { syncToWidget, createWidgetData } from "./useWidgetSync";
 
 interface MealCalories {
@@ -59,17 +58,11 @@ const DEFAULT_MACROS: MealMacros = {
 
 // Pure fetch function for React Query
 async function fetchDailyIntakeData(userId: string, dateKey: string): Promise<DailyIntakeData> {
-  // Parse as local date (not UTC) to match user's timezone
-  const [year, month, day] = dateKey.split('-').map(Number);
-  const targetDate = new Date(year, month - 1, day);
-  
-  // Get local day boundaries
-  const dayStart = startOfDay(targetDate);
-  const dayEnd = endOfDay(targetDate);
-  
-  // Convert to ISO strings for Supabase query
-  const dayStartISO = dayStart.toISOString();
-  const dayEndISO = dayEnd.toISOString();
+  // CRITICAL FIX: Use UTC ranges that match how data is saved
+  // Data is saved with createMealTimestamp as "YYYY-MM-DDThh:mm:ss.000Z"
+  // So we query using the same direct UTC format to avoid timezone issues
+  const dayStartISO = `${dateKey}T00:00:00.000Z`;
+  const dayEndISO = `${dateKey}T23:59:59.999Z`;
 
   const { data, error } = await supabase
     .from("food_scans")
@@ -162,8 +155,14 @@ async function fetchDailyIntakeData(userId: string, dateKey: string): Promise<Da
 export { fetchDailyIntakeData };
 
 export function useDailyFoodIntake(userId: string | undefined, date: Date = new Date()) {
-  // Convert Date to stable string key to avoid infinite loops
-  const dateKey = useMemo(() => date.toISOString().split('T')[0], [date.getTime()]);
+  // CRITICAL: Use format() to preserve local date, NOT toISOString() which converts to UTC
+  // This ensures "today" at 2am local time doesn't become "yesterday" in the query
+  const dateKey = useMemo(() => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }, [date.getTime()]);
   
   const query = useQuery({
     queryKey: ['foodIntake', userId, dateKey],
