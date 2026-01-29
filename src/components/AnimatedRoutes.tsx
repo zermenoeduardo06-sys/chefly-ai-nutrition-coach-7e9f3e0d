@@ -49,6 +49,7 @@ import MorePage from '@/pages/MorePage';
 import Recipes from '@/pages/Recipes';
 import FoodScannerPage from '@/pages/FoodScannerPage';
 import PremiumPaywall from '@/pages/PremiumPaywall';
+import WelcomePlusScreen from '@/pages/WelcomePlusScreen';
 import Wellness from '@/pages/Wellness';
 
 /**
@@ -115,6 +116,7 @@ export const AnimatedRoutes = () => {
       <Route path="/blog/:articleId" element={<PageTransition><BlogArticle /></PageTransition>} />
       <Route path="/app-store-demo" element={<AppStoreDemo />} />
       <Route path="/premium-paywall" element={<PageTransition><PremiumPaywall /></PageTransition>} />
+      <Route path="/welcome-plus" element={<PageTransition><WelcomePlusScreen /></PageTransition>} />
       <Route path="/chat" element={<PageTransition><Chat /></PageTransition>} />
       <Route path="/influencer/:code" element={<PageTransition><InfluencerDashboard /></PageTransition>} />
 
