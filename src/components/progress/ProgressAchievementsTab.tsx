@@ -1,12 +1,11 @@
-import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Trophy } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AchievementBadge3D } from "@/components/progress/AchievementBadge3D";
 import { Card3D } from "@/components/ui/card-3d";
-import { Progress } from "@/components/ui/progress";
 
 interface Achievement {
   id: string;
@@ -25,9 +24,6 @@ interface ProgressAchievementsTabProps {
 
 export function ProgressAchievementsTab({ userId }: ProgressAchievementsTabProps) {
   const { language } = useLanguage();
-  const [achievements, setAchievements] = useState<Achievement[]>([]);
-  const [unlockedAchievements, setUnlockedAchievements] = useState<Set<string>>(new Set());
-  const [loading, setLoading] = useState(true);
 
   const texts = {
     es: {
@@ -45,37 +41,41 @@ export function ProgressAchievementsTab({ userId }: ProgressAchievementsTabProps
   };
   const t = texts[language];
 
-  useEffect(() => {
-    if (!userId) return;
-    loadAchievements();
-  }, [userId]);
-
-  const loadAchievements = async () => {
-    setLoading(true);
-    try {
-      const { data: allAchievements } = await supabase
+  // All achievements (rarely changes, long staleTime)
+  const achievementsQuery = useQuery({
+    queryKey: ['achievements', 'all'],
+    queryFn: async () => {
+      const { data } = await supabase
         .from("achievements")
         .select("*")
         .order("requirement_value", { ascending: true });
+      return (data || []) as Achievement[];
+    },
+    staleTime: 30 * 60 * 1000, // 30 min
+    gcTime: 60 * 60 * 1000,
+  });
 
-      if (allAchievements) {
-        setAchievements(allAchievements);
-      }
-
-      const { data: userAchievements } = await supabase
+  // User's unlocked achievements
+  const userAchievementsQuery = useQuery({
+    queryKey: ['achievements', 'user', userId],
+    queryFn: async () => {
+      const { data } = await supabase
         .from("user_achievements")
         .select("achievement_id")
         .eq("user_id", userId);
+      return new Set(data?.map(ua => ua.achievement_id) || []);
+    },
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
 
-      if (userAchievements) {
-        setUnlockedAchievements(new Set(userAchievements.map(ua => ua.achievement_id)));
-      }
-    } catch (error) {
-      console.error("Error loading achievements:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const achievements = achievementsQuery.data ?? [];
+  const unlockedAchievements = userAchievementsQuery.data ?? new Set<string>();
+
+  // Show skeleton only on initial load without cached data
+  const isLoading = (achievementsQuery.isLoading && !achievementsQuery.data) || 
+                    (userAchievementsQuery.isLoading && !userAchievementsQuery.data);
 
   const sortedAchievements = [...achievements].sort((a, b) => {
     const aUnlocked = unlockedAchievements.has(a.id);
@@ -89,7 +89,7 @@ export function ProgressAchievementsTab({ userId }: ProgressAchievementsTabProps
   const totalCount = achievements.length;
   const progressPercentage = totalCount > 0 ? (unlockedCount / totalCount) * 100 : 0;
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-24 w-full rounded-3xl" />

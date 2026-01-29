@@ -1,23 +1,12 @@
-import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Flame, Trophy, Star, Target, Utensils, Calendar } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Trophy, Star, Target, Utensils } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StreakCounter } from "@/components/streaks/StreakCounter";
 import { Stat3DCard } from "@/components/progress/Stat3DCard";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Card3D } from "@/components/ui/card-3d";
-
-interface UserStats {
-  current_streak: number;
-  longest_streak: number;
-  total_points: number;
-  level: number;
-  meals_completed: number;
-  streak_freeze_available: number;
-  last_activity_date: string | null;
-}
+import { useProgressData } from "@/hooks/useProgressData";
 
 interface ProgressStatsTabProps {
   userId: string;
@@ -25,8 +14,7 @@ interface ProgressStatsTabProps {
 
 export function ProgressStatsTab({ userId }: ProgressStatsTabProps) {
   const { language } = useLanguage();
-  const [stats, setStats] = useState<UserStats | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { stats, isLoading } = useProgressData(userId);
   const { subscribed } = useSubscription(userId);
 
   const texts = {
@@ -55,31 +43,8 @@ export function ProgressStatsTab({ userId }: ProgressStatsTabProps) {
   };
   const t = texts[language];
 
-  useEffect(() => {
-    if (!userId) return;
-    loadStats();
-  }, [userId]);
-
-  const loadStats = async () => {
-    setLoading(true);
-    try {
-      const { data } = await supabase
-        .from("user_stats")
-        .select("*")
-        .eq("user_id", userId)
-        .single();
-
-      if (data) {
-        setStats(data);
-      }
-    } catch (error) {
-      console.error("Error loading stats:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
+  // Show skeleton only on initial load without cached data
+  if (isLoading) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-36 w-full rounded-3xl" />

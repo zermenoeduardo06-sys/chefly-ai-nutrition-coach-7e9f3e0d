@@ -1,7 +1,8 @@
 import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { startOfDay, subDays } from "date-fns";
+import { startOfDay, subDays, startOfWeek, endOfWeek, eachDayOfInterval, format } from "date-fns";
+import { fetchDailyIntakeData } from "./useDailyFoodIntake";
 
 /**
  * Selective prefetch hook for high-probability navigation targets.
@@ -10,6 +11,20 @@ import { startOfDay, subDays } from "date-fns";
  */
 export const usePrefetch = (userId: string | undefined) => {
   const queryClient = useQueryClient();
+
+  // Prefetch Diary/Dashboard data (food intake for today)
+  const prefetchDiary = useCallback(() => {
+    if (!userId) return;
+    
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Today's food intake
+    queryClient.prefetchQuery({
+      queryKey: ['foodIntake', userId, today],
+      queryFn: () => fetchDailyIntakeData(userId, today),
+      staleTime: 2 * 60 * 1000,
+    });
+  }, [userId, queryClient]);
 
   // Prefetch Progress page data
   const prefetchProgress = useCallback(() => {
@@ -56,6 +71,64 @@ export const usePrefetch = (userId: string | undefined) => {
           .eq("user_id", userId)
           .maybeSingle();
         return data;
+      },
+      staleTime: 5 * 60 * 1000,
+    });
+
+    // Nutrition progress (weekly data for charts)
+    const now = new Date();
+    const weekStart = startOfWeek(now, { weekStartsOn: 1 });
+    const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
+
+    queryClient.prefetchQuery({
+      queryKey: ['nutritionProgress', 'weekly', userId, format(now, 'yyyy-ww')],
+      queryFn: async () => {
+        const [completions, foodScans] = await Promise.all([
+          supabase
+            .from("meal_completions")
+            .select(`completed_at, meals (calories, protein, carbs, fats)`)
+            .eq("user_id", userId)
+            .gte("completed_at", weekStart.toISOString())
+            .lte("completed_at", weekEnd.toISOString()),
+          supabase
+            .from("food_scans")
+            .select("scanned_at, calories, protein, carbs, fat")
+            .eq("user_id", userId)
+            .gte("scanned_at", weekStart.toISOString())
+            .lte("scanned_at", weekEnd.toISOString()),
+        ]);
+        return { completions: completions.data, foodScans: foodScans.data };
+      },
+      staleTime: 5 * 60 * 1000,
+    });
+  }, [userId, queryClient]);
+
+  // Prefetch Achievements data
+  const prefetchAchievements = useCallback(() => {
+    if (!userId) return;
+
+    // All achievements definition (rarely changes)
+    queryClient.prefetchQuery({
+      queryKey: ['achievements', 'all'],
+      queryFn: async () => {
+        const { data } = await supabase
+          .from("achievements")
+          .select("*")
+          .order("requirement_value", { ascending: true });
+        return data || [];
+      },
+      staleTime: 30 * 60 * 1000, // 30 min - achievements rarely change
+    });
+
+    // User's unlocked achievements
+    queryClient.prefetchQuery({
+      queryKey: ['achievements', 'user', userId],
+      queryFn: async () => {
+        const { data } = await supabase
+          .from("user_achievements")
+          .select("achievement_id")
+          .eq("user_id", userId);
+        return data?.map(ua => ua.achievement_id) || [];
       },
       staleTime: 5 * 60 * 1000,
     });
@@ -173,17 +246,21 @@ export const usePrefetch = (userId: string | undefined) => {
   // Prefetch all main sections at once (for Dashboard mount)
   const prefetchAll = useCallback(() => {
     if (!userId) return;
+    prefetchDiary();
     prefetchProgress();
     prefetchWellness();
     prefetchRecipes();
     prefetchChat();
-  }, [userId, prefetchProgress, prefetchWellness, prefetchRecipes, prefetchChat]);
+    prefetchAchievements();
+  }, [userId, prefetchDiary, prefetchProgress, prefetchWellness, prefetchRecipes, prefetchChat, prefetchAchievements]);
 
   return {
+    prefetchDiary,
     prefetchProgress,
     prefetchWellness,
     prefetchRecipes,
     prefetchChat,
+    prefetchAchievements,
     prefetchAll,
   };
 };
