@@ -1,152 +1,203 @@
 
-# Plan: Corrección Definitiva del Registro de Comidas por Tipo de Comida
+# Plan: Corrección del Flash del Nombre de Otro Usuario
 
 ## Problema Identificado
 
-El problema es una **desincronización de timezone entre el guardado y la consulta** de comidas.
+Cuando un usuario cambia de cuenta (logout → login con otra cuenta), el saludo "Buenos días, **Carlos**" puede mostrar por un instante el nombre del usuario anterior antes de cargar el nombre correcto.
 
-### Análisis del Flujo Actual:
+### Causas Raíz
 
-**Al GUARDAR (funciona correctamente):**
+| Causa | Ubicación | Impacto |
+|-------|-----------|---------|
+| Estado `profile` no se limpia al cambiar de usuario | Dashboard.tsx | Flash del nombre anterior |
+| `userId` no se actualiza si ya existe un valor | Dashboard.tsx línea 236 | Datos del usuario anterior persisten |
+| AuthContext solo limpia cache en `SIGNED_OUT` | AuthContext.tsx | No detecta cambios de cuenta sin logout explícito |
+
+### Flujo del Bug
+
+```text
+1. Usuario A en Dashboard: profile = { display_name: "Carlos" }
+2. Usuario A hace logout
+3. queryClient.clear() ← OK, cache limpio
+4. Usuario B inicia sesión
+5. Dashboard monta/re-renderiza
+6. Estado local profile TODAVÍA tiene datos de Carlos ← BUG
+7. loadProfile() se ejecuta...
+8. Durante ese instante: "Buenos días, Carlos" ← Flash visible
+9. Profile de Usuario B llega: "Buenos días, María"
 ```
-createMealTimestamp("2026-01-29", "breakfast") 
-→ "2026-01-29T08:00:00.000Z"
-```
-El timestamp se construye como string UTC directo, preservando la fecha seleccionada.
-
-**Al CONSULTAR (tiene el bug):**
-```typescript
-// useDailyFoodIntake.ts
-const targetDate = new Date(year, month - 1, day); // Hora LOCAL
-const dayStart = startOfDay(targetDate);           // 00:00 LOCAL
-const dayEnd = endOfDay(targetDate);               // 23:59 LOCAL
-const dayStartISO = dayStart.toISOString();        // ¡CONVIERTE A UTC!
-```
-
-**Ejemplo para usuario en UTC-6 (Ciudad de México):**
-
-| Hora Local | dayStartISO (actual) | dayEndISO (actual) |
-|------------|---------------------|-------------------|
-| dateKey="2026-01-29" | "2026-01-29T06:00:00Z" | "2026-01-30T05:59:59Z" |
-
-**Pero las comidas se guardan como:**
-- breakfast → "2026-01-29T08:00:00Z" ✓ (dentro del rango)
-- lunch → "2026-01-29T13:00:00Z" ✓ (dentro del rango)
-- dinner → "2026-01-29T20:00:00Z" ✓ (dentro del rango)
-
-**¿Por qué falla "a veces"?**
-
-El problema ocurre cuando:
-1. El usuario está en una zona horaria negativa (UTC-X)
-2. Las comidas se registran con horas UTC tempranas (ej: 00:00-05:59 UTC)
-3. En ese caso, la consulta NO las encuentra porque el `dayStartISO` empieza después
-
-**Ejemplo específico del bug:**
-- Usuario en UTC-6 registra "breakfast" para el día 29
-- Si son las 2am local (08:00 UTC), `createScanTimestamp` genera "2026-01-29T08:00:00Z"
-- Pero si la consulta se hace a las 11pm local del día anterior:
-  - `dayStartISO` = "2026-01-29T05:00:00Z" (11pm + 6 = 5am UTC)
-  - El registro "2026-01-29T08:00:00Z" SÍ cae dentro del rango
-  
-El bug real es más sutil: **la inconsistencia entre usar hora local vs hora UTC fija** causa que ciertos registros queden fuera del rango dependiendo de cuándo se hizo la consulta.
 
 ---
 
 ## Solución
 
-**Unificar ambos sistemas a UTC fijo:**
+### Estrategia: Limpieza de estado al cambiar de userId
 
-Como los datos se guardan con formato `YYYY-MM-DDThh:mm:ss.000Z` (UTC directo), la consulta debe usar el mismo enfoque:
-
-```typescript
-// Antes (buggy)
-const dayStart = startOfDay(targetDate);
-const dayStartISO = dayStart.toISOString(); // Conversión problemática
-
-// Después (correcto)
-const dayStartISO = `${dateKey}T00:00:00.000Z`; // UTC directo
-const dayEndISO = `${dateKey}T23:59:59.999Z`;   // UTC directo
-```
-
-Esto garantiza que:
-- `dateKey = "2026-01-29"` siempre consulta desde `2026-01-29T00:00:00Z` hasta `2026-01-29T23:59:59Z`
-- Los registros guardados como `2026-01-29T08:00:00Z`, `2026-01-29T13:00:00Z`, etc. siempre caen dentro del rango
+La solución requiere 3 cambios sincronizados:
 
 ---
 
-## Cambios Específicos
+### Cambio 1: `src/contexts/AuthContext.tsx`
 
-### Archivo: `src/hooks/useDailyFoodIntake.ts`
-
-**Líneas 61-79 - Cambiar la construcción del rango de consulta:**
+Detectar cambios de usuario (no solo logout) y limpiar cache.
 
 ```typescript
-// ANTES (buggy)
-async function fetchDailyIntakeData(userId: string, dateKey: string): Promise<DailyIntakeData> {
-  const [year, month, day] = dateKey.split('-').map(Number);
-  const targetDate = new Date(year, month - 1, day);
-  
-  const dayStart = startOfDay(targetDate);
-  const dayEnd = endOfDay(targetDate);
-  
-  const dayStartISO = dayStart.toISOString();
-  const dayEndISO = dayEnd.toISOString();
+// Agregar ref para rastrear userId anterior
+const previousUserIdRef = useRef<string | null>(null);
+
+useEffect(() => {
+  const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    (event, currentSession) => {
+      const newUserId = currentSession?.user?.id ?? null;
+      
+      // Limpiar cache si el usuario cambió (no solo en logout)
+      if (previousUserIdRef.current && previousUserIdRef.current !== newUserId) {
+        queryClient.clear();
+      }
+      
+      previousUserIdRef.current = newUserId;
+      setSession(currentSession);
+      setUser(currentSession?.user ?? null);
+      setIsLoading(false);
+
+      if (event === "SIGNED_OUT") {
+        queryClient.clear();
+      }
+    }
+  );
+  // ...resto igual
+}, [queryClient]);
+```
+
+---
+
+### Cambio 2: `src/pages/Dashboard.tsx`
+
+**2a. Actualizar userId cuando cambie el authUser (línea 235-239):**
+
+```typescript
+// ANTES - No actualiza si ya hay un userId
+useEffect(() => {
+  if (authUser?.id && !userId) {
+    setUserId(authUser.id);
+  }
+}, [authUser?.id, userId]);
+
+// DESPUÉS - Siempre sincroniza con authUser
+useEffect(() => {
+  if (authUser?.id) {
+    setUserId(authUser.id);
+  } else {
+    setUserId(undefined);
+  }
+}, [authUser?.id]);
+```
+
+**2b. Agregar useEffect para limpiar datos cuando cambia el userId (nuevo):**
+
+```typescript
+// Limpiar datos locales cuando cambia el usuario para evitar flash
+useEffect(() => {
+  // Reset todo el estado local al cambiar de usuario
+  setProfile(null);
+  setMealPlan(null);
+  setUserStats({
+    total_points: 0,
+    current_streak: 0,
+    longest_streak: 0,
+    meals_completed: 0,
+    level: 1,
+  });
+  setCompletedMeals(new Set());
+  setPreferencesChecked(false);
+  setInitialLoadComplete(false);
+  redirectingRef.current = false;
+}, [userId]);
+```
+
+---
+
+### Cambio 3: `src/components/DashboardHeader.tsx` (opcional, defensa extra)
+
+Verificar que el profile pertenece al usuario actual antes de mostrar el nombre.
+
+```typescript
+interface DashboardHeaderProps {
+  displayName?: string;
+  currentStreak: number;
+  level: number;
+  avatarUrl?: string | null;
+  isProfileLoading?: boolean; // Nuevo prop
+}
+
+export const DashboardHeader = ({ 
+  displayName, 
+  currentStreak, 
+  level, 
+  avatarUrl,
+  isProfileLoading = false 
+}: DashboardHeaderProps) => {
   // ...
-}
-
-// DESPUÉS (correcto)
-async function fetchDailyIntakeData(userId: string, dateKey: string): Promise<DailyIntakeData> {
-  // Construir rango UTC directamente para coincidir con cómo se guardan los datos
-  // Los datos se guardan como "YYYY-MM-DDThh:mm:ss.000Z" usando createMealTimestamp
-  // Por lo tanto, la consulta debe usar el mismo formato UTC directo
-  const dayStartISO = `${dateKey}T00:00:00.000Z`;
-  const dayEndISO = `${dateKey}T23:59:59.999Z`;
-  // ...query sigue igual...
-}
+  
+  // Si está cargando, no mostrar nombre de nadie
+  const name = isProfileLoading 
+    ? (language === 'es' ? 'Chef' : 'Chef')
+    : (displayName || (language === 'es' ? 'Chef' : 'Chef'));
 ```
 
-**Eliminar imports innecesarios:**
-```typescript
-// Eliminar
-import { startOfDay, endOfDay } from "date-fns";
+Y en Dashboard.tsx pasar el prop:
+
+```tsx
+<DashboardHeader
+  displayName={profile?.display_name}
+  currentStreak={userStats.current_streak}
+  level={userStats.level}
+  avatarUrl={profile?.avatar_url}
+  isProfileLoading={!profile && initialLoadComplete}
+/>
 ```
 
 ---
 
-## Verificación de Consistencia
-
-### Flujo de Guardado (ya correcto):
-
-| Origen | Función | Resultado |
-|--------|---------|-----------|
-| AddFood.tsx | `createMealTimestamp(selectedDate, mealType)` | "2026-01-29T08:00:00.000Z" |
-| ScannerFoodSearch.tsx | `createMealTimestamp(selectedDate, mealType)` | "2026-01-29T13:00:00.000Z" |
-| FoodScannerPage.tsx | `createScanTimestamp(selectedDate)` | "2026-01-29T14:35:22.000Z" |
-
-### Flujo de Consulta (será corregido):
-
-| Entrada | Rango Generado |
-|---------|---------------|
-| dateKey="2026-01-29" | 00:00:00Z → 23:59:59Z del día 29 |
-
-**Ahora todos los registros del día 29 caerán dentro del rango, sin importar la timezone del usuario.**
-
----
-
-## Impacto
-
-| Antes | Después |
-|-------|---------|
-| Comidas desaparecen dependiendo de la hora local | Comidas siempre visibles en el día correcto |
-| Funciona "a veces" | Funciona siempre (100%) |
-| Depende de timezone del navegador | Independiente de timezone |
-
----
-
-## Archivos a Modificar
+## Resumen de Archivos a Modificar
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/hooks/useDailyFoodIntake.ts` | Cambiar construcción del rango de consulta a UTC directo |
+| `src/contexts/AuthContext.tsx` | Detectar cambio de usuario y limpiar cache |
+| `src/pages/Dashboard.tsx` | Sincronizar userId + limpiar estado local al cambiar |
+| `src/components/DashboardHeader.tsx` | Prop opcional de loading (defensa extra) |
 
-**Total: 1 archivo, ~10 líneas modificadas**
+**Total: 3 archivos, ~25 líneas modificadas**
+
+---
+
+## Criterios de Validación
+
+| Test | Resultado Esperado |
+|------|-------------------|
+| Usuario A logout → Usuario B login | Nunca ver nombre de Usuario A |
+| Cerrar pestaña sin logout → abrir → login B | Nombre correcto sin flash |
+| Refresh de página logueado | Nombre correcto o "Chef" mientras carga |
+| Cambio rápido de cuentas | Cache limpio, sin mezcla de datos |
+
+---
+
+## Por qué Esta Solución Funciona
+
+1. **AuthContext** detecta cambios de userId antes de que Dashboard monte
+2. **Dashboard** limpia TODO su estado local cuando userId cambia
+3. **DashboardHeader** tiene fallback seguro mientras profile es null
+
+El flujo corregido:
+
+```text
+1. Usuario A logout
+2. AuthContext: userId cambió → queryClient.clear()
+3. Usuario B login
+4. Dashboard: nuevo userId detectado → setProfile(null), reset todo
+5. UI renderiza: "Buenos días, Chef" (fallback seguro)
+6. loadProfile() completa
+7. UI actualiza: "Buenos días, María" (nombre correcto)
+```
+
+Nunca habrá flash del nombre anterior porque el estado se limpia **antes** de que React renderice el componente.
