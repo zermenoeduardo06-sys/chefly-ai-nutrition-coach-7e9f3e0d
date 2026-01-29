@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Crown, Gift, Zap, Sparkles } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Crown, Gift, Zap } from "lucide-react";
+import { SUBSCRIPTION_TIERS } from "@/hooks/useSubscription";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Card3D } from "@/components/ui/card-3d";
-import { Icon3D } from "@/components/ui/icon-3d";
-import { motion } from "framer-motion";
 
 interface SubscriptionBannerProps {
   userId: string;
@@ -24,6 +24,7 @@ export const SubscriptionBanner = ({ userId }: SubscriptionBannerProps) => {
 
   const loadSubscription = async () => {
     try {
+      // Check Stripe subscription
       const { data: stripeData } = await supabase.functions.invoke("check-subscription");
       
       if (stripeData?.subscribed && stripeData?.product_id) {
@@ -43,86 +44,81 @@ export const SubscriptionBanner = ({ userId }: SubscriptionBannerProps) => {
   // Chefly Plus subscriber banner
   if (isCheflyPlus) {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <Card3D variant="elevated" hover={false} className="mb-6 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/10" />
-          <div className="relative p-5">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <Icon3D icon={Crown} color="primary" size="lg" />
-                
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="text-lg font-bold text-foreground">Chefly Plus</h3>
-                    <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full font-semibold">
-                      {language === "es" ? "Activo" : "Active"}
-                    </span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {language === "es" 
-                      ? "Disfruta de todos los beneficios premium"
-                      : "Enjoy all premium benefits"
-                    }
-                  </p>
-                </div>
-              </div>
-
-              <Button 
-                variant="outline"
-                onClick={() => navigate("/subscription")}
-                className="shrink-0"
-              >
-                {language === "es" ? "Gestionar" : "Manage"}
-              </Button>
-            </div>
-          </div>
-        </Card3D>
-      </motion.div>
-    );
-  }
-
-  // Free plan banner with upgrade CTA
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-    >
-      <Card3D variant="glass" hover={false} className="mb-6 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5" />
-        <div className="relative p-5">
+      <Card className="mb-6 border-2 border-primary bg-gradient-to-r from-primary/10 to-secondary/10">
+        <CardContent className="p-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <Icon3D icon={Gift} color="secondary" size="lg" />
+            <div className="flex items-start gap-4">
+              <div className="p-3 rounded-full bg-primary/20">
+                <Crown className="h-6 w-6 text-primary" />
+              </div>
               
-              <div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="text-lg font-bold text-foreground">
-                    {language === "es" ? "Plan Gratuito" : "Free Plan"}
-                  </h3>
+              <div className="space-y-2">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <h3 className="text-xl font-semibold">Chefly Plus</h3>
+                  <Badge variant="default" className="bg-primary">
+                    {language === "es" ? "Activo" : "Active"}
+                  </Badge>
                 </div>
+                
                 <p className="text-sm text-muted-foreground">
                   {language === "es" 
-                    ? "Mejora para desbloquear todo"
-                    : "Upgrade to unlock everything"
+                    ? "Disfruta de todos los beneficios premium"
+                    : "Enjoy all premium benefits"
                   }
                 </p>
               </div>
             </div>
 
             <Button 
+              variant="outline"
               onClick={() => navigate("/subscription")}
-              variant="modern3d"
-              className="shrink-0 gap-2"
             >
-              <Zap className="h-4 w-4" />
-              {language === "es" ? "Mejorar" : "Upgrade"}
+              {language === "es" ? "Gestionar plan" : "Manage plan"}
             </Button>
           </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Free plan banner with upgrade CTA
+  return (
+    <Card className="mb-6 border-2 border-border bg-gradient-to-r from-muted/50 to-muted/30">
+      <CardContent className="p-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex items-start gap-4">
+            <div className="p-3 rounded-full bg-primary/10">
+              <Gift className="h-6 w-6 text-primary" />
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex items-center gap-3 flex-wrap">
+                <h3 className="text-xl font-semibold">
+                  {language === "es" ? "Plan Gratuito" : "Free Plan"}
+                </h3>
+                <Badge variant="secondary" className="bg-secondary/20 text-secondary-foreground">
+                  {language === "es" ? "Gratis" : "Free"}
+                </Badge>
+              </div>
+              
+              <p className="text-sm text-muted-foreground">
+                {language === "es" 
+                  ? "Mejora a Chefly Plus para desbloquear todas las funciones"
+                  : "Upgrade to Chefly Plus to unlock all features"
+                }
+              </p>
+            </div>
+          </div>
+
+          <Button 
+            onClick={() => navigate("/pricing")}
+            className="gap-2"
+          >
+            <Zap className="h-4 w-4" />
+            {language === "es" ? "Mejorar plan" : "Upgrade"}
+          </Button>
         </div>
-      </Card3D>
-    </motion.div>
+      </CardContent>
+    </Card>
   );
 };
