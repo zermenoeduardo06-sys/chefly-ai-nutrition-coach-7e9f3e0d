@@ -1,15 +1,18 @@
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, Flame, Droplets, Beef, Wheat, ChevronLeft, ChevronRight, Sparkles, Target, Utensils, Check } from "lucide-react";
-import { startOfWeek, format, eachDayOfInterval, endOfWeek, subMonths, isSameDay, addDays, subDays, isToday } from "date-fns";
+import { TrendingUp, Flame, Droplets, Beef, Wheat, ChevronLeft, ChevronRight, Target, Check } from "lucide-react";
+import { startOfWeek, format, eachDayOfInterval, endOfWeek, isSameDay, addDays, subDays, isToday } from "date-fns";
 import { es, enUS } from "date-fns/locale";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useNutritionGoals } from "@/hooks/useNutritionGoals";
 import { Card3D, Card3DContent } from "@/components/ui/card-3d";
 import { Icon3D } from "@/components/ui/icon-3d";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface DayDetail {
   date: Date;
@@ -24,13 +27,38 @@ interface DayDetail {
   mealsCount: number;
 }
 
+interface WeeklyNutritionData {
+  completions: any[] | null;
+  foodScans: any[] | null;
+}
+
+// Fetch function for React Query
+async function fetchWeeklyNutrition(userId: string, weekStart: Date, weekEnd: Date): Promise<WeeklyNutritionData> {
+  const [completions, foodScans] = await Promise.all([
+    supabase
+      .from("meal_completions")
+      .select(`completed_at, meals (calories, protein, carbs, fats)`)
+      .eq("user_id", userId)
+      .gte("completed_at", weekStart.toISOString())
+      .lte("completed_at", weekEnd.toISOString()),
+    supabase
+      .from("food_scans")
+      .select("scanned_at, calories, protein, carbs, fat")
+      .eq("user_id", userId)
+      .gte("scanned_at", weekStart.toISOString())
+      .lte("scanned_at", weekEnd.toISOString()),
+  ]);
+  return { completions: completions.data, foodScans: foodScans.data };
+}
+
 export const NutritionProgressCharts = () => {
   const { language } = useLanguage();
   const locale = language === "es" ? es : enUS;
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [weeklyData, setWeeklyData] = useState<DayDetail[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [userId, setUserId] = useState<string | null>(null);
+  
+  // Get userId from AuthContext
+  const { user } = useAuth();
+  const userId = user?.id || null;
   
   const { goals: nutritionGoals } = useNutritionGoals(userId);
 
@@ -76,91 +104,72 @@ export const NutritionProgressCharts = () => {
   };
   const t = texts[language];
 
-  useEffect(() => {
-    loadProgressData();
-  }, [selectedDate]);
+  // Calculate week boundaries
+  const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
+  const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 1 });
+  const weekKey = format(selectedDate, 'yyyy-ww');
 
-  const loadProgressData = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    setUserId(user.id);
+  // React Query for weekly data
+  const { data: weeklyRawData, isLoading } = useQuery({
+    queryKey: ['nutritionProgress', 'weekly', userId, weekKey],
+    queryFn: () => fetchWeeklyNutrition(userId!, weekStart, weekEnd),
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
 
-    setLoading(true);
-    try {
-      const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
-      const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 1 });
-      const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
-      const dayNames = language === "es" 
-        ? ["L", "M", "X", "J", "V", "S", "D"]
-        : ["M", "T", "W", "T", "F", "S", "S"];
-      
-      // Get meal completions
-      const { data: completions } = await supabase
-        .from("meal_completions")
-        .select(`completed_at, meals (calories, protein, carbs, fats)`)
-        .eq("user_id", user.id)
-        .gte("completed_at", weekStart.toISOString())
-        .lte("completed_at", weekEnd.toISOString());
-
-      // Get food scans
-      const { data: foodScans } = await supabase
-        .from("food_scans")
-        .select("scanned_at, calories, protein, carbs, fat")
-        .eq("user_id", user.id)
-        .gte("scanned_at", weekStart.toISOString())
-        .lte("scanned_at", weekEnd.toISOString());
-
-      // Process daily data
-      const dailyMap = new Map<string, DayDetail>();
-      weekDays.forEach((day, index) => {
-        const dateKey = format(day, "yyyy-MM-dd");
-        dailyMap.set(dateKey, {
-          date: day,
-          dateKey,
-          dayName: format(day, "EEEE", { locale }),
-          shortDay: dayNames[index],
-          dayNumber: format(day, "d"),
-          calories: 0,
-          protein: 0,
-          carbs: 0,
-          fats: 0,
-          mealsCount: 0,
-        });
+  // Process weekly data into daily details
+  const weeklyData = useMemo(() => {
+    const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
+    const dayNames = language === "es" 
+      ? ["L", "M", "X", "J", "V", "S", "D"]
+      : ["M", "T", "W", "T", "F", "S", "S"];
+    
+    const dailyMap = new Map<string, DayDetail>();
+    weekDays.forEach((day, index) => {
+      const dateKey = format(day, "yyyy-MM-dd");
+      dailyMap.set(dateKey, {
+        date: day,
+        dateKey,
+        dayName: format(day, "EEEE", { locale }),
+        shortDay: dayNames[index],
+        dayNumber: format(day, "d"),
+        calories: 0,
+        protein: 0,
+        carbs: 0,
+        fats: 0,
+        mealsCount: 0,
       });
+    });
 
-      const toLocalDateKey = (utcTimestamp: string) => format(new Date(utcTimestamp), "yyyy-MM-dd");
+    const toLocalDateKey = (utcTimestamp: string) => format(new Date(utcTimestamp), "yyyy-MM-dd");
 
-      completions?.forEach((completion: any) => {
-        const dateKey = toLocalDateKey(completion.completed_at);
-        const existing = dailyMap.get(dateKey);
-        if (existing && completion.meals) {
-          existing.calories += completion.meals.calories || 0;
-          existing.protein += completion.meals.protein || 0;
-          existing.carbs += completion.meals.carbs || 0;
-          existing.fats += completion.meals.fats || 0;
-          existing.mealsCount += 1;
-        }
-      });
+    weeklyRawData?.completions?.forEach((completion: any) => {
+      const dateKey = toLocalDateKey(completion.completed_at);
+      const existing = dailyMap.get(dateKey);
+      if (existing && completion.meals) {
+        existing.calories += completion.meals.calories || 0;
+        existing.protein += completion.meals.protein || 0;
+        existing.carbs += completion.meals.carbs || 0;
+        existing.fats += completion.meals.fats || 0;
+        existing.mealsCount += 1;
+      }
+    });
 
-      foodScans?.forEach((scan: any) => {
-        const dateKey = toLocalDateKey(scan.scanned_at);
-        const existing = dailyMap.get(dateKey);
-        if (existing) {
-          existing.calories += scan.calories || 0;
-          existing.protein += scan.protein || 0;
-          existing.carbs += scan.carbs || 0;
-          existing.fats += scan.fat || 0;
-          existing.mealsCount += 1;
-        }
-      });
+    weeklyRawData?.foodScans?.forEach((scan: any) => {
+      const dateKey = toLocalDateKey(scan.scanned_at);
+      const existing = dailyMap.get(dateKey);
+      if (existing) {
+        existing.calories += scan.calories || 0;
+        existing.protein += scan.protein || 0;
+        existing.carbs += scan.carbs || 0;
+        existing.fats += scan.fat || 0;
+        existing.mealsCount += 1;
+      }
+    });
 
-      setWeeklyData(Array.from(dailyMap.values()));
-    } catch (error) {
-      console.error("Error loading progress data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    return Array.from(dailyMap.values());
+  }, [weeklyRawData, weekStart, weekEnd, language, locale]);
 
   const selectedDayData = weeklyData.find(d => isSameDay(d.date, selectedDate));
   
@@ -313,11 +322,20 @@ export const NutritionProgressCharts = () => {
     );
   };
 
-  if (loading) {
+  // Show skeleton only on initial load without cached data
+  if (isLoading && weeklyData.length === 0) {
     return (
       <Card3D variant="default" className="p-6">
-        <div className="h-[300px] flex items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <div className="space-y-4">
+          <Skeleton className="h-8 w-48" />
+          <div className="flex justify-center">
+            <Skeleton className="h-44 w-44 rounded-full" />
+          </div>
+          <div className="space-y-3">
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+          </div>
         </div>
       </Card3D>
     );
@@ -402,7 +420,7 @@ export const NutritionProgressCharts = () => {
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <span className="text-xs text-muted-foreground px-2">
-                {format(startOfWeek(selectedDate, { weekStartsOn: 1 }), "d MMM", { locale })} - {format(endOfWeek(selectedDate, { weekStartsOn: 1 }), "d MMM", { locale })}
+                {format(weekStart, "d MMM", { locale })} - {format(weekEnd, "d MMM", { locale })}
               </span>
               <Button 
                 variant="ghost" 
@@ -487,24 +505,20 @@ export const NutritionProgressCharts = () => {
           </div>
 
           {/* Week Summary */}
-          <div className="grid grid-cols-3 gap-2 pt-3 border-t border-border/50">
+          <div className="flex items-center justify-between px-2 pt-3 border-t border-border/50">
             <div className="text-center">
-              <p className="text-lg font-black text-foreground">
-                {(weekTotals.totalCalories / 1000).toFixed(1)}k
-              </p>
-              <p className="text-[10px] text-muted-foreground font-medium">{t.thisWeek}</p>
+              <p className="text-xs text-muted-foreground">{t.thisWeek}</p>
+              <p className="text-lg font-bold">{weekTotals.totalCalories.toLocaleString()} <span className="text-xs text-muted-foreground font-normal">{t.kcal}</span></p>
             </div>
-            <div className="text-center border-x border-border/50">
-              <p className="text-lg font-black text-foreground">
-                {weekTotals.avgCalories}
-              </p>
-              <p className="text-[10px] text-muted-foreground font-medium">{t.dailyAvg}</p>
-            </div>
+            <div className="h-8 w-px bg-border/50" />
             <div className="text-center">
-              <p className="text-lg font-black text-foreground">
-                {weekTotals.activeDays}/7
-              </p>
-              <p className="text-[10px] text-muted-foreground font-medium">{language === "es" ? "Días activos" : "Active days"}</p>
+              <p className="text-xs text-muted-foreground">{t.dailyAvg}</p>
+              <p className="text-lg font-bold">{weekTotals.avgCalories.toLocaleString()} <span className="text-xs text-muted-foreground font-normal">{t.kcal}</span></p>
+            </div>
+            <div className="h-8 w-px bg-border/50" />
+            <div className="text-center">
+              <p className="text-xs text-muted-foreground">{language === 'es' ? 'Días' : 'Days'}</p>
+              <p className="text-lg font-bold">{weekTotals.activeDays}<span className="text-xs text-muted-foreground font-normal">/7</span></p>
             </div>
           </div>
         </Card3DContent>
