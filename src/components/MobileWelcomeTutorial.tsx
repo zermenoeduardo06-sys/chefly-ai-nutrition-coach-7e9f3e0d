@@ -5,14 +5,14 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { 
   ChevronRight,
   X,
-  Home,
-  ShoppingCart,
+  BookOpen,
+  ChefHat,
   TrendingUp,
-  MessageCircle,
+  Sparkles,
+  Heart,
   User,
-  Camera,
 } from "lucide-react";
-import mascotLime from "@/assets/mascot-lime.png";
+import mascotHappy from "@/assets/mascot-happy.png";
 import { useHaptics } from "@/hooks/useHaptics";
 
 interface TourStep {
@@ -35,62 +35,62 @@ const tourSteps: TourStep[] = [
     target: "welcome",
     titleEs: "¡Bienvenido a Chefly!",
     titleEn: "Welcome to Chefly!",
-    descEs: "Tu coach de nutrición con IA. Te guiaré por la app para que saques el máximo provecho.",
-    descEn: "Your AI nutrition coach. I'll guide you through the app so you get the most out of it.",
+    descEs: "Soy tu coach de nutrición con IA. Te guiaré por la app para que saques el máximo provecho.",
+    descEn: "I'm your AI nutrition coach. I'll guide you through the app so you get the most out of it.",
     position: "center",
   },
   {
-    target: "nav-home",
-    titleEs: "Tu menú semanal",
-    titleEn: "Your weekly menu",
-    descEs: "Aquí verás todas tus comidas personalizadas. Desliza entre días y toca cualquier comida para ver la receta completa.",
-    descEn: "Here you'll see all your personalized meals. Swipe between days and tap any meal to see the full recipe.",
+    target: "nav-diary",
+    titleEs: "Tu Diario",
+    titleEn: "Your Diary",
+    descEs: "Aquí verás tu resumen del día: calorías, macros y comidas. Registra lo que comes y completa tu plan.",
+    descEn: "Here you'll see your daily summary: calories, macros and meals. Log what you eat and complete your plan.",
     position: "top",
-    icon: Home,
+    icon: BookOpen,
   },
   {
-    target: "nav-shopping",
-    titleEs: "Lista de compras",
-    titleEn: "Shopping list",
-    descEs: "Tu lista de ingredientes generada automáticamente. ¡Lista para ir al super!",
-    descEn: "Your automatically generated ingredient list. Ready to go shopping!",
+    target: "nav-recipes",
+    titleEs: "Recetas",
+    titleEn: "Recipes",
+    descEs: "Explora recetas personalizadas según tus preferencias. Cada una incluye ingredientes, pasos y valores nutricionales.",
+    descEn: "Explore personalized recipes based on your preferences. Each includes ingredients, steps and nutritional values.",
     position: "top",
-    icon: ShoppingCart,
-  },
-  {
-    target: "nav-scanner",
-    titleEs: "Escanea tu comida",
-    titleEn: "Scan your food",
-    descEs: "Toma una foto de cualquier comida y nuestra IA calculará las calorías y nutrientes automáticamente. ¡Perfecto para llevar registro de lo que comes!",
-    descEn: "Take a photo of any food and our AI will calculate calories and nutrients automatically. Perfect for tracking what you eat!",
-    position: "top",
-    icon: Camera,
+    icon: ChefHat,
   },
   {
     target: "nav-progress",
-    titleEs: "Tu progreso",
-    titleEn: "Your progress",
-    descEs: "Aquí verás gráficas de tu nutrición y medidas corporales a lo largo del tiempo.",
-    descEn: "Here you'll see charts of your nutrition and body measurements over time.",
+    titleEs: "Tu Progreso",
+    titleEn: "Your Progress",
+    descEs: "Visualiza gráficas de tu evolución nutricional y medidas corporales. ¡También puedes hacer un body scan con IA!",
+    descEn: "Visualize charts of your nutritional evolution and body measurements. You can also do an AI body scan!",
     position: "top",
     icon: TrendingUp,
   },
   {
-    target: "nav-chat",
-    titleEs: "Chat con tu coach",
-    titleEn: "Chat with your coach",
-    descEs: "¿Dudas sobre nutrición? Pregúntame lo que quieras. Estoy aquí para ayudarte.",
-    descEn: "Nutrition questions? Ask me anything. I'm here to help.",
+    target: "nav-chef",
+    titleEs: "Chef IA",
+    titleEn: "Chef AI",
+    descEs: "¿Dudas sobre nutrición? Pregúntame lo que quieras. Estoy aquí 24/7 para ayudarte con recetas, sustituciones y más.",
+    descEn: "Questions about nutrition? Ask me anything. I'm here 24/7 to help with recipes, substitutions and more.",
     position: "top",
-    icon: MessageCircle,
+    icon: Sparkles,
   },
   {
-    target: "nav-profile",
-    titleEs: "Tu perfil",
-    titleEn: "Your profile",
-    descEs: "Configura tu avatar, ajustes, notificaciones y administra tu suscripción.",
-    descEn: "Set up your avatar, settings, notifications and manage your subscription.",
+    target: "nav-wellness",
+    titleEs: "Bienestar",
+    titleEn: "Wellness",
+    descEs: "Registra cómo te sientes cada día. Descubre patrones entre tu alimentación y tu estado de ánimo.",
+    descEn: "Track how you feel each day. Discover patterns between your nutrition and mood.",
     position: "top",
+    icon: Heart,
+  },
+  {
+    target: "profile",
+    titleEs: "Tu Perfil",
+    titleEn: "Your Profile",
+    descEs: "Toca tu avatar en la esquina superior para acceder a tu perfil, ajustes y notificaciones.",
+    descEn: "Tap your avatar in the top corner to access your profile, settings and notifications.",
+    position: "bottom",
     icon: User,
   },
 ];
@@ -113,17 +113,20 @@ const MobileWelcomeTutorial = ({ open, onComplete }: MobileWelcomeTutorialProps)
       return;
     }
     
-    // Handle nav items specially
+    // Handle nav items and profile specially
     let element: Element | null = null;
-    if (step.target.startsWith("nav-")) {
+    
+    if (step.target === "profile") {
+      // Profile is in the header avatar
+      element = document.querySelector('[data-tour="user-avatar"]');
+    } else if (step.target.startsWith("nav-")) {
       const navType = step.target.replace("nav-", "");
       const pathMap: Record<string, string> = {
-        home: "/dashboard",
-        shopping: "/dashboard/shopping",
-        scanner: "/dashboard/food-history",
+        diary: "/dashboard",
+        recipes: "/recipes",
         progress: "/dashboard/progress",
-        chat: "/chat",
-        profile: "/dashboard/profile",
+        chef: "/chef-ia",
+        wellness: "/dashboard/wellness",
       };
       const path = pathMap[navType];
       element = document.querySelector(`nav a[href="${path}"]`);
@@ -184,7 +187,7 @@ const MobileWelcomeTutorial = ({ open, onComplete }: MobileWelcomeTutorialProps)
 
   const currentStepData = tourSteps[currentStep];
   const isWelcome = currentStepData.target === "welcome";
-  const isNavStep = currentStepData.target.startsWith("nav-");
+  const isNavStep = currentStepData.target.startsWith("nav-") || currentStepData.target === "profile";
   const isLastStep = currentStep === tourSteps.length - 1;
 
   // Calculate tooltip position
@@ -209,10 +212,10 @@ const MobileWelcomeTutorial = ({ open, onComplete }: MobileWelcomeTutorialProps)
       };
     }
     
-    // Position "bottom" means tooltip goes below the highlighted element
-    // But we want it visible, so put it in the center-ish area of the screen
+    // Position "bottom" means tooltip goes below the highlighted element (for header avatar)
+    const topPosition = highlightRect.top + highlightRect.height + 24;
     return { 
-      top: "30%",
+      top: `${Math.max(topPosition, 80)}px`,
       left: "1rem",
       right: "1rem",
     };
@@ -345,7 +348,7 @@ const MobileWelcomeTutorial = ({ open, onComplete }: MobileWelcomeTutorialProps)
               <div className="bg-gradient-to-r from-primary via-primary to-primary/80 p-4 flex items-center gap-4">
                 {isWelcome ? (
                   <motion.img
-                    src={mascotLime}
+                    src={mascotHappy}
                     alt="Chefly"
                     className="w-20 h-20 object-contain drop-shadow-lg flex-shrink-0"
                     animate={{ 

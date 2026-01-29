@@ -58,6 +58,7 @@ export const DashboardHeader = ({
             whileTap={{ scale: 0.95 }}
             onClick={() => navigate('/dashboard/more')}
             className="relative"
+            data-tour="user-avatar"
           >
             <Avatar className="h-10 w-10 border-2 border-primary/30 shadow-lg">
               <AvatarImage src={avatarUrl || undefined} alt={displayName || 'Profile'} />
