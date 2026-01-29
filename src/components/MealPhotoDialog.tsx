@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useInvalidateFoodIntake } from '@/hooks/useDailyFoodIntake';
 import mascotLime from '@/assets/mascot-lime.png';
 
 interface Meal {
@@ -33,6 +34,7 @@ export function MealPhotoDialog({ open, onOpenChange, meal, selectedDate, onPhot
   const galleryRef = useRef<HTMLInputElement>(null);
   const { language } = useLanguage();
   const { toast } = useToast();
+  const invalidateFoodIntake = useInvalidateFoodIntake();
 
   const t = {
     title: language === 'es' ? '¡Toma una foto!' : 'Take a photo!',
@@ -131,6 +133,8 @@ export function MealPhotoDialog({ open, onOpenChange, meal, selectedDate, onPhot
         });
 
       if (insertError) throw insertError;
+
+      invalidateFoodIntake();
 
       toast({
         title: t.success,

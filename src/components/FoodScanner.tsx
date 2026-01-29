@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import mascotLime from '@/assets/mascot-lime.png';
 import { InfoTooltip } from '@/components/InfoTooltip';
+import { useInvalidateFoodIntake } from '@/hooks/useDailyFoodIntake';
 
 interface FoodScannerProps {
   open: boolean;
@@ -32,6 +33,7 @@ export function FoodScanner({ open, onOpenChange, mealType, selectedDate, onSave
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const { limits, refreshLimits } = useSubscriptionLimits(userId);
+  const invalidateFoodIntake = useInvalidateFoodIntake();
 
   useEffect(() => {
     const getUser = async () => {
@@ -154,6 +156,7 @@ export function FoodScanner({ open, onOpenChange, mealType, selectedDate, onSave
 
       setSaved(true);
       refreshLimits();
+      invalidateFoodIntake();
       onSaveSuccess?.();
       toast({
         title: language === 'es' ? '¡Guardado!' : 'Saved!',

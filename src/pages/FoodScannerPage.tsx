@@ -14,6 +14,7 @@ import { ScannerCamera } from '@/components/scanner/ScannerCamera';
 import { ScanResultCard } from '@/components/scanner/ScanResultCard';
 import { ScanHistory } from '@/components/scanner/ScanHistory';
 import { ScannerStats } from '@/components/scanner/ScannerStats';
+import { useInvalidateFoodIntake } from '@/hooks/useDailyFoodIntake';
 import { ScanCelebration } from '@/components/scanner/ScanCelebration';
 import ScannerFoodSearch from '@/components/scanner/ScannerFoodSearch';
 import mascotLime from '@/assets/mascot-lime.png';
@@ -46,6 +47,7 @@ export default function FoodScannerPage() {
   const { subscribed, isLoading: subLoading } = useSubscription(userId);
   const { limits, refreshLimits } = useSubscriptionLimits(userId);
   const { analyzeFood, isAnalyzing, result, clearResult } = useFoodScanner();
+  const invalidateFoodIntake = useInvalidateFoodIntake();
 
   const validMealType = mealType && ['breakfast', 'lunch', 'dinner', 'snack'].includes(mealType) 
     ? mealType 
@@ -171,6 +173,7 @@ export default function FoodScannerPage() {
       setSaved(true);
       setShowCelebration(true);
       refreshLimits();
+      invalidateFoodIntake();
     } catch (error) {
       console.error('Error saving scan:', error);
       toast({
