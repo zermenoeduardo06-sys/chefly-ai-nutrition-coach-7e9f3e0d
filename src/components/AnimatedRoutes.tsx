@@ -69,22 +69,39 @@ const DashboardLayout = () => {
 
   return (
     <SidebarProvider>
-      <div className="flex h-[100dvh] w-full bg-background overflow-hidden" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
-        {/* Sidebar only visible on lg+ (desktop) */}
-        <div className="hidden lg:block">
-          <AppSidebar />
-        </div>
-        <div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden">
-          {/* Header only visible on lg+ (desktop) */}
-          <header className="hidden lg:flex h-14 border-b bg-card sticky top-0 z-40 items-center px-4 flex-shrink-0">
-            <SidebarTrigger />
-          </header>
-          <main 
-            ref={mainRef}
-            className="flex-1 overflow-y-auto overflow-x-hidden pb-mobile-nav lg:pb-0 scroll-touch bg-background"
-          >
-            <Outlet />
-          </main>
+      {/* 
+        Fixed container that covers the full viewport.
+        Using fixed instead of flex with h-[100dvh] prevents iOS overscroll issues.
+      */}
+      <div 
+        className="fixed inset-0 flex flex-col bg-background"
+        style={{ 
+          paddingTop: 'env(safe-area-inset-top, 0px)',
+          // Prevent any transform accumulation
+          transform: 'none',
+        }}
+      >
+        <div className="flex flex-1 min-h-0 w-full overflow-hidden">
+          {/* Sidebar only visible on lg+ (desktop) */}
+          <div className="hidden lg:block flex-shrink-0">
+            <AppSidebar />
+          </div>
+          <div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden">
+            {/* Header only visible on lg+ (desktop) */}
+            <header className="hidden lg:flex h-14 border-b bg-card sticky top-0 z-40 items-center px-4 flex-shrink-0">
+              <SidebarTrigger />
+            </header>
+            <main 
+              ref={mainRef}
+              className="flex-1 overflow-y-auto overflow-x-hidden pb-mobile-nav lg:pb-0 overscroll-none bg-background"
+              style={{
+                // Prevent iOS bounce/overscroll within main content
+                WebkitOverflowScrolling: 'touch',
+              }}
+            >
+              <Outlet />
+            </main>
+          </div>
         </div>
       </div>
       {/* Bottom nav visible on mobile AND tablet (hidden on lg+) */}
