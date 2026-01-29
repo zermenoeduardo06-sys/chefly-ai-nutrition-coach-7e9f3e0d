@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { createMealTimestamp } from "@/lib/dateUtils";
+import { useInvalidateFoodIntake } from "@/hooks/useDailyFoodIntake";
 
 type Category = "foods" | "meals" | "recipes";
 type FilterTab = "frequent" | "recent" | "favorites";
@@ -50,6 +51,7 @@ export default function AddFood() {
 
   const { celebrateFoodAdded } = useCelebrations();
   const { triggerXP } = useXPAnimation();
+  const invalidateFoodIntake = useInvalidateFoodIntake();
 
   const subscription = useSubscription(userId);
   const { limits } = useSubscriptionLimits(userId);
@@ -270,6 +272,7 @@ export default function AddFood() {
       // Trigger celebration effects
       celebrateFoodAdded(firstName, pointsEarned);
       triggerXP(pointsEarned, 'food');
+      invalidateFoodIntake();
 
       // Show celebration overlay
       setShowFoodCelebration(true);

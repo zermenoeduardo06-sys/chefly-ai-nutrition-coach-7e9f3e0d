@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMemo, useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { syncToWidget, createWidgetData } from "./useWidgetSync";
 
@@ -153,6 +153,15 @@ async function fetchDailyIntakeData(userId: string, dateKey: string): Promise<Da
 
 // Export for prefetching
 export { fetchDailyIntakeData };
+
+// Hook to invalidate food intake cache after adding food
+export const useInvalidateFoodIntake = () => {
+  const queryClient = useQueryClient();
+  
+  return useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['foodIntake'] });
+  }, [queryClient]);
+};
 
 export function useDailyFoodIntake(userId: string | undefined, date: Date = new Date()) {
   // CRITICAL: Use format() to preserve local date, NOT toISOString() which converts to UTC

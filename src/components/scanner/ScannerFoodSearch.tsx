@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { createMealTimestamp } from '@/lib/dateUtils';
+import { useInvalidateFoodIntake } from '@/hooks/useDailyFoodIntake';
 import { Card3D } from '@/components/ui/card-3d';
 import { cn } from '@/lib/utils';
 
@@ -28,6 +29,7 @@ const ScannerFoodSearch: React.FC<ScannerFoodSearchProps> = ({
   const { language } = useLanguage();
   const { toast } = useToast();
   const { triggerXP } = useXPAnimation();
+  const invalidateFoodIntake = useInvalidateFoodIntake();
   const {
     searchFoods,
     getRecentFoods,
@@ -146,6 +148,7 @@ const ScannerFoodSearch: React.FC<ScannerFoodSearchProps> = ({
       await trackFoodUsage(food.id);
 
       triggerXP(10, 'food', { x: window.innerWidth / 2, y: window.innerHeight / 2 });
+      invalidateFoodIntake();
 
       toast({
         title: `${food.name} ${t.added}`,
