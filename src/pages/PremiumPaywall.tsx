@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { X, Check, Sparkles, Crown } from "lucide-react";
+import { X, Sparkles, Crown, Star, Calendar, Camera, MessageSquare, Utensils, Users, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { IAPPaywall } from "@/components/IAPPaywall";
+import { Card3D } from "@/components/ui/card-3d";
+import { Icon3D } from "@/components/ui/icon-3d";
 import mascotCelebrating from "@/assets/mascot-celebrating.png";
 
 export default function PremiumPaywall() {
@@ -13,7 +15,6 @@ export default function PremiumPaywall() {
   const { language } = useLanguage();
   const [userId, setUserId] = useState<string | undefined>();
   const [iapPaywallOpen, setIapPaywallOpen] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<"monthly" | "yearly">("monthly");
 
   useEffect(() => {
     const loadUser = async () => {
@@ -27,54 +28,49 @@ export default function PremiumPaywall() {
 
   const texts = {
     es: {
-      title: "Te ayudaremos a alcanzar tu meta nutricional",
-      popular: "Lo más popular",
-      monthly: "Mensual",
-      yearly: "Anual",
-      monthlyPrice: "$7.99 USD/mes",
-      yearlyPrice: "$59.99 USD/año",
-      yearlySaving: "Ahorra 37%",
-      continueBtn: "Continuar",
-      cancel: "Cancela cuando quieras",
-      features: [
-        "Planes semanales ilimitados",
-        "Intercambio de comidas",
-        "Escaneo de comidas ilimitado",
-        "Chat ilimitado con IA",
-        "Sistema de amigos",
-      ],
+      title: "Transforma tu alimentación",
+      subtitle: "Todo lo que necesitas para alcanzar tus metas nutricionales",
+      price: "$7.99 USD/mes",
+      continueBtn: "Comenzar ahora",
+      cancelAnytime: "Cancela cuando quieras",
+      rating: "4.8★ • +50k usuarios",
     },
     en: {
-      title: "We'll help you reach your nutrition goals",
-      popular: "Most popular",
-      monthly: "Monthly",
-      yearly: "Yearly",
-      monthlyPrice: "$7.99 USD/month",
-      yearlyPrice: "$59.99 USD/year",
-      yearlySaving: "Save 37%",
-      continueBtn: "Continue",
-      cancel: "Cancel anytime",
-      features: [
-        "Unlimited weekly plans",
-        "Meal swapping",
-        "Unlimited food scanning",
-        "Unlimited AI chat",
-        "Friends system",
-      ],
+      title: "Transform your nutrition",
+      subtitle: "Everything you need to reach your nutrition goals",
+      price: "$7.99 USD/month",
+      continueBtn: "Start now",
+      cancelAnytime: "Cancel anytime",
+      rating: "4.8★ • +50k users",
     },
   };
 
   const t = texts[language];
 
+  const benefits = [
+    { icon: Calendar, color: "primary" as const, es: "Planes frescos cada semana", en: "Fresh plans every week" },
+    { icon: Utensils, color: "emerald" as const, es: "Cambia comidas cuando quieras", en: "Swap meals anytime" },
+    { icon: Camera, color: "amber" as const, es: "Escanea cualquier platillo", en: "Scan any dish" },
+    { icon: MessageSquare, color: "sky" as const, es: "Tu nutriólogo 24/7", en: "Your 24/7 nutritionist" },
+    { icon: Users, color: "rose" as const, es: "Motívate con amigos", en: "Stay motivated with friends" },
+  ];
+
+  // Floating food emojis
+  const floatingEmojis = [
+    { emoji: "🍎", top: "12%", left: "8%", delay: 0 },
+    { emoji: "🥕", top: "18%", right: "12%", delay: 0.5 },
+    { emoji: "🧀", top: "32%", left: "5%", delay: 1 },
+    { emoji: "🥦", top: "28%", right: "6%", delay: 0.3 },
+    { emoji: "✨", top: "42%", left: "12%", delay: 0.7 },
+    { emoji: "🥗", top: "38%", right: "10%", delay: 0.2 },
+  ];
+
   const handleContinue = async () => {
-    // Check if user is authenticated
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       navigate("/auth");
       return;
     }
-
-    // Always show native IAP paywall (Apple In-App Purchase)
     setIapPaywallOpen(true);
   };
 
@@ -86,18 +82,8 @@ export default function PremiumPaywall() {
     navigate("/dashboard");
   };
 
-  // Floating food emojis positions
-  const floatingEmojis = [
-    { emoji: "🍎", top: "15%", left: "10%", delay: 0 },
-    { emoji: "🥕", top: "20%", right: "15%", delay: 0.5 },
-    { emoji: "🧀", top: "35%", left: "5%", delay: 1 },
-    { emoji: "🥦", top: "30%", right: "8%", delay: 0.3 },
-    { emoji: "✨", top: "45%", left: "15%", delay: 0.7 },
-    { emoji: "🥗", top: "40%", right: "12%", delay: 0.2 },
-  ];
-
   return (
-    <div className="min-h-screen bg-background flex flex-col relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-primary/10 via-background to-background flex flex-col relative overflow-hidden">
       {/* Close Button */}
       <button
         onClick={handleClose}
@@ -107,7 +93,7 @@ export default function PremiumPaywall() {
         <X className="h-6 w-6 text-foreground" />
       </button>
 
-      {/* Hero Section with Mascot */}
+      {/* Hero Section */}
       <div className="flex-1 flex flex-col items-center justify-center px-6 pt-16 pb-8 relative">
         {/* Floating Food Emojis */}
         {floatingEmojis.map((item, index) => (
@@ -129,6 +115,18 @@ export default function PremiumPaywall() {
           </motion.div>
         ))}
 
+        {/* Rating badge */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6"
+        >
+          <div className="flex items-center gap-1 bg-primary/10 border border-primary/20 rounded-full px-4 py-2">
+            <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+            <span className="text-sm font-semibold text-foreground">{t.rating}</span>
+          </div>
+        </motion.div>
+
         {/* Mascot */}
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
@@ -140,9 +138,9 @@ export default function PremiumPaywall() {
             <img
               src={mascotCelebrating}
               alt="Chefly mascot"
-              className="h-40 w-40 object-contain"
+              className="h-36 w-36 object-contain"
             />
-            {/* Sparkle effects around mascot */}
+            {/* Sparkle effects */}
             <motion.div
               className="absolute -top-2 -right-2"
               animate={{ scale: [1, 1.3, 1], opacity: [0.5, 1, 0.5] }}
@@ -161,103 +159,88 @@ export default function PremiumPaywall() {
         </motion.div>
 
         {/* Title */}
-        <motion.h1
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="text-2xl md:text-3xl font-bold text-foreground text-center max-w-sm mb-8"
+          className="text-center mb-8"
         >
-          {t.title}
-        </motion.h1>
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Crown className="h-5 w-5 text-primary" />
+            <span className="font-bold text-primary">Chefly Plus</span>
+          </div>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground max-w-sm">
+            {t.title}
+          </h1>
+          <p className="text-muted-foreground mt-2">{t.subtitle}</p>
+        </motion.div>
 
-        {/* Plan Cards */}
+        {/* Benefits Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="w-full max-w-sm space-y-3"
+          className="w-full max-w-sm"
         >
-          {/* Monthly Plan - Recommended */}
-          <div
-            onClick={() => setSelectedPlan("monthly")}
-            className={`relative p-4 rounded-2xl border-2 cursor-pointer transition-all ${
-              selectedPlan === "monthly"
-                ? "border-primary bg-primary/5 ring-2 ring-primary/20"
-                : "border-border bg-card hover:border-muted-foreground/30"
-            }`}
-          >
-            {/* Popular Badge */}
-            <div className="absolute -top-3 left-4">
-              <span className="bg-gradient-to-r from-primary to-secondary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full">
-                {t.popular}
-              </span>
+          <Card3D variant="elevated" hover={false} className="p-5">
+            <div className="space-y-3">
+              {benefits.map((benefit, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.5 + index * 0.08 }}
+                  className="flex items-center gap-3"
+                >
+                  <Icon3D icon={benefit.icon} color={benefit.color} size="sm" />
+                  <span className="text-sm font-medium text-foreground">
+                    {language === "es" ? benefit.es : benefit.en}
+                  </span>
+                </motion.div>
+              ))}
             </div>
-
-            <div className="flex items-center justify-between pt-2">
-              <div>
-                <h3 className="font-bold text-foreground">{t.monthly}</h3>
-                <p className="text-lg font-bold text-foreground">{t.monthlyPrice}</p>
-              </div>
-              <div className={`h-6 w-6 rounded-full border-2 flex items-center justify-center ${
-                selectedPlan === "monthly"
-                  ? "border-primary bg-primary"
-                  : "border-muted-foreground/30"
-              }`}>
-                {selectedPlan === "monthly" && <Check className="h-4 w-4 text-primary-foreground" />}
-              </div>
-            </div>
-          </div>
-
-          {/* Features List */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="pt-4 space-y-2"
-          >
-            {t.features.map((feature, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5 + index * 0.1 }}
-                className="flex items-center gap-3"
-              >
-                <div className="h-5 w-5 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center">
-                  <Check className="h-3 w-3 text-primary-foreground" />
-                </div>
-                <span className="text-sm text-foreground">{feature}</span>
-              </motion.div>
-            ))}
-          </motion.div>
+          </Card3D>
         </motion.div>
       </div>
 
       {/* Bottom CTA Section */}
       <div className="px-6 pb-8 space-y-4 safe-area-pb">
+        {/* Price badge */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.6 }}
+          className="text-center"
+        >
+          <span className="text-2xl font-bold text-foreground">{t.price}</span>
+        </motion.div>
+
+        {/* Cancel anytime */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.65 }}
+          className="flex items-center justify-center gap-2 text-muted-foreground"
+        >
+          <Shield className="h-4 w-4" />
+          <span className="text-sm">{t.cancelAnytime}</span>
+        </motion.div>
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
+          transition={{ delay: 0.7 }}
         >
           <Button
             onClick={handleContinue}
+            variant="modern3d"
             size="lg"
-            className="w-full h-14 text-lg font-bold bg-foreground text-background hover:bg-foreground/90"
+            className="w-full h-14 text-lg font-bold"
           >
             <Crown className="mr-2 h-5 w-5" />
             {t.continueBtn}
           </Button>
         </motion.div>
-
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.7 }}
-          className="text-center text-sm text-muted-foreground"
-        >
-          {t.cancel}
-        </motion.p>
       </div>
 
       {/* iOS IAP Paywall */}
