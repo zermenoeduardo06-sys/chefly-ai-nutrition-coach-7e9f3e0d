@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { Trophy } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -55,7 +56,7 @@ export function ProgressAchievementsTab({ userId }: ProgressAchievementsTabProps
     gcTime: 60 * 60 * 1000,
   });
 
-  // User's unlocked achievements
+  // User's unlocked achievements - store as array, convert to Set when needed
   const userAchievementsQuery = useQuery({
     queryKey: ['achievements', 'user', userId],
     queryFn: async () => {
@@ -63,7 +64,7 @@ export function ProgressAchievementsTab({ userId }: ProgressAchievementsTabProps
         .from("user_achievements")
         .select("achievement_id")
         .eq("user_id", userId);
-      return new Set(data?.map(ua => ua.achievement_id) || []);
+      return data?.map(ua => ua.achievement_id) || [];
     },
     enabled: !!userId,
     staleTime: 5 * 60 * 1000,
@@ -71,7 +72,11 @@ export function ProgressAchievementsTab({ userId }: ProgressAchievementsTabProps
   });
 
   const achievements = achievementsQuery.data ?? [];
-  const unlockedAchievements = userAchievementsQuery.data ?? new Set<string>();
+  // Convert array to Set for O(1) lookup - Set doesn't serialize properly in React Query cache
+  const unlockedAchievements = useMemo(
+    () => new Set(userAchievementsQuery.data ?? []),
+    [userAchievementsQuery.data]
+  );
 
   // Show skeleton only on initial load without cached data
   const isLoading = (achievementsQuery.isLoading && !achievementsQuery.data) || 
