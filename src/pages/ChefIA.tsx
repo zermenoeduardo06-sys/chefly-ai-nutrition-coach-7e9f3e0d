@@ -2,7 +2,6 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Send, Sparkles, Volume2, VolumeX, Crown, MessageSquare, Brain, Zap, Target, ArrowLeft } from "lucide-react";
@@ -536,13 +535,13 @@ export default function ChefIA() {
     e?.preventDefault();
     if (!input.trim() || loading) return;
 
-    if (limits.chatMessagesUsed >= limits.dailyChatLimit) {
+    if ((limits?.chatMessagesUsed ?? 0) >= (limits?.dailyChatLimit ?? 999)) {
       toast({
         variant: "destructive",
         title: language === 'es' ? "Límite de mensajes alcanzado" : "Message limit reached",
         description: language === 'es' 
-          ? `Has usado tus ${limits.dailyChatLimit} mensajes de hoy. Mejora a Chefly Plus para mensajes ilimitados.`
-          : `You've used your ${limits.dailyChatLimit} messages today. Upgrade to Chefly Plus for unlimited messages.`,
+          ? `Has usado tus ${limits?.dailyChatLimit ?? 5} mensajes de hoy. Mejora a Chefly Plus para mensajes ilimitados.`
+          : `You've used your ${limits?.dailyChatLimit ?? 5} messages today. Upgrade to Chefly Plus for unlimited messages.`,
       });
       navigate("/pricing");
       return;
@@ -648,7 +647,8 @@ export default function ChefIA() {
     lightImpact();
   };
 
-  if (initialLoading || trialLoading || subscription.isLoading) {
+  // Show loading state while checking auth and subscription
+  if (initialLoading || trialLoading || subscription?.isLoading) {
     return (
       <div className="min-h-full flex flex-col items-center justify-center gap-4 bg-background">
         <motion.img 
@@ -674,8 +674,8 @@ export default function ChefIA() {
     return null;
   }
 
-  // Show paywall for non-premium users
-  if (!subscription.isCheflyPlus) {
+  // Show paywall for non-premium users (with safe access)
+  if (!subscription?.isCheflyPlus) {
     return <ChatPaywall />;
   }
 
@@ -760,13 +760,13 @@ export default function ChefIA() {
             )}
           </motion.button>
           
-          {limits.isCheflyPlus && (
+          {limits?.isCheflyPlus && (
             <AiUsageIndicator userId={userId} compact />
           )}
           
-          {limits.isFreePlan && (
+          {limits?.isFreePlan && (
             <Badge variant="outline" className="flex-shrink-0 text-xs border-primary/30">
-              {limits.chatMessagesUsed}/{limits.dailyChatLimit}
+              {limits?.chatMessagesUsed ?? 0}/{limits?.dailyChatLimit ?? 5}
             </Badge>
           )}
         </div>
