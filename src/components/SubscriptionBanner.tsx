@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Crown, Gift, Zap } from "lucide-react";
-import { SUBSCRIPTION_TIERS } from "@/hooks/useSubscription";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Card3D } from "@/components/ui/card-3d";
+import { Icon3D } from "@/components/ui/icon-3d";
 
 interface SubscriptionBannerProps {
   userId: string;
@@ -24,7 +23,6 @@ export const SubscriptionBanner = ({ userId }: SubscriptionBannerProps) => {
 
   const loadSubscription = async () => {
     try {
-      // Check Stripe subscription
       const { data: stripeData } = await supabase.functions.invoke("check-subscription");
       
       if (stripeData?.subscribed && stripeData?.product_id) {
@@ -41,84 +39,95 @@ export const SubscriptionBanner = ({ userId }: SubscriptionBannerProps) => {
 
   if (isLoading) return null;
 
+  const texts = {
+    es: {
+      plusTitle: "Chefly Plus",
+      plusActive: "Activo",
+      plusSubtitle: "Disfruta de todos los beneficios premium",
+      managePlan: "Gestionar plan",
+      freeTitle: "Plan Gratuito",
+      freeBadge: "Gratis",
+      freeSubtitle: "Mejora para desbloquear todas las funciones",
+      upgrade: "Mejorar",
+    },
+    en: {
+      plusTitle: "Chefly Plus",
+      plusActive: "Active",
+      plusSubtitle: "Enjoy all premium benefits",
+      managePlan: "Manage plan",
+      freeTitle: "Free Plan",
+      freeBadge: "Free",
+      freeSubtitle: "Upgrade to unlock all features",
+      upgrade: "Upgrade",
+    },
+  };
+
+  const t = texts[language];
+
   // Chefly Plus subscriber banner
   if (isCheflyPlus) {
     return (
-      <Card className="mb-6 border-2 border-primary bg-gradient-to-r from-primary/10 to-secondary/10">
-        <CardContent className="p-6">
+      <Card3D variant="elevated" className="mb-6">
+        <div className="p-5">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex items-start gap-4">
-              <div className="p-3 rounded-full bg-primary/20">
-                <Crown className="h-6 w-6 text-primary" />
-              </div>
+              <Icon3D icon={Crown} color="primary" size="lg" />
               
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <div className="flex items-center gap-3 flex-wrap">
-                  <h3 className="text-xl font-semibold">Chefly Plus</h3>
-                  <Badge variant="default" className="bg-primary">
-                    {language === "es" ? "Activo" : "Active"}
-                  </Badge>
+                  <h3 className="text-lg font-bold text-foreground">{t.plusTitle}</h3>
+                  <span className="text-xs bg-primary text-primary-foreground px-2.5 py-1 rounded-full font-semibold">
+                    {t.plusActive}
+                  </span>
                 </div>
                 
-                <p className="text-sm text-muted-foreground">
-                  {language === "es" 
-                    ? "Disfruta de todos los beneficios premium"
-                    : "Enjoy all premium benefits"
-                  }
-                </p>
+                <p className="text-sm text-muted-foreground">{t.plusSubtitle}</p>
               </div>
             </div>
 
             <Button 
               variant="outline"
               onClick={() => navigate("/subscription")}
+              className="shrink-0"
             >
-              {language === "es" ? "Gestionar plan" : "Manage plan"}
+              {t.managePlan}
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </Card3D>
     );
   }
 
   // Free plan banner with upgrade CTA
   return (
-    <Card className="mb-6 border-2 border-border bg-gradient-to-r from-muted/50 to-muted/30">
-      <CardContent className="p-6">
+    <Card3D variant="glass" className="mb-6">
+      <div className="p-5">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-start gap-4">
-            <div className="p-3 rounded-full bg-primary/10">
-              <Gift className="h-6 w-6 text-primary" />
-            </div>
+            <Icon3D icon={Gift} color="amber" size="lg" />
             
-            <div className="space-y-2">
+            <div className="space-y-1">
               <div className="flex items-center gap-3 flex-wrap">
-                <h3 className="text-xl font-semibold">
-                  {language === "es" ? "Plan Gratuito" : "Free Plan"}
-                </h3>
-                <Badge variant="secondary" className="bg-secondary/20 text-secondary-foreground">
-                  {language === "es" ? "Gratis" : "Free"}
-                </Badge>
+                <h3 className="text-lg font-bold text-foreground">{t.freeTitle}</h3>
+                <span className="text-xs bg-muted text-muted-foreground px-2.5 py-1 rounded-full font-medium">
+                  {t.freeBadge}
+                </span>
               </div>
               
-              <p className="text-sm text-muted-foreground">
-                {language === "es" 
-                  ? "Mejora a Chefly Plus para desbloquear todas las funciones"
-                  : "Upgrade to Chefly Plus to unlock all features"
-                }
-              </p>
+              <p className="text-sm text-muted-foreground">{t.freeSubtitle}</p>
             </div>
           </div>
 
           <Button 
             onClick={() => navigate("/pricing")}
-            className="gap-2"
+            variant="modern3d"
+            className="shrink-0 gap-2"
           >
             <Zap className="h-4 w-4" />
-            {language === "es" ? "Mejorar plan" : "Upgrade"}
+            {t.upgrade}
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </Card3D>
   );
 };
