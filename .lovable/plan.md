@@ -1,193 +1,264 @@
 
-# Plan: Transiciones Automáticas Tipo Duolingo
+
+# Plan: Modernización de Pantallas de Pago y Suscripción
 
 ## Objetivo
-Lograr que las transiciones entre páginas del dashboard sean **instantáneas** (0ms de espera visible) como en Duolingo, donde los datos ya están cargados antes de que el usuario toque la pantalla.
+Rediseñar todas las pantallas de pago (Subscription, Pricing, PremiumPaywall, ContextualPaywall, IAPPaywall, banners promocionales) aplicando el nuevo sistema visual 3D de la app e implementando patrones de alta conversión usados por apps exitosas como Calm, MyFitnessPal, Duolingo y Flo.
 
 ---
 
-## Problema Actual
+## Análisis de Mejoras por Componente
 
-Aunque ya tienes una base SPA sólida, las páginas siguen mostrando spinners porque:
+### Problemas Detectados en el Diseño Actual
 
-| Componente | Problema |
-|------------|----------|
-| `useWellness.ts` | Usa `useState/useEffect` en lugar de React Query |
-| `Progress.tsx` | Hace queries dentro de `useEffect` sin cache |
-| `Wellness.tsx` | Depende de `isLoading` de useWellness bloqueando todo |
-| `Recipes.tsx` | Carga recetas desde cero cada vez |
-| Prefetch actual | Solo guarda en cache, pero las páginas no lo usan |
-
----
-
-## Solución: "Datos Antes del Clic"
-
-### Estrategia de 3 Capas:
-
-```
-┌─────────────────────────────────────────────────┐
-│  Capa 1: Prefetch Automático al Montar Dashboard │
-│  → Datos de Progress, Wellness, Recipes cargados │
-│    en background cuando el usuario entra         │
-└─────────────────────────────────────────────────┘
-               ↓
-┌─────────────────────────────────────────────────┐
-│  Capa 2: Hooks con React Query                   │
-│  → Cache compartido entre todas las páginas     │
-│  → Datos disponibles instantáneamente           │
-└─────────────────────────────────────────────────┘
-               ↓
-┌─────────────────────────────────────────────────┐
-│  Capa 3: Skeleton-First Rendering               │
-│  → UI se renderiza inmediatamente con skeletons │
-│  → Datos rellenan los espacios sin flash        │
-└─────────────────────────────────────────────────┘
-```
+| Componente | Problema | Impacto |
+|------------|----------|---------|
+| `Subscription.tsx` | Lista de features muy densa, sin jerarquía visual clara | Baja comprensión del valor |
+| `PremiumPaywall.tsx` | Selector de plan yearly sin plan yearly real disponible | Confusión del usuario |
+| `IAPPaywall.tsx` | Dialog pequeño, features comprimidas, sin social proof | Baja conversión |
+| `ContextualPaywall.tsx` | Sin efecto 3D, mascota pequeña, CTA poco prominente | Bajo impacto visual |
+| `SubscriptionBanner.tsx` | Sin estilo 3D, muy básico | Poca atención |
+| `SubscriptionPromoBanner.tsx` | Funcional pero sin diferenciación | No destaca |
+| `Pricing.tsx` | Duplica features de Subscription | Redundancia |
 
 ---
 
-## Cambios Técnicos
+## Patrones de Alta Conversión a Implementar
 
-### 1. Migrar `useWellness` a React Query
+Basado en el análisis de apps millonarias (Calm, MyFitnessPal, Flo, Speak):
 
-**Archivo:** `src/hooks/useWellness.ts`
+### 1. Anchor & Decoy (Anclaje de Precio)
+- Mostrar precio mensual alto para que el plan recomendado luzca mejor
+- Badge "Más Popular" o "Ahorra X%"
 
-Actualmente usa `useState` + `useEffect`, lo que:
-- No comparte cache entre componentes
-- Recarga datos en cada navegación
-- No se beneficia del prefetch
+### 2. Value Stack (Apilamiento de Valor)
+- Lista de beneficios con iconos y verbos de acción
+- Máximo 5-6 beneficios visibles, cada uno en una línea
 
-Cambio: Convertir a múltiples `useQuery` con keys específicos:
-- `['wellness', 'mood', 'today', userId]`
-- `['wellness', 'mood', 'weekly', userId]`
-- `['wellness', 'insights', userId]`
-- `['wellness', 'bodyScans', userId]`
+### 3. Social Proof (Prueba Social)
+- Mostrar rating de App Store (4.8★)
+- Número de usuarios o reseñas
 
-### 2. Crear `useProgressData` con React Query
+### 4. Soft Commitment (Compromiso Suave)
+- Enfatizar "Cancela cuando quieras"
+- CTA enfocado en "Probar" no en "Comprar"
 
-**Archivo nuevo:** `src/hooks/useProgressData.ts`
-
-Centralizar las queries de Progress:
-- `['progress', 'latestWeight', userId]`
-- `['progress', 'measurements', userId]`
-- `['progress', 'stats', userId]`
-
-### 3. Migrar `loadRecipes` a React Query
-
-**Archivo:** `src/pages/Recipes.tsx`
-
-Cambiar el `useEffect` + `setRecipes` por:
-```typescript
-const { data: recipes, isLoading } = useQuery({
-  queryKey: ['recipes', userId],
-  queryFn: loadRecipes,
-  staleTime: 10 * 60 * 1000,
-});
-```
-
-### 4. Prefetch Automático en Dashboard
-
-**Archivo:** `src/pages/Dashboard.tsx`
-
-Al montar el Dashboard por primera vez, prefetch todas las secciones principales:
-
-```typescript
-useEffect(() => {
-  if (userId) {
-    // Prefetch datos de las otras tabs en background
-    prefetchProgress();
-    prefetchWellness();
-    prefetchRecipes();
-  }
-}, [userId]);
-```
-
-### 5. Skeleton-First en Páginas
-
-**Archivos:** `Progress.tsx`, `Wellness.tsx`, `Recipes.tsx`
-
-En lugar de:
-```tsx
-if (isLoading) return <Loader2 />;
-```
-
-Usar:
-```tsx
-// Renderizar siempre la UI, solo los datos usan skeletons
-<WeightCard3D userId={userId} /> // Skeleton interno
-<MoodHistoryChart moods={moods ?? []} isLoading={isLoading} />
-```
-
-### 6. Optimizar Prefetch en MobileBottomNav
-
-**Archivo:** `src/hooks/usePrefetch.ts`
-
-Expandir el prefetch para incluir:
-- Datos de Progress (measurements, stats)
-- Datos de Wellness (mood logs, insights)
-- Datos de Recipes (meal plan completo)
-- Datos de ChefIA (historial de mensajes)
+### 5. Urgency Visual (sin manipular)
+- Animaciones sutiles que atraen atención al CTA
 
 ---
 
-## Archivos a Modificar
+## Cambios por Archivo
 
-| Archivo | Cambio |
-|---------|--------|
-| `src/hooks/useWellness.ts` | Refactorizar a React Query |
-| `src/hooks/usePrefetch.ts` | Expandir con más datos |
-| `src/hooks/useProgressData.ts` | **NUEVO** - Hook centralizado |
-| `src/pages/Dashboard.tsx` | Añadir prefetch automático |
-| `src/pages/Progress.tsx` | Usar React Query + skeletons |
-| `src/pages/Wellness.tsx` | Eliminar isLoading bloqueante |
-| `src/pages/Recipes.tsx` | Migrar a React Query |
-| `src/pages/ChefIA.tsx` | Cache de mensajes |
+### 1. `IAPPaywall.tsx` - Modal de Compra Principal (Prioridad Alta)
+
+Este es el componente más importante porque es donde ocurre la conversión final.
+
+**Cambios:**
+- Expandir a pantalla completa o modal grande
+- Header con gradiente 3D y mascota celebrando
+- Social proof: "4.8★ · +50k usuarios" 
+- Value stack con `Icon3D` para cada beneficio
+- CTA con botón `modern3d` grande y prominente
+- Badge de garantía "Cancela cuando quieras"
+- Animación de entrada más impactante
+
+**Copy mejorado:**
+- Título: "Desbloquea tu potencial nutricional" → más emocional
+- CTA: "Suscribirse" → "Comenzar ahora - $7.99/mes"
+- Subtítulo: Enfatizar beneficio principal
+
+### 2. `ContextualPaywall.tsx` - Paywall Contextual (Prioridad Alta)
+
+**Cambios:**
+- Usar `Card3D` variant="elevated" para el contenedor
+- Mascota más grande con animación de flotación
+- Iconos con `Icon3D` para los beneficios
+- Gradiente de fondo más vibrante
+- Botón CTA con `modern3d`
+- Añadir micro-interacciones
+
+**Copy mejorado por feature:**
+- scan: "Conoce lo que comes en segundos" 
+- chat: "Tu nutriólogo de bolsillo 24/7"
+- swap: "Flexibilidad total en tu plan"
+- generate: "Planes frescos cuando quieras"
+
+### 3. `Subscription.tsx` - Página de Planes (Prioridad Media)
+
+**Cambios:**
+- Header hero más compacto con gradiente 3D
+- Cards de plan con `Card3D` variant="elevated"
+- Badges 3D flotantes para "Recomendado"
+- Iconos con `Icon3D` para features principales
+- Social proof badge: "4.8★ App Store"
+- Comparación visual entre planes más clara
+- Animaciones stagger más rápidas
+
+**Estructura visual mejorada:**
+```
+┌─────────────────────────────────────┐
+│  ← Suscripción    [4.8★ +50k]      │
+├─────────────────────────────────────┤
+│                                     │
+│  ┌─────────────────────────────┐   │
+│  │ 🏆 RECOMENDADO              │   │ ← Badge 3D
+│  │  ┌───────────────────────┐  │   │
+│  │  │ 🍋  Chefly Plus       │  │   │ ← Card3D elevated
+│  │  │     $7.99/mes         │  │   │
+│  │  │                       │  │   │
+│  │  │ ✓ Planes ilimitados   │  │   │ ← Icon3D checks
+│  │  │ ✓ Escaneo de comida   │  │   │
+│  │  │ ✓ Chat IA ilimitado   │  │   │
+│  │  │                       │  │   │
+│  │  │ [🚀 MEJORAR AHORA]    │  │   │ ← Button modern3d
+│  │  └───────────────────────┘  │   │
+│  └─────────────────────────────┘   │
+│                                     │
+│  ┌───────────────────────────────┐ │
+│  │ 🎁 Plan Gratuito   [Tu plan] │ │ ← Card3D default
+│  │ ...                           │ │
+│  └───────────────────────────────┘ │
+│                                     │
+│  🔄 Restaurar compras              │
+│  ────────────────────────          │
+│  Cancela cuando quieras ✓          │
+└─────────────────────────────────────┘
+```
+
+### 4. `PremiumPaywall.tsx` - Paywall Principal (Prioridad Media)
+
+**Cambios:**
+- Eliminar selector de plan yearly (no existe en IAP)
+- Simplificar a un solo plan con valor claro
+- Hero con mascota más prominente
+- Background con gradiente animado sutil
+- Social proof visible
+- Value stack con iconos 3D
+- CTA full-width con efecto press
+
+**Copy mejorado:**
+- Título: "Alcanza tu meta" → "Transforma tu alimentación en 7 días"
+- Features con beneficios, no características
+
+### 5. `Pricing.tsx` - Página de Precios (Prioridad Baja)
+
+**Cambios:**
+- Unificar estilo con Subscription.tsx
+- Añadir social proof
+- Simplificar a un flujo directo
+- Mejorar comparación Free vs Plus
+
+### 6. `SubscriptionBanner.tsx` - Banner en Configuración (Prioridad Baja)
+
+**Cambios:**
+- Usar `Card3D` variant="glass"
+- Iconos con `Icon3D`
+- Gradiente más vibrante
+- CTA más prominente
+
+### 7. `SubscriptionPromoBanner.tsx` - Banner Promocional (Prioridad Baja)
+
+**Cambios:**
+- Efecto 3D con sombra
+- Mascota pequeña animada
+- Micro-interacciones al hover
 
 ---
 
-## Flujo de Datos Optimizado
+## Mejoras de Copy
 
-```
-Usuario abre app → Dashboard
-         │
-         ├── Carga datos del Dashboard
-         │
-         └── [Background] Prefetch automático:
-                  ├── Progress: measurements, weight
-                  ├── Wellness: mood, insights
-                  ├── Recipes: meal plan
-                  └── ChefIA: messages
-         
-Usuario toca "Progreso" 
-         │
-         └── Datos YA en cache → Render instantáneo (0ms)
-```
+### Principios a Aplicar
+
+1. **Beneficios > Características**
+   - ❌ "Chat IA ilimitado"
+   - ✓ "Pregunta lo que quieras, cuando quieras"
+
+2. **Emocional > Racional**
+   - ❌ "$2 USD de créditos de IA"
+   - ✓ "Tu nutriólogo de bolsillo 24/7"
+
+3. **Acción > Pasivo**
+   - ❌ "Acceso a planes semanales"
+   - ✓ "Genera planes frescos cada semana"
+
+4. **Específico > Genérico**
+   - ❌ "Desbloquea funciones premium"
+   - ✓ "Escanea cualquier platillo en 3 segundos"
+
+### Copy Actualizado por Feature
+
+| Feature | Copy Actual | Copy Mejorado ES | Copy Mejorado EN |
+|---------|-------------|------------------|------------------|
+| Planes | "Genera planes semanales ilimitados" | "Planes frescos cada semana" | "Fresh plans every week" |
+| Swap | "Intercambia comidas entre días" | "Cambia comidas cuando quieras" | "Swap meals anytime" |
+| Scanner | "Escaneo de comidas ilimitado" | "Escanea cualquier platillo" | "Scan any dish" |
+| Chat | "Chat IA + Escáner" | "Tu nutriólogo 24/7" | "Your 24/7 nutritionist" |
+| Friends | "Sistema de amigos" | "Motívate con amigos" | "Stay motivated with friends" |
+
+---
+
+## Sección Técnica
+
+### Archivos a Modificar
+
+1. `src/components/IAPPaywall.tsx` - Rediseño completo
+2. `src/components/ContextualPaywall.tsx` - Aplicar estilo 3D
+3. `src/pages/Subscription.tsx` - Modernizar cards y layout
+4. `src/pages/PremiumPaywall.tsx` - Simplificar y mejorar
+5. `src/pages/Pricing.tsx` - Unificar con Subscription
+6. `src/components/SubscriptionBanner.tsx` - Aplicar Card3D
+7. `src/components/SubscriptionPromoBanner.tsx` - Mejorar visual
+
+### Componentes a Reutilizar
+
+- `Card3D` (variant: elevated, glass)
+- `Icon3D` (colores: primary, emerald, amber)
+- Button variant `modern3d`
+- `motion` de framer-motion para animaciones
+
+### Mascots a Usar
+
+- `mascot-celebrating.png` - Para éxito de compra
+- `mascot-money.png` - Para paywalls
+- `mascot-happy.png` - Para banners
+- `mascot-flexing.png` - Para progreso/Plus activo
+
+### Animaciones Clave
+
+- Entrada stagger para lista de beneficios
+- Pulse sutil en botones CTA
+- Float para mascota
+- Scale en hover de cards
+
+### Colores y Gradientes
+
+- Primary gradient: `from-primary to-primary/80`
+- Plus badge: `from-emerald-400 via-teal-500 to-cyan-500`
+- Free badge: `from-orange-400 to-amber-500`
+- CTA: Button `modern3d` o `duolingo`
 
 ---
 
 ## Resultado Esperado
 
-| Métrica | Actual | Objetivo |
-|---------|--------|----------|
-| Transición Dashboard → Progress | 200-500ms | 0ms |
-| Transición Dashboard → Wellness | 300-600ms | 0ms |
-| Transición Dashboard → Recipes | 400-800ms | 0ms |
-| Spinner visible | Frecuente | Nunca* |
-| Skeleton visible | Nunca | Solo primera carga |
-
-*Solo se muestra skeleton en la primera visita de la sesión, después todo es instantáneo.
+| Métrica | Impacto Esperado |
+|---------|------------------|
+| Claridad del valor | Mayor comprensión de beneficios |
+| Tiempo en paywall | Mayor engagement |
+| Click en CTA | Mayor por diseño prominente |
+| Consistencia visual | Alineado con resto de la app |
+| Percepción de calidad | Premium, profesional |
 
 ---
 
-## Experiencia del Usuario
+## Orden de Implementación
 
-**Antes:**
-1. Toca "Progreso"
-2. Ve spinner 0.5s
-3. Ve la página
+1. **IAPPaywall.tsx** - Impacto directo en conversión
+2. **ContextualPaywall.tsx** - Alto tráfico
+3. **Subscription.tsx** - Página principal de planes
+4. **PremiumPaywall.tsx** - Simplificar y mejorar
+5. **Pricing.tsx** - Unificar estilo
+6. **SubscriptionBanner.tsx** - Quick win
+7. **SubscriptionPromoBanner.tsx** - Quick win
 
-**Después:**
-1. Toca "Progreso"
-2. Ve la página inmediatamente (datos ya cargados)
-
-Esto es exactamente como funciona Duolingo: cuando tocas una lección, ya sabe qué ejercicios mostrar porque los cargó mientras veías la lista.
