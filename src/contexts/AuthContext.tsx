@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -30,11 +30,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const queryClient = useQueryClient();
+  
+  // Track previous userId to detect account changes
+  const previousUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     // Set up auth listener BEFORE checking session (critical for proper auth flow)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
+        const newUserId = currentSession?.user?.id ?? null;
+        
+        // Clear cache if user changed (not just on logout)
+        if (previousUserIdRef.current && previousUserIdRef.current !== newUserId) {
+          queryClient.clear();
+        }
+        
+        previousUserIdRef.current = newUserId;
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         setIsLoading(false);
@@ -48,6 +59,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     // Then check for existing session
     supabase.auth.getSession().then(({ data: { session: existingSession } }) => {
+      const existingUserId = existingSession?.user?.id ?? null;
+      previousUserIdRef.current = existingUserId;
       setSession(existingSession);
       setUser(existingSession?.user ?? null);
       setIsLoading(false);
