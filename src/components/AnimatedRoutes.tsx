@@ -1,4 +1,5 @@
 import { Routes, Route, useLocation, Outlet } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
@@ -53,28 +54,44 @@ import Wellness from '@/pages/Wellness';
 /**
  * Persistent DashboardLayout shell - mounts ONCE and stays mounted
  * across all dashboard/* navigations. Only the <Outlet /> content changes.
+ * Resets scroll to top on every route change.
  */
-const DashboardLayout = () => (
-  <SidebarProvider>
-    <div className="flex h-[100dvh] w-full bg-background overflow-hidden" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
-      {/* Sidebar only visible on lg+ (desktop) */}
-      <div className="hidden lg:block">
-        <AppSidebar />
+const DashboardLayout = () => {
+  const location = useLocation();
+  const mainRef = useRef<HTMLElement>(null);
+
+  // Reset scroll to top on route change
+  useEffect(() => {
+    if (mainRef.current) {
+      mainRef.current.scrollTo(0, 0);
+    }
+  }, [location.pathname]);
+
+  return (
+    <SidebarProvider>
+      <div className="flex h-[100dvh] w-full bg-background overflow-hidden" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+        {/* Sidebar only visible on lg+ (desktop) */}
+        <div className="hidden lg:block">
+          <AppSidebar />
+        </div>
+        <div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden">
+          {/* Header only visible on lg+ (desktop) */}
+          <header className="hidden lg:flex h-14 border-b bg-card sticky top-0 z-40 items-center px-4 flex-shrink-0">
+            <SidebarTrigger />
+          </header>
+          <main 
+            ref={mainRef}
+            className="flex-1 overflow-y-auto overflow-x-hidden pb-mobile-nav lg:pb-0 scroll-touch bg-background"
+          >
+            <Outlet />
+          </main>
+        </div>
       </div>
-      <div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden">
-        {/* Header only visible on lg+ (desktop) */}
-        <header className="hidden lg:flex h-14 border-b bg-card sticky top-0 z-40 items-center px-4 flex-shrink-0">
-          <SidebarTrigger />
-        </header>
-        <main className="flex-1 overflow-y-auto overflow-x-hidden pb-mobile-nav lg:pb-0 scroll-touch bg-background">
-          <Outlet />
-        </main>
-      </div>
-    </div>
-    {/* Bottom nav visible on mobile AND tablet (hidden on lg+) */}
-    <MobileBottomNav />
-  </SidebarProvider>
-);
+      {/* Bottom nav visible on mobile AND tablet (hidden on lg+) */}
+      <MobileBottomNav />
+    </SidebarProvider>
+  );
+};
 
 export const AnimatedRoutes = () => {
   const location = useLocation();
