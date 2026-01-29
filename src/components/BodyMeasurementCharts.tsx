@@ -1,14 +1,15 @@
-import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from "recharts";
 import { format } from "date-fns";
 import { es, enUS } from "date-fns/locale";
-import { Loader2, Scale, Ruler } from "lucide-react";
+import { Scale, Ruler } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Card3D, Card3DContent, Card3DHeader } from "@/components/ui/card-3d";
 import { Icon3D } from "@/components/ui/icon-3d";
 import { motion } from "framer-motion";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Measurement {
   measurement_date: string;
@@ -23,44 +24,36 @@ interface Measurement {
 
 interface BodyMeasurementChartsProps {
   userId: string;
-  refreshTrigger: number;
 }
 
-export const BodyMeasurementCharts = ({ userId, refreshTrigger }: BodyMeasurementChartsProps) => {
-  const [measurements, setMeasurements] = useState<Measurement[]>([]);
-  const [loading, setLoading] = useState(true);
+const fetchMeasurements = async (userId: string): Promise<Measurement[]> => {
+  const { data, error } = await supabase
+    .from("body_measurements")
+    .select("*")
+    .eq("user_id", userId)
+    .order("measurement_date", { ascending: true });
+
+  if (error) throw error;
+  return data || [];
+};
+
+export const BodyMeasurementCharts = ({ userId }: BodyMeasurementChartsProps) => {
   const { t, language } = useLanguage();
   const dateLocale = language === 'es' ? es : enUS;
 
-  useEffect(() => {
-    loadMeasurements();
-  }, [userId, refreshTrigger]);
+  const { data: measurements = [], isLoading } = useQuery({
+    queryKey: ['progress', 'measurements', userId],
+    queryFn: () => fetchMeasurements(userId),
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
 
-  const loadMeasurements = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("body_measurements")
-        .select("*")
-        .eq("user_id", userId)
-        .order("measurement_date", { ascending: true });
-
-      if (error) throw error;
-
-      setMeasurements(data || []);
-    } catch (error) {
-      console.error("Error loading measurements:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
+  if (isLoading) {
     return (
       <Card3D variant="default" className="p-6">
-        <div className="flex items-center justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
+        <Skeleton className="h-8 w-48 mb-4" />
+        <Skeleton className="h-64 w-full rounded-xl" />
       </Card3D>
     );
   }

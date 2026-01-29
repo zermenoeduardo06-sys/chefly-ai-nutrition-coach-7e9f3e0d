@@ -50,6 +50,7 @@ import { useAppReview } from "@/hooks/useAppReview";
 import { useSubscriptionPromo } from "@/hooks/useSubscriptionPromo";
 import { SubscriptionPromoBanner } from "@/components/SubscriptionPromoBanner";
 import { DashboardHeader } from "@/components/DashboardHeader";
+import { usePrefetch } from "@/hooks/usePrefetch";
 
 interface MealAdaptation {
   id: string;
@@ -234,12 +235,17 @@ const Dashboard = () => {
     }
   }, [authUser?.id, userId]);
 
-  // Load data when userId is available
+  // Import prefetch hook
+  const { prefetchAll } = usePrefetch(userId);
+
+  // Load data when userId is available + prefetch other pages
   useEffect(() => {
     if (userId) {
       checkPreferencesAndLoadData();
+      // Prefetch other pages in background for instant navigation
+      prefetchAll();
     }
-  }, [userId]);
+  }, [userId, prefetchAll]);
 
   // Safety timeout: show error message if loading takes too long (15 seconds)
   useEffect(() => {

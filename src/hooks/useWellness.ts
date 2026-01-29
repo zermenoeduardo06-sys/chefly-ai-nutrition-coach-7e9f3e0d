@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { startOfDay, subDays, format } from "date-fns";
+import { startOfDay, subDays } from "date-fns";
 
 export interface MoodLog {
   id: string;
@@ -41,169 +42,137 @@ export interface BodyScan {
   created_at: string;
 }
 
-interface WellnessState {
-  todaysMood: MoodLog | null;
-  weeklyMoods: MoodLog[];
-  monthlyMoods: MoodLog[];
-  insights: WellnessInsight[];
-  bodyScans: BodyScan[];
-  latestBodyScan: BodyScan | null;
-  averageMood: number;
-  moodTrend: 'up' | 'down' | 'stable';
-  isLoading: boolean;
-  error: string | null;
-}
+// Query functions
+const fetchTodaysMood = async (userId: string): Promise<MoodLog | null> => {
+  const today = startOfDay(new Date());
+  const { data } = await supabase
+    .from("mood_logs")
+    .select("*")
+    .eq("user_id", userId)
+    .gte("logged_at", today.toISOString())
+    .order("logged_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return data as MoodLog | null;
+};
 
-const initialState: WellnessState = {
-  todaysMood: null,
-  weeklyMoods: [],
-  monthlyMoods: [],
-  insights: [],
-  bodyScans: [],
-  latestBodyScan: null,
-  averageMood: 0,
-  moodTrend: 'stable',
-  isLoading: true,
-  error: null,
+const fetchWeeklyMoods = async (userId: string): Promise<MoodLog[]> => {
+  const weekAgo = subDays(startOfDay(new Date()), 7);
+  const { data } = await supabase
+    .from("mood_logs")
+    .select("*")
+    .eq("user_id", userId)
+    .gte("logged_at", weekAgo.toISOString())
+    .order("logged_at", { ascending: true });
+  return (data || []) as MoodLog[];
+};
+
+const fetchMonthlyMoods = async (userId: string): Promise<MoodLog[]> => {
+  const monthAgo = subDays(startOfDay(new Date()), 30);
+  const { data } = await supabase
+    .from("mood_logs")
+    .select("*")
+    .eq("user_id", userId)
+    .gte("logged_at", monthAgo.toISOString())
+    .order("logged_at", { ascending: true });
+  return (data || []) as MoodLog[];
+};
+
+const fetchInsights = async (userId: string): Promise<WellnessInsight[]> => {
+  const { data } = await supabase
+    .from("wellness_insights")
+    .select("*")
+    .eq("user_id", userId)
+    .order("generated_at", { ascending: false })
+    .limit(10);
+  return (data || []) as WellnessInsight[];
+};
+
+const fetchBodyScans = async (userId: string): Promise<BodyScan[]> => {
+  const { data } = await supabase
+    .from("body_scans")
+    .select("*")
+    .eq("user_id", userId)
+    .order("scanned_at", { ascending: false })
+    .limit(12);
+  return (data || []) as BodyScan[];
 };
 
 export const useWellness = (userId: string | undefined) => {
-  const [state, setState] = useState<WellnessState>(initialState);
+  const queryClient = useQueryClient();
 
-  const fetchMoodLogs = useCallback(async () => {
-    if (!userId) return;
+  // Today's mood query
+  const todaysMoodQuery = useQuery({
+    queryKey: ['wellness', 'mood', 'today', userId],
+    queryFn: () => fetchTodaysMood(userId!),
+    enabled: !!userId,
+    staleTime: 60 * 1000, // 1 min - mood changes often
+    gcTime: 5 * 60 * 1000,
+  });
 
-    try {
-      const today = startOfDay(new Date());
-      const weekAgo = subDays(today, 7);
-      const monthAgo = subDays(today, 30);
+  // Weekly moods query
+  const weeklyMoodsQuery = useQuery({
+    queryKey: ['wellness', 'mood', 'weekly', userId],
+    queryFn: () => fetchWeeklyMoods(userId!),
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000, // 5 min
+    gcTime: 10 * 60 * 1000,
+  });
 
-      // Fetch today's mood
-      const { data: todayData } = await supabase
-        .from("mood_logs")
-        .select("*")
-        .eq("user_id", userId)
-        .gte("logged_at", today.toISOString())
-        .order("logged_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+  // Monthly moods query
+  const monthlyMoodsQuery = useQuery({
+    queryKey: ['wellness', 'mood', 'monthly', userId],
+    queryFn: () => fetchMonthlyMoods(userId!),
+    enabled: !!userId,
+    staleTime: 10 * 60 * 1000, // 10 min
+    gcTime: 15 * 60 * 1000,
+  });
 
-      // Fetch weekly moods
-      const { data: weeklyData } = await supabase
-        .from("mood_logs")
-        .select("*")
-        .eq("user_id", userId)
-        .gte("logged_at", weekAgo.toISOString())
-        .order("logged_at", { ascending: true });
+  // Insights query
+  const insightsQuery = useQuery({
+    queryKey: ['wellness', 'insights', userId],
+    queryFn: () => fetchInsights(userId!),
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
 
-      // Fetch monthly moods
-      const { data: monthlyData } = await supabase
-        .from("mood_logs")
-        .select("*")
-        .eq("user_id", userId)
-        .gte("logged_at", monthAgo.toISOString())
-        .order("logged_at", { ascending: true });
+  // Body scans query
+  const bodyScansQuery = useQuery({
+    queryKey: ['wellness', 'bodyScans', userId],
+    queryFn: () => fetchBodyScans(userId!),
+    enabled: !!userId,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+  });
 
-      // Calculate average and trend
-      const weeklyMoods = (weeklyData || []) as MoodLog[];
-      const monthlyMoods = (monthlyData || []) as MoodLog[];
-      
-      const avgMood = weeklyMoods.length > 0
-        ? weeklyMoods.reduce((sum, m) => sum + m.mood_score, 0) / weeklyMoods.length
-        : 0;
+  // Computed values
+  const weeklyMoods = weeklyMoodsQuery.data ?? [];
+  const monthlyMoods = monthlyMoodsQuery.data ?? [];
+  const bodyScans = bodyScansQuery.data ?? [];
 
-      // Calculate trend (compare first half of week to second half)
-      let trend: 'up' | 'down' | 'stable' = 'stable';
-      if (weeklyMoods.length >= 4) {
-        const midpoint = Math.floor(weeklyMoods.length / 2);
-        const firstHalf = weeklyMoods.slice(0, midpoint);
-        const secondHalf = weeklyMoods.slice(midpoint);
-        
-        const firstAvg = firstHalf.reduce((sum, m) => sum + m.mood_score, 0) / firstHalf.length;
-        const secondAvg = secondHalf.reduce((sum, m) => sum + m.mood_score, 0) / secondHalf.length;
-        
-        if (secondAvg > firstAvg + 0.3) trend = 'up';
-        else if (secondAvg < firstAvg - 0.3) trend = 'down';
-      }
+  const averageMood = useMemo(() => {
+    if (weeklyMoods.length === 0) return 0;
+    return weeklyMoods.reduce((sum, m) => sum + m.mood_score, 0) / weeklyMoods.length;
+  }, [weeklyMoods]);
 
-      setState(prev => ({
-        ...prev,
-        todaysMood: todayData as MoodLog | null,
-        weeklyMoods,
-        monthlyMoods,
-        averageMood: avgMood,
-        moodTrend: trend,
-      }));
-    } catch (error) {
-      console.error("Error fetching mood logs:", error);
-      setState(prev => ({ ...prev, error: "Failed to fetch mood data" }));
-    }
-  }, [userId]);
+  const moodTrend = useMemo((): 'up' | 'down' | 'stable' => {
+    if (weeklyMoods.length < 4) return 'stable';
+    const midpoint = Math.floor(weeklyMoods.length / 2);
+    const firstHalf = weeklyMoods.slice(0, midpoint);
+    const secondHalf = weeklyMoods.slice(midpoint);
+    const firstAvg = firstHalf.reduce((sum, m) => sum + m.mood_score, 0) / firstHalf.length;
+    const secondAvg = secondHalf.reduce((sum, m) => sum + m.mood_score, 0) / secondHalf.length;
+    if (secondAvg > firstAvg + 0.3) return 'up';
+    if (secondAvg < firstAvg - 0.3) return 'down';
+    return 'stable';
+  }, [weeklyMoods]);
 
-  const fetchInsights = useCallback(async () => {
-    if (!userId) return;
+  const latestBodyScan = bodyScans[0] ?? null;
 
-    try {
-      const { data } = await supabase
-        .from("wellness_insights")
-        .select("*")
-        .eq("user_id", userId)
-        .order("generated_at", { ascending: false })
-        .limit(10);
-
-      setState(prev => ({
-        ...prev,
-        insights: (data || []) as WellnessInsight[],
-      }));
-    } catch (error) {
-      console.error("Error fetching insights:", error);
-    }
-  }, [userId]);
-
-  const fetchBodyScans = useCallback(async () => {
-    if (!userId) return;
-
-    try {
-      const { data } = await supabase
-        .from("body_scans")
-        .select("*")
-        .eq("user_id", userId)
-        .order("scanned_at", { ascending: false })
-        .limit(12);
-
-      const scans = (data || []) as BodyScan[];
-      
-      setState(prev => ({
-        ...prev,
-        bodyScans: scans,
-        latestBodyScan: scans[0] || null,
-      }));
-    } catch (error) {
-      console.error("Error fetching body scans:", error);
-    }
-  }, [userId]);
-
-  const loadAllData = useCallback(async () => {
-    if (!userId) return;
-    
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
-    
-    await Promise.all([
-      fetchMoodLogs(),
-      fetchInsights(),
-      fetchBodyScans(),
-    ]);
-    
-    setState(prev => ({ ...prev, isLoading: false }));
-  }, [userId, fetchMoodLogs, fetchInsights, fetchBodyScans]);
-
-  useEffect(() => {
-    loadAllData();
-  }, [loadAllData]);
-
-  const logMood = async (score: number, factors: string[], note?: string): Promise<boolean> => {
+  // Mutation functions
+  const logMood = useCallback(async (score: number, factors: string[], note?: string): Promise<boolean> => {
     if (!userId) return false;
-
     try {
       const { data, error } = await supabase
         .from("mood_logs")
@@ -219,24 +188,22 @@ export const useWellness = (userId: string | undefined) => {
 
       if (error) throw error;
 
-      setState(prev => ({
-        ...prev,
-        todaysMood: data as MoodLog,
-        weeklyMoods: [...prev.weeklyMoods, data as MoodLog],
-      }));
-
+      // Invalidate queries to refetch fresh data
+      queryClient.invalidateQueries({ queryKey: ['wellness', 'mood', 'today', userId] });
+      queryClient.invalidateQueries({ queryKey: ['wellness', 'mood', 'weekly', userId] });
+      queryClient.invalidateQueries({ queryKey: ['wellness', 'mood', 'monthly', userId] });
+      
       return true;
     } catch (error) {
       console.error("Error logging mood:", error);
       return false;
     }
-  };
+  }, [userId, queryClient]);
 
-  const updateMood = async (moodId: string, score: number, factors: string[], note?: string): Promise<boolean> => {
+  const updateMood = useCallback(async (moodId: string, score: number, factors: string[], note?: string): Promise<boolean> => {
     if (!userId) return false;
-
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("mood_logs")
         .update({
           mood_score: score,
@@ -244,28 +211,23 @@ export const useWellness = (userId: string | undefined) => {
           note: note || null,
         })
         .eq("id", moodId)
-        .eq("user_id", userId)
-        .select()
-        .single();
+        .eq("user_id", userId);
 
       if (error) throw error;
 
-      setState(prev => ({
-        ...prev,
-        todaysMood: data as MoodLog,
-        weeklyMoods: prev.weeklyMoods.map(m => m.id === moodId ? data as MoodLog : m),
-      }));
-
+      // Invalidate queries
+      queryClient.invalidateQueries({ queryKey: ['wellness', 'mood', 'today', userId] });
+      queryClient.invalidateQueries({ queryKey: ['wellness', 'mood', 'weekly', userId] });
+      
       return true;
     } catch (error) {
       console.error("Error updating mood:", error);
       return false;
     }
-  };
+  }, [userId, queryClient]);
 
-  const saveBodyScan = async (scanData: Omit<Partial<BodyScan>, 'user_id' | 'id' | 'created_at'> & { image_url: string }): Promise<BodyScan | null> => {
+  const saveBodyScan = useCallback(async (scanData: Omit<Partial<BodyScan>, 'user_id' | 'id' | 'created_at'> & { image_url: string }): Promise<BodyScan | null> => {
     if (!userId) return null;
-
     try {
       const insertData = {
         user_id: userId,
@@ -290,24 +252,18 @@ export const useWellness = (userId: string | undefined) => {
 
       if (error) throw error;
 
-      const newScan = data as BodyScan;
-      
-      setState(prev => ({
-        ...prev,
-        bodyScans: [newScan, ...prev.bodyScans],
-        latestBodyScan: newScan,
-      }));
+      // Invalidate body scans query
+      queryClient.invalidateQueries({ queryKey: ['wellness', 'bodyScans', userId] });
 
-      return newScan;
+      return data as BodyScan;
     } catch (error) {
       console.error("Error saving body scan:", error);
       return null;
     }
-  };
+  }, [userId, queryClient]);
 
-  const markInsightAsRead = async (insightId: string): Promise<void> => {
+  const markInsightAsRead = useCallback(async (insightId: string): Promise<void> => {
     if (!userId) return;
-
     try {
       await supabase
         .from("wellness_insights")
@@ -315,37 +271,55 @@ export const useWellness = (userId: string | undefined) => {
         .eq("id", insightId)
         .eq("user_id", userId);
 
-      setState(prev => ({
-        ...prev,
-        insights: prev.insights.map(i => 
-          i.id === insightId ? { ...i, is_read: true } : i
-        ),
-      }));
+      // Invalidate insights query
+      queryClient.invalidateQueries({ queryKey: ['wellness', 'insights', userId] });
     } catch (error) {
       console.error("Error marking insight as read:", error);
     }
-  };
+  }, [userId, queryClient]);
 
-  const hasTodaysMood = () => state.todaysMood !== null;
+  const hasTodaysMood = useCallback(() => todaysMoodQuery.data !== null, [todaysMoodQuery.data]);
 
-  const getMonthlyBodyScansCount = (): number => {
+  const getMonthlyBodyScansCount = useCallback((): number => {
     const startOfMonth = new Date();
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
-    
-    return state.bodyScans.filter(
-      scan => new Date(scan.scanned_at) >= startOfMonth
-    ).length;
-  };
+    return bodyScans.filter(scan => new Date(scan.scanned_at) >= startOfMonth).length;
+  }, [bodyScans]);
+
+  const refetch = useCallback(async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['wellness', 'mood', 'today', userId] }),
+      queryClient.invalidateQueries({ queryKey: ['wellness', 'mood', 'weekly', userId] }),
+      queryClient.invalidateQueries({ queryKey: ['wellness', 'insights', userId] }),
+      queryClient.invalidateQueries({ queryKey: ['wellness', 'bodyScans', userId] }),
+    ]);
+  }, [userId, queryClient]);
+
+  // Combined loading state - only true on initial load
+  const isLoading = !userId || (
+    todaysMoodQuery.isLoading && 
+    weeklyMoodsQuery.isLoading && 
+    !todaysMoodQuery.isFetched
+  );
 
   return {
-    ...state,
+    todaysMood: todaysMoodQuery.data ?? null,
+    weeklyMoods,
+    monthlyMoods,
+    insights: insightsQuery.data ?? [],
+    bodyScans,
+    latestBodyScan,
+    averageMood,
+    moodTrend,
+    isLoading,
+    error: todaysMoodQuery.error?.message ?? null,
     logMood,
     updateMood,
     saveBodyScan,
     markInsightAsRead,
     hasTodaysMood,
     getMonthlyBodyScansCount,
-    refetch: loadAllData,
+    refetch,
   };
 };
