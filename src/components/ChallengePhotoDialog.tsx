@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useHaptics } from "@/hooks/useHaptics";
 import { useInvalidateFoodIntake } from "@/hooks/useDailyFoodIntake";
+import { useInvalidateNutritionSummary } from "@/hooks/useNutritionSummary";
 import { motion } from "framer-motion";
 
 interface ChallengePhotoDialogProps {
@@ -31,6 +32,7 @@ export function ChallengePhotoDialog({
   const { toast } = useToast();
   const { mediumImpact, successNotification, celebrationPattern } = useHaptics();
   const invalidateFoodIntake = useInvalidateFoodIntake();
+  const invalidateNutritionSummary = useInvalidateNutritionSummary();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);

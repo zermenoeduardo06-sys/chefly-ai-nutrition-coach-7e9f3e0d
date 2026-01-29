@@ -49,6 +49,7 @@ import { WeightTrackerWidget } from "@/components/WeightTrackerWidget";
 import { DailyProgressMilestones } from "@/components/celebrations/DailyProgressMilestones";
 import { useCelebrations } from "@/hooks/useCelebrations";
 import { useInvalidateProgressData } from "@/hooks/useProgressData";
+import { useInvalidateNutritionSummary } from "@/hooks/useNutritionSummary";
 import { useAppReview } from "@/hooks/useAppReview";
 import { useSubscriptionPromo } from "@/hooks/useSubscriptionPromo";
 import { SubscriptionPromoBanner } from "@/components/SubscriptionPromoBanner";
@@ -163,6 +164,7 @@ const Dashboard = () => {
   
   // Progress data invalidation for instant updates
   const invalidateProgressData = useInvalidateProgressData();
+  const invalidateNutritionSummary = useInvalidateNutritionSummary();
   
   // App review system for iOS
   const { checkAndRequestReview } = useAppReview();
@@ -558,6 +560,9 @@ const Dashboard = () => {
 
     // Update stats
     await updateUserStats(user.id);
+
+    // Invalidate nutrition summary to reflect the new meal completion
+    invalidateNutritionSummary();
 
     // Show celebration
     triggerCelebration();

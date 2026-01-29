@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { createMealTimestamp } from "@/lib/dateUtils";
 import { useInvalidateFoodIntake } from "@/hooks/useDailyFoodIntake";
+import { useInvalidateNutritionSummary } from "@/hooks/useNutritionSummary";
 
 type Category = "foods" | "meals" | "recipes";
 type FilterTab = "frequent" | "recent" | "favorites";
@@ -52,6 +53,7 @@ export default function AddFood() {
   const { celebrateFoodAdded } = useCelebrations();
   const { triggerXP } = useXPAnimation();
   const invalidateFoodIntake = useInvalidateFoodIntake();
+  const invalidateNutritionSummary = useInvalidateNutritionSummary();
 
   const subscription = useSubscription(userId);
   const { limits } = useSubscriptionLimits(userId);
@@ -273,6 +275,7 @@ export default function AddFood() {
       celebrateFoodAdded(firstName, pointsEarned);
       triggerXP(pointsEarned, 'food');
       invalidateFoodIntake();
+      invalidateNutritionSummary();
 
       // Show celebration overlay
       setShowFoodCelebration(true);
