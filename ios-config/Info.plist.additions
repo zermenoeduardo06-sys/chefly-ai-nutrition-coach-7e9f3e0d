@@ -22,13 +22,7 @@
 <key>NSFaceIDUsageDescription</key>
 <string>Chefly AI puede usar Face ID para un inicio de sesión más rápido y seguro.</string>
 
-<!-- HealthKit Permission - Required for Apple Health integration -->
-<key>NSHealthShareUsageDescription</key>
-<string>Chefly AI usa tus datos de Apple Health para personalizar tus metas nutricionales basándose en tu actividad física real.</string>
-<key>NSHealthUpdateUsageDescription</key>
-<string>Chefly AI puede guardar tu peso en Apple Health para un seguimiento centralizado.</string>
-
-<!--
+<!-- 
   App Transport Security - Allow loading from Lovable preview during development
   Remove or modify for production if needed
 -->

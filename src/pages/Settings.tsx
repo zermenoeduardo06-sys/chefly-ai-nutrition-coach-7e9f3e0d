@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Capacitor } from "@capacitor/core";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -18,14 +17,12 @@ import {
   LogOut,
   Settings as SettingsIcon,
   DollarSign,
-  Moon,
-  Heart
+  Moon
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { AppleHealthCard } from "@/components/health/AppleHealthCard";
 
 interface SettingsItem {
   icon: React.ElementType;
@@ -42,7 +39,6 @@ const Settings = () => {
   const { toast } = useToast();
   const { hasRole: isAdmin } = useUserRole("admin");
   const [isAffiliate, setIsAffiliate] = useState(false);
-  const isNativeiOS = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios';
 
   useEffect(() => {
     const checkAffiliateStatus = async () => {
@@ -198,20 +194,6 @@ const Settings = () => {
             {subscriptionItems.map(renderItem)}
           </div>
         </motion.section>
-
-        {/* Integrations Section - iOS only */}
-        {isNativeiOS && (
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
-          >
-            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-              {language === 'es' ? 'Integraciones' : 'Integrations'}
-            </h2>
-            <AppleHealthCard />
-          </motion.section>
-        )}
 
         {/* Support Section */}
         <motion.section

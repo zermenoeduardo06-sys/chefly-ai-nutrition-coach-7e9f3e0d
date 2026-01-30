@@ -70,7 +70,21 @@ npx cap open ios
 
 ### 5. Disable iOS Scroll Bounce (Optional)
 
-If CSS solutions don't fully prevent the black line on overscroll, add this native Swift configuration.
+If CSS solutions don't fully prevent the black line on overscroll, add this native configuration:
+
+**Option A: Using Capacitor Plugin**
+```bash
+npm install capacitor-plugin-ios-webview-configurator
+npx cap sync ios
+```
+
+Then in your app initialization, configure:
+```typescript
+import { WebViewConfigurator } from 'capacitor-plugin-ios-webview-configurator';
+WebViewConfigurator.configure({ bounces: false });
+```
+
+**Option B: Manual Swift Configuration**
 
 Edit `ios/App/App/AppDelegate.swift` and add after `super.application`:
 ```swift
