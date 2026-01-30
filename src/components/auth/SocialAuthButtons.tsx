@@ -5,7 +5,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { lovable } from '@/integrations/lovable/index';
 import { Capacitor } from '@capacitor/core';
-import { useNativeAppleAuth } from '@/hooks/useNativeAppleAuth';
 
 interface SocialAuthButtonsProps {
   disabled?: boolean;
@@ -18,14 +17,11 @@ export const SocialAuthButtons = ({ disabled, onLoadingChange }: SocialAuthButto
   const { toast } = useToast();
   const { language } = useLanguage();
   const isNativePlatform = Capacitor.isNativePlatform();
-  const isIOS = Capacitor.getPlatform() === 'ios';
-  const { signInWithApple: nativeAppleSignIn, loading: nativeAppleLoading } = useNativeAppleAuth();
 
-  // On native Android, hide all social auth (only email/password)
-  // On native iOS, show only Apple Sign-In
+  // On native platforms, hide all social auth (only email/password)
   // On web, show both Apple and Google
   const showGoogleButton = !isNativePlatform;
-  const showAppleButton = !isNativePlatform || isIOS;
+  const showAppleButton = !isNativePlatform;
 
   if (!showGoogleButton && !showAppleButton) {
     return null;
@@ -55,17 +51,11 @@ export const SocialAuthButtons = ({ disabled, onLoadingChange }: SocialAuthButto
     setAppleLoading(true);
     onLoadingChange?.(true);
     try {
-      if (isNativePlatform && isIOS) {
-        // Use native Apple Sign-In on iOS
-        const { error } = await nativeAppleSignIn();
-        if (error) throw error;
-      } else {
-        // Use web OAuth flow
-        const { error } = await lovable.auth.signInWithOAuth('apple', {
-          redirect_uri: window.location.origin,
-        });
-        if (error) throw error;
-      }
+      // Use web OAuth flow only
+      const { error } = await lovable.auth.signInWithOAuth('apple', {
+        redirect_uri: window.location.origin,
+      });
+      if (error) throw error;
     } catch (error: any) {
       toast({
         variant: 'destructive',
@@ -78,11 +68,11 @@ export const SocialAuthButtons = ({ disabled, onLoadingChange }: SocialAuthButto
     }
   };
 
-  const isLoading = googleLoading || appleLoading || nativeAppleLoading || disabled;
+  const isLoading = googleLoading || appleLoading || disabled;
 
   return (
     <div className="space-y-3">
-      {/* Apple Sign In Button */}
+      {/* Apple Sign In Button - Web only */}
       {showAppleButton && (
         <Button
           type="button"
@@ -91,7 +81,7 @@ export const SocialAuthButtons = ({ disabled, onLoadingChange }: SocialAuthButto
           onClick={handleAppleSignIn}
           disabled={isLoading}
         >
-          {(appleLoading || nativeAppleLoading) ? (
+          {appleLoading ? (
             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
           ) : (
             <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
