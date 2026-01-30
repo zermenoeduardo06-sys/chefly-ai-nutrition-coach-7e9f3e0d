@@ -21,6 +21,7 @@ import { OnboardingMilestone } from '@/components/onboarding/OnboardingMilestone
 import { ProgressStages } from '@/components/onboarding/ProgressStages';
 import { NutritionRevealScreen } from '@/components/onboarding/NutritionRevealScreen';
 import { OnboardingLanguageToggle } from '@/components/onboarding/OnboardingLanguageToggle';
+import { OnboardingHealthStep } from '@/components/onboarding/OnboardingHealthStep';
 import { usePreOnboardingState } from '@/hooks/usePreOnboardingState';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -29,10 +30,15 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
-// Extended flow with new questions (includes influencer code step)
-const TOTAL_STEPS = 29;
+// Extended flow with new questions (includes influencer code step + Apple Health for iOS)
+const TOTAL_STEPS = 30;
 const AFFILIATE_CODE_KEY = "affiliate_code";
 const REFERRAL_STORED_KEY = "affiliate_referral_stored";
+
+// Check if we should show Apple Health step (only on native iOS)
+const shouldShowAppleHealthStep = () => {
+  return Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios';
+};
 
 const PreOnboarding: React.FC = () => {
   const navigate = useNavigate();
@@ -300,30 +306,31 @@ const PreOnboarding: React.FC = () => {
     handleNext();
   };
 
-  // Step validation (adjusted for new step 3)
+  // Step validation (adjusted for new Apple Health step 14)
   const canProceed = (): boolean => {
     switch (step) {
       case 1: return data.name.trim().length >= 2;
-      case 4: return !!data.goal; // Was step 3
-      case 5: return data.motivation.length > 0; // Was step 4
-      case 7: return !!data.gender; // Was step 6
-      case 8: return !!data.birthDate; // Was step 7
-      case 9: return data.height > 0; // Was step 8
-      case 10: return data.weight > 0; // Was step 9
-      case 11: return data.goal !== 'lose_weight' && data.goal !== 'gain_muscle' || data.targetWeight > 0; // Was step 10
-      case 13: return !!data.activityLevel; // Was step 12
-      case 14: return data.obstacles.length > 0; // Was step 13
-      case 15: return !!data.timeline; // Was step 14
-      case 16: return !!data.dietType; // Was step 15
-      case 21: return !!data.cookingSkill; // Was step 20
-      case 22: return data.cookingTime > 0; // Was step 21
-      case 23: return !!data.budget; // Was step 22
-      case 24: return data.mealsPerDay >= 2; // Was step 23
+      case 4: return !!data.goal;
+      case 5: return data.motivation.length > 0;
+      case 7: return !!data.gender;
+      case 8: return !!data.birthDate;
+      case 9: return data.height > 0;
+      case 10: return data.weight > 0;
+      case 11: return data.goal !== 'lose_weight' && data.goal !== 'gain_muscle' || data.targetWeight > 0;
+      case 13: return !!data.activityLevel;
+      case 14: return true; // Apple Health step - always can proceed
+      case 15: return data.obstacles.length > 0;
+      case 16: return !!data.timeline;
+      case 17: return !!data.dietType;
+      case 22: return !!data.cookingSkill;
+      case 23: return data.cookingTime > 0;
+      case 24: return !!data.budget;
+      case 25: return data.mealsPerDay >= 2;
       default: return true;
     }
   };
 
-  // Get mascot message for current step (adjusted for new step 3)
+  // Get mascot message for current step (adjusted for Apple Health step 14)
   const getMascotMessage = (): { message: string; pose: MascotPose } => {
     switch (step) {
       case 1:
@@ -348,27 +355,28 @@ const PreOnboarding: React.FC = () => {
         return { message: "¿Cuál es tu peso objetivo? 🎯", pose: 'strong' };
       case 13:
         return { message: "¿Qué tan activo eres en tu día a día? 🏃", pose: 'health' };
-      case 14:
-        return { message: "¿Cuál es tu mayor obstáculo para comer bien? 🚧", pose: 'science' };
+      // Step 14 is Apple Health - handled by OnboardingHealthStep component
       case 15:
-        return { message: "¿Para cuándo te gustaría alcanzar tu objetivo? ⏰", pose: 'strong' };
+        return { message: "¿Cuál es tu mayor obstáculo para comer bien? 🚧", pose: 'science' };
       case 16:
-        return { message: "¿Sigues algún tipo de alimentación específica? 🥗", pose: 'science' };
+        return { message: "¿Para cuándo te gustaría alcanzar tu objetivo? ⏰", pose: 'strong' };
       case 17:
-        return { message: "¿Tienes alguna alergia o intolerancia? ⚠️", pose: 'default' };
+        return { message: "¿Sigues algún tipo de alimentación específica? 🥗", pose: 'science' };
       case 18:
-        return { message: "¿Hay alimentos que prefieras evitar? 🚫", pose: 'default' };
+        return { message: "¿Tienes alguna alergia o intolerancia? ⚠️", pose: 'default' };
       case 19:
-        return { message: "¿Qué cocinas te gustan más? 🌍", pose: 'happy' };
+        return { message: "¿Hay alimentos que prefieras evitar? 🚫", pose: 'default' };
       case 20:
-        return { message: "¿Qué sabores prefieres? 😋", pose: 'happy' };
+        return { message: "¿Qué cocinas te gustan más? 🌍", pose: 'happy' };
       case 21:
-        return { message: "¿Cómo describirías tu nivel en la cocina? 👨‍🍳", pose: 'science' };
+        return { message: "¿Qué sabores prefieres? 😋", pose: 'happy' };
       case 22:
-        return { message: "¿Cuánto tiempo tienes para cocinar? ⏱️", pose: 'science' };
+        return { message: "¿Cómo describirías tu nivel en la cocina? 👨‍🍳", pose: 'science' };
       case 23:
-        return { message: "¿Cuál es tu presupuesto para comida? 💰", pose: 'happy' };
+        return { message: "¿Cuánto tiempo tienes para cocinar? ⏱️", pose: 'science' };
       case 24:
+        return { message: "¿Cuál es tu presupuesto para comida? 💰", pose: 'happy' };
+      case 25:
         return { message: "¿Cuántas comidas haces al día? 🍽️", pose: 'default' };
       default:
         return { message: "¡Vamos muy bien! 🚀", pose: 'default' };
@@ -392,18 +400,25 @@ const PreOnboarding: React.FC = () => {
     handleNext();
   };
 
-  // Skip step 11 if goal doesn't require target weight (was step 10, now step 11)
+  // Skip step 11 if goal doesn't require target weight
   useEffect(() => {
     if (step === 11 && data.goal !== 'lose_weight' && data.goal !== 'gain_muscle') {
       handleNext();
     }
   }, [step, data.goal]);
 
+  // Skip step 14 (Apple Health) if not on native iOS
+  useEffect(() => {
+    if (step === 14 && !shouldShowAppleHealthStep()) {
+      handleNext();
+    }
+  }, [step]);
+
   // Celebration steps (2, 3, 6, 12) now require manual continue - no auto-advance
 
-  // Trigger nutrition reveal at step 28 (was 27)
+  // Trigger nutrition reveal at step 29 (shifted from 28)
   useEffect(() => {
-    if (step === 28) {
+    if (step === 29) {
       setShowNutritionReveal(true);
     }
   }, [step]);
@@ -811,8 +826,21 @@ const PreOnboarding: React.FC = () => {
           </div>
         );
 
-      // STEP 14: Obstacles (was step 13)
+      // STEP 14: Apple Health (iOS only)
       case 14:
+        // Only render if on iOS native - otherwise this step is skipped via useEffect
+        if (shouldShowAppleHealthStep()) {
+          return (
+            <OnboardingHealthStep
+              onNext={handleNext}
+              onSkip={handleNext}
+            />
+          );
+        }
+        return null;
+
+      // STEP 15: Obstacles
+      case 15:
         return (
           <div className="flex-1 flex flex-col px-6 py-8 overflow-auto">
             <OnboardingMascotInteraction 
@@ -845,8 +873,8 @@ const PreOnboarding: React.FC = () => {
           </div>
         );
 
-      // STEP 15: Timeline (was step 14)
-      case 15:
+      // STEP 16: Timeline
+      case 16:
         return (
           <div className="flex-1 flex flex-col px-6 py-8">
             <OnboardingMascotInteraction 
@@ -875,8 +903,8 @@ const PreOnboarding: React.FC = () => {
           </div>
         );
 
-      // STEP 16: Diet type (was step 15)
-      case 16:
+      // STEP 17: Diet type
+      case 17:
         return (
           <div className="flex-1 flex flex-col px-6 py-8 overflow-auto">
             <OnboardingMascotInteraction 
@@ -905,8 +933,8 @@ const PreOnboarding: React.FC = () => {
           </div>
         );
 
-      // STEP 17: Allergies (was step 16)
-      case 17:
+      // STEP 18: Allergies
+      case 18:
         return (
           <div className="flex-1 flex flex-col px-6 py-8 overflow-auto">
             <OnboardingMascotInteraction 
@@ -957,8 +985,8 @@ const PreOnboarding: React.FC = () => {
           </div>
         );
 
-      // STEP 18: Dislikes (was step 17)
-      case 18:
+      // STEP 19: Dislikes
+      case 19:
         return (
           <div className="flex-1 flex flex-col px-6 py-8 overflow-auto">
             <OnboardingMascotInteraction 
@@ -1004,8 +1032,8 @@ const PreOnboarding: React.FC = () => {
           </div>
         );
 
-      // STEP 19: Cuisines (was step 18)
-      case 19:
+      // STEP 20: Cuisines
+      case 20:
         return (
           <div className="flex-1 flex flex-col px-6 py-8 overflow-auto">
             <OnboardingMascotInteraction 
@@ -1032,8 +1060,8 @@ const PreOnboarding: React.FC = () => {
           </div>
         );
 
-      // STEP 20: Flavors (was step 19)
-      case 20:
+      // STEP 21: Flavors
+      case 21:
         return (
           <div className="flex-1 flex flex-col px-6 py-8 overflow-auto">
             <OnboardingMascotInteraction 
@@ -1060,8 +1088,8 @@ const PreOnboarding: React.FC = () => {
           </div>
         );
 
-      // STEP 21: Cooking skill (was step 20)
-      case 21:
+      // STEP 22: Cooking skill
+      case 22:
         return (
           <div className="flex-1 flex flex-col px-6 py-8">
             <OnboardingMascotInteraction 
@@ -1089,8 +1117,8 @@ const PreOnboarding: React.FC = () => {
           </div>
         );
 
-      // STEP 22: Cooking time (was step 21)
-      case 22:
+      // STEP 23: Cooking time
+      case 23:
         return (
           <div className="flex-1 flex flex-col px-6 py-8">
             <OnboardingMascotInteraction 
@@ -1119,8 +1147,8 @@ const PreOnboarding: React.FC = () => {
           </div>
         );
 
-      // STEP 23: Budget (was step 22)
-      case 23:
+      // STEP 24: Budget
+      case 24:
         return (
           <div className="flex-1 flex flex-col px-6 py-8">
             <OnboardingMascotInteraction 
@@ -1148,8 +1176,8 @@ const PreOnboarding: React.FC = () => {
           </div>
         );
 
-      // STEP 24: Meals per day (was step 23)
-      case 24:
+      // STEP 25: Meals per day
+      case 25:
         return (
           <div className="flex-1 flex flex-col px-6 py-8">
             <OnboardingMascotInteraction 
@@ -1173,8 +1201,8 @@ const PreOnboarding: React.FC = () => {
           </div>
         );
 
-      // STEP 25: Value screen - Food scanner (was step 24)
-      case 25:
+      // STEP 26: Value screen - Food scanner
+      case 26:
         return (
           <OnboardingValueScreen
             icon={Camera}
@@ -1189,8 +1217,8 @@ const PreOnboarding: React.FC = () => {
           />
         );
 
-      // STEP 26: Value screen - Meal plan (was step 25)
-      case 26:
+      // STEP 27: Value screen - Meal plan
+      case 27:
         return (
           <OnboardingValueScreen
             icon={CalendarDays}
@@ -1205,8 +1233,8 @@ const PreOnboarding: React.FC = () => {
           />
         );
 
-      // STEP 27: Value screen - Shopping list (was step 26)
-      case 27:
+      // STEP 28: Value screen - Shopping list
+      case 28:
         return (
           <OnboardingValueScreen
             icon={ShoppingCart}
@@ -1221,8 +1249,8 @@ const PreOnboarding: React.FC = () => {
           />
         );
 
-      // STEP 28: Nutrition Reveal Screen (was step 27)
-      case 28:
+      // STEP 29: Nutrition Reveal Screen
+      case 29:
         if (showNutritionReveal) {
           const goals = calculateNutritionGoals();
           const age = calculateAge();
@@ -1250,8 +1278,8 @@ const PreOnboarding: React.FC = () => {
         }
         return null;
 
-      // STEP 29: Auth (was step 28)
-      case 29:
+      // STEP 30: Auth
+      case 30:
         return (
           <OnboardingAuthStep
             userName={data.name}
@@ -1264,14 +1292,14 @@ const PreOnboarding: React.FC = () => {
     }
   };
 
-  // Determine if we should show navigation (updated for 29 steps)
-  const showNextButton = step !== 29 && step !== 2 && step !== 3 && step !== 6 && step !== 12 && step !== 28;
-  const showBackButton = step > 1 && step !== 29 && step !== 28;
+  // Determine if we should show navigation (updated for 30 steps)
+  const showNextButton = step !== 30 && step !== 2 && step !== 3 && step !== 6 && step !== 12 && step !== 14 && step !== 29;
+  const showBackButton = step > 1 && step !== 30 && step !== 29;
 
   return (
     <>
       {/* Progress stages bar */}
-      {step < 28 && (
+      {step < 29 && (
         <div className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md">
           <ProgressStages currentStage={step} />
         </div>
@@ -1284,10 +1312,10 @@ const PreOnboarding: React.FC = () => {
         onNext={handleNext}
         showNext={showNextButton}
         nextDisabled={!canProceed()}
-        nextLabel={step >= 25 && step <= 27 ? "Continuar" : "Siguiente"}
+        nextLabel={step >= 26 && step <= 28 ? "Continuar" : "Siguiente"}
         showBack={showBackButton}
       >
-        <div className={step < 28 ? "pt-16" : ""}>
+        <div className={step < 29 ? "pt-16" : ""}>
           {renderStep()}
         </div>
       </OnboardingLayout>
