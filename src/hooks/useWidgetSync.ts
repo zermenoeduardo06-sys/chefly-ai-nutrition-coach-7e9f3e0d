@@ -24,27 +24,15 @@ export async function syncToWidget(data: WidgetData): Promise<void> {
     return;
   }
 
+  // Widget plugin temporarily disabled - incompatible with SPM
+  // To re-enable, reinstall capacitor-widgetsbridge-plugin when SPM support is added
+  console.log("[WidgetSync] Widget sync disabled - plugin not available");
+  
+  // Store data locally for when plugin is re-enabled
   try {
-    // Dynamically import the widget bridge plugin
-    const plugin = await import("capacitor-widgetsbridge-plugin");
-    const WidgetsBridge = plugin.WidgetsBridgePlugin;
-
-    // Save data to shared UserDefaults (App Group)
-    await WidgetsBridge.setItem({
-      key: "nutritionData",
-      value: JSON.stringify(data),
-      group: APP_GROUP_ID,
-    });
-
-    // Request widget timeline reload
-    await WidgetsBridge.reloadTimelines({
-      ofKind: "CaloriesWidget",
-    });
-
-    console.log("[WidgetSync] Data synced to widget:", data);
-  } catch (error) {
-    // Silently fail if plugin not available or widget not configured
-    console.log("[WidgetSync] Widget sync skipped:", error);
+    localStorage.setItem("chefly_widget_data", JSON.stringify(data));
+  } catch {
+    // Ignore storage errors
   }
 }
 
