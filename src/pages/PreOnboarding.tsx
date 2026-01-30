@@ -254,8 +254,14 @@ const PreOnboarding: React.FC = () => {
         description: "Estamos creando tu plan personalizado...",
       });
 
-      // Navigate to dashboard
-      navigate('/dashboard', { replace: true });
+      // Navigate based on user type
+      if (isNewUser) {
+        // New users see the paywall to maximize conversion
+        navigate('/post-register-paywall', { replace: true });
+      } else {
+        // Existing users go directly to dashboard
+        navigate('/dashboard', { replace: true });
+      }
       
     } catch (error: any) {
       console.error('Error saving data:', error);
