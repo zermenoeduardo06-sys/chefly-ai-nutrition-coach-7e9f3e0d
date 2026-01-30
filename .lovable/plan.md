@@ -1,67 +1,146 @@
 
-# Plan: Corregir Error de Hooks en Chef IA
+# Plan: Solucionar Error "Missing package product 'CapApp-SPM'" en Xcode
 
 ## Diagnóstico
 
-### Problema Identificado
-El componente `ChefIA.tsx` tiene un **hook declarado después de returns condicionales**, lo cual viola las reglas de React Hooks y causa que la aplicación falle con el error "Algo salió mal".
+### Causa del Error
+El proyecto usa **Capacitor 8** que por defecto utiliza **Swift Package Manager (SPM)** para gestionar dependencias iOS. Sin embargo, tienes instalados dos plugins que **NO son compatibles con SPM**:
 
-### Ubicación del Error
-```typescript
-// Línea 651-680: Returns condicionales
-if (initialLoading || trialLoading || subscription?.isLoading) {
-  return <LoadingScreen />;
-}
-if (isBlocked) {
-  return null;
-}
-if (!subscription?.isCheflyPlus) {
-  return <ChatPaywall />;
-}
+| Plugin | Compatibilidad SPM |
+|--------|-------------------|
+| `capacitor-plugin-ios-webview-configurator` | No |
+| `capacitor-widgetsbridge-plugin` | No |
 
-// Línea 682: ❌ HOOK DESPUÉS DE RETURNS
-const inputRef = useRef<HTMLTextAreaElement>(null);  // ← ESTO CAUSA EL ERROR
-```
-
-### Regla Violada
-> "Los hooks deben ser llamados siempre en el mismo orden en cada renderizado. No pueden estar después de condiciones, loops o returns anticipados."
-
-Cuando el componente renderiza y hace un return anticipado (ej: mostrar loading o paywall), el hook `inputRef` nunca se ejecuta. Cuando luego renderiza normalmente, React detecta que la cantidad de hooks cambió y lanza un error.
+Cuando Xcode intenta resolver los paquetes SPM, no encuentra estos plugins y falla con "Missing package product 'CapApp-SPM'".
 
 ---
 
-## Solución
+## Solución: Eliminar Plugins Incompatibles + Implementar Funcionalidad Manualmente
 
-### Mover el Hook al Inicio del Componente
+### Paso 1: Eliminar los plugins de package.json
 
-Mover `const inputRef = useRef<HTMLTextAreaElement>(null);` al bloque donde están los demás hooks (junto a `scrollRef` en la línea 453).
+Remover las dependencias que causan el conflicto:
+- `capacitor-plugin-ios-webview-configurator`
+- `capacitor-widgetsbridge-plugin`
 
-### Archivo a Modificar
+### Paso 2: Limpiar el proyecto iOS
+
+Ejecutar en terminal:
+```bash
+# Eliminar carpeta ios para regenerarla limpia
+rm -rf ios
+
+# Reinstalar dependencias
+npm install
+
+# Regenerar proyecto iOS
+npx cap add ios --skip-appid-validation
+
+# Sincronizar
+npx cap sync ios
+```
+
+### Paso 3: Limpiar caches de Xcode (si el problema persiste)
+
+```bash
+# Limpiar caches de SPM
+rm -rf ~/Library/Caches/org.swift.swiftpm
+rm -rf ~/Library/Developer/Xcode/DerivedData
+
+# Abrir Xcode
+npx cap open ios
+```
+
+En Xcode:
+1. **File > Packages > Reset Package Caches**
+2. **File > Packages > Resolve Package Versions**
+3. **Product > Clean Build Folder** (Shift+Cmd+K)
+
+### Paso 4: Implementar funcionalidades manualmente en Swift
+
+Ya que los plugins no funcionan con SPM, las funcionalidades se implementan directamente en `AppDelegate.swift`:
+
+**Para desactivar scroll bounce (reemplaza capacitor-plugin-ios-webview-configurator):**
+
+Editar `ios/App/App/AppDelegate.swift`:
+```swift
+import UIKit
+import Capacitor
+import WebKit
+
+@UIApplicationMain
+class AppDelegate: UIResponder, UIApplicationDelegate {
+
+    var window: UIWindow?
+
+    func application(_ application: UIApplication, 
+                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        
+        // Desactivar scroll bounce después de que la app inicie
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            self.disableScrollBounce()
+        }
+        
+        return true
+    }
+    
+    private func disableScrollBounce() {
+        guard let window = window,
+              let rootVC = window.rootViewController,
+              let webView = findWKWebView(in: rootVC.view) else { return }
+        
+        webView.scrollView.bounces = false
+        webView.scrollView.alwaysBounceVertical = false
+        webView.scrollView.alwaysBounceHorizontal = false
+    }
+    
+    private func findWKWebView(in view: UIView) -> WKWebView? {
+        if let webView = view as? WKWebView {
+            return webView
+        }
+        for subview in view.subviews {
+            if let found = findWKWebView(in: subview) {
+                return found
+            }
+        }
+        return nil
+    }
+}
+```
+
+**Para widgets (reemplaza capacitor-widgetsbridge-plugin):**
+
+La sincronización de widgets usará localStorage como fallback (ya documentado en el proyecto).
+
+---
+
+## Archivos a Modificar
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/pages/ChefIA.tsx` | Mover `inputRef` al inicio, junto con los otros hooks |
+| `package.json` | Eliminar `capacitor-plugin-ios-webview-configurator` y `capacitor-widgetsbridge-plugin` |
+| `src/hooks/useWidgetSync.ts` | Actualizar para usar solo localStorage (sin el plugin) |
+| Cualquier archivo que importe estos plugins | Remover imports y uso |
 
 ---
 
-## Cambio Específico
+## Comandos a Ejecutar (en tu máquina local)
 
-### Antes (línea 682 - después de returns)
-```typescript
-// ... returns condicionales arriba ...
+```bash
+# 1. Eliminar plugins incompatibles
+npm uninstall capacitor-plugin-ios-webview-configurator capacitor-widgetsbridge-plugin
 
-const inputRef = useRef<HTMLTextAreaElement>(null);  // ❌ MAL
+# 2. Eliminar y regenerar proyecto iOS
+rm -rf ios
+npx cap add ios --skip-appid-validation
+npx cap sync ios
 
-const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-  // ...
-```
+# 3. Limpiar caches (si es necesario)
+rm -rf ~/Library/Caches/org.swift.swiftpm
+rm -rf ~/Library/Developer/Xcode/DerivedData
 
-### Después (mover a línea ~453)
-```typescript
-// Junto a scrollRef y otros hooks al inicio del componente
-const scrollRef = useRef<HTMLDivElement>(null);
-const inputRef = useRef<HTMLTextAreaElement>(null);  // ✅ BIEN
-const { limits, refreshLimits } = useSubscriptionLimits(userId);
+# 4. Abrir Xcode
+npx cap open ios
 ```
 
 ---
@@ -70,15 +149,15 @@ const { limits, refreshLimits } = useSubscriptionLimits(userId);
 
 | Antes | Después |
 |-------|---------|
-| Error "Algo salió mal" al entrar a Chef IA | Página carga correctamente |
-| Hook violando reglas de React | Hooks en orden correcto |
+| Error "Missing package product 'CapApp-SPM'" | Build exitoso |
+| Plugins incompatibles con SPM | Funcionalidad implementada nativamente en Swift |
+| Widgets sincronizados via plugin | Widgets sincronizados via localStorage (fallback) |
 
 ---
 
-## Archivos a Modificar
+## Nota Técnica
 
-1. **`src/pages/ChefIA.tsx`**
-   - Eliminar la línea 682 donde está `const inputRef = useRef<HTMLTextAreaElement>(null);`
-   - Agregar esa misma línea después de `const scrollRef = useRef<HTMLDivElement>(null);` (línea 453)
-
-Este es un cambio mínimo de 2 líneas que corrige completamente el error.
+Esta es la solución recomendada porque:
+1. **No requiere CocoaPods** - Mantienes SPM que es más moderno y rápido
+2. **Menos dependencias** - Código nativo Swift es más estable que plugins de terceros
+3. **Compatible con App Store** - Sin plugins problemáticos que puedan causar rechazos
