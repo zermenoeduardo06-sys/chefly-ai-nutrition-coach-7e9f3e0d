@@ -281,20 +281,19 @@ const Auth = () => {
                 </TabsList>
 
                 <TabsContent value="signup">
-                  {/* Social Auth Buttons */}
-                  {!isNativePlatform && (
-                    <>
-                      <SocialAuthButtons 
-                        disabled={loading} 
-                        onLoadingChange={setSocialLoading} 
-                      />
-                      <div className="relative my-4">
-                        <Separator />
-                        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">
-                          {language === 'es' ? 'o con email' : 'or with email'}
-                        </span>
-                      </div>
-                    </>
+                  {/* Social Auth Buttons - Show on web and iOS (for Apple Sign-In) */}
+                  <SocialAuthButtons 
+                    disabled={loading} 
+                    onLoadingChange={setSocialLoading} 
+                  />
+                  {/* Show separator only if social buttons are visible */}
+                  {(!isNativePlatform || Capacitor.getPlatform() === 'ios') && (
+                    <div className="relative my-4">
+                      <Separator />
+                      <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">
+                        {language === 'es' ? 'o con email' : 'or with email'}
+                      </span>
+                    </div>
                   )}
 
                   <form onSubmit={handleSignUp} className="space-y-4">
@@ -348,20 +347,19 @@ const Auth = () => {
                 </TabsContent>
 
                 <TabsContent value="signin">
-                  {/* Social Auth Buttons */}
-                  {!isNativePlatform && (
-                    <>
-                      <SocialAuthButtons 
-                        disabled={loading} 
-                        onLoadingChange={setSocialLoading} 
-                      />
-                      <div className="relative my-4">
-                        <Separator />
-                        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">
-                          {language === 'es' ? 'o con email' : 'or with email'}
-                        </span>
-                      </div>
-                    </>
+                  {/* Social Auth Buttons - Show on web and iOS (for Apple Sign-In) */}
+                  <SocialAuthButtons 
+                    disabled={loading} 
+                    onLoadingChange={setSocialLoading} 
+                  />
+                  {/* Show separator only if social buttons are visible */}
+                  {(!isNativePlatform || Capacitor.getPlatform() === 'ios') && (
+                    <div className="relative my-4">
+                      <Separator />
+                      <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">
+                        {language === 'es' ? 'o con email' : 'or with email'}
+                      </span>
+                    </div>
                   )}
 
                   <form onSubmit={handleSignIn} className="space-y-4">
