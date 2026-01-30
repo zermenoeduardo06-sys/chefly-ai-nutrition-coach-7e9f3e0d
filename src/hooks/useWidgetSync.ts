@@ -12,23 +12,38 @@ interface WidgetData {
   lastUpdated: string;
 }
 
-const WIDGET_STORAGE_KEY = "chefly_widget_data";
+const APP_GROUP_ID = "group.app.lovable.chefly";
 
 /**
- * Syncs nutrition data for iOS Widget via localStorage fallback
- * Note: Native widget bridge plugin was removed due to SPM incompatibility
- * The widget data is stored in localStorage for potential future native implementation
+ * Syncs nutrition data to iOS Widget via shared UserDefaults
+ * This allows the Lock Screen Widget to display current calorie progress
  */
 export async function syncToWidget(data: WidgetData): Promise<void> {
+  // Only sync on native iOS
+  if (Capacitor.getPlatform() !== "ios") {
+    return;
+  }
+
   try {
-    // Store in localStorage as fallback
-    localStorage.setItem(WIDGET_STORAGE_KEY, JSON.stringify(data));
-    
-    // Only log on native iOS for debugging
-    if (Capacitor.getPlatform() === "ios") {
-      console.log("[WidgetSync] Data stored in localStorage:", data);
-    }
+    // Dynamically import the widget bridge plugin
+    const plugin = await import("capacitor-widgetsbridge-plugin");
+    const WidgetsBridge = plugin.WidgetsBridgePlugin;
+
+    // Save data to shared UserDefaults (App Group)
+    await WidgetsBridge.setItem({
+      key: "nutritionData",
+      value: JSON.stringify(data),
+      group: APP_GROUP_ID,
+    });
+
+    // Request widget timeline reload
+    await WidgetsBridge.reloadTimelines({
+      ofKind: "CaloriesWidget",
+    });
+
+    console.log("[WidgetSync] Data synced to widget:", data);
   } catch (error) {
+    // Silently fail if plugin not available or widget not configured
     console.log("[WidgetSync] Widget sync skipped:", error);
   }
 }
@@ -51,16 +66,4 @@ export function createWidgetData(
     goalFats: Math.round(goals.fats),
     lastUpdated: new Date().toISOString(),
   };
-}
-
-/**
- * Retrieve widget data from localStorage (for debugging)
- */
-export function getWidgetData(): WidgetData | null {
-  try {
-    const data = localStorage.getItem(WIDGET_STORAGE_KEY);
-    return data ? JSON.parse(data) : null;
-  } catch {
-    return null;
-  }
 }
