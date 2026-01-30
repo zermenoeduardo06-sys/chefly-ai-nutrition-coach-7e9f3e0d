@@ -16,35 +16,51 @@ export const useNativeAppleAuth = () => {
 
     try {
       // Dynamically import the plugin to avoid issues on non-iOS platforms
-      const { SignInWithApple } = await import('@capacitor-community/apple-sign-in');
+      const { SocialLogin } = await import('@capgo/capacitor-social-login');
+
+      // Initialize Apple provider
+      await SocialLogin.initialize({
+        apple: {
+          clientId: 'com.cheflyai.app',
+        },
+      });
 
       // Generate a random nonce for security
       const rawNonce = generateNonce();
       const hashedNonce = await sha256(rawNonce);
 
-      const result = await SignInWithApple.authorize({
-        clientId: 'com.cheflyai.app', // Your app's bundle ID
-        redirectURI: 'https://ppprnzkuivsnhrntkbyj.supabase.co/auth/v1/callback',
-        scopes: 'email name',
-        nonce: hashedNonce,
+      // Perform the login
+      const result = await SocialLogin.login({
+        provider: 'apple',
+        options: {
+          scopes: ['email', 'name'],
+          nonce: hashedNonce,
+        },
       });
 
-      if (!result.response?.identityToken) {
+      if (!result.result) {
+        throw new Error('Apple Sign-In failed');
+      }
+
+      const appleResult = result.result;
+      
+      if (!appleResult.idToken) {
         throw new Error('No identity token received from Apple');
       }
 
       // Use Supabase's signInWithIdToken for native auth
       const { error } = await supabase.auth.signInWithIdToken({
         provider: 'apple',
-        token: result.response.identityToken,
+        token: appleResult.idToken,
         nonce: rawNonce,
       });
 
       if (error) throw error;
 
       // If Apple provided user info (only on first sign-in), save it
-      if (result.response.givenName || result.response.familyName) {
-        const fullName = [result.response.givenName, result.response.familyName]
+      const profile = appleResult.profile;
+      if (profile && (profile.givenName || profile.familyName)) {
+        const fullName = [profile.givenName, profile.familyName]
           .filter(Boolean)
           .join(' ');
         
@@ -52,8 +68,8 @@ export const useNativeAppleAuth = () => {
           await supabase.auth.updateUser({
             data: {
               full_name: fullName,
-              given_name: result.response.givenName,
-              family_name: result.response.familyName,
+              given_name: profile.givenName,
+              family_name: profile.familyName,
             },
           });
         }
