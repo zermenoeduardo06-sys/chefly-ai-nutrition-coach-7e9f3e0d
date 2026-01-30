@@ -146,22 +146,21 @@ export const OnboardingAuthStep: React.FC<OnboardingAuthStepProps> = ({
           </button>
         </p>
 
-        {/* Social Auth Buttons - Hidden on native platforms */}
-        {!isNativePlatform && (
-          <>
-            <SocialAuthButtons 
-              disabled={isLoading} 
-              onLoadingChange={setSocialLoading} 
-            />
-            <div className="relative">
-              <Separator />
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground absolute -top-2">
-                  O con correo
-                </span>
-              </div>
+        {/* Social Auth Buttons - Show on web and iOS (for Apple Sign-In) */}
+        <SocialAuthButtons 
+          disabled={isLoading} 
+          onLoadingChange={setSocialLoading} 
+        />
+        {/* Show separator only if social buttons are visible */}
+        {(!isNativePlatform || Capacitor.getPlatform() === 'ios') && (
+          <div className="relative">
+            <Separator />
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground absolute -top-2">
+                O con correo
+              </span>
             </div>
-          </>
+          </div>
         )}
 
         <form onSubmit={handleEmailAuth} className="space-y-3">
