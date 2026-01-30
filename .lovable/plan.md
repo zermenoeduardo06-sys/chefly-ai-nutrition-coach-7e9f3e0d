@@ -1,84 +1,127 @@
 
-# Plan: Corregir Error de Hooks en Chef IA
 
-## Diagnóstico
+# Plan: Paywall Post-Registro de Alta Conversión
 
-### Problema Identificado
-El componente `ChefIA.tsx` tiene un **hook declarado después de returns condicionales**, lo cual viola las reglas de React Hooks y causa que la aplicación falle con el error "Algo salió mal".
+## Resumen
 
-### Ubicación del Error
-```typescript
-// Línea 651-680: Returns condicionales
-if (initialLoading || trialLoading || subscription?.isLoading) {
-  return <LoadingScreen />;
-}
-if (isBlocked) {
-  return null;
-}
-if (!subscription?.isCheflyPlus) {
-  return <ChatPaywall />;
-}
+Crear una pantalla de paywall que aparezca **inmediatamente después del registro** para maximizar la conversión de nuevos usuarios a Chefly Plus. El paywall será fullscreen con botón de cerrar, mostrará una comparativa clara Free vs Premium, y seguirá el estilo visual de la app.
 
-// Línea 682: ❌ HOOK DESPUÉS DE RETURNS
-const inputRef = useRef<HTMLTextAreaElement>(null);  // ← ESTO CAUSA EL ERROR
+## Diagrama del Flujo
+
+```text
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│                 │     │                 │     │                 │
+│  Onboarding     │────▶│   NUEVO         │────▶│   Dashboard     │
+│  (Paso 29)      │     │   PostRegister  │     │   (Normal)      │
+│  Auth Step      │     │   Paywall       │     │                 │
+│                 │     │                 │     │                 │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+        │                       │
+        │                       │ ❌ Cerrar
+        │                       ▼
+        │               ┌─────────────────┐
+        │               │   Dashboard     │
+        └──────────────▶│   (Free user)   │
+           (Si ya        └─────────────────┘
+            existía)
 ```
 
-### Regla Violada
-> "Los hooks deben ser llamados siempre en el mismo orden en cada renderizado. No pueden estar después de condiciones, loops o returns anticipados."
+## Componentes a Crear/Modificar
 
-Cuando el componente renderiza y hace un return anticipado (ej: mostrar loading o paywall), el hook `inputRef` nunca se ejecuta. Cuando luego renderiza normalmente, React detecta que la cantidad de hooks cambió y lanza un error.
+### 1. Nueva Página: `PostRegisterPaywall.tsx`
+Pantalla fullscreen inspirada en `PremiumPaywall.tsx` y `WelcomePlusScreen.tsx` con:
 
----
+**Estructura Visual:**
+- Botón ❌ cerrar (esquina superior derecha)
+- Mascota celebrando + título motivacional
+- Tabla comparativa "Free vs Plus" estilo 2 columnas
+- Lista de beneficios premium con checkmarks
+- Botón CTA principal que abre `IAPPaywall`
+- Texto "Continuar gratis" como alternativa sutil
 
-## Solución
+**Beneficios a mostrar:**
 
-### Mover el Hook al Inicio del Componente
+| Característica | Gratis | Chefly Plus |
+|----------------|--------|-------------|
+| Plan semanal | 1 plan | Ilimitados ✨ |
+| Escaneo IA | ❌ | Ilimitado 📸 |
+| Chat Chef IA | ❌ | $2 USD/mes 💬 |
+| Intercambio comidas | ❌ | ✅ |
+| Sistema de amigos | ❌ | ✅ |
 
-Mover `const inputRef = useRef<HTMLTextAreaElement>(null);` al bloque donde están los demás hooks (junto a `scrollRef` en la línea 453).
+### 2. Modificar `PreOnboarding.tsx`
+En la función `handleAuthSuccess`:
+- Para **usuarios nuevos** (`isNewUser === true`): redirigir a `/post-register-paywall`
+- Para **usuarios existentes**: mantener redirección a `/dashboard`
 
-### Archivo a Modificar
+### 3. Agregar Ruta en `AnimatedRoutes.tsx`
+Nueva ruta pública: `/post-register-paywall`
 
-| Archivo | Cambio |
-|---------|--------|
-| `src/pages/ChefIA.tsx` | Mover `inputRef` al inicio, junto con los otros hooks |
+## Detalles de Implementación
 
----
+### PostRegisterPaywall.tsx
 
-## Cambio Específico
-
-### Antes (línea 682 - después de returns)
 ```typescript
-// ... returns condicionales arriba ...
-
-const inputRef = useRef<HTMLTextAreaElement>(null);  // ❌ MAL
-
-const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-  // ...
+// Características principales:
+- Fullscreen con safe-area para iOS notch
+- Botón X cerrar → navega a /dashboard
+- Animaciones Framer Motion escalonadas
+- Tabla comparativa Free vs Plus (diseño de 2 columnas)
+- IAPPaywall integrado para compra nativa iOS
+- Soporte bilingüe (ES/EN)
+- Mascota con emojis flotantes (estilo PremiumPaywall)
 ```
 
-### Después (mover a línea ~453)
+### Cambio en PreOnboarding.tsx (línea ~257)
+
 ```typescript
-// Junto a scrollRef y otros hooks al inicio del componente
-const scrollRef = useRef<HTMLDivElement>(null);
-const inputRef = useRef<HTMLTextAreaElement>(null);  // ✅ BIEN
-const { limits, refreshLimits } = useSubscriptionLimits(userId);
+// Antes:
+navigate('/dashboard', { replace: true });
+
+// Después:
+if (isNewUser) {
+  navigate('/post-register-paywall', { replace: true });
+} else {
+  navigate('/dashboard', { replace: true });
+}
 ```
 
----
+## Diseño Visual
 
-## Impacto
-
-| Antes | Después |
-|-------|---------|
-| Error "Algo salió mal" al entrar a Chef IA | Página carga correctamente |
-| Hook violando reglas de React | Hooks en orden correcto |
-
----
+El paywall seguirá el sistema de diseño existente:
+- **Colores**: Gradientes lime/cyan (primary/secondary)
+- **Tipografía**: Font bold para títulos, muted para descripciones
+- **Iconografía**: Lucide icons con estilos 3D (gradientes)
+- **Animaciones**: Spring animations, floating elements
+- **Cards**: Rounded corners, subtle borders, glassmorphism
 
 ## Archivos a Modificar
 
-1. **`src/pages/ChefIA.tsx`**
-   - Eliminar la línea 682 donde está `const inputRef = useRef<HTMLTextAreaElement>(null);`
-   - Agregar esa misma línea después de `const scrollRef = useRef<HTMLDivElement>(null);` (línea 453)
+| Archivo | Cambio |
+|---------|--------|
+| `src/pages/PostRegisterPaywall.tsx` | **NUEVO** - Página de paywall post-registro |
+| `src/pages/PreOnboarding.tsx` | Cambiar navegación post-auth para nuevos usuarios |
+| `src/components/AnimatedRoutes.tsx` | Agregar ruta `/post-register-paywall` |
 
-Este es un cambio mínimo de 2 líneas que corrige completamente el error.
+## Sección Técnica
+
+### Flujo de Estado
+1. Usuario completa onboarding y crea cuenta
+2. `handleAuthSuccess` detecta `isNewUser === true`
+3. Navega a `/post-register-paywall`
+4. Usuario puede:
+   - Comprar → `IAPPaywall` → `/welcome-plus` → `/dashboard`
+   - Cerrar (X) → `/dashboard` (como usuario free)
+   - "Continuar gratis" → `/dashboard`
+
+### Integración con Pagos
+- Reutiliza `IAPPaywall` existente para Apple In-App Purchase
+- `userId` se obtiene de la sesión activa
+- On success: redirige a `/welcome-plus` (celebración existente)
+
+### Consideraciones de UX
+- El paywall solo aparece para **nuevos registros**, no para logins
+- El botón cerrar está siempre visible y accesible
+- La opción "Continuar gratis" refuerza que no es obligatorio
+- Diseño mobile-first optimizado para iOS
+
