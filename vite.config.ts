@@ -15,4 +15,14 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      external: [
+        '@capacitor-community/apple-sign-in',
+        '@capgo/capacitor-health',
+        'capacitor-plugin-ios-webview-configurator',
+        'capacitor-widgetsbridge-plugin',
+      ],
+    },
+  },
 }));
