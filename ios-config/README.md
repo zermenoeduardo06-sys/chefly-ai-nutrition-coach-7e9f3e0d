@@ -68,68 +68,46 @@ npx cap open ios
 # In Xcode: Product > Build (Cmd+B)
 ```
 
-### 5. Disable iOS Scroll Bounce (REQUIRED)
+### 5. Disable iOS Scroll Bounce (Optional)
 
-After running `npx cap add ios`, you MUST manually edit the native Swift files to disable the iOS rubber-band scrolling effect:
+If CSS solutions don't fully prevent the black line on overscroll, add this native configuration:
 
-**Edit `ios/App/App/AppDelegate.swift`:**
+**Option A: Using Capacitor Plugin**
+```bash
+npm install capacitor-plugin-ios-webview-configurator
+npx cap sync ios
+```
 
-Replace the entire contents with:
+Then in your app initialization, configure:
+```typescript
+import { WebViewConfigurator } from 'capacitor-plugin-ios-webview-configurator';
+WebViewConfigurator.configure({ bounces: false });
+```
 
+**Option B: Manual Swift Configuration**
+
+Edit `ios/App/App/AppDelegate.swift` and add after `super.application`:
 ```swift
-import UIKit
-import Capacitor
-import WebKit
+// Disable scroll bounce to prevent black lines
+if let window = window,
+   let rootVC = window.rootViewController,
+   let webView = findWKWebView(in: rootVC.view) {
+    webView.scrollView.bounces = false
+    webView.scrollView.alwaysBounceVertical = false
+    webView.scrollView.alwaysBounceHorizontal = false
+}
 
-@UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
-
-    var window: UIWindow?
-
-    func application(_ application: UIApplication, 
-                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        
-        // Disable scroll bounce after app launches
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            self.disableScrollBounce()
+// Helper function to find WKWebView
+func findWKWebView(in view: UIView) -> WKWebView? {
+    if let webView = view as? WKWebView {
+        return webView
+    }
+    for subview in view.subviews {
+        if let found = findWKWebView(in: subview) {
+            return found
         }
-        
-        return true
     }
-    
-    private func disableScrollBounce() {
-        guard let window = window,
-              let rootVC = window.rootViewController,
-              let webView = findWKWebView(in: rootVC.view) else { return }
-        
-        webView.scrollView.bounces = false
-        webView.scrollView.alwaysBounceVertical = false
-        webView.scrollView.alwaysBounceHorizontal = false
-        
-        print("[AppDelegate] Scroll bounce disabled")
-    }
-    
-    private func findWKWebView(in view: UIView) -> WKWebView? {
-        if let webView = view as? WKWebView {
-            return webView
-        }
-        for subview in view.subviews {
-            if let found = findWKWebView(in: subview) {
-                return found
-            }
-        }
-        return nil
-    }
-    
-    // MARK: - Capacitor URL Handling
-    
-    func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
-        return ApplicationDelegateProxy.shared.application(app, open: url, options: options)
-    }
-    
-    func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
-        return ApplicationDelegateProxy.shared.application(application, continue: userActivity, restorationHandler: restorationHandler)
-    }
+    return nil
 }
 ```
 
@@ -138,31 +116,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 - [ ] App Icons configured
 - [ ] Privacy descriptions added
 - [ ] Launch Screen customized
-- [ ] Bundle ID matches App Store Connect (`com.cheflyai.app`)
+- [ ] Bundle ID matches App Store Connect
 - [ ] Version and build numbers set
 - [ ] Provisioning profiles configured
 - [ ] Screenshots captured (all device sizes)
 - [ ] App description and keywords ready
-- [ ] Scroll bounce disabled via AppDelegate.swift
-- [ ] `server` block removed from capacitor.config.ts (for production only)
-
-### 7. Production Build Notes
-
-**IMPORTANT:** Before submitting to App Store:
-
-1. Remove the `server` block from `capacitor.config.ts`:
-```typescript
-// REMOVE this for production:
-// server: {
-//   url: "https://...",
-//   cleartext: true
-// }
-```
-
-2. Run a clean build:
-```bash
-npm run build
-npx cap sync ios
-```
-
-3. In Xcode, set the correct signing team and provisioning profile.
+- [ ] Scroll bounce disabled (if needed)
