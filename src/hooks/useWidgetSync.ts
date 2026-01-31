@@ -17,6 +17,10 @@ const APP_GROUP_ID = "group.app.lovable.chefly";
 /**
  * Syncs nutrition data to iOS Widget via shared UserDefaults
  * This allows the Lock Screen Widget to display current calorie progress
+ * 
+ * NOTE: capacitor-widgetsbridge-plugin was removed due to Capacitor 8 incompatibility.
+ * Widget sync is now handled via localStorage as a fallback.
+ * For native iOS widget support, implement in Swift via AppDelegate.
  */
 export async function syncToWidget(data: WidgetData): Promise<void> {
   // Only sync on native iOS
@@ -25,25 +29,16 @@ export async function syncToWidget(data: WidgetData): Promise<void> {
   }
 
   try {
-    // Dynamically import the widget bridge plugin
-    const plugin = await import("capacitor-widgetsbridge-plugin");
-    const WidgetsBridge = plugin.WidgetsBridgePlugin;
+    // Store data in localStorage as fallback
+    // Native widget sync should be implemented in AppDelegate.swift
+    localStorage.setItem("chefly_widget_data", JSON.stringify({
+      ...data,
+      appGroupId: APP_GROUP_ID,
+    }));
 
-    // Save data to shared UserDefaults (App Group)
-    await WidgetsBridge.setItem({
-      key: "nutritionData",
-      value: JSON.stringify(data),
-      group: APP_GROUP_ID,
-    });
-
-    // Request widget timeline reload
-    await WidgetsBridge.reloadTimelines({
-      ofKind: "CaloriesWidget",
-    });
-
-    console.log("[WidgetSync] Data synced to widget:", data);
+    console.log("[WidgetSync] Data stored for widget:", data);
   } catch (error) {
-    // Silently fail if plugin not available or widget not configured
+    // Silently fail if storage not available
     console.log("[WidgetSync] Widget sync skipped:", error);
   }
 }
