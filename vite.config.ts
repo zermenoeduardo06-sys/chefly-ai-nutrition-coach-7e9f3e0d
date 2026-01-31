@@ -19,6 +19,8 @@ export default defineConfig(({ mode }) => ({
     exclude: [
       '@capacitor-community/apple-sign-in',
       '@capgo/capacitor-health',
+      'capacitor-plugin-ios-webview-configurator',
+      'capacitor-widgetsbridge-plugin',
     ],
   },
 }));
