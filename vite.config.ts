@@ -16,9 +16,6 @@ export default defineConfig(({ mode }) => ({
     },
   },
   optimizeDeps: {
-    exclude: [
-      '@capacitor-community/apple-sign-in',
-      '@capgo/capacitor-health',
-    ],
+    exclude: ['@capgo/capacitor-health'],
   },
 }));

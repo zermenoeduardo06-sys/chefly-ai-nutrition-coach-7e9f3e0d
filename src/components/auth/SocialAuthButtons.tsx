@@ -55,17 +55,9 @@ export const SocialAuthButtons = ({ disabled, onLoadingChange }: SocialAuthButto
     setAppleLoading(true);
     onLoadingChange?.(true);
     try {
-      if (isNativePlatform && isIOS) {
-        // Use native Apple Sign-In on iOS
-        const { error } = await nativeAppleSignIn();
-        if (error) throw error;
-      } else {
-        // Use web OAuth flow
-        const { error } = await lovable.auth.signInWithOAuth('apple', {
-          redirect_uri: window.location.origin,
-        });
-        if (error) throw error;
-      }
+      // Use web OAuth flow for all platforms
+      const { error } = await nativeAppleSignIn();
+      if (error) throw error;
     } catch (error: any) {
       toast({
         variant: 'destructive',
