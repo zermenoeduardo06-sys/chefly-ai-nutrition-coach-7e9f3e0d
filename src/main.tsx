@@ -1,18 +1,10 @@
 import { createRoot } from "react-dom/client";
-import { Capacitor } from "@capacitor/core";
-import { setWebviewBounce } from "capacitor-plugin-ios-webview-configurator";
 import App from "./App.tsx";
 import ErrorBoundary from "./components/ErrorBoundary.tsx";
 import "./index.css";
 
-// Disable iOS bounce/rubber-banding effect IMMEDIATELY on native platform
-if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios') {
-  try {
-    setWebviewBounce(false);
-  } catch {
-    // Plugin not available
-  }
-}
+// Note: iOS bounce/rubber-banding is disabled via native Swift code in AppDelegate.swift
+// The capacitor-plugin-ios-webview-configurator was removed due to Capacitor 8 incompatibility
 
 createRoot(document.getElementById("root")!).render(
   <ErrorBoundary>
