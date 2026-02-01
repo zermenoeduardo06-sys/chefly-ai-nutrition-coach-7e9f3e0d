@@ -262,8 +262,8 @@ const PreOnboarding: React.FC = () => {
 
       // Navigate based on user type
       if (isNewUser) {
-        // New users see the paywall to maximize conversion
-        navigate('/post-register-paywall', { replace: true });
+        // New users see commitment screen before paywall
+        navigate('/commitment', { replace: true });
       } else {
         // Existing users go directly to dashboard
         navigate('/dashboard', { replace: true });
