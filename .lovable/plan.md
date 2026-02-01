@@ -1,141 +1,178 @@
 
+# Plan: Pantalla de Compromiso Post-Autenticación
 
-# Plan: Eliminar Plugin Apple Sign-In Incompatible con SPM
+## Resumen
+Crear una pantalla de compromiso psicológico que aparece después del inicio de sesión y antes del paywall. El usuario debe mantener presionado un botón para confirmar su compromiso, lo cual genera engagement emocional y aumenta la tasa de conversión.
 
-## Diagnóstico Confirmado
+## Flujo de Usuario
 
-El plugin `@capacitor-community/apple-sign-in@7.1.0` **no tiene soporte oficial para Swift Package Manager (SPM)**. Hay un issue abierto (#116) en GitHub solicitando esta funcionalidad que aún no ha sido implementado.
-
-Cuando Capacitor 8 intenta generar el `Package.swift`, este plugin causa conflictos porque su estructura no es compatible con SPM.
-
-## Solución
-
-Eliminar el plugin problemático y usar el **flujo OAuth web de Apple** para iOS nativo (igual que hacemos con Google). Esto funciona perfectamente y es el enfoque recomendado.
-
-## Cambios Necesarios
-
-### 1. package.json
-
-Eliminar la dependencia del plugin:
-
-```diff
-  "dependencies": {
--   "@capacitor-community/apple-sign-in": "^7.1.0",
-    "@capacitor-community/in-app-review": "^8.0.0",
+```text
+[Onboarding Steps] 
+       |
+       v
+[Auth Step - Login/Signup]
+       |
+       v
+[NEW: Commitment Screen]  <-- Mantener presionado 1.5s
+       |
+       v
+[Post-Register Paywall]
+       |
+       v
+[Dashboard]
 ```
 
-### 2. vite.config.ts
+## Archivos a Crear/Modificar
 
-Eliminar de la lista de exclusiones:
+### 1. Crear: `src/components/onboarding/CommitmentScreen.tsx`
 
-```diff
-  optimizeDeps: {
-    exclude: [
--     '@capacitor-community/apple-sign-in',
-      '@capgo/capacitor-health',
-    ],
-  },
-```
+Nuevo componente que implementa:
 
-### 3. src/hooks/useNativeAppleAuth.ts
+**Estructura Visual:**
+- Fondo con gradiente premium (similar a WelcomePlusScreen)
+- Mascota animada (mascot-strong.png)
+- Mensaje personalizado: "{Nombre}, te comprometes a lograr tu meta?"
+- Botón grande con efecto de long-press
 
-Simplificar para usar OAuth web en todas las plataformas:
+**Long Press Button:**
+- Progreso circular SVG que se llena en 1.5-2 segundos
+- Efecto de escala (1.0 -> 1.05) mientras se presiona
+- Glow animado alrededor del botón
+- Haptic feedback suave cada 0.3s mientras se llena
 
+**Al Completar:**
+- Haptic fuerte de exito
+- Checkmark grande con animacion de escala
+- Explosion de confetti
+- Texto: "Creando tu plan personalizado con IA..."
+- Loader animado 1-2 segundos
+- Navegacion automatica al paywall
+
+### 2. Modificar: `src/pages/PreOnboarding.tsx`
+
+Cambios en `handleAuthSuccess`:
+- En lugar de navegar directamente a `/post-register-paywall`
+- Navegar a `/commitment` para nuevos usuarios
+
+### 3. Modificar: `src/components/AnimatedRoutes.tsx`
+
+Agregar nueva ruta:
 ```typescript
-import { useState } from 'react';
-import { Capacitor } from '@capacitor/core';
-import { lovable } from '@/integrations/lovable/index';
-
-export const useNativeAppleAuth = () => {
-  const [loading, setLoading] = useState(false);
-  const isNative = Capacitor.isNativePlatform();
-  const isIOS = Capacitor.getPlatform() === 'ios';
-
-  const signInWithApple = async (): Promise<{ error: Error | null }> => {
-    setLoading(true);
-    try {
-      // Use web OAuth flow for all platforms (including native iOS)
-      const { error } = await lovable.auth.signInWithOAuth('apple', {
-        redirect_uri: window.location.origin,
-      });
-      if (error) throw error;
-      return { error: null };
-    } catch (error: any) {
-      console.error('Apple Sign In Error:', error);
-      return { error };
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return {
-    signInWithApple,
-    loading,
-    isNative,
-    isIOS,
-  };
-};
+<Route path="/commitment" element={<PageTransition><CommitmentScreen /></PageTransition>} />
 ```
 
-### 4. src/components/auth/SocialAuthButtons.tsx
+## Detalles Tecnicos
 
-Simplificar la lógica de Apple Sign-In:
+### Componente CommitmentScreen
 
-```typescript
-const handleAppleSignIn = async () => {
-  setAppleLoading(true);
-  onLoadingChange?.(true);
-  try {
-    // Use web OAuth flow for all platforms
-    const { error } = await nativeAppleSignIn();
-    if (error) throw error;
-  } catch (error: any) {
-    toast({
-      variant: 'destructive',
-      title: language === 'es' ? 'Error' : 'Error',
-      description: error.message || (language === 'es' ? 'Error al conectar con Apple' : 'Error connecting with Apple'),
-    });
-  } finally {
-    setAppleLoading(false);
-    onLoadingChange?.(false);
-  }
-};
+```text
+Estructura de Props:
+- userName: string (del localStorage o auth)
+- userGoal: string (del localStorage)
+
+Estados internos:
+- progress: number (0-100)
+- isHolding: boolean
+- isCompleted: boolean
+- showLoader: boolean
 ```
 
-## Después del Cambio
+### Logica del Long Press
 
-Una vez implementados los cambios, ejecutar:
+```text
+onTouchStart / onMouseDown:
+  1. isHolding = true
+  2. Iniciar intervalo cada 50ms:
+     - progress += (100 / 30) // 1.5s total
+     - Si progress >= cada 30%, lightImpact()
+     - Si progress >= 100, completar
 
-```bash
-rm -rf ios node_modules
-npm install
-npm run build
-npx cap add ios --skip-appid-validation
-npx cap sync ios
-npx cap open ios
+onTouchEnd / onMouseUp:
+  1. Si no completado, resetear progress a 0
+  2. isHolding = false
 ```
 
-## Plugins que Quedarán (9 total, todos compatibles con SPM)
+### Animaciones Framer Motion
 
-| Plugin | Versión | Compatible SPM |
-|--------|---------|----------------|
-| @capacitor-community/in-app-review | 8.0.0 | Si |
-| @capacitor/browser | 8.0.0 | Si |
-| @capacitor/camera | 8.0.0 | Si |
-| @capacitor/filesystem | 8.0.0 | Si |
-| @capacitor/haptics | 8.0.0 | Si |
-| @capacitor/local-notifications | 8.0.0 | Si |
-| @capacitor/share | 8.0.0 | Si |
-| @capgo/capacitor-health | 8.2.10 | Si |
-| @revenuecat/purchases-capacitor | 12.0.1 | Si |
+**Mascota:**
+```text
+animate: { y: [0, -10, 0] }
+transition: { duration: 2, repeat: Infinity }
+```
 
-## Impacto en Usuarios
+**Boton durante press:**
+```text
+animate: { 
+  scale: isHolding ? 1.05 : 1,
+  boxShadow: isHolding ? "0 0 30px rgba(163,230,53,0.5)" : "none"
+}
+```
 
-| Plataforma | Antes | Después |
-|------------|-------|---------|
-| Web | OAuth redirect | OAuth redirect (sin cambio) |
-| iOS Nativo | Plugin nativo (fallaba) | OAuth redirect (funciona) |
-| Android | Sin Apple Sign-In | Sin Apple Sign-In (sin cambio) |
+**Circulo de progreso (SVG):**
+```text
+- Circulo de fondo (muted)
+- Circulo de progreso con strokeDashoffset animado
+- Color: gradiente lime/cyan
+```
 
-El flujo OAuth web de Apple funciona correctamente en iOS a través del navegador integrado de Capacitor.
+**Checkmark al completar:**
+```text
+initial: { scale: 0, rotate: -180 }
+animate: { scale: 1, rotate: 0 }
+transition: { type: "spring", stiffness: 300 }
+```
 
+### Haptic Feedback Pattern
+
+```text
+Durante el hold (cada 300ms):
+  - lightImpact()
+
+Al 50%:
+  - mediumImpact()
+
+Al completar:
+  - successNotification()
+  - celebrationPattern()
+```
+
+### Integracion con Sistema Existente
+
+- Usar `useHaptics` para feedback tactil
+- Usar `canvas-confetti` para la celebracion
+- Usar `useLanguage` para textos en ES/EN
+- Usar `usePreOnboardingState` para obtener el nombre y meta del usuario
+
+## Textos (ES/EN)
+
+```text
+ES:
+  title: "{name}, te comprometes a lograr tu meta?"
+  button: "Si, me comprometo"
+  loading: "Creando tu plan personalizado con IA..."
+
+EN:
+  title: "{name}, do you commit to reaching your goal?"
+  button: "Yes, I commit"
+  loading: "Creating your personalized AI plan..."
+```
+
+## Consideraciones de UX
+
+1. **Prevencion de abandono**: El boton de "saltar" no existe, pero el boton de atras del dispositivo permite volver
+
+2. **Feedback constante**: El usuario siempre sabe que esta pasando gracias a:
+   - Progreso visual del circulo
+   - Vibracion periodica
+   - Efecto de glow
+
+3. **Momento de dopamina**: La explosion de confetti y checkmark crea un micro-momento de celebracion que predispone positivamente al usuario antes del paywall
+
+4. **Compromiso psicologico**: El acto de mantener presionado crea una sensacion de inversion y compromiso que aumenta la probabilidad de conversion
+
+## Orden de Implementacion
+
+1. Crear `CommitmentScreen.tsx` con toda la logica
+2. Agregar ruta en `AnimatedRoutes.tsx`
+3. Modificar `handleAuthSuccess` en `PreOnboarding.tsx`
+4. Probar el flujo completo en dispositivo movil
