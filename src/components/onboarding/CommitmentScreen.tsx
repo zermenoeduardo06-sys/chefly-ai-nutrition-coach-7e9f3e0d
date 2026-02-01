@@ -96,9 +96,9 @@ export const CommitmentScreen: React.FC = () => {
       setShowLoader(true);
     }, 1000);
     
-    // Navigate to paywall
+    // Navigate to trial roulette flow
     setTimeout(() => {
-      navigate('/post-register-paywall', { replace: true });
+      navigate('/trial-roulette', { replace: true });
     }, 3000);
   }, [navigate, successNotification, celebrationPattern, fireConfetti]);
 

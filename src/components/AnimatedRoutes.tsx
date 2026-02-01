@@ -53,7 +53,7 @@ import WelcomePlusScreen from '@/pages/WelcomePlusScreen';
 import Wellness from '@/pages/Wellness';
 import PostRegisterPaywall from '@/pages/PostRegisterPaywall';
 import CommitmentScreen from '@/components/onboarding/CommitmentScreen';
-
+import { FreeTrialRoulette, TrialWonCelebration, TrialTrustScreen, TrialActivation } from '@/components/trial';
 /**
  * Persistent DashboardLayout shell - mounts ONCE and stays mounted
  * across all dashboard/* navigations. Only the <Outlet /> content changes.
@@ -121,9 +121,12 @@ export const AnimatedRoutes = () => {
       <Route path="/welcome-plus" element={<PageTransition><WelcomePlusScreen /></PageTransition>} />
       <Route path="/post-register-paywall" element={<PageTransition><PostRegisterPaywall /></PageTransition>} />
       <Route path="/commitment" element={<PageTransition><CommitmentScreen /></PageTransition>} />
+      <Route path="/trial-roulette" element={<PageTransition><FreeTrialRoulette /></PageTransition>} />
+      <Route path="/trial-won" element={<PageTransition><TrialWonCelebration /></PageTransition>} />
+      <Route path="/trial-trust" element={<PageTransition><TrialTrustScreen /></PageTransition>} />
+      <Route path="/trial-activate" element={<PageTransition><TrialActivation /></PageTransition>} />
       <Route path="/chat" element={<PageTransition><Chat /></PageTransition>} />
       <Route path="/influencer/:code" element={<PageTransition><InfluencerDashboard /></PageTransition>} />
-
       {/* ============================================ */}
       {/* DASHBOARD PAGES - persistent shell          */}
       {/* Layout mounts once, only Outlet changes     */}
