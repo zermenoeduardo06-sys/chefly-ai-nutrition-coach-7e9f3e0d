@@ -52,6 +52,7 @@ import PremiumPaywall from '@/pages/PremiumPaywall';
 import WelcomePlusScreen from '@/pages/WelcomePlusScreen';
 import Wellness from '@/pages/Wellness';
 import PostRegisterPaywall from '@/pages/PostRegisterPaywall';
+import CommitmentScreen from '@/components/onboarding/CommitmentScreen';
 
 /**
  * Persistent DashboardLayout shell - mounts ONCE and stays mounted
@@ -119,6 +120,7 @@ export const AnimatedRoutes = () => {
       <Route path="/premium-paywall" element={<PageTransition><PremiumPaywall /></PageTransition>} />
       <Route path="/welcome-plus" element={<PageTransition><WelcomePlusScreen /></PageTransition>} />
       <Route path="/post-register-paywall" element={<PageTransition><PostRegisterPaywall /></PageTransition>} />
+      <Route path="/commitment" element={<PageTransition><CommitmentScreen /></PageTransition>} />
       <Route path="/chat" element={<PageTransition><Chat /></PageTransition>} />
       <Route path="/influencer/:code" element={<PageTransition><InfluencerDashboard /></PageTransition>} />
 
