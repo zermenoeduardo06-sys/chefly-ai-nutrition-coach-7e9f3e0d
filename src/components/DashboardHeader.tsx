@@ -39,20 +39,19 @@ export const DashboardHeader = ({
 
   return (
     <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.2 }}
-      className="mb-6 min-h-[72px]"
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="mb-6"
     >
       <div className="flex items-start justify-between">
-        <div className="space-y-1 min-w-0 flex-1 mr-3">
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground truncate">
-            {greeting}, <span className="text-primary max-w-[150px] truncate inline-block align-bottom">{name}</span>! 👋
+        <div className="space-y-1">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+            {greeting}, <span className="text-primary">{name}</span>! 👋
           </h1>
         </div>
         
         {/* Profile avatar & Streak & Level badges */}
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2">
           {/* Profile avatar - navigates to More page */}
           <motion.button
             whileHover={{ scale: 1.05 }}
