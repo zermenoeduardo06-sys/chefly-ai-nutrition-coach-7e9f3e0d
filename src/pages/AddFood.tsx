@@ -22,6 +22,8 @@ import { format } from "date-fns";
 import { createMealTimestamp } from "@/lib/dateUtils";
 import { useInvalidateFoodIntake } from "@/hooks/useDailyFoodIntake";
 import { useInvalidateNutritionSummary } from "@/hooks/useNutritionSummary";
+import { SelectionSummaryBar } from "@/components/food/SelectionSummaryBar";
+import { useHaptics } from "@/hooks/useHaptics";
 
 type Category = "foods" | "meals" | "recipes";
 type FilterTab = "frequent" | "recent" | "favorites";
@@ -54,6 +56,7 @@ export default function AddFood() {
   const { triggerXP } = useXPAnimation();
   const invalidateFoodIntake = useInvalidateFoodIntake();
   const invalidateNutritionSummary = useInvalidateNutritionSummary();
+  const { lightImpact, successNotification } = useHaptics();
 
   const subscription = useSubscription(userId);
   const { limits } = useSubscriptionLimits(userId);
@@ -186,7 +189,16 @@ export default function AddFood() {
       setSelectedFoods(selectedFoods.filter(f => f.id !== food.id));
     } else {
       setSelectedFoods([...selectedFoods, food]);
+      lightImpact(); // Haptic feedback on selection
     }
+  };
+
+  const handleClearSelection = () => {
+    setSelectedFoods([]);
+  };
+
+  const handleRemoveFromSelection = (foodId: string) => {
+    setSelectedFoods(selectedFoods.filter(f => f.id !== foodId));
   };
 
   const handleToggleFavorite = useCallback((foodId: string) => {
@@ -399,6 +411,17 @@ export default function AddFood() {
           ))}
         </div>
       </div>
+
+      {/* Selection Summary Bar for bulk add */}
+      <AnimatePresence>
+        {selectedFoods.length > 0 && (
+          <SelectionSummaryBar
+            selectedFoods={selectedFoods}
+            onClear={handleClearSelection}
+            onRemoveFood={handleRemoveFromSelection}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Filter Tabs */}
       {activeCategory === "foods" && (
