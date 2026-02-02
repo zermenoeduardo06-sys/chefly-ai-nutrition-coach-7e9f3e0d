@@ -145,26 +145,26 @@ const WelcomeScreen = ({ onSuggestionClick }: { onSuggestionClick: (text: string
 
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="flex flex-col items-center justify-center py-8 px-4"
+      transition={{ duration: 0.4 }}
+      className="flex flex-col items-center justify-center px-4 py-6 min-h-full"
     >
       <motion.div
         animate={{ 
-          y: [0, -10, 0],
+          y: [0, -8, 0],
         }}
         transition={{ 
           duration: 3,
           repeat: Infinity,
           ease: "easeInOut"
         }}
-        className="relative mb-4"
+        className="relative mb-3"
       >
         <motion.img 
           src={mascotLime}
           alt="Chefly"
-          className="w-32 h-32 object-contain drop-shadow-lg"
+          className="w-24 h-24 object-contain drop-shadow-lg"
           animate={{ 
             rotate: [-2, 2, -2],
           }}
@@ -206,14 +206,14 @@ const WelcomeScreen = ({ onSuggestionClick }: { onSuggestionClick: (text: string
       </motion.div>
       
       <motion.div
-        initial={{ scale: 0, opacity: 0 }}
+        initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: 0.3, type: "spring", stiffness: 300 }}
-        className="relative bg-card border-2 border-primary/20 rounded-3xl p-5 mb-6 max-w-sm shadow-lg"
+        transition={{ delay: 0.2, duration: 0.3 }}
+        className="relative bg-card border-2 border-primary/20 rounded-2xl p-4 mb-4 max-w-xs shadow-md"
       >
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-6 h-6 bg-card border-l-2 border-t-2 border-primary/20 rotate-45" />
+        <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-card border-l-2 border-t-2 border-primary/20 rotate-45" />
         
-        <h3 className="text-xl font-bold text-center mb-2 text-foreground">
+        <h3 className="text-lg font-bold text-center mb-1 text-foreground">
           {language === 'es' ? '¡Hola! Soy Chefly 👋' : 'Hi! I\'m Chefly 👋'}
         </h3>
         <p className="text-sm text-muted-foreground text-center">
@@ -221,7 +221,7 @@ const WelcomeScreen = ({ onSuggestionClick }: { onSuggestionClick: (text: string
         </p>
       </motion.div>
       
-      <div className="grid grid-cols-1 gap-2 w-full max-w-sm">
+      <div className="grid grid-cols-1 gap-2 w-full max-w-xs mt-2">
         {suggestions.map((suggestion, index) => (
           <motion.button
             key={index}

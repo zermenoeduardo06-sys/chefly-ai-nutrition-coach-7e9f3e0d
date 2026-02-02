@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { BookOpen, TrendingUp, ChefHat, Sparkles, Heart } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -21,6 +22,26 @@ export function MobileBottomNav() {
   const { lightImpact } = useHaptics();
   const { user } = useAuth();
   const { prefetchProgress, prefetchWellness, prefetchRecipes } = usePrefetch(user?.id);
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+
+  // Detect virtual keyboard to hide nav
+  useEffect(() => {
+    const handleResize = () => {
+      // On iOS, when keyboard appears, visualViewport.height < window.innerHeight
+      const isKeyboard = window.visualViewport 
+        ? window.visualViewport.height < window.innerHeight * 0.8
+        : false;
+      setIsKeyboardOpen(isKeyboard);
+    };
+
+    window.visualViewport?.addEventListener('resize', handleResize);
+    window.visualViewport?.addEventListener('scroll', handleResize);
+    
+    return () => {
+      window.visualViewport?.removeEventListener('resize', handleResize);
+      window.visualViewport?.removeEventListener('scroll', handleResize);
+    };
+  }, []);
 
   const isActive = (path: string) => {
     if (path === "/dashboard") {
@@ -29,13 +50,20 @@ export function MobileBottomNav() {
     return location.pathname.startsWith(path);
   };
 
+  // Hide nav when keyboard is open
+  if (isKeyboardOpen) return null;
+
   return (
     <nav 
       className="fixed bottom-0 left-0 right-0 z-[9999] lg:hidden" 
       style={{ 
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        transform: 'translateZ(0)',
-        WebkitTransform: 'translateZ(0)',
+        transform: 'translate3d(0, 0, 0)',
+        WebkitTransform: 'translate3d(0, 0, 0)',
         willChange: 'transform',
         backfaceVisibility: 'hidden',
         WebkitBackfaceVisibility: 'hidden',
