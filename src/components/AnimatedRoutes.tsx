@@ -4,6 +4,7 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { PageTransition } from '@/components/PageTransition';
+import { AnimatePresence, motion } from 'framer-motion';
 
 // Pages
 import Index from '@/pages/Index';
@@ -86,7 +87,18 @@ const DashboardLayout = () => {
             ref={mainRef}
             className="flex-1 overflow-y-auto overflow-x-hidden pb-mobile-nav lg:pb-0 scroll-touch bg-background"
           >
-            <Outlet />
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={location.pathname}
+                initial={{ opacity: 0.5 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0.5 }}
+                transition={{ duration: 0.08 }}
+                className="min-h-full"
+              >
+                <Outlet />
+              </motion.div>
+            </AnimatePresence>
           </main>
         </div>
       </div>

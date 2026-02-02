@@ -76,20 +76,20 @@ export function MobileBottomNav() {
                   isCenter ? "px-4 py-2" : "px-3 py-2",
                   active && !isCenter && "bg-primary/10 rounded-2xl",
                 )}
-                whileTap={{ scale: 0.85, y: 2 }}
+                whileTap={{ scale: 0.92 }}
                 animate={active && !isCenter ? { y: -2 } : { y: 0 }}
-                transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                transition={{ type: "tween", duration: 0.1 }}
               >
                 {/* Active indicator dot */}
                 {active && !isCenter && (
                   <motion.div
                     layoutId="activeTab"
                     initial={false}
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    transition={{ type: "spring", stiffness: 700, damping: 35 }}
                     className="absolute -bottom-1 w-1 h-1 rounded-full bg-primary"
                   />
                 )}
-                {/* Center elevated button (Recetas) */}
+                {/* Center elevated button (Progreso) */}
                 {isCenter ? (
                   <motion.div
                     className={cn(
@@ -98,17 +98,7 @@ export function MobileBottomNav() {
                         ? "bg-gradient-to-b from-primary to-primary-hover shadow-[0_4px_0_hsl(82_80%_35%),0_8px_24px_hsl(82_80%_50%/0.4)]" 
                         : "bg-gradient-to-b from-violet-500 to-violet-600 shadow-[0_4px_0_hsl(270_60%_35%),0_8px_20px_rgba(139,92,246,0.3)]"
                     )}
-                    whileTap={{ y: 3, boxShadow: "0 1px 0 hsl(82 80% 35%), 0 2px 8px hsl(82 80% 50% / 0.3)" }}
-                    animate={active ? { 
-                      boxShadow: [
-                        "0 4px 0 hsl(82 80% 35%), 0 8px 24px hsl(82 80% 50% / 0.4)",
-                        "0 4px 0 hsl(82 80% 35%), 0 12px 32px hsl(82 80% 50% / 0.5)",
-                        "0 4px 0 hsl(82 80% 35%), 0 8px 24px hsl(82 80% 50% / 0.4)",
-                      ]
-                    } : {}}
-                    transition={{ 
-                      boxShadow: { duration: 2, repeat: Infinity, ease: "easeInOut" }
-                    }}
+                    whileTap={{ scale: 0.95 }}
                   >
                     <item.icon 
                       className="h-7 w-7 tablet:h-8 tablet:w-8 text-white" 
