@@ -60,20 +60,20 @@ const termsContent = {
         subsections: [
           {
             subtitle: "5.1 Planes Disponibles",
-            content: "Ofrecemos diferentes planes de suscripción con características variables. Los detalles de cada plan están disponibles en nuestra página de precios."
+            content: "Ofrecemos Chefly Plus, nuestra suscripción premium con acceso completo a todas las funciones. Los detalles están disponibles en la aplicación."
           },
           {
             subtitle: "5.2 Período de Prueba",
-            content: "Los nuevos usuarios reciben un período de prueba de 4 días. Al finalizar el período de prueba, se le pedirá que seleccione un plan de pago para continuar usando la aplicación."
+            content: "Los nuevos usuarios pueden acceder a un período de prueba gratuito de 3 días al iniciar una suscripción. La prueba requiere proporcionar un método de pago válido a través de Apple. Si no se cancela al menos 24 horas antes del final del período de prueba, la suscripción se activará automáticamente con el cargo correspondiente."
           },
           {
             subtitle: "5.3 Facturación",
             list: [
-              "Los pagos se procesan de forma segura a través de Stripe",
-              "Las suscripciones se renuevan automáticamente",
-              "Los precios están en pesos mexicanos (MXN)",
-              "Puede cancelar su suscripción en cualquier momento",
-              "No se proporcionan reembolsos por períodos parciales"
+              "Los pagos se procesan de forma segura a través de Apple In-App Purchase",
+              "Las suscripciones se renuevan automáticamente cada mes",
+              "Los precios están en dólares estadounidenses (USD)",
+              "Puede cancelar su suscripción en cualquier momento desde Configuración > Apple ID > Suscripciones en su dispositivo iOS",
+              "Para solicitudes de reembolso, contacte directamente a Apple a través de reportaproblem.apple.com"
             ]
           },
           {
@@ -231,20 +231,20 @@ const termsContent = {
         subsections: [
           {
             subtitle: "5.1 Available Plans",
-            content: "We offer different subscription plans with varying features. Details of each plan are available on our pricing page."
+            content: "We offer Chefly Plus, our premium subscription with full access to all features. Details are available in the application."
           },
           {
             subtitle: "5.2 Trial Period",
-            content: "New users receive a 4-day trial period. At the end of the trial period, you will be asked to select a payment plan to continue using the application."
+            content: "New users can access a 3-day free trial when starting a subscription. The trial requires providing a valid payment method through Apple. If not cancelled at least 24 hours before the end of the trial period, the subscription will automatically activate with the corresponding charge."
           },
           {
             subtitle: "5.3 Billing",
             list: [
-              "Payments are processed securely through Stripe",
-              "Subscriptions renew automatically",
-              "Prices are in Mexican pesos (MXN)",
-              "You can cancel your subscription at any time",
-              "No refunds are provided for partial periods"
+              "Payments are processed securely through Apple In-App Purchase",
+              "Subscriptions renew automatically each month",
+              "Prices are in US dollars (USD)",
+              "You can cancel your subscription at any time from Settings > Apple ID > Subscriptions on your iOS device",
+              "For refund requests, contact Apple directly through reportaproblem.apple.com"
             ]
           },
           {
@@ -380,7 +380,7 @@ const Terms = () => {
           </div>
         )}
         
-        {section.list && !section.isWarning && (
+        {!section.isWarning && section.list && (
           <ul className="list-disc list-inside space-y-2 text-muted-foreground ml-4">
             {section.list.map((item: string, i: number) => (
               <li key={i}>{item}</li>
@@ -388,63 +388,67 @@ const Terms = () => {
           </ul>
         )}
         
-        {section.subsections?.map((sub: any, i: number) => (
-          <div key={i}>
-            <h3 className="text-xl font-semibold mt-4 mb-2">{sub.subtitle}</h3>
-            {sub.content && (
-              <p className="text-muted-foreground">{sub.content}</p>
-            )}
-            {sub.intro && (
-              <p className="text-muted-foreground">{sub.intro}</p>
-            )}
-            {sub.list && (
-              <ul className="list-disc list-inside space-y-2 text-muted-foreground ml-4 mt-3">
-                {sub.list.map((item: string, j: number) => (
-                  <li key={j}>{item}</li>
-                ))}
-              </ul>
-            )}
+        {section.subsections && (
+          <div className="space-y-4 mt-4">
+            {section.subsections.map((sub: any, i: number) => (
+              <div key={i}>
+                <h3 className="font-medium text-lg mb-2">{sub.subtitle}</h3>
+                {sub.content && (
+                  <p className="text-muted-foreground">{sub.content}</p>
+                )}
+                {sub.intro && (
+                  <p className="text-muted-foreground mb-2">{sub.intro}</p>
+                )}
+                {sub.list && (
+                  <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
+                    {sub.list.map((item: string, j: number) => (
+                      <li key={j}>{item}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ))}
           </div>
-        ))}
+        )}
         
         {section.outro && (
           <p className="text-muted-foreground mt-3">{section.outro}</p>
         )}
         
         {section.contact && (
-          <ul className="list-none space-y-2 text-muted-foreground ml-4 mt-3">
-            <li><strong>Email:</strong> {section.contact}</li>
-          </ul>
+          <p className="text-primary font-medium mt-2">{section.contact}</p>
         )}
       </section>
     );
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 py-12 px-4">
-      <div className="container mx-auto max-w-4xl">
+    <div className="min-h-screen bg-background p-4">
+      <div className="max-w-4xl mx-auto">
         <Button
           variant="ghost"
+          className="mb-4"
           onClick={() => navigate(-1)}
-          className="mb-6"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          {t("terms.back")}
+          {language === 'es' ? 'Volver' : 'Back'}
         </Button>
 
-        <Card className="shadow-xl">
+        <Card>
           <CardHeader>
-            <CardTitle className="text-3xl">{t("terms.title")}</CardTitle>
-            <p className="text-muted-foreground">
-              {t("terms.lastUpdated")}: {new Date().toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+            <CardTitle className="text-3xl">
+              {language === 'es' ? 'Términos y Condiciones' : 'Terms and Conditions'}
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              {language === 'es' ? 'Última actualización: Febrero 2026' : 'Last updated: February 2026'}
             </p>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-8">
             {content.sections.map((section, index) => renderSection(section, index))}
-
-            <div className="mt-8 p-4 bg-muted rounded-lg">
-              <p className="text-sm text-muted-foreground">
-                <strong>{language === 'es' ? 'Nota:' : 'Note:'}</strong> {content.note}
+            
+            <div className="bg-primary/10 p-4 rounded-lg mt-8">
+              <p className="text-sm text-foreground font-medium">
+                {content.note}
               </p>
             </div>
           </CardContent>

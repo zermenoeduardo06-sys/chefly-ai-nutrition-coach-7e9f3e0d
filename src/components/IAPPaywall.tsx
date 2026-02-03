@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useInAppPurchases, APPLE_IAP_PRODUCTS } from '@/hooks/useInAppPurchases';
@@ -211,12 +211,12 @@ export const IAPPaywall = ({ open, onOpenChange, userId, onPurchaseSuccess }: IA
                     : 'Payment will be charged to your Apple account upon confirmation. Subscription auto-renews unless cancelled 24 hours before period ends.'}
                 </p>
                 <div className="flex justify-center gap-4 text-[10px] text-muted-foreground">
-                  <a href="/terms" className="hover:underline">
+                  <Link to="/terms" className="hover:underline">
                     {language === 'es' ? 'Términos' : 'Terms'}
-                  </a>
-                  <a href="/privacy" className="hover:underline">
+                  </Link>
+                  <Link to="/privacy" className="hover:underline">
                     {language === 'es' ? 'Privacidad' : 'Privacy'}
-                  </a>
+                  </Link>
                 </div>
               </div>
             </motion.div>

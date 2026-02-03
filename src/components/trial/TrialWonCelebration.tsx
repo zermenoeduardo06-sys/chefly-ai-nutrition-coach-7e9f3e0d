@@ -76,7 +76,7 @@ export const TrialWonCelebration = () => {
 
   return (
     <div 
-      className="min-h-[100dvh] flex flex-col items-center justify-center p-6 overflow-hidden relative"
+      className="min-h-screen min-h-[100dvh] flex flex-col items-center justify-center p-6 overflow-hidden relative"
       style={{
         background: 'radial-gradient(circle at 50% 30%, hsl(var(--primary) / 0.2) 0%, hsl(var(--background)) 60%)',
         paddingTop: 'env(safe-area-inset-top, 24px)',
