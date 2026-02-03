@@ -1191,7 +1191,7 @@ const Dashboard = () => {
   return (
     <TooltipProvider delayDuration={300}>
     <div className="min-h-full bg-gradient-to-b from-background to-muted/30 overflow-x-hidden relative">
-      <main className="container mx-auto px-4 tablet:px-6 py-4 tablet:py-6 space-y-5 tablet:space-y-7 max-w-3xl overflow-hidden pb-28 lg:pb-8">
+      <main className="container mx-auto px-4 tablet:px-6 pt-2 pb-28 tablet:pt-4 tablet:pb-8 space-y-5 tablet:space-y-7 max-w-3xl overflow-hidden lg:pb-8">
         
         {/* Offline/Syncing Indicator */}
         {(!isOnline || pendingCount > 0) && (
