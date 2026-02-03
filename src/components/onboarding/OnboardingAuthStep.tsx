@@ -146,13 +146,13 @@ export const OnboardingAuthStep: React.FC<OnboardingAuthStepProps> = ({
           </button>
         </p>
 
-        {/* Social Auth Buttons - Show on web and iOS (for Apple Sign-In) */}
+        {/* Social Auth Buttons - Show on web only */}
         <SocialAuthButtons 
           disabled={isLoading} 
           onLoadingChange={setSocialLoading} 
         />
-        {/* Show separator only if social buttons are visible */}
-        {(!isNativePlatform || Capacitor.getPlatform() === 'ios') && (
+        {/* Show separator only if social buttons are visible (web only) */}
+        {!isNativePlatform && (
           <div className="relative">
             <Separator />
             <div className="relative flex justify-center text-xs uppercase">
