@@ -39,14 +39,14 @@ export const DashboardHeader = ({
 
   return (
     <motion.div 
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="mb-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="mb-6 min-h-[72px]"
     >
       <div className="flex items-start justify-between">
-        <div className="space-y-1">
+        <div className="space-y-1 min-w-0 flex-1">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-            {greeting}, <span className="text-primary">{name}</span>! 👋
+            {greeting}, <span className="text-primary max-w-[150px] truncate inline-block align-bottom">{name}</span>! 👋
           </h1>
         </div>
         

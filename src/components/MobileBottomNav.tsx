@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { BookOpen, TrendingUp, ChefHat, Sparkles, Heart } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -21,6 +22,23 @@ export function MobileBottomNav() {
   const { lightImpact } = useHaptics();
   const { user } = useAuth();
   const { prefetchProgress, prefetchWellness, prefetchRecipes } = usePrefetch(user?.id);
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+
+  // Hide nav when virtual keyboard is open
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.visualViewport) {
+        const isKeyboard = window.visualViewport.height < window.innerHeight * 0.8;
+        setIsKeyboardOpen(isKeyboard);
+      }
+    };
+
+    window.visualViewport?.addEventListener('resize', handleResize);
+    return () => window.visualViewport?.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Hide when keyboard is open
+  if (isKeyboardOpen) return null;
 
   const isActive = (path: string) => {
     if (path === "/dashboard") {
