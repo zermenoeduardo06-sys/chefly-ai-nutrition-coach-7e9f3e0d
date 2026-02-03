@@ -1172,7 +1172,7 @@ const Dashboard = () => {
     // Show skeleton loader only during initial preferences check
     if (trialLoading || !userId) {
       return (
-        <div className="h-full flex items-center justify-center bg-gradient-to-b from-background to-muted/30">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-muted/30">
           <div className="text-center space-y-4">
             <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
             <p className="text-muted-foreground">{t("dashboard.loading")}</p>
@@ -1190,8 +1190,8 @@ const Dashboard = () => {
 
   return (
     <TooltipProvider delayDuration={300}>
-    <div className="h-full bg-gradient-to-b from-background to-muted/30 overflow-hidden relative">
-      <main className="h-full overflow-y-auto overflow-x-hidden container mx-auto px-4 tablet:px-6 pt-2 pb-4 space-y-5 tablet:space-y-7 max-w-3xl lg:pb-8">
+    <div className="min-h-full bg-gradient-to-b from-background to-muted/30 overflow-x-hidden relative">
+      <main className="container mx-auto px-4 tablet:px-6 pt-2 pb-28 tablet:pt-4 tablet:pb-8 space-y-5 tablet:space-y-7 max-w-3xl overflow-hidden lg:pb-8">
         
         {/* Offline/Syncing Indicator */}
         {(!isOnline || pendingCount > 0) && (
