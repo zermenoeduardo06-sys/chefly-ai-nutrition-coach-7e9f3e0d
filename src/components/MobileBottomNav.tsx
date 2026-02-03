@@ -1,12 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { BookOpen, TrendingUp, ChefHat, Sparkles, Heart } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useHaptics } from "@/hooks/useHaptics";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePrefetch } from "@/hooks/usePrefetch";
+import { Capacitor } from "@capacitor/core";
+import { Keyboard } from "@capacitor/keyboard";
 
 const navItems = [
   { icon: BookOpen, path: "/dashboard", color: "text-primary", tourId: "nav-diary", labelEs: "Diario", labelEn: "Diary" },
@@ -24,21 +26,34 @@ export function MobileBottomNav() {
   const { prefetchProgress, prefetchWellness, prefetchRecipes } = usePrefetch(user?.id);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
-  // Hide nav when virtual keyboard is open
+  // Use native Capacitor Keyboard plugin for reliable keyboard detection on iOS/Android
   useEffect(() => {
-    const handleResize = () => {
-      if (window.visualViewport) {
-        const isKeyboard = window.visualViewport.height < window.innerHeight * 0.8;
-        setIsKeyboardOpen(isKeyboard);
-      }
-    };
+    if (Capacitor.isNativePlatform()) {
+      // Native: Use Capacitor Keyboard plugin for reliable events
+      const showListener = Keyboard.addListener('keyboardWillShow', () => {
+        setIsKeyboardOpen(true);
+      });
+      const hideListener = Keyboard.addListener('keyboardWillHide', () => {
+        setIsKeyboardOpen(false);
+      });
 
-    window.visualViewport?.addEventListener('resize', handleResize);
-    return () => window.visualViewport?.removeEventListener('resize', handleResize);
+      return () => {
+        showListener.then(handle => handle.remove());
+        hideListener.then(handle => handle.remove());
+      };
+    } else {
+      // Web fallback: Use visualViewport API
+      const handleResize = () => {
+        if (window.visualViewport) {
+          const isKeyboard = window.visualViewport.height < window.innerHeight * 0.75;
+          setIsKeyboardOpen(isKeyboard);
+        }
+      };
+
+      window.visualViewport?.addEventListener('resize', handleResize);
+      return () => window.visualViewport?.removeEventListener('resize', handleResize);
+    }
   }, []);
-
-  // Hide when keyboard is open
-  if (isKeyboardOpen) return null;
 
   const isActive = (path: string) => {
     if (path === "/dashboard") {
@@ -48,16 +63,22 @@ export function MobileBottomNav() {
   };
 
   return (
-    <nav 
-      className="fixed bottom-0 left-0 right-0 z-[9999] lg:hidden" 
-      style={{ 
-        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        transform: 'translateZ(0)',
-        WebkitTransform: 'translateZ(0)',
-        willChange: 'transform',
-        backfaceVisibility: 'hidden',
-        WebkitBackfaceVisibility: 'hidden',
-      }}
+    <AnimatePresence>
+      {!isKeyboardOpen && (
+        <motion.nav
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 100, opacity: 0 }}
+          transition={{ type: "spring", stiffness: 400, damping: 30 }}
+          className="fixed bottom-0 left-0 right-0 z-[9999] lg:hidden" 
+          style={{ 
+            paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+            transform: 'translateZ(0)',
+            WebkitTransform: 'translateZ(0)',
+            willChange: 'transform',
+            backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden',
+          }}
     >
       {/* Glassmorphism background */}
       <div className="absolute inset-0 bg-card/85 backdrop-blur-xl border-t border-white/10 shadow-[0_-8px_32px_rgba(0,0,0,0.12)]" />
@@ -166,6 +187,8 @@ export function MobileBottomNav() {
           );
         })}
       </div>
-    </nav>
+        </motion.nav>
+      )}
+    </AnimatePresence>
   );
 }

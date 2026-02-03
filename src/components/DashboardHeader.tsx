@@ -41,7 +41,7 @@ export const DashboardHeader = ({
     <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="mb-6 min-h-[72px]"
+      className="mb-3 min-h-[56px]"
     >
       <div className="flex items-start justify-between">
         <div className="space-y-1 min-w-0 flex-1">
