@@ -22,7 +22,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { CreateInfluencerModal } from "./CreateInfluencerModal";
 
 export function AdminAffiliatesList() {
   const [affiliates, setAffiliates] = useState<any[]>([]);
@@ -186,9 +185,8 @@ export function AdminAffiliatesList() {
       <CardHeader>
         <div className="space-y-4">
           <div className="flex items-center justify-between gap-4">
-            <CardTitle>Gestión de Influencers ({totalCount})</CardTitle>
+            <CardTitle>Gestión de Afiliados ({totalCount})</CardTitle>
             <div className="flex gap-2">
-              <CreateInfluencerModal onSuccess={loadAffiliates} />
               <Button onClick={exportToCSV} variant="outline" size="sm">
                 <Download className="h-4 w-4 mr-2" />
                 Exportar CSV

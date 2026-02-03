@@ -28,7 +28,6 @@ import Blog from '@/pages/Blog';
 import BlogArticle from '@/pages/BlogArticle';
 import NotFound from '@/pages/NotFound';
 import AffiliatesDashboard from '@/pages/AffiliatesDashboard';
-import InfluencerDashboard from '@/pages/InfluencerDashboard';
 import AdminAffiliatesDashboard from '@/pages/AdminAffiliatesDashboard';
 import ShoppingList from '@/pages/ShoppingList';
 import Settings from '@/pages/Settings';
@@ -138,7 +137,6 @@ export const AnimatedRoutes = () => {
       <Route path="/trial-trust" element={<PageTransition><TrialTrustScreen /></PageTransition>} />
       <Route path="/trial-activate" element={<PageTransition><TrialActivation /></PageTransition>} />
       <Route path="/chat" element={<PageTransition><Chat /></PageTransition>} />
-      <Route path="/influencer/:code" element={<PageTransition><InfluencerDashboard /></PageTransition>} />
       {/* ============================================ */}
       {/* DASHBOARD PAGES - persistent shell          */}
       {/* Layout mounts once, only Outlet changes     */}
