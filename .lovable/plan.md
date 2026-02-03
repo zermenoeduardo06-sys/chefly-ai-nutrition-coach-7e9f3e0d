@@ -1,92 +1,208 @@
 
+# Plan: Corrección Completa para Aprobación en App Store
 
-# Plan: Navegación Inferior más Fluida
+## Resumen de Problemas a Solucionar
 
-## Problema Actual
+| Guideline | Problema | Solución |
+|-----------|----------|----------|
+| 3.1.2 | EULA/Terms desactualizados (4 días, Stripe, MXN) | Actualizar Terms.tsx con info correcta |
+| 2.1 | Texto placeholder/incompleto | Corregir términos y traduciones |
+| 3.1.1 | Códigos promocionales para desbloquear contenido | **Eliminar paso 3 del onboarding (código influencer)** |
+| 2.1 | App no carga en iPad post-onboarding | Agregar fallbacks de navegación |
 
-1. **Sin transiciones entre páginas del dashboard**: Las rutas anidadas (Progress, Wellness, etc.) no usan `PageTransition`, causando cambios abruptos de contenido
-2. **Animaciones de tap pesadas**: El `whileTap` actual tiene `scale: 0.85` y `y: 2` con spring stiffness 500, que puede sentirse "pegajoso"
-3. **Transición de página lenta**: Aunque es 100ms, hay un breve momento de "nada" visible
+---
 
-## Solución Propuesta
+## 1. Eliminar Paso del Código de Influencer (Guideline 3.1.1)
 
-### 1. Simplificar animaciones del botón (MobileBottomNav.tsx)
+**Archivo: `src/pages/PreOnboarding.tsx`**
 
-**Antes:**
-```typescript
-whileTap={{ scale: 0.85, y: 2 }}
-transition={{ type: "spring", stiffness: 500, damping: 25 }}
+### Cambios:
+1. Reducir `TOTAL_STEPS` de 30 a 29
+2. Eliminar el caso `case 3` completo (código de influencer)
+3. Re-numerar todos los pasos subsiguientes (-1)
+4. Eliminar variables `influencerCode`, `showInfluencerInput`
+5. Eliminar función `handleInfluencerCodeSubmit`
+6. Actualizar `getMascotMessage()` para quitar mensaje del paso 3
+7. Actualizar `canProceed()` ajustando los números de paso
+
+### Lógica de re-numeración:
+- Paso 2 (celebration) -> Navega directamente a paso 3 (goal selection)
+- El antiguo paso 4 (goal) se convierte en paso 3
+- Todos los demás pasos se recorren -1
+
+---
+
+## 2. Actualizar Términos y Condiciones (Guideline 3.1.2 & 2.1)
+
+**Archivo: `src/pages/Terms.tsx`**
+
+### Sección 5.2 - Período de Prueba (líneas 66-68 ES, 237-239 EN):
+
+**ANTES:**
+```
+"Los nuevos usuarios reciben un período de prueba de 4 días. Al finalizar el período de prueba, se le pedirá que seleccione un plan de pago..."
 ```
 
-**Después:**
-```typescript
-whileTap={{ scale: 0.92 }}
-transition={{ type: "tween", duration: 0.1 }}
+**DESPUÉS:**
+```
+"Los nuevos usuarios pueden acceder a un período de prueba gratuito de 3 días al iniciar una suscripción. La prueba requiere proporcionar un método de pago válido a través de Apple. Si no se cancela al menos 24 horas antes del final del período de prueba, la suscripción se activará automáticamente con el cargo correspondiente."
 ```
 
-- Escala menos agresiva (0.92 vs 0.85)
-- Sin desplazamiento en Y (elimina sensación de hundimiento)
-- Transición lineal más rápida en lugar de spring
+### Sección 5.3 - Facturación (líneas 71-77 ES, 243-248 EN):
 
-### 2. Acelerar transición del indicador activo
-
-**Antes:**
-```typescript
-transition={{ type: "spring", stiffness: 500, damping: 30 }}
+**ANTES:**
+```
+- "Los pagos se procesan de forma segura a través de Stripe"
+- "Los precios están en pesos mexicanos (MXN)"
+- "No se proporcionan reembolsos por períodos parciales"
 ```
 
-**Después:**
-```typescript
-transition={{ type: "spring", stiffness: 700, damping: 35 }}
+**DESPUÉS:**
+```
+- "Los pagos se procesan de forma segura a través de Apple In-App Purchase"
+- "Las suscripciones se renuevan automáticamente cada mes"
+- "Los precios están en dólares estadounidenses (USD)"
+- "Puede cancelar su suscripción en cualquier momento desde Configuración > Apple ID > Suscripciones en su dispositivo iOS"
+- "Para solicitudes de reembolso, contacte directamente a Apple a través de reportaproblem.apple.com"
 ```
 
-### 3. Agregar transiciones suaves al Outlet del Dashboard
+---
 
-Modificar `DashboardLayout` para envolver el `<Outlet />` con una animación mínima usando `AnimatePresence`:
+## 3. Corregir Compatibilidad iPad - Post-Onboarding (Guideline 2.1)
+
+### A. Agregar Fallback en CommitmentScreen
+
+**Archivo: `src/components/onboarding/CommitmentScreen.tsx`**
+
+Agregar un `useEffect` que garantice la navegación incluso si algo falla:
 
 ```typescript
-import { AnimatePresence, motion } from 'framer-motion';
+// Agregar después de línea 166 (cleanup useEffect)
+useEffect(() => {
+  if (isCompleted) {
+    // Fallback: forzar navegación después de 5 segundos
+    const fallbackTimeout = setTimeout(() => {
+      console.warn('[CommitmentScreen] Fallback navigation triggered');
+      navigate('/trial-roulette', { replace: true });
+    }, 5000);
+    return () => clearTimeout(fallbackTimeout);
+  }
+}, [isCompleted, navigate]);
+```
 
-// En el return:
-<AnimatePresence mode="wait" initial={false}>
-  <motion.div
-    key={location.pathname}
-    initial={{ opacity: 0.5 }}
+### B. Agregar Botón de Continuar Manual en FreeTrialRoulette
+
+**Archivo: `src/components/trial/FreeTrialRoulette.tsx`**
+
+Agregar un botón que aparece después de ganar como fallback si la navegación automática falla:
+
+```typescript
+// Después del resultado del segundo giro exitoso (línea 256)
+{showResult && result?.includes('3') && (
+  <motion.button
+    initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
-    exit={{ opacity: 0.5 }}
-    transition={{ duration: 0.08 }}
+    transition={{ delay: 2 }}
+    onClick={() => navigate('/trial-won', { replace: true })}
+    className="mt-4 px-8 py-3 rounded-full bg-primary text-primary-foreground font-bold shadow-lg"
   >
-    <Outlet />
-  </motion.div>
-</AnimatePresence>
+    {language === 'es' ? 'Continuar' : 'Continue'}
+  </motion.button>
+)}
 ```
 
-- `mode="wait"` evita superposiciones
-- `initial={false}` evita animación en primer montaje
-- 80ms de duración, casi imperceptible pero suaviza el cambio
+### C. Reducir partículas en iPad
 
-### 4. Optimizar el botón central elevado
-
-Reducir la complejidad de la animación del botón central (Progreso):
-
-**Antes:** Animación de boxShadow infinita con 3 keyframes
-**Después:** Animación simplificada solo cuando está activo
+**Archivo: `src/components/trial/FreeTrialRoulette.tsx`**
 
 ```typescript
-whileTap={{ scale: 0.95 }} // más sutil que y: 3
+// Línea 143 - reducir partículas para tablets
+const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+const particleCount = isMobile ? 20 : 10;
+
+// Usar particleCount en el map
+{[...Array(particleCount)].map((_, i) => (
 ```
+
+### D. Mejorar layout para tablets
+
+Cambiar `min-h-[100dvh]` por una solución más robusta:
+
+```typescript
+// En FreeTrialRoulette, TrialWonCelebration, TrialTrustScreen, TrialActivation
+className="min-h-screen min-h-[100dvh] ..."
+```
+
+---
+
+## 4. Actualizar Enlaces de Terms/Privacy
+
+**Archivos: `src/components/IAPPaywall.tsx`, `src/components/trial/TrialActivation.tsx`**
+
+Los enlaces actuales usan `<a href="/terms">` que puede no funcionar en apps nativas.
+
+**Solución:** Usar navegación de React Router:
+
+```typescript
+import { Link } from 'react-router-dom';
+
+// Cambiar de:
+<a href="/terms" className="hover:underline">
+
+// A:
+<Link to="/terms" className="hover:underline">
+```
+
+---
 
 ## Archivos a Modificar
 
-| Archivo | Cambio |
-|---------|--------|
-| `src/components/MobileBottomNav.tsx` | Simplificar animaciones de tap y transiciones |
-| `src/components/AnimatedRoutes.tsx` | Agregar AnimatePresence al Outlet del DashboardLayout |
+| Archivo | Cambio | Prioridad |
+|---------|--------|-----------|
+| `src/pages/PreOnboarding.tsx` | Eliminar paso 3 (código influencer) | CRÍTICA |
+| `src/pages/Terms.tsx` | Actualizar trial 4→3 días, Stripe→Apple IAP, MXN→USD | CRÍTICA |
+| `src/components/onboarding/CommitmentScreen.tsx` | Agregar fallback timeout 5s | ALTA |
+| `src/components/trial/FreeTrialRoulette.tsx` | Botón continuar + reducir partículas iPad | ALTA |
+| `src/components/IAPPaywall.tsx` | Cambiar `<a>` por `<Link>` | MEDIA |
+| `src/components/trial/TrialActivation.tsx` | Cambiar `<a>` por `<Link>` | MEDIA |
+
+---
+
+## Orden de Implementación
+
+1. **PreOnboarding.tsx** - Eliminar código de influencer (requiere re-numeración cuidadosa)
+2. **Terms.tsx** - Actualizar información de pagos y trial
+3. **CommitmentScreen.tsx** - Agregar fallback de navegación
+4. **FreeTrialRoulette.tsx** - Botón continuar + optimizaciones iPad
+5. **IAPPaywall.tsx & TrialActivation.tsx** - Corregir enlaces
+
+---
+
+## Notas Técnicas
+
+### Re-numeración de pasos en PreOnboarding:
+- Los pasos después del 2 se recorren -1
+- El paso 3 actual (influencer) se elimina
+- El paso 4 (goal) se convierte en 3
+- Y así sucesivamente hasta el paso 30→29
+
+### Imports a agregar:
+- `Link` de `react-router-dom` en IAPPaywall y TrialActivation
+
+### Variables a eliminar de PreOnboarding:
+- `influencerCode` (línea 53)
+- `showInfluencerInput` (línea 54)
+- Función `handleInfluencerCodeSubmit` (líneas 298-307)
+- Caso completo `case 3` (líneas 483-551)
+- Mensaje de mascota para paso 3 (línea 341)
+
+---
 
 ## Resultado Esperado
 
-- Navegación se siente más "instantánea" y ligera
-- Transiciones suaves sin sensación de lag
-- Botones responden de inmediato sin animaciones pesadas
-- El contenido cambia con un fade ultra-rápido en vez de un corte abrupto
-
+Después de estos cambios:
+1. No hay códigos promocionales que desbloqueen contenido (Guideline 3.1.1 resuelto)
+2. Los términos reflejan correctamente el trial de 3 días con Apple IAP (Guideline 3.1.2 resuelto)
+3. El flujo de onboarding tiene fallbacks para iPad (Guideline 2.1 resuelto)
+4. Los enlaces a Terms/Privacy funcionan correctamente en la app nativa
+5. El onboarding tiene 29 pasos en lugar de 30
