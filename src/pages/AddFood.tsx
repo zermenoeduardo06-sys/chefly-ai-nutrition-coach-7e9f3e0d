@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, MoreHorizontal, Carrot, UtensilsCrossed, ChefHat, Barcode, ArrowLeft, Loader2 } from "lucide-react";
+import { Search, Carrot, UtensilsCrossed, ChefHat, Barcode, ArrowLeft, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -338,9 +338,6 @@ export default function AddFood() {
               <span className="font-medium text-foreground">{mealLabel}</span>
             </div>
           </div>
-          <button className="p-2">
-            <MoreHorizontal className="h-6 w-6" />
-          </button>
         </div>
       </div>
 

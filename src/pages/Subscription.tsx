@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -74,7 +74,7 @@ const Subscription = () => {
       id: "chefly-plus",
       name: "Chefly Plus",
       subtitle: language === "es" ? "Nutrición personalizada sin límites" : "Unlimited personalized nutrition",
-      price: "$150 MXN",
+      price: "$7.99",
       priceUsd: "$7.99",
       period: language === "es" ? "/mes" : "/month",
       features: [
@@ -342,12 +342,12 @@ const Subscription = () => {
               : "Payment will be charged to your Apple account at confirmation of purchase. Subscription automatically renews unless auto-renew is turned off at least 24 hours before the end of the current period. Your account will be charged for renewal within 24 hours prior to the end of the current period. Manage your subscriptions from Settings > Apple ID > Subscriptions."}
           </p>
           <div className="flex justify-center gap-4 text-[10px] text-muted-foreground">
-            <a href="/terms" className="hover:underline">
+            <Link to="/terms" className="hover:underline">
               {language === "es" ? "Términos de uso" : "Terms of Use"}
-            </a>
-            <a href="/privacy" className="hover:underline">
+            </Link>
+            <Link to="/privacy" className="hover:underline">
               {language === "es" ? "Política de privacidad" : "Privacy Policy"}
-            </a>
+            </Link>
           </div>
         </motion.div>
       </div>

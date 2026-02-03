@@ -45,8 +45,8 @@ const FAQ = () => {
         {
           question: language === "es" ? "¿Cuánto cuesta Chefly.AI?" : "How much does Chefly.AI cost?",
           answer: language === "es"
-            ? "Ofrecemos varios planes desde $199 MXN/mes. Todos los planes incluyen 4 días de prueba gratis sin necesidad de tarjeta de crédito. Puedes ver los detalles completos en nuestra página de precios."
-            : "We offer several plans starting at $199 MXN/month. All plans include a 4-day free trial with no credit card required. You can see full details on our pricing page."
+            ? "Ofrecemos Chefly Plus a $7.99 USD/mes. Los nuevos usuarios pueden acceder a un período de prueba de 3 días al iniciar la suscripción a través de Apple. Puedes ver los detalles completos en nuestra página de precios."
+            : "We offer Chefly Plus at $7.99 USD/month. New users can access a 3-day free trial when starting a subscription through Apple. You can see full details on our pricing page."
         },
         {
           question: language === "es" ? "¿Puedo cancelar cuando quiera?" : "Can I cancel anytime?",
@@ -57,14 +57,14 @@ const FAQ = () => {
         {
           question: language === "es" ? "¿Qué incluye la prueba gratis?" : "What does the free trial include?",
           answer: language === "es"
-            ? "Durante los 4 días de prueba gratis tendrás acceso completo a todas las funciones: generación de menús personalizados, lista de compras, chat con el coach nutricional, seguimiento de progreso y más. No necesitas ingresar datos de tarjeta para comenzar."
-            : "During the 4-day free trial you'll have full access to all features: personalized menu generation, shopping list, chat with the nutrition coach, progress tracking, and more. No credit card required to start."
+            ? "Durante los 3 días de prueba tendrás acceso completo a todas las funciones premium: generación de menús personalizados ilimitados, lista de compras, chat con el coach nutricional, escáner de comida con IA y más. Se requiere método de pago a través de Apple para activar la prueba."
+            : "During the 3-day trial you'll have full access to all premium features: unlimited personalized menu generation, shopping list, chat with the nutrition coach, AI food scanner, and more. Payment method through Apple is required to activate the trial."
         },
         {
           question: language === "es" ? "¿Ofrecen reembolsos?" : "Do you offer refunds?",
           answer: language === "es"
-            ? "Sí, ofrecemos garantía de satisfacción de 7 días. Si no estás satisfecho con el servicio, contáctanos y te reembolsaremos tu dinero sin hacer preguntas."
-            : "Yes, we offer a 7-day satisfaction guarantee. If you're not satisfied with the service, contact us and we'll refund your money, no questions asked."
+            ? "Los reembolsos de suscripciones de Apple se gestionan directamente a través de Apple. Puedes solicitar un reembolso visitando reportaproblem.apple.com. Si tienes algún problema con tu suscripción, contáctanos y haremos lo posible por ayudarte."
+            : "Refunds for Apple subscriptions are handled directly through Apple. You can request a refund by visiting reportaproblem.apple.com. If you have any issues with your subscription, contact us and we'll do our best to help."
         }
       ]
     },
