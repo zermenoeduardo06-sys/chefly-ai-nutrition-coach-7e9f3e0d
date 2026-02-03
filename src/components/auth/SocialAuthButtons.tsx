@@ -5,7 +5,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { lovable } from '@/integrations/lovable/index';
 import { Capacitor } from '@capacitor/core';
-import { useNativeAppleAuth } from '@/hooks/useNativeAppleAuth';
 
 interface SocialAuthButtonsProps {
   disabled?: boolean;
@@ -19,7 +18,6 @@ export const SocialAuthButtons = ({ disabled, onLoadingChange }: SocialAuthButto
   const { language } = useLanguage();
   const isNativePlatform = Capacitor.isNativePlatform();
   const isIOS = Capacitor.getPlatform() === 'ios';
-  const { signInWithApple: nativeAppleSignIn, loading: nativeAppleLoading } = useNativeAppleAuth();
 
   // On native Android, hide all social auth (only email/password)
   // On native iOS, show only Apple Sign-In
@@ -56,7 +54,9 @@ export const SocialAuthButtons = ({ disabled, onLoadingChange }: SocialAuthButto
     onLoadingChange?.(true);
     try {
       // Use web OAuth flow for all platforms
-      const { error } = await nativeAppleSignIn();
+      const { error } = await lovable.auth.signInWithOAuth('apple', {
+        redirect_uri: window.location.origin,
+      });
       if (error) throw error;
     } catch (error: any) {
       toast({
@@ -70,7 +70,7 @@ export const SocialAuthButtons = ({ disabled, onLoadingChange }: SocialAuthButto
     }
   };
 
-  const isLoading = googleLoading || appleLoading || nativeAppleLoading || disabled;
+  const isLoading = googleLoading || appleLoading || disabled;
 
   return (
     <div className="space-y-3">
@@ -83,7 +83,7 @@ export const SocialAuthButtons = ({ disabled, onLoadingChange }: SocialAuthButto
           onClick={handleAppleSignIn}
           disabled={isLoading}
         >
-          {(appleLoading || nativeAppleLoading) ? (
+          {appleLoading ? (
             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
           ) : (
             <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
