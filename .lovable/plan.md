@@ -1,208 +1,292 @@
 
-# Plan: Corrección Completa para Aprobación en App Store
+# Auditoría Completa iOS - App Store Review Guidelines
 
-## Resumen de Problemas a Solucionar
+## Resumen Ejecutivo
 
-| Guideline | Problema | Solución |
-|-----------|----------|----------|
-| 3.1.2 | EULA/Terms desactualizados (4 días, Stripe, MXN) | Actualizar Terms.tsx con info correcta |
-| 2.1 | Texto placeholder/incompleto | Corregir términos y traduciones |
-| 3.1.1 | Códigos promocionales para desbloquear contenido | **Eliminar paso 3 del onboarding (código influencer)** |
-| 2.1 | App no carga en iPad post-onboarding | Agregar fallbacks de navegación |
+He realizado una auditoría exhaustiva de la app y encontré **varios problemas críticos** que deben corregirse antes de re-enviar a Apple.
 
 ---
 
-## 1. Eliminar Paso del Código de Influencer (Guideline 3.1.1)
+## 🔴 PROBLEMAS CRÍTICOS (Causan Rechazo)
 
-**Archivo: `src/pages/PreOnboarding.tsx`**
+### 1. Información Desactualizada en FAQ.tsx (Guideline 2.1)
 
-### Cambios:
-1. Reducir `TOTAL_STEPS` de 30 a 29
-2. Eliminar el caso `case 3` completo (código de influencer)
-3. Re-numerar todos los pasos subsiguientes (-1)
-4. Eliminar variables `influencerCode`, `showInfluencerInput`
-5. Eliminar función `handleInfluencerCodeSubmit`
-6. Actualizar `getMascotMessage()` para quitar mensaje del paso 3
-7. Actualizar `canProceed()` ajustando los números de paso
+**Archivo:** `src/pages/FAQ.tsx` (líneas 46-61)
 
-### Lógica de re-numeración:
-- Paso 2 (celebration) -> Navega directamente a paso 3 (goal selection)
-- El antiguo paso 4 (goal) se convierte en paso 3
-- Todos los demás pasos se recorren -1
+**Problema detectado:**
+- Menciona **"4 días de prueba gratis"** cuando ahora son **3 días**
+- Dice **"sin necesidad de tarjeta de crédito"** cuando **SÍ se requiere** (Apple IAP)
+- Menciona precios en **"$199 MXN/mes"** cuando ahora es **$7.99 USD**
 
----
-
-## 2. Actualizar Términos y Condiciones (Guideline 3.1.2 & 2.1)
-
-**Archivo: `src/pages/Terms.tsx`**
-
-### Sección 5.2 - Período de Prueba (líneas 66-68 ES, 237-239 EN):
-
-**ANTES:**
+**Texto actual (línea 48 ES):**
 ```
-"Los nuevos usuarios reciben un período de prueba de 4 días. Al finalizar el período de prueba, se le pedirá que seleccione un plan de pago..."
+"Ofrecemos varios planes desde $199 MXN/mes. Todos los planes incluyen 4 días 
+de prueba gratis sin necesidad de tarjeta de crédito."
 ```
 
-**DESPUÉS:**
+**Texto actual (línea 60 ES):**
 ```
-"Los nuevos usuarios pueden acceder a un período de prueba gratuito de 3 días al iniciar una suscripción. La prueba requiere proporcionar un método de pago válido a través de Apple. Si no se cancela al menos 24 horas antes del final del período de prueba, la suscripción se activará automáticamente con el cargo correspondiente."
-```
-
-### Sección 5.3 - Facturación (líneas 71-77 ES, 243-248 EN):
-
-**ANTES:**
-```
-- "Los pagos se procesan de forma segura a través de Stripe"
-- "Los precios están en pesos mexicanos (MXN)"
-- "No se proporcionan reembolsos por períodos parciales"
+"Durante los 4 días de prueba gratis tendrás acceso completo... 
+No necesitas ingresar datos de tarjeta para comenzar."
 ```
 
-**DESPUÉS:**
+**Corrección necesaria:**
 ```
-- "Los pagos se procesan de forma segura a través de Apple In-App Purchase"
-- "Las suscripciones se renuevan automáticamente cada mes"
-- "Los precios están en dólares estadounidenses (USD)"
-- "Puede cancelar su suscripción en cualquier momento desde Configuración > Apple ID > Suscripciones en su dispositivo iOS"
-- "Para solicitudes de reembolso, contacte directamente a Apple a través de reportaproblem.apple.com"
+ES: "Ofrecemos Chefly Plus a $7.99 USD/mes. Los nuevos usuarios pueden 
+acceder a un período de prueba de 3 días al iniciar la suscripción."
+
+ES: "Durante los 3 días de prueba tendrás acceso completo a todas las 
+funciones premium. Se requiere método de pago a través de Apple."
 ```
 
 ---
 
-## 3. Corregir Compatibilidad iPad - Post-Onboarding (Guideline 2.1)
+### 2. Información Desactualizada en LanguageContext.tsx (Guideline 2.1)
 
-### A. Agregar Fallback en CommitmentScreen
+**Archivo:** `src/contexts/LanguageContext.tsx`
 
-**Archivo: `src/components/onboarding/CommitmentScreen.tsx`**
+**Problemas detectados (líneas 153-157 ES, 1437-1441 EN):**
 
-Agregar un `useEffect` que garantice la navegación incluso si algo falla:
+| Clave | Valor Actual | Valor Correcto |
+|-------|--------------|----------------|
+| `auth.trialInfo` | "Prueba gratis por 4 días sin tarjeta requerida" | "Prueba de 3 días con tarjeta" |
+| `auth.freeTrial` | "Prueba gratuita de 4 días" | "Prueba de 3 días gratis" |
+| `auth.noCreditCard` | "Sin tarjeta de crédito requerida" | **ELIMINAR o cambiar** |
 
+**Corrección:**
 ```typescript
-// Agregar después de línea 166 (cleanup useEffect)
-useEffect(() => {
-  if (isCompleted) {
-    // Fallback: forzar navegación después de 5 segundos
-    const fallbackTimeout = setTimeout(() => {
-      console.warn('[CommitmentScreen] Fallback navigation triggered');
-      navigate('/trial-roulette', { replace: true });
-    }, 5000);
-    return () => clearTimeout(fallbackTimeout);
-  }
-}, [isCompleted, navigate]);
-```
+// Línea 153
+"auth.trialInfo": "Prueba de 3 días gratis al suscribirte",
+// Línea 156  
+"auth.freeTrial": "3 días de prueba gratis",
+// Línea 157
+"auth.noCreditCard": "Prueba gratuita incluida",
 
-### B. Agregar Botón de Continuar Manual en FreeTrialRoulette
-
-**Archivo: `src/components/trial/FreeTrialRoulette.tsx`**
-
-Agregar un botón que aparece después de ganar como fallback si la navegación automática falla:
-
-```typescript
-// Después del resultado del segundo giro exitoso (línea 256)
-{showResult && result?.includes('3') && (
-  <motion.button
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    transition={{ delay: 2 }}
-    onClick={() => navigate('/trial-won', { replace: true })}
-    className="mt-4 px-8 py-3 rounded-full bg-primary text-primary-foreground font-bold shadow-lg"
-  >
-    {language === 'es' ? 'Continuar' : 'Continue'}
-  </motion.button>
-)}
-```
-
-### C. Reducir partículas en iPad
-
-**Archivo: `src/components/trial/FreeTrialRoulette.tsx`**
-
-```typescript
-// Línea 143 - reducir partículas para tablets
-const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-const particleCount = isMobile ? 20 : 10;
-
-// Usar particleCount en el map
-{[...Array(particleCount)].map((_, i) => (
-```
-
-### D. Mejorar layout para tablets
-
-Cambiar `min-h-[100dvh]` por una solución más robusta:
-
-```typescript
-// En FreeTrialRoulette, TrialWonCelebration, TrialTrustScreen, TrialActivation
-className="min-h-screen min-h-[100dvh] ..."
+// Líneas EN equivalentes (1437-1441)
+"auth.trialInfo": "3-day free trial with subscription",
+"auth.freeTrial": "3-day free trial",
+"auth.noCreditCard": "Free trial included",
 ```
 
 ---
 
-## 4. Actualizar Enlaces de Terms/Privacy
+### 3. Enlaces en Subscription.tsx usan `<a href>` (Guideline 3.1.2)
 
-**Archivos: `src/components/IAPPaywall.tsx`, `src/components/trial/TrialActivation.tsx`**
+**Archivo:** `src/pages/Subscription.tsx` (líneas 345-351)
 
-Los enlaces actuales usan `<a href="/terms">` que puede no funcionar en apps nativas.
+**Problema:** Los enlaces a Terms y Privacy usan `<a href>` que puede no funcionar correctamente en la app nativa iOS.
 
-**Solución:** Usar navegación de React Router:
-
+**Código actual:**
 ```typescript
-import { Link } from 'react-router-dom';
-
-// Cambiar de:
 <a href="/terms" className="hover:underline">
+<a href="/privacy" className="hover:underline">
+```
 
-// A:
+**Corrección:** Usar `<Link to>` de React Router (ya importado):
+```typescript
+import { Link } from 'react-router-dom'; // Ya está en otros archivos
+
 <Link to="/terms" className="hover:underline">
+<Link to="/privacy" className="hover:underline">
 ```
 
 ---
 
-## Archivos a Modificar
+### 4. Precio en MXN en Subscription.tsx (Guideline 2.1)
 
-| Archivo | Cambio | Prioridad |
-|---------|--------|-----------|
-| `src/pages/PreOnboarding.tsx` | Eliminar paso 3 (código influencer) | CRÍTICA |
-| `src/pages/Terms.tsx` | Actualizar trial 4→3 días, Stripe→Apple IAP, MXN→USD | CRÍTICA |
-| `src/components/onboarding/CommitmentScreen.tsx` | Agregar fallback timeout 5s | ALTA |
-| `src/components/trial/FreeTrialRoulette.tsx` | Botón continuar + reducir partículas iPad | ALTA |
-| `src/components/IAPPaywall.tsx` | Cambiar `<a>` por `<Link>` | MEDIA |
-| `src/components/trial/TrialActivation.tsx` | Cambiar `<a>` por `<Link>` | MEDIA |
+**Archivo:** `src/pages/Subscription.tsx` (línea 77)
 
----
+**Problema:** Muestra precio en MXN además de USD, pero Apple solo acepta USD para IAP.
 
-## Orden de Implementación
+**Código actual:**
+```typescript
+price: "$150 MXN",
+priceUsd: "$7.99",
+```
 
-1. **PreOnboarding.tsx** - Eliminar código de influencer (requiere re-numeración cuidadosa)
-2. **Terms.tsx** - Actualizar información de pagos y trial
-3. **CommitmentScreen.tsx** - Agregar fallback de navegación
-4. **FreeTrialRoulette.tsx** - Botón continuar + optimizaciones iPad
-5. **IAPPaywall.tsx & TrialActivation.tsx** - Corregir enlaces
+**Corrección:** Solo mostrar USD:
+```typescript
+price: "$7.99",
+priceUsd: "$7.99", // Mantener para compatibilidad
+```
 
 ---
 
-## Notas Técnicas
+### 5. Referencias a Stripe en comentarios y hooks
 
-### Re-numeración de pasos en PreOnboarding:
-- Los pasos después del 2 se recorren -1
-- El paso 3 actual (influencer) se elimina
-- El paso 4 (goal) se convierte en 3
-- Y así sucesivamente hasta el paso 30→29
+**Archivos afectados:**
+- `src/hooks/useSubscriptionLimits.ts` (líneas 36-45)
+- `src/pages/Dashboard.tsx` (línea 302)
+- `src/components/SubscriptionBanner.tsx` (líneas 27-28)
 
-### Imports a agregar:
-- `Link` de `react-router-dom` en IAPPaywall y TrialActivation
+**Problema:** Aunque funcionalmente usan Apple IAP, los comentarios mencionan "Stripe" lo cual puede confundir y no afecta directamente la revisión, pero debería limpiarse.
 
-### Variables a eliminar de PreOnboarding:
-- `influencerCode` (línea 53)
-- `showInfluencerInput` (línea 54)
-- Función `handleInfluencerCodeSubmit` (líneas 298-307)
-- Caso completo `case 3` (líneas 483-551)
-- Mensaje de mascota para paso 3 (línea 341)
+**Ejemplo (Dashboard.tsx línea 302):**
+```typescript
+// Check subscription status on return from Stripe
+```
+
+**Corrección:** Actualizar comentarios a "Apple IAP" o simplemente "subscription".
 
 ---
 
-## Resultado Esperado
+## 🟠 PROBLEMAS IMPORTANTES (Pueden Causar Rechazo)
 
-Después de estos cambios:
-1. No hay códigos promocionales que desbloqueen contenido (Guideline 3.1.1 resuelto)
-2. Los términos reflejan correctamente el trial de 3 días con Apple IAP (Guideline 3.1.2 resuelto)
-3. El flujo de onboarding tiene fallbacks para iPad (Guideline 2.1 resuelto)
-4. Los enlaces a Terms/Privacy funcionan correctamente en la app nativa
-5. El onboarding tiene 29 pasos en lugar de 30
+### 6. Falta Disclaimer de Salud Prominente
+
+**Guideline 5.1.1 - Data Collection and Storage / Health & Fitness**
+
+Aunque existe un disclaimer en Terms.tsx, Apple a veces rechaza apps de nutrición/fitness si no tienen un disclaimer visible durante el uso normal.
+
+**Recomendación:** Agregar un pequeño texto en la pantalla de Dashboard o Settings:
+```
+"Esta app no proporciona asesoramiento médico. 
+Consulta a un profesional antes de cambios en tu dieta."
+```
+
+---
+
+### 7. Botón MoreHorizontal sin funcionalidad (Guideline 2.1)
+
+**Archivo:** `src/pages/AddFood.tsx` (líneas 341-343)
+
+**Problema:** Hay un botón con icono `MoreHorizontal` que no hace nada.
+
+**Código actual:**
+```typescript
+<button className="p-2">
+  <MoreHorizontal className="h-6 w-6" />
+</button>
+```
+
+**Corrección:** Eliminar o agregar funcionalidad (menú contextual).
+
+---
+
+### 8. Safe Areas en Algunos Componentes
+
+**Archivos a verificar:**
+- `src/pages/PremiumPaywall.tsx` - ✅ Tiene safe-area-top
+- `src/pages/ChefIA.tsx` - Revisar bottom safe area para el input
+- `src/components/MobileBottomNav.tsx` - ✅ Correcto
+
+**ChefIA.tsx (líneas 760-800):** El área de input debe considerar el safe-area-inset-bottom cuando NO hay bottom nav visible.
+
+---
+
+## 🟡 MEJORAS RECOMENDADAS (No causan rechazo pero mejoran UX)
+
+### 9. Header Estable (DashboardHeader.tsx)
+
+**Problema reportado:** Header cambia de tamaño inesperadamente.
+
+**Corrección en `src/components/DashboardHeader.tsx`:**
+```typescript
+// Línea 44-45: Agregar altura mínima fija
+<motion.div 
+  initial={{ opacity: 0 }}  // Cambiar de y: -10 a solo opacity
+  animate={{ opacity: 1 }}
+  className="mb-6 min-h-[72px]"  // Agregar min-h
+>
+  // ... contenido ...
+  <span className="text-primary max-w-[150px] truncate inline-block">
+    {name}  // Truncar nombres largos
+  </span>
+```
+
+---
+
+### 10. Footer Estable (MobileBottomNav.tsx)
+
+El footer ya tiene hardware acceleration, pero podría beneficiarse de ocultar cuando el teclado está abierto:
+
+```typescript
+// Agregar detección de teclado virtual
+const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+
+useEffect(() => {
+  const handleResize = () => {
+    const isKeyboard = window.visualViewport 
+      ? window.visualViewport.height < window.innerHeight * 0.8
+      : false;
+    setIsKeyboardOpen(isKeyboard);
+  };
+
+  window.visualViewport?.addEventListener('resize', handleResize);
+  return () => window.visualViewport?.removeEventListener('resize', handleResize);
+}, []);
+
+// En el return: if (isKeyboardOpen) return null;
+```
+
+---
+
+## 📋 CHECKLIST FINAL - LISTO PARA ENVIAR
+
+### Cumplimiento Apple (Crítico)
+- [ ] FAQ.tsx actualizado con 3 días + requiere pago Apple
+- [ ] LanguageContext.tsx actualizado (auth.trialInfo, auth.freeTrial, auth.noCreditCard)
+- [ ] Subscription.tsx: enlaces `<a>` → `<Link>`
+- [ ] Subscription.tsx: eliminar referencia a MXN
+- [ ] Botón "Restore Purchases" visible y funcional ✅ (Ya existe)
+- [ ] Delete Account funcional ✅ (Ya existe)
+- [ ] Terms y Privacy accesibles ✅ (Ya corregidos)
+- [ ] Legal text en paywalls ✅ (Ya existe)
+
+### Funcionalidad
+- [ ] iPad: Fallback timeout en CommitmentScreen ✅ (Ya agregado)
+- [ ] iPad: Botón continuar en FreeTrialRoulette ✅ (Ya agregado)
+- [ ] Código de influencer eliminado ✅ (Ya eliminado)
+- [ ] Botón MoreHorizontal en AddFood.tsx: eliminar o implementar
+
+### UX/UI
+- [ ] Header con altura fija (min-h-[72px])
+- [ ] Footer oculto cuando teclado visible
+- [ ] Nombres truncados en header
+- [ ] Animaciones solo opacity (sin y: -10)
+
+---
+
+## Archivos a Modificar (Orden de Prioridad)
+
+| # | Archivo | Cambio | Prioridad |
+|---|---------|--------|-----------|
+| 1 | `src/pages/FAQ.tsx` | Actualizar trial 4→3, agregar requisito de pago | CRÍTICA |
+| 2 | `src/contexts/LanguageContext.tsx` | Actualizar traducciones auth.* | CRÍTICA |
+| 3 | `src/pages/Subscription.tsx` | `<a>` → `<Link>`, eliminar MXN | CRÍTICA |
+| 4 | `src/pages/AddFood.tsx` | Eliminar o implementar botón MoreHorizontal | ALTA |
+| 5 | `src/components/DashboardHeader.tsx` | Altura fija, truncate, solo opacity | MEDIA |
+| 6 | `src/components/MobileBottomNav.tsx` | Detección de teclado virtual | MEDIA |
+| 7 | Comentarios Stripe → IAP | Limpieza de código | BAJA |
+
+---
+
+## Validación Post-Cambios
+
+1. **Probar en iPad Air 11"** (dispositivo de prueba de Apple)
+2. **Verificar flujo completo:** Onboarding → Registro → Paywall → Compra → Dashboard
+3. **Verificar enlaces** a Terms y Privacy desde todos los paywalls
+4. **Probar Restore Purchases** funciona correctamente
+5. **Verificar que no hay textos placeholder** o "Lorem ipsum"
+6. **Revisar que todos los botones tienen funcionalidad**
+
+---
+
+## Notas para App Store Connect
+
+Al re-enviar, incluir en las notas para el revisor:
+
+```
+Cambios realizados en respuesta al rechazo:
+
+1. EULA/Terms actualizados con información correcta del trial de 3 días 
+   y Apple In-App Purchase
+2. Eliminado código promocional que podía confundirse con desbloqueo 
+   de contenido
+3. Corregida compatibilidad con iPad - agregados fallbacks de navegación
+4. Actualizados todos los textos de trial y suscripción para reflejar 
+   la configuración actual de Apple IAP
+5. Verificados enlaces funcionales a Términos y Privacidad
+
+Cuenta de prueba: [proporcionar si es necesario]
+```
