@@ -1,14 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
 import { BookOpen, TrendingUp, ChefHat, Sparkles, Heart } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useHaptics } from "@/hooks/useHaptics";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePrefetch } from "@/hooks/usePrefetch";
-import { Capacitor } from "@capacitor/core";
-import { Keyboard } from "@capacitor/keyboard";
 
 const navItems = [
   { icon: BookOpen, path: "/dashboard", color: "text-primary", tourId: "nav-diary", labelEs: "Diario", labelEn: "Diary" },
@@ -24,36 +21,6 @@ export function MobileBottomNav() {
   const { lightImpact } = useHaptics();
   const { user } = useAuth();
   const { prefetchProgress, prefetchWellness, prefetchRecipes } = usePrefetch(user?.id);
-  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
-
-  // Use native Capacitor Keyboard plugin for reliable keyboard detection on iOS/Android
-  useEffect(() => {
-    if (Capacitor.isNativePlatform()) {
-      // Native: Use Capacitor Keyboard plugin for reliable events
-      const showListener = Keyboard.addListener('keyboardWillShow', () => {
-        setIsKeyboardOpen(true);
-      });
-      const hideListener = Keyboard.addListener('keyboardWillHide', () => {
-        setIsKeyboardOpen(false);
-      });
-
-      return () => {
-        showListener.then(handle => handle.remove());
-        hideListener.then(handle => handle.remove());
-      };
-    } else {
-      // Web fallback: Use visualViewport API
-      const handleResize = () => {
-        if (window.visualViewport) {
-          const isKeyboard = window.visualViewport.height < window.innerHeight * 0.75;
-          setIsKeyboardOpen(isKeyboard);
-        }
-      };
-
-      window.visualViewport?.addEventListener('resize', handleResize);
-      return () => window.visualViewport?.removeEventListener('resize', handleResize);
-    }
-  }, []);
 
   const isActive = (path: string) => {
     if (path === "/dashboard") {
@@ -63,28 +30,22 @@ export function MobileBottomNav() {
   };
 
   return (
-    <AnimatePresence>
-      {!isKeyboardOpen && (
-        <motion.nav
-          initial={{ y: 100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 100, opacity: 0 }}
-          transition={{ type: "spring", stiffness: 400, damping: 30 }}
-          className="fixed bottom-0 left-0 right-0 z-[9999] lg:hidden" 
-          style={{ 
-            paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-            transform: 'translateZ(0)',
-            WebkitTransform: 'translateZ(0)',
-            willChange: 'transform',
-            backfaceVisibility: 'hidden',
-            WebkitBackfaceVisibility: 'hidden',
-          }}
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-[9999] lg:hidden"
+      style={{ 
+        height: 'calc(76px + env(safe-area-inset-bottom, 0px))',
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        transform: 'translateZ(0)',
+        WebkitTransform: 'translateZ(0)',
+        backfaceVisibility: 'hidden',
+        WebkitBackfaceVisibility: 'hidden',
+      }}
     >
       {/* Glassmorphism background */}
       <div className="absolute inset-0 bg-card/85 backdrop-blur-xl border-t border-white/10 shadow-[0_-8px_32px_rgba(0,0,0,0.12)]" />
       
-      <div className="relative flex items-center justify-around h-[76px] tablet:h-[84px] px-2 tablet:px-6 max-w-2xl mx-auto">
-        {navItems.map((item, index) => {
+      <div className="relative flex items-center justify-around h-[76px] px-2 tablet:px-6 max-w-2xl mx-auto">
+        {navItems.map((item) => {
           const active = isActive(item.path);
           const label = language === 'es' ? item.labelEs : item.labelEn;
           const isCenter = item.isCenter;
@@ -97,13 +58,11 @@ export function MobileBottomNav() {
               className="flex items-center justify-center flex-1 h-full"
               onClick={() => lightImpact()}
               onMouseEnter={() => {
-                // Prefetch on hover for high-probability targets
                 if (item.path === "/dashboard/progress") prefetchProgress();
                 if (item.path === "/dashboard/wellness") prefetchWellness();
                 if (item.path === "/recipes") prefetchRecipes();
               }}
               onTouchStart={() => {
-                // Prefetch on touch for mobile
                 if (item.path === "/dashboard/progress") prefetchProgress();
                 if (item.path === "/dashboard/wellness") prefetchWellness();
                 if (item.path === "/recipes") prefetchRecipes();
@@ -187,8 +146,6 @@ export function MobileBottomNav() {
           );
         })}
       </div>
-        </motion.nav>
-      )}
-    </AnimatePresence>
+    </nav>
   );
 }
