@@ -281,13 +281,13 @@ const Auth = () => {
                 </TabsList>
 
                 <TabsContent value="signup">
-                  {/* Social Auth Buttons - Show on web and iOS (for Apple Sign-In) */}
+                  {/* Social Auth Buttons - Show on web only */}
                   <SocialAuthButtons 
                     disabled={loading} 
                     onLoadingChange={setSocialLoading} 
                   />
-                  {/* Show separator only if social buttons are visible */}
-                  {(!isNativePlatform || Capacitor.getPlatform() === 'ios') && (
+                  {/* Show separator only if social buttons are visible (web only) */}
+                  {!isNativePlatform && (
                     <div className="relative my-4">
                       <Separator />
                       <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">
@@ -347,13 +347,13 @@ const Auth = () => {
                 </TabsContent>
 
                 <TabsContent value="signin">
-                  {/* Social Auth Buttons - Show on web and iOS (for Apple Sign-In) */}
+                  {/* Social Auth Buttons - Show on web only */}
                   <SocialAuthButtons 
                     disabled={loading} 
                     onLoadingChange={setSocialLoading} 
                   />
-                  {/* Show separator only if social buttons are visible */}
-                  {(!isNativePlatform || Capacitor.getPlatform() === 'ios') && (
+                  {/* Show separator only if social buttons are visible (web only) */}
+                  {!isNativePlatform && (
                     <div className="relative my-4">
                       <Separator />
                       <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">
