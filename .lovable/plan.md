@@ -1,292 +1,95 @@
 
-# Auditoría Completa iOS - App Store Review Guidelines
+# Plan: Solucionar Problemas de Layout en iOS
 
-## Resumen Ejecutivo
+## Problemas Identificados
 
-He realizado una auditoría exhaustiva de la app y encontré **varios problemas críticos** que deben corregirse antes de re-enviar a Apple.
+### Problema 1: Header "Muy Alto" (Apariencia de Doble Header)
+Al analizar la captura de pantalla y el código, el problema es que hay **demasiado espacio vertical** entre la barra de estado de iOS y el saludo "¡Buenas noches". Esto crea la apariencia visual de dos headers.
 
----
+**Causas encontradas:**
+1. El `DashboardLayout` aplica `paddingTop: env(safe-area-inset-top)` a todo el contenedor
+2. Luego el `Dashboard.tsx` tiene `py-4` (16px) de padding adicional en el `<main>`
+3. El `DashboardHeader` tiene un `mb-6` (24px) de margen inferior
+4. El total resulta en ~90-100px de espacio superior, creando la ilusión de "doble header"
 
-## 🔴 PROBLEMAS CRÍTICOS (Causan Rechazo)
+### Problema 2: Footer que se "Levanta" Intermitentemente
+El enfoque actual con `visualViewport` tiene problemas:
 
-### 1. Información Desactualizada en FAQ.tsx (Guideline 2.1)
+1. **Solución actual incompleta:** Solo detecta si el viewport es < 80% de la altura de la ventana
+2. **No usa el plugin nativo de Capacitor Keyboard** que proporciona eventos más confiables
+3. **Transición abrupta:** El nav desaparece completamente en lugar de reposicionarse suavemente
 
-**Archivo:** `src/pages/FAQ.tsx` (líneas 46-61)
+## Solución Propuesta
 
-**Problema detectado:**
-- Menciona **"4 días de prueba gratis"** cuando ahora son **3 días**
-- Dice **"sin necesidad de tarjeta de crédito"** cuando **SÍ se requiere** (Apple IAP)
-- Menciona precios en **"$199 MXN/mes"** cuando ahora es **$7.99 USD**
+### Parte 1: Reducir Altura del Header
 
-**Texto actual (línea 48 ES):**
-```
-"Ofrecemos varios planes desde $199 MXN/mes. Todos los planes incluyen 4 días 
-de prueba gratis sin necesidad de tarjeta de crédito."
-```
+**Archivo: `src/components/DashboardHeader.tsx`**
+- Reducir el margen inferior de `mb-6` a `mb-4`
+- Reducir `min-h-[72px]` a `min-h-[56px]` para compactar más el header
 
-**Texto actual (línea 60 ES):**
-```
-"Durante los 4 días de prueba gratis tendrás acceso completo... 
-No necesitas ingresar datos de tarjeta para comenzar."
-```
+**Archivo: `src/pages/Dashboard.tsx`**
+- Reducir el padding superior del main de `py-4` a `pt-2 pb-4` para menos espacio arriba
 
-**Corrección necesaria:**
-```
-ES: "Ofrecemos Chefly Plus a $7.99 USD/mes. Los nuevos usuarios pueden 
-acceder a un período de prueba de 3 días al iniciar la suscripción."
+### Parte 2: Implementar Solución Robusta para el Footer
 
-ES: "Durante los 3 días de prueba tendrás acceso completo a todas las 
-funciones premium. Se requiere método de pago a través de Apple."
-```
+**Enfoque: Usar el Plugin @capacitor/keyboard**
 
----
+Según la documentación oficial de Capacitor y patrones de apps como YAZIO/MyFitnessPal:
 
-### 2. Información Desactualizada en LanguageContext.tsx (Guideline 2.1)
+1. **Instalar el plugin @capacitor/keyboard**
+2. **Configurar en capacitor.config.ts:**
+   ```typescript
+   plugins: {
+     Keyboard: {
+       resize: "none", // Prevenir que el WebView se redimensione
+       style: "dark"
+     }
+   }
+   ```
+3. **Actualizar MobileBottomNav.tsx:**
+   - Usar eventos nativos del plugin `Keyboard.addListener('keyboardWillShow')` y `keyboardWillHide`
+   - Implementar transición animada suave (slide down cuando keyboard aparece)
+   - Fallback a `visualViewport` para web
 
-**Archivo:** `src/contexts/LanguageContext.tsx`
-
-**Problemas detectados (líneas 153-157 ES, 1437-1441 EN):**
-
-| Clave | Valor Actual | Valor Correcto |
-|-------|--------------|----------------|
-| `auth.trialInfo` | "Prueba gratis por 4 días sin tarjeta requerida" | "Prueba de 3 días con tarjeta" |
-| `auth.freeTrial` | "Prueba gratuita de 4 días" | "Prueba de 3 días gratis" |
-| `auth.noCreditCard` | "Sin tarjeta de crédito requerida" | **ELIMINAR o cambiar** |
-
-**Corrección:**
+**Nuevo código para MobileBottomNav:**
 ```typescript
-// Línea 153
-"auth.trialInfo": "Prueba de 3 días gratis al suscribirte",
-// Línea 156  
-"auth.freeTrial": "3 días de prueba gratis",
-// Línea 157
-"auth.noCreditCard": "Prueba gratuita incluida",
+import { Keyboard } from '@capacitor/keyboard';
+import { Capacitor } from '@capacitor/core';
 
-// Líneas EN equivalentes (1437-1441)
-"auth.trialInfo": "3-day free trial with subscription",
-"auth.freeTrial": "3-day free trial",
-"auth.noCreditCard": "Free trial included",
+// En useEffect:
+if (Capacitor.isNativePlatform()) {
+  Keyboard.addListener('keyboardWillShow', () => {
+    setIsKeyboardOpen(true);
+  });
+  Keyboard.addListener('keyboardWillHide', () => {
+    setIsKeyboardOpen(false);
+  });
+} else {
+  // Fallback visualViewport para web
+}
 ```
 
----
+### Parte 3: Ajustar Safe Area en DashboardLayout
 
-### 3. Enlaces en Subscription.tsx usan `<a href>` (Guideline 3.1.2)
+**Archivo: `src/components/AnimatedRoutes.tsx`**
+- El padding-top del safe-area está bien, pero verificar que no haya duplicación
 
-**Archivo:** `src/pages/Subscription.tsx` (líneas 345-351)
+## Pasos de Implementación
 
-**Problema:** Los enlaces a Terms y Privacy usan `<a href>` que puede no funcionar correctamente en la app nativa iOS.
+1. **Instalar dependencia:** `@capacitor/keyboard`
+2. **Actualizar capacitor.config.ts** con configuración del plugin Keyboard
+3. **Modificar DashboardHeader.tsx:**
+   - `mb-6` → `mb-3`
+   - `min-h-[72px]` → `min-h-[56px]`
+4. **Modificar Dashboard.tsx:**
+   - `py-4` → `pt-2 pb-4`
+5. **Refactorizar MobileBottomNav.tsx:**
+   - Usar plugin Keyboard nativo con listeners
+   - Agregar animación de slide-down suave
+   - Mantener fallback visualViewport
 
-**Código actual:**
-```typescript
-<a href="/terms" className="hover:underline">
-<a href="/privacy" className="hover:underline">
-```
+## Resultado Esperado
 
-**Corrección:** Usar `<Link to>` de React Router (ya importado):
-```typescript
-import { Link } from 'react-router-dom'; // Ya está en otros archivos
-
-<Link to="/terms" className="hover:underline">
-<Link to="/privacy" className="hover:underline">
-```
-
----
-
-### 4. Precio en MXN en Subscription.tsx (Guideline 2.1)
-
-**Archivo:** `src/pages/Subscription.tsx` (línea 77)
-
-**Problema:** Muestra precio en MXN además de USD, pero Apple solo acepta USD para IAP.
-
-**Código actual:**
-```typescript
-price: "$150 MXN",
-priceUsd: "$7.99",
-```
-
-**Corrección:** Solo mostrar USD:
-```typescript
-price: "$7.99",
-priceUsd: "$7.99", // Mantener para compatibilidad
-```
-
----
-
-### 5. Referencias a Stripe en comentarios y hooks
-
-**Archivos afectados:**
-- `src/hooks/useSubscriptionLimits.ts` (líneas 36-45)
-- `src/pages/Dashboard.tsx` (línea 302)
-- `src/components/SubscriptionBanner.tsx` (líneas 27-28)
-
-**Problema:** Aunque funcionalmente usan Apple IAP, los comentarios mencionan "Stripe" lo cual puede confundir y no afecta directamente la revisión, pero debería limpiarse.
-
-**Ejemplo (Dashboard.tsx línea 302):**
-```typescript
-// Check subscription status on return from Stripe
-```
-
-**Corrección:** Actualizar comentarios a "Apple IAP" o simplemente "subscription".
-
----
-
-## 🟠 PROBLEMAS IMPORTANTES (Pueden Causar Rechazo)
-
-### 6. Falta Disclaimer de Salud Prominente
-
-**Guideline 5.1.1 - Data Collection and Storage / Health & Fitness**
-
-Aunque existe un disclaimer en Terms.tsx, Apple a veces rechaza apps de nutrición/fitness si no tienen un disclaimer visible durante el uso normal.
-
-**Recomendación:** Agregar un pequeño texto en la pantalla de Dashboard o Settings:
-```
-"Esta app no proporciona asesoramiento médico. 
-Consulta a un profesional antes de cambios en tu dieta."
-```
-
----
-
-### 7. Botón MoreHorizontal sin funcionalidad (Guideline 2.1)
-
-**Archivo:** `src/pages/AddFood.tsx` (líneas 341-343)
-
-**Problema:** Hay un botón con icono `MoreHorizontal` que no hace nada.
-
-**Código actual:**
-```typescript
-<button className="p-2">
-  <MoreHorizontal className="h-6 w-6" />
-</button>
-```
-
-**Corrección:** Eliminar o agregar funcionalidad (menú contextual).
-
----
-
-### 8. Safe Areas en Algunos Componentes
-
-**Archivos a verificar:**
-- `src/pages/PremiumPaywall.tsx` - ✅ Tiene safe-area-top
-- `src/pages/ChefIA.tsx` - Revisar bottom safe area para el input
-- `src/components/MobileBottomNav.tsx` - ✅ Correcto
-
-**ChefIA.tsx (líneas 760-800):** El área de input debe considerar el safe-area-inset-bottom cuando NO hay bottom nav visible.
-
----
-
-## 🟡 MEJORAS RECOMENDADAS (No causan rechazo pero mejoran UX)
-
-### 9. Header Estable (DashboardHeader.tsx)
-
-**Problema reportado:** Header cambia de tamaño inesperadamente.
-
-**Corrección en `src/components/DashboardHeader.tsx`:**
-```typescript
-// Línea 44-45: Agregar altura mínima fija
-<motion.div 
-  initial={{ opacity: 0 }}  // Cambiar de y: -10 a solo opacity
-  animate={{ opacity: 1 }}
-  className="mb-6 min-h-[72px]"  // Agregar min-h
->
-  // ... contenido ...
-  <span className="text-primary max-w-[150px] truncate inline-block">
-    {name}  // Truncar nombres largos
-  </span>
-```
-
----
-
-### 10. Footer Estable (MobileBottomNav.tsx)
-
-El footer ya tiene hardware acceleration, pero podría beneficiarse de ocultar cuando el teclado está abierto:
-
-```typescript
-// Agregar detección de teclado virtual
-const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
-
-useEffect(() => {
-  const handleResize = () => {
-    const isKeyboard = window.visualViewport 
-      ? window.visualViewport.height < window.innerHeight * 0.8
-      : false;
-    setIsKeyboardOpen(isKeyboard);
-  };
-
-  window.visualViewport?.addEventListener('resize', handleResize);
-  return () => window.visualViewport?.removeEventListener('resize', handleResize);
-}, []);
-
-// En el return: if (isKeyboardOpen) return null;
-```
-
----
-
-## 📋 CHECKLIST FINAL - LISTO PARA ENVIAR
-
-### Cumplimiento Apple (Crítico)
-- [ ] FAQ.tsx actualizado con 3 días + requiere pago Apple
-- [ ] LanguageContext.tsx actualizado (auth.trialInfo, auth.freeTrial, auth.noCreditCard)
-- [ ] Subscription.tsx: enlaces `<a>` → `<Link>`
-- [ ] Subscription.tsx: eliminar referencia a MXN
-- [ ] Botón "Restore Purchases" visible y funcional ✅ (Ya existe)
-- [ ] Delete Account funcional ✅ (Ya existe)
-- [ ] Terms y Privacy accesibles ✅ (Ya corregidos)
-- [ ] Legal text en paywalls ✅ (Ya existe)
-
-### Funcionalidad
-- [ ] iPad: Fallback timeout en CommitmentScreen ✅ (Ya agregado)
-- [ ] iPad: Botón continuar en FreeTrialRoulette ✅ (Ya agregado)
-- [ ] Código de influencer eliminado ✅ (Ya eliminado)
-- [ ] Botón MoreHorizontal en AddFood.tsx: eliminar o implementar
-
-### UX/UI
-- [ ] Header con altura fija (min-h-[72px])
-- [ ] Footer oculto cuando teclado visible
-- [ ] Nombres truncados en header
-- [ ] Animaciones solo opacity (sin y: -10)
-
----
-
-## Archivos a Modificar (Orden de Prioridad)
-
-| # | Archivo | Cambio | Prioridad |
-|---|---------|--------|-----------|
-| 1 | `src/pages/FAQ.tsx` | Actualizar trial 4→3, agregar requisito de pago | CRÍTICA |
-| 2 | `src/contexts/LanguageContext.tsx` | Actualizar traducciones auth.* | CRÍTICA |
-| 3 | `src/pages/Subscription.tsx` | `<a>` → `<Link>`, eliminar MXN | CRÍTICA |
-| 4 | `src/pages/AddFood.tsx` | Eliminar o implementar botón MoreHorizontal | ALTA |
-| 5 | `src/components/DashboardHeader.tsx` | Altura fija, truncate, solo opacity | MEDIA |
-| 6 | `src/components/MobileBottomNav.tsx` | Detección de teclado virtual | MEDIA |
-| 7 | Comentarios Stripe → IAP | Limpieza de código | BAJA |
-
----
-
-## Validación Post-Cambios
-
-1. **Probar en iPad Air 11"** (dispositivo de prueba de Apple)
-2. **Verificar flujo completo:** Onboarding → Registro → Paywall → Compra → Dashboard
-3. **Verificar enlaces** a Terms y Privacy desde todos los paywalls
-4. **Probar Restore Purchases** funciona correctamente
-5. **Verificar que no hay textos placeholder** o "Lorem ipsum"
-6. **Revisar que todos los botones tienen funcionalidad**
-
----
-
-## Notas para App Store Connect
-
-Al re-enviar, incluir en las notas para el revisor:
-
-```
-Cambios realizados en respuesta al rechazo:
-
-1. EULA/Terms actualizados con información correcta del trial de 3 días 
-   y Apple In-App Purchase
-2. Eliminado código promocional que podía confundirse con desbloqueo 
-   de contenido
-3. Corregida compatibilidad con iPad - agregados fallbacks de navegación
-4. Actualizados todos los textos de trial y suscripción para reflejar 
-   la configuración actual de Apple IAP
-5. Verificados enlaces funcionales a Términos y Privacidad
-
-Cuenta de prueba: [proporcionar si es necesario]
-```
+1. **Header más compacto:** ~30px menos de altura superior, apariencia de single header
+2. **Footer estable:** El nav inferior se oculta suavemente cuando el teclado aparece usando eventos nativos confiables
+3. **Compatibilidad:** Funciona en iOS nativo, Android y web
