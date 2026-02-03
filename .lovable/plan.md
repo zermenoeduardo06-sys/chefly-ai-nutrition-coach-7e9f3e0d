@@ -1,95 +1,202 @@
 
-# Plan: Solucionar Problemas de Layout en iOS
+# Plan: Estabilizar Layout Fijo de Header y Footer en iOS
 
-## Problemas Identificados
+## Resumen Ejecutivo
 
-### Problema 1: Header "Muy Alto" (Apariencia de Doble Header)
-Al analizar la captura de pantalla y el código, el problema es que hay **demasiado espacio vertical** entre la barra de estado de iOS y el saludo "¡Buenas noches". Esto crea la apariencia visual de dos headers.
+El layout actual tiene problemas de estabilidad en iOS porque:
+- El header no tiene altura fija estricta
+- El footer usa animaciones que pueden causar "saltos"
+- El contenido no está correctamente aislado del header/footer
 
-**Causas encontradas:**
-1. El `DashboardLayout` aplica `paddingTop: env(safe-area-inset-top)` a todo el contenedor
-2. Luego el `Dashboard.tsx` tiene `py-4` (16px) de padding adicional en el `<main>`
-3. El `DashboardHeader` tiene un `mb-6` (24px) de margen inferior
-4. El total resulta en ~90-100px de espacio superior, creando la ilusión de "doble header"
+Este plan reestructurará el layout para que header y footer sean elementos 100% fijos, con solo el contenido central scrolleable.
 
-### Problema 2: Footer que se "Levanta" Intermitentemente
-El enfoque actual con `visualViewport` tiene problemas:
+---
 
-1. **Solución actual incompleta:** Solo detecta si el viewport es < 80% de la altura de la ventana
-2. **No usa el plugin nativo de Capacitor Keyboard** que proporciona eventos más confiables
-3. **Transición abrupta:** El nav desaparece completamente en lugar de reposicionarse suavemente
+## Arquitectura Propuesta
 
-## Solución Propuesta
+```text
+┌─────────────────────────────────────────┐
+│           HEADER (h-[56px] FIJO)        │
+│    - Altura absoluta, nunca cambia      │
+│    - No depende del contenido           │
+├─────────────────────────────────────────┤
+│                                         │
+│           CONTENIDO (flex-1)            │
+│    - Único elemento scrolleable         │
+│    - overflow-y-auto                    │
+│                                         │
+├─────────────────────────────────────────┤
+│           FOOTER (h-[76px] FIJO)        │
+│    - Altura absoluta, nunca cambia      │
+│    - NO se oculta con teclado           │
+│    - position: fixed, bottom: 0         │
+└─────────────────────────────────────────┘
+```
 
-### Parte 1: Reducir Altura del Header
+---
 
-**Archivo: `src/components/DashboardHeader.tsx`**
-- Reducir el margen inferior de `mb-6` a `mb-4`
-- Reducir `min-h-[72px]` a `min-h-[56px]` para compactar más el header
+## Cambios Técnicos
 
-**Archivo: `src/pages/Dashboard.tsx`**
-- Reducir el padding superior del main de `py-4` a `pt-2 pb-4` para menos espacio arriba
+### 1. DashboardLayout (AnimatedRoutes.tsx)
 
-### Parte 2: Implementar Solución Robusta para el Footer
+**Problema**: El layout actual usa padding dinámico para safe areas y no tiene estructura rígida.
 
-**Enfoque: Usar el Plugin @capacitor/keyboard**
+**Solución**:
+- Cambiar a estructura flexbox vertical estricta con `h-[100dvh]`
+- Usar `flex-shrink-0` en header y footer para prevenir compresión
+- El contenido central usa `flex-1 min-h-0 overflow-y-auto`
 
-Según la documentación oficial de Capacitor y patrones de apps como YAZIO/MyFitnessPal:
+```tsx
+// Antes
+<div className="flex h-[100dvh] w-full" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
 
-1. **Instalar el plugin @capacitor/keyboard**
-2. **Configurar en capacitor.config.ts:**
-   ```typescript
-   plugins: {
-     Keyboard: {
-       resize: "none", // Prevenir que el WebView se redimensione
-       style: "dark"
-     }
-   }
-   ```
-3. **Actualizar MobileBottomNav.tsx:**
-   - Usar eventos nativos del plugin `Keyboard.addListener('keyboardWillShow')` y `keyboardWillHide`
-   - Implementar transición animada suave (slide down cuando keyboard aparece)
-   - Fallback a `visualViewport` para web
+// Después  
+<div className="fixed inset-0 flex flex-col bg-background">
+  {/* Safe area top - fijo */}
+  <div className="flex-shrink-0 bg-background" style={{ height: 'env(safe-area-inset-top, 0px)' }} />
+  
+  {/* Contenido principal - scrolleable */}
+  <main className="flex-1 min-h-0 overflow-y-auto">
+    <Outlet />
+  </main>
+  
+  {/* Footer se posiciona por separado */}
+</div>
+```
 
-**Nuevo código para MobileBottomNav:**
-```typescript
-import { Keyboard } from '@capacitor/keyboard';
-import { Capacitor } from '@capacitor/core';
+### 2. MobileBottomNav
 
-// En useEffect:
-if (Capacitor.isNativePlatform()) {
-  Keyboard.addListener('keyboardWillShow', () => {
-    setIsKeyboardOpen(true);
-  });
-  Keyboard.addListener('keyboardWillHide', () => {
-    setIsKeyboardOpen(false);
-  });
-} else {
-  // Fallback visualViewport para web
+**Problema**: Usa `AnimatePresence` para ocultarse con teclado, causando remontaje y "saltos".
+
+**Solución**:
+- Mantener el nav siempre montado
+- Usar CSS `visibility` y `transform` en lugar de desmontar/remontar
+- Altura fija de 76px + safe-area
+- Usar `position: fixed` con `translate-y` para ocultar en lugar de `AnimatePresence`
+- Quitar la lógica de detección de teclado que causa inestabilidad
+
+```tsx
+// Antes (inestable)
+<AnimatePresence>
+  {!isKeyboardOpen && (
+    <motion.nav initial={{ y: 100 }}>
+      ...
+    </motion.nav>
+  )}
+</AnimatePresence>
+
+// Después (estable)
+<nav 
+  className="fixed bottom-0 left-0 right-0 h-[76px] z-[9999]"
+  style={{ 
+    paddingBottom: 'env(safe-area-inset-bottom)',
+    transform: 'translateZ(0)',
+  }}
+>
+  ...
+</nav>
+```
+
+### 3. DashboardHeader
+
+**Problema**: Usa `min-h-[56px]` que permite crecimiento y animaciones de motion.
+
+**Solución**:
+- Cambiar a `h-14` (56px) altura fija absoluta
+- Quitar `min-h-*` 
+- Simplificar animaciones (solo opacity, sin transforms)
+- Truncar contenido que exceda
+
+```tsx
+// Antes
+<motion.div className="mb-3 min-h-[56px]">
+
+// Después
+<div className="h-14 flex-shrink-0 px-4 flex items-center justify-between">
+```
+
+### 4. Dashboard.tsx y otras páginas
+
+**Problema**: Usan `min-h-full` y `min-h-screen` que causan recálculos.
+
+**Solución**:
+- Cambiar a `h-full` donde corresponda
+- Asegurar que el contenido respete los límites del contenedor padre
+- Agregar `overflow-hidden` al contenedor padre
+
+```tsx
+// Antes
+<div className="min-h-full bg-gradient-to-b ...">
+
+// Después
+<div className="h-full bg-gradient-to-b ... overflow-x-hidden">
+```
+
+### 5. index.css - Estilos Base
+
+**Agregar reglas CSS para estabilidad**:
+
+```css
+/* Ignorar teclado para safe areas */
+html {
+  -webkit-touch-callout: none;
+}
+
+/* Footer siempre fijo */
+.fixed-footer {
+  position: fixed !important;
+  bottom: 0 !important;
+  transform: translateZ(0);
+  will-change: auto;
+}
+
+/* Contenedor de layout principal */
+.app-shell {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.app-content {
+  flex: 1 1 0%;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
 }
 ```
 
-### Parte 3: Ajustar Safe Area en DashboardLayout
+---
 
-**Archivo: `src/components/AnimatedRoutes.tsx`**
-- El padding-top del safe-area está bien, pero verificar que no haya duplicación
+## Archivos a Modificar
 
-## Pasos de Implementación
+1. **src/components/AnimatedRoutes.tsx** - Reestructurar DashboardLayout
+2. **src/components/MobileBottomNav.tsx** - Simplificar a elemento fijo sin AnimatePresence
+3. **src/components/DashboardHeader.tsx** - Altura fija, sin animaciones de layout
+4. **src/pages/Dashboard.tsx** - Adaptar contenedor principal
+5. **src/index.css** - Agregar clases de utilidad para layout fijo
+6. **capacitor.config.ts** - Confirmar `Keyboard: { resize: 'none' }`
 
-1. **Instalar dependencia:** `@capacitor/keyboard`
-2. **Actualizar capacitor.config.ts** con configuración del plugin Keyboard
-3. **Modificar DashboardHeader.tsx:**
-   - `mb-6` → `mb-3`
-   - `min-h-[72px]` → `min-h-[56px]`
-4. **Modificar Dashboard.tsx:**
-   - `py-4` → `pt-2 pb-4`
-5. **Refactorizar MobileBottomNav.tsx:**
-   - Usar plugin Keyboard nativo con listeners
-   - Agregar animación de slide-down suave
-   - Mantener fallback visualViewport
+---
 
-## Resultado Esperado
+## Comportamiento Esperado
 
-1. **Header más compacto:** ~30px menos de altura superior, apariencia de single header
-2. **Footer estable:** El nav inferior se oculta suavemente cuando el teclado aparece usando eventos nativos confiables
-3. **Compatibilidad:** Funciona en iOS nativo, Android y web
+| Escenario | Header | Footer | Contenido |
+|-----------|--------|--------|-----------|
+| Normal | Fijo 56px | Fijo 76px | Scrolleable |
+| Teclado abierto | Sin cambio | Sin cambio | Scrolleable |
+| Animación ruta | Sin cambio | Sin cambio | Fade 80ms |
+| Contenido largo | Sin cambio | Sin cambio | Scroll interno |
+| Safe areas iOS | Respetadas | Respetadas | - |
+
+---
+
+## Resultado Final
+
+- Header de 56px que nunca cambia de tamaño
+- Footer de 76px + safe-area que nunca se levanta ni flota
+- Solo el contenido central hace scroll
+- Estabilidad 100% en iOS sin importar teclado o navegación
+- Rendimiento optimizado sin re-renders innecesarios
