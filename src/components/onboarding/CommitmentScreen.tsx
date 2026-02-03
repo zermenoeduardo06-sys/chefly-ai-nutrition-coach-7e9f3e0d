@@ -166,6 +166,17 @@ export const CommitmentScreen: React.FC = () => {
     };
   }, []);
 
+  // Fallback navigation for iPad compatibility
+  useEffect(() => {
+    if (isCompleted) {
+      const fallbackTimeout = setTimeout(() => {
+        console.warn('[CommitmentScreen] Fallback navigation triggered');
+        navigate('/trial-roulette', { replace: true });
+      }, 5000);
+      return () => clearTimeout(fallbackTimeout);
+    }
+  }, [isCompleted, navigate]);
+
   // SVG circle calculations
   const size = 200;
   const strokeWidth = 8;

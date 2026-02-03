@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useHaptics } from '@/hooks/useHaptics';
+import { useIsMobile } from '@/hooks/use-mobile';
 import confetti from 'canvas-confetti';
 import mascotHappy from '@/assets/mascot-happy.png';
 
@@ -23,12 +24,14 @@ export const FreeTrialRoulette = () => {
   const navigate = useNavigate();
   const { language } = useLanguage();
   const { selectionChanged, warningNotification, successNotification, celebrationPattern } = useHaptics();
+  const isMobile = useIsMobile();
   
   const [rotation, setRotation] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
   const [spinsRemaining, setSpinsRemaining] = useState(2);
   const [result, setResult] = useState<string | null>(null);
   const [showResult, setShowResult] = useState(false);
+  const [showContinueButton, setShowContinueButton] = useState(false);
   const hapticIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const texts = {
@@ -38,6 +41,7 @@ export const FreeTrialRoulette = () => {
       spinAgain: '¡Girar de nuevo!',
       almost: '¡Casi! Tienes otro intento',
       won: '¡Ganaste!',
+      continue: 'Continuar',
     },
     en: {
       title: 'Spin to win free days!',
@@ -45,10 +49,14 @@ export const FreeTrialRoulette = () => {
       spinAgain: 'Spin again!',
       almost: 'So close! You have another try',
       won: 'You won!',
+      continue: 'Continue',
     },
   };
 
   const t = texts[language];
+
+  // Reduce particle count for tablets for better performance
+  const particleCount = isMobile ? 20 : 10;
 
   // Cleanup haptic interval on unmount
   useEffect(() => {
@@ -65,6 +73,7 @@ export const FreeTrialRoulette = () => {
     setIsSpinning(true);
     setShowResult(false);
     setResult(null);
+    setShowContinueButton(false);
 
     // Start haptic feedback during spin
     hapticIntervalRef.current = setInterval(() => {
@@ -116,10 +125,15 @@ export const FreeTrialRoulette = () => {
           colors: ['#a3e635', '#22d3ee', '#facc15', '#f472b6'],
         });
 
-        // Navigate after celebration
+        // Show continue button as fallback
+        setTimeout(() => {
+          setShowContinueButton(true);
+        }, 1000);
+
+        // Navigate after celebration (with longer delay for iPad)
         setTimeout(() => {
           navigate('/trial-won', { replace: true });
-        }, 1500);
+        }, 2500);
       } else {
         // First spin - lose
         warningNotification();
@@ -129,18 +143,22 @@ export const FreeTrialRoulette = () => {
     }, spinDuration);
   };
 
+  const handleContinue = () => {
+    navigate('/trial-won', { replace: true });
+  };
+
   return (
     <div 
-      className="min-h-[100dvh] flex flex-col items-center justify-center p-6 overflow-hidden"
+      className="min-h-screen min-h-[100dvh] flex flex-col items-center justify-center p-6 overflow-hidden"
       style={{
         background: 'linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--card)) 50%, hsl(var(--background)) 100%)',
         paddingTop: 'env(safe-area-inset-top, 24px)',
         paddingBottom: 'env(safe-area-inset-bottom, 24px)',
       }}
     >
-      {/* Floating particles */}
+      {/* Floating particles - reduced for tablets */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(20)].map((_, i) => (
+        {[...Array(particleCount)].map((_, i) => (
           <motion.div
             key={i}
             className="absolute w-2 h-2 rounded-full bg-primary/20"
@@ -285,6 +303,18 @@ export const FreeTrialRoulette = () => {
           language === 'es' ? 'Sin intentos' : 'No spins left'
         )}
       </motion.button>
+
+      {/* Continue button fallback for iPad */}
+      {showContinueButton && (
+        <motion.button
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          onClick={handleContinue}
+          className="mt-4 px-8 py-3 rounded-full bg-primary text-primary-foreground font-bold shadow-lg"
+        >
+          {t.continue}
+        </motion.button>
+      )}
 
       {/* Spins remaining indicator */}
       <p className="mt-4 text-sm text-muted-foreground">

@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -89,7 +89,7 @@ export const TrialActivation = () => {
 
   return (
     <div 
-      className="min-h-[100dvh] flex flex-col p-6 overflow-hidden"
+      className="min-h-screen min-h-[100dvh] flex flex-col p-6 overflow-hidden"
       style={{
         background: 'linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--card)) 50%, hsl(var(--background)) 100%)',
         paddingTop: 'env(safe-area-inset-top, 24px)',
@@ -255,12 +255,12 @@ export const TrialActivation = () => {
 
         {/* Links */}
         <div className="flex justify-center gap-4 text-[10px] text-muted-foreground">
-          <a href="/terms" className="hover:underline">
+          <Link to="/terms" className="hover:underline">
             {language === 'es' ? 'Términos' : 'Terms'}
-          </a>
-          <a href="/privacy" className="hover:underline">
+          </Link>
+          <Link to="/privacy" className="hover:underline">
             {language === 'es' ? 'Privacidad' : 'Privacy'}
-          </a>
+          </Link>
         </div>
       </div>
     </div>

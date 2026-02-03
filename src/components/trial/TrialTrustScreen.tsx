@@ -66,7 +66,7 @@ export const TrialTrustScreen = () => {
 
   return (
     <div 
-      className="min-h-[100dvh] flex flex-col p-6 overflow-hidden"
+      className="min-h-screen min-h-[100dvh] flex flex-col p-6 overflow-hidden"
       style={{
         background: 'linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--card)) 100%)',
         paddingTop: 'env(safe-area-inset-top, 24px)',
