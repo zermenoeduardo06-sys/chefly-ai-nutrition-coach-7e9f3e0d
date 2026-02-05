@@ -105,6 +105,9 @@ const Dashboard = () => {
   const [preferencesChecked, setPreferencesChecked] = useState(false);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const redirectingRef = useRef(false);
+  
+  // Track previous userId to detect user changes (not initial mount)
+  const previousUserIdRef = useRef<string | undefined>(undefined);
   const [generating, setGenerating] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const [mealPlan, setMealPlan] = useState<MealPlan | null>(null);
@@ -246,37 +249,45 @@ const Dashboard = () => {
     }
   }, [authUser?.id]);
 
-  // Clear all local state when userId changes to prevent flash of previous user's data
+  // Clear all local state when userId CHANGES to prevent flash of previous user's data
+  // Only reset when switching from one user to another, NOT on initial mount
   useEffect(() => {
-    if (userId === undefined) return; // Skip on initial mount
+    const prevId = previousUserIdRef.current;
+    previousUserIdRef.current = userId;
     
-    // Reset all user-specific state to prevent showing previous user's data
-    setProfile(null);
-    setMealPlan(null);
-    setUserStats({
-      total_points: 0,
-      current_streak: 0,
-      longest_streak: 0,
-      meals_completed: 0,
-      level: 1,
-    });
-    setCompletedMeals(new Set());
-    setPreferencesChecked(false);
-    setInitialLoadComplete(false);
-    redirectingRef.current = false;
+    // Only reset if we're switching from one valid user to another different user
+    // Skip on initial mount (prevId === undefined) or when logging out (userId === undefined)
+    if (prevId !== undefined && userId !== undefined && prevId !== userId) {
+      setProfile(null);
+      setMealPlan(null);
+      setUserStats({
+        total_points: 0,
+        current_streak: 0,
+        longest_streak: 0,
+        meals_completed: 0,
+        level: 1,
+      });
+      setCompletedMeals(new Set());
+      setPreferencesChecked(false);
+      setInitialLoadComplete(false);
+      redirectingRef.current = false;
+    }
   }, [userId]);
 
-  // Import prefetch hook
+  // Import prefetch hook - use ref to avoid dependency changes triggering re-renders
   const { prefetchAll } = usePrefetch(userId);
+  const prefetchAllRef = useRef(prefetchAll);
+  prefetchAllRef.current = prefetchAll;
 
   // Load data when userId is available + prefetch other pages
+  // CRITICAL: Only depend on userId, use ref for prefetchAll to avoid infinite loop
   useEffect(() => {
     if (userId) {
       checkPreferencesAndLoadData();
       // Prefetch other pages in background for instant navigation
-      prefetchAll();
+      prefetchAllRef.current();
     }
-  }, [userId, prefetchAll]);
+  }, [userId]);
 
   // Safety timeout: show error message if preferences check takes too long (10 seconds)
   useEffect(() => {
