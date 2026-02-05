@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -234,8 +235,8 @@ export const OnboardingAuthStep: React.FC<OnboardingAuthStepProps> = ({
 
         <p className="text-xs text-center text-muted-foreground mt-4">
           Al continuar, aceptas nuestros{' '}
-          <a href="/terms" className="underline">Términos</a> y{' '}
-          <a href="/privacy" className="underline">Privacidad</a>
+          <Link to="/terms" className="underline">Términos</Link> y{' '}
+          <Link to="/privacy" className="underline">Privacidad</Link>
         </p>
       </motion.div>
     </div>

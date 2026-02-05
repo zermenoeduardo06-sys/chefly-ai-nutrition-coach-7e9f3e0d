@@ -96,9 +96,9 @@ export const CommitmentScreen: React.FC = () => {
       setShowLoader(true);
     }, 1000);
     
-    // Navigate to trial roulette flow
+    // Navigate directly to dashboard (trial flow removed for App Store compliance)
     setTimeout(() => {
-      navigate('/trial-roulette', { replace: true });
+      navigate('/dashboard', { replace: true });
     }, 3000);
   }, [navigate, successNotification, celebrationPattern, fireConfetti]);
 
@@ -171,7 +171,7 @@ export const CommitmentScreen: React.FC = () => {
     if (isCompleted) {
       const fallbackTimeout = setTimeout(() => {
         console.warn('[CommitmentScreen] Fallback navigation triggered');
-        navigate('/trial-roulette', { replace: true });
+        navigate('/dashboard', { replace: true });
       }, 5000);
       return () => clearTimeout(fallbackTimeout);
     }

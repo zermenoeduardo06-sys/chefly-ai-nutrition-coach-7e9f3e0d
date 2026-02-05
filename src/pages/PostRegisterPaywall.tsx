@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { X, Check, Crown, Sparkles, Camera, MessageCircle, Users, RefreshCcw, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -258,6 +258,13 @@ export default function PostRegisterPaywall() {
         >
           {t.skipBtn}
         </motion.button>
+
+        {/* Legal Links */}
+        <div className="text-center text-xs text-muted-foreground">
+          <Link to="/terms" className="underline">{language === 'es' ? 'Términos de Uso' : 'Terms of Use'}</Link>
+          {" · "}
+          <Link to="/privacy" className="underline">{language === 'es' ? 'Política de Privacidad' : 'Privacy Policy'}</Link>
+        </div>
       </div>
 
       {/* iOS IAP Paywall */}
