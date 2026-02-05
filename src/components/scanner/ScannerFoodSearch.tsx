@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Star, Clock, TrendingUp, Plus, Loader2, Utensils, Check, CheckCircle2, Crown } from 'lucide-react';
+import { Search, Star, Clock, TrendingUp, Plus, Loader2, Utensils } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useFoodDatabase, Food } from '@/hooks/useFoodDatabase';
@@ -13,7 +13,6 @@ import { useInvalidateFoodIntake } from '@/hooks/useDailyFoodIntake';
 import { useInvalidateNutritionSummary } from '@/hooks/useNutritionSummary';
 import { Card3D } from '@/components/ui/card-3d';
 import { cn } from '@/lib/utils';
-import { useSubscriptionLimits } from '@/hooks/useSubscriptionLimits';
 
 interface ScannerFoodSearchProps {
   mealType: string;
@@ -33,7 +32,6 @@ const ScannerFoodSearch: React.FC<ScannerFoodSearchProps> = ({
   const { triggerXP } = useXPAnimation();
   const invalidateFoodIntake = useInvalidateFoodIntake();
   const invalidateNutritionSummary = useInvalidateNutritionSummary();
-  const { limits } = useSubscriptionLimits(userId);
   const {
     searchFoods,
     getRecentFoods,
@@ -50,11 +48,6 @@ const ScannerFoodSearch: React.FC<ScannerFoodSearchProps> = ({
   const [filteredFoods, setFilteredFoods] = useState<Food[]>([]);
   const [addingFoodId, setAddingFoodId] = useState<string | null>(null);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
-  
-  // Multi-select state for premium users
-  const [selectedFoods, setSelectedFoods] = useState<Set<string>>(new Set());
-  const [isAddingMultiple, setIsAddingMultiple] = useState(false);
-  const isMultiSelectEnabled = limits.isCheflyPlus;
 
   const texts = {
     es: {
@@ -66,10 +59,7 @@ const ScannerFoodSearch: React.FC<ScannerFoodSearchProps> = ({
       trySearch: 'Intenta buscar otro término',
       added: 'añadido',
       portion: 'porción',
-      cal: 'kcal',
-      addSelected: 'Agregar seleccionados',
-      selected: 'seleccionados',
-      multiSelectHint: 'Toca para seleccionar varios',
+      cal: 'kcal'
     },
     en: {
       searchPlaceholder: 'Search food...',
@@ -80,10 +70,7 @@ const ScannerFoodSearch: React.FC<ScannerFoodSearchProps> = ({
       trySearch: 'Try searching another term',
       added: 'added',
       portion: 'portion',
-      cal: 'kcal',
-      addSelected: 'Add selected',
-      selected: 'selected',
-      multiSelectHint: 'Tap to select multiple',
+      cal: 'kcal'
     }
   };
 
@@ -179,77 +166,6 @@ const ScannerFoodSearch: React.FC<ScannerFoodSearchProps> = ({
     }
   };
 
-  // Toggle selection for multi-select (premium only)
-  const handleToggleSelection = (foodId: string) => {
-    setSelectedFoods(prev => {
-      const updated = new Set(prev);
-      if (updated.has(foodId)) {
-        updated.delete(foodId);
-      } else {
-        updated.add(foodId);
-      }
-      return updated;
-    });
-  };
-
-  // Add all selected foods at once (premium only)
-  const handleAddSelectedFoods = async () => {
-    if (selectedFoods.size === 0) return;
-    
-    setIsAddingMultiple(true);
-    const foodsToAdd = displayFoods.filter(f => selectedFoods.has(f.id));
-    const scannedAt = createMealTimestamp(selectedDate, mealType);
-    
-    try {
-      const insertData = foodsToAdd.map(food => ({
-        user_id: userId,
-        dish_name: food.name || 'Unknown food',
-        calories: Math.round(Number(food.calories) || 0),
-        protein: Math.round(Number(food.protein) || 0),
-        carbs: Math.round(Number(food.carbs) || 0),
-        fat: Math.round(Number(food.fats) || 0),
-        fiber: Math.round(Number(food.fiber) || 0),
-        meal_type: mealType,
-        portion_estimate: food.portion || '1 porción',
-        confidence: 'high' as const,
-        foods_identified: [food.name],
-        notes: `${language === 'es' ? 'Añadido manualmente' : 'Added manually'}`,
-        scanned_at: scannedAt,
-      }));
-
-      const { error } = await supabase
-        .from('food_scans')
-        .insert(insertData);
-
-      if (error) throw error;
-
-      // Track usage for all foods
-      await Promise.all(foodsToAdd.map(f => trackFoodUsage(f.id)));
-
-      const totalCalories = foodsToAdd.reduce((sum, f) => sum + (Number(f.calories) || 0), 0);
-      triggerXP(10 * foodsToAdd.length, 'food', { x: window.innerWidth / 2, y: window.innerHeight / 2 });
-      invalidateFoodIntake();
-      invalidateNutritionSummary();
-
-      toast({
-        title: `${foodsToAdd.length} ${language === 'es' ? 'alimentos agregados' : 'foods added'}`,
-        description: `+${totalCalories} ${t.cal}`,
-      });
-
-      setSelectedFoods(new Set());
-      onFoodAdded();
-    } catch (error) {
-      console.error('Error adding foods:', error);
-      toast({
-        title: language === 'es' ? 'Error' : 'Error',
-        description: language === 'es' ? 'No se pudieron agregar los alimentos' : 'Could not add foods',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsAddingMultiple(false);
-    }
-  };
-
   const handleToggleFavorite = async (foodId: string) => {
     const newState = await toggleFavorite(foodId);
     setFavorites(prev => {
@@ -277,18 +193,6 @@ const ScannerFoodSearch: React.FC<ScannerFoodSearchProps> = ({
           className="pl-11 h-12 bg-muted/50 border-2 border-border/50 rounded-2xl shadow-[inset_0_2px_4px_rgba(0,0,0,0.06)] focus:shadow-[inset_0_2px_4px_rgba(0,0,0,0.06),0_0_0_2px_hsl(var(--primary)/0.2)] transition-shadow"
         />
       </div>
-
-      {/* Multi-select hint for premium users */}
-      {isMultiSelectEnabled && displayFoods.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-2 mb-3 px-2"
-        >
-          <Crown className="h-3.5 w-3.5 text-amber-500" />
-          <span className="text-xs text-muted-foreground">{t.multiSelectHint}</span>
-        </motion.div>
-      )}
 
       {/* Filter Tabs - 3D Pills */}
       {!searchQuery && (
@@ -318,7 +222,7 @@ const ScannerFoodSearch: React.FC<ScannerFoodSearchProps> = ({
       )}
 
       {/* Food List */}
-      <div className="flex-1 overflow-y-auto space-y-2 pb-20">
+      <div className="flex-1 overflow-y-auto space-y-2">
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -337,135 +241,55 @@ const ScannerFoodSearch: React.FC<ScannerFoodSearchProps> = ({
           </motion.div>
         ) : (
           <AnimatePresence mode="popLayout">
-            {displayFoods.map((food, index) => {
-              const isSelected = selectedFoods.has(food.id);
-              
-              return (
-                <motion.div
-                  key={food.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ delay: index * 0.03 }}
-                  whileHover={{ y: -2 }}
-                  whileTap={{ y: 1 }}
-                >
-                  <Card3D 
-                    variant="default" 
-                    hover={false} 
-                    className={cn(
-                      "p-3 flex items-center justify-between transition-all",
-                      isSelected && "ring-2 ring-primary bg-primary/5"
-                    )}
-                  >
-                    {/* Selection checkbox for premium users */}
-                    {isMultiSelectEnabled && (
-                      <button
-                        onClick={() => handleToggleSelection(food.id)}
-                        className={cn(
-                          "h-6 w-6 rounded-lg mr-3 flex items-center justify-center flex-shrink-0 transition-all",
-                          isSelected 
-                            ? "bg-primary text-primary-foreground shadow-[0_2px_0_hsl(var(--primary)/0.4)]" 
-                            : "bg-muted border-2 border-border"
-                        )}
-                      >
-                        {isSelected && <Check className="h-4 w-4" />}
-                      </button>
-                    )}
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="font-semibold text-foreground truncate">
-                          {language === 'en' && food.name_en ? food.name_en : food.name}
-                        </p>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleToggleFavorite(food.id);
-                          }}
-                          className="flex-shrink-0"
-                        >
-                          <Star 
-                            className={`h-4 w-4 transition-colors ${favorites.has(food.id) ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground hover:text-amber-400'}`} 
-                          />
-                        </button>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {food.portion} · <span className="font-semibold text-primary">{food.calories} {t.cal}</span>
+            {displayFoods.map((food, index) => (
+              <motion.div
+                key={food.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ delay: index * 0.03 }}
+                whileHover={{ y: -2 }}
+                whileTap={{ y: 1 }}
+              >
+                <Card3D variant="default" hover={false} className="p-3 flex items-center justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-foreground truncate">
+                        {language === 'en' && food.name_en ? food.name_en : food.name}
                       </p>
+                      <button
+                        onClick={() => handleToggleFavorite(food.id)}
+                        className="flex-shrink-0"
+                      >
+                        <Star 
+                          className={`h-4 w-4 transition-colors ${favorites.has(food.id) ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground hover:text-amber-400'}`} 
+                        />
+                      </button>
                     </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {food.portion} · <span className="font-semibold text-primary">{food.calories} {t.cal}</span>
+                    </p>
+                  </div>
 
-                    {/* Single add button (shown when not in multi-select or as quick-add) */}
-                    {!isMultiSelectEnabled && (
-                      <Button
-                        size="sm"
-                        className="h-9 w-9 p-0 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary shadow-[0_2px_0_hsl(var(--primary)/0.2)] active:translate-y-0.5 active:shadow-none transition-all"
-                        variant="ghost"
-                        onClick={() => handleAddFood(food)}
-                        disabled={addingFoodId === food.id}
-                      >
-                        {addingFoodId === food.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Plus className="h-4 w-4" />
-                        )}
-                      </Button>
+                  <Button
+                    size="sm"
+                    className="h-9 w-9 p-0 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary shadow-[0_2px_0_hsl(var(--primary)/0.2)] active:translate-y-0.5 active:shadow-none transition-all"
+                    variant="ghost"
+                    onClick={() => handleAddFood(food)}
+                    disabled={addingFoodId === food.id}
+                  >
+                    {addingFoodId === food.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Plus className="h-4 w-4" />
                     )}
-                    
-                    {/* Quick add for premium when item is not selected */}
-                    {isMultiSelectEnabled && !isSelected && (
-                      <Button
-                        size="sm"
-                        className="h-8 w-8 p-0 rounded-lg bg-muted hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all"
-                        variant="ghost"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAddFood(food);
-                        }}
-                        disabled={addingFoodId === food.id}
-                      >
-                        {addingFoodId === food.id ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                          <Plus className="h-3.5 w-3.5" />
-                        )}
-                      </Button>
-                    )}
-                  </Card3D>
-                </motion.div>
-              );
-            })}
+                  </Button>
+                </Card3D>
+              </motion.div>
+            ))}
           </AnimatePresence>
         )}
       </div>
-
-      {/* Floating Add Selected Button (Premium Only) */}
-      <AnimatePresence>
-        {isMultiSelectEnabled && selectedFoods.size > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-24 left-4 right-4 max-w-2xl mx-auto z-50"
-          >
-            <Button
-              onClick={handleAddSelectedFoods}
-              disabled={isAddingMultiple}
-              size="lg"
-              className="w-full gap-2 rounded-2xl h-14 font-bold shadow-[0_4px_0_hsl(var(--primary)/0.4),0_8px_20px_rgba(0,0,0,0.25)] active:translate-y-1 active:shadow-[0_2px_0_hsl(var(--primary)/0.4)] transition-all"
-            >
-              {isAddingMultiple ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                <>
-                  <CheckCircle2 className="h-5 w-5" />
-                  {t.addSelected} ({selectedFoods.size})
-                </>
-              )}
-            </Button>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };

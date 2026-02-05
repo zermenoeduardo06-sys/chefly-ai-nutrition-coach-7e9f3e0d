@@ -72,49 +72,36 @@ const DashboardLayout = () => {
 
   return (
     <SidebarProvider>
-      {/* App shell - fixed container that never moves */}
-      <div className="fixed inset-0 flex flex-col bg-background overflow-hidden">
-        {/* Safe area spacer - fixed height, never changes */}
-        <div 
-          className="flex-shrink-0 bg-background" 
-          style={{ height: 'env(safe-area-inset-top, 0px)' }} 
-        />
-        
-        {/* Main layout with optional sidebar */}
-        <div className="flex flex-1 min-h-0 w-full">
-          {/* Sidebar only visible on lg+ (desktop) */}
-          <div className="hidden lg:block flex-shrink-0">
-            <AppSidebar />
-          </div>
-          
-          <div className="flex-1 flex flex-col min-w-0 min-h-0">
-            {/* Desktop header - fixed height */}
-            <header className="hidden lg:flex h-14 border-b bg-card items-center px-4 flex-shrink-0">
-              <SidebarTrigger />
-            </header>
-            
-            {/* Scrollable content area - ONLY this scrolls */}
-            <main 
-              ref={mainRef}
-              className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden pb-[calc(76px+env(safe-area-inset-bottom,0px))] lg:pb-0 scroll-touch bg-background"
-            >
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.div
-                  key={location.pathname}
-                  initial={{ opacity: 0.5 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0.5 }}
-                  transition={{ duration: 0.08 }}
-                >
-                  <Outlet />
-                </motion.div>
-              </AnimatePresence>
-            </main>
-          </div>
+      <div className="flex h-[100dvh] w-full bg-background overflow-hidden" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+        {/* Sidebar only visible on lg+ (desktop) */}
+        <div className="hidden lg:block">
+          <AppSidebar />
+        </div>
+        <div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden">
+          {/* Header only visible on lg+ (desktop) */}
+          <header className="hidden lg:flex h-14 border-b bg-card sticky top-0 z-40 items-center px-4 flex-shrink-0">
+            <SidebarTrigger />
+          </header>
+          <main 
+            ref={mainRef}
+            className="flex-1 overflow-y-auto overflow-x-hidden pb-mobile-nav lg:pb-0 scroll-touch bg-background"
+          >
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={location.pathname}
+                initial={{ opacity: 0.5 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0.5 }}
+                transition={{ duration: 0.08 }}
+                className="min-h-full"
+              >
+                <Outlet />
+              </motion.div>
+            </AnimatePresence>
+          </main>
         </div>
       </div>
-      
-      {/* Bottom nav - fixed position, never moves */}
+      {/* Bottom nav visible on mobile AND tablet (hidden on lg+) */}
       <MobileBottomNav />
     </SidebarProvider>
   );

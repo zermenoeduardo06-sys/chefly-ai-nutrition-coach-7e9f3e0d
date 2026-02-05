@@ -151,14 +151,10 @@ export function ScannerCamera({ onImageCapture, isAnalyzing, previewImage }: Sca
     if (isNative) {
       captureWithNativeCamera(CameraSource.Camera);
     } else {
-      // Create and trigger file input programmatically for web
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = 'image/*';
       input.capture = 'environment';
-      input.style.display = 'none';
-      document.body.appendChild(input);
-      
       input.onchange = (e) => {
         const file = (e.target as HTMLInputElement).files?.[0];
         if (file) {
@@ -169,12 +165,8 @@ export function ScannerCamera({ onImageCapture, isAnalyzing, previewImage }: Sca
           };
           reader.readAsDataURL(file);
         }
-        // Clean up after use
-        document.body.removeChild(input);
       };
-      
-      // Use setTimeout to ensure the input is in DOM before click
-      setTimeout(() => input.click(), 0);
+      input.click();
     }
   };
 
@@ -182,27 +174,7 @@ export function ScannerCamera({ onImageCapture, isAnalyzing, previewImage }: Sca
     if (isNative) {
       captureWithNativeCamera(CameraSource.Photos);
     } else {
-      // Create and trigger file input for gallery selection
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = 'image/*';
-      input.style.display = 'none';
-      document.body.appendChild(input);
-      
-      input.onchange = (e) => {
-        const file = (e.target as HTMLInputElement).files?.[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = (ev) => {
-            const base64 = ev.target?.result as string;
-            onImageCapture(base64);
-          };
-          reader.readAsDataURL(file);
-        }
-        document.body.removeChild(input);
-      };
-      
-      setTimeout(() => input.click(), 0);
+      fileInputRef.current?.click();
     }
   };
 
