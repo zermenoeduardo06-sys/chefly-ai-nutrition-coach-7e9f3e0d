@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { X, Check, Sparkles, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -258,6 +258,13 @@ export default function PremiumPaywall() {
         >
           {t.cancel}
         </motion.p>
+
+        {/* Legal Links */}
+        <div className="text-center text-xs text-muted-foreground pt-2">
+          <Link to="/terms" className="underline">{language === 'es' ? 'Términos de Uso' : 'Terms of Use'}</Link>
+          {" · "}
+          <Link to="/privacy" className="underline">{language === 'es' ? 'Política de Privacidad' : 'Privacy Policy'}</Link>
+        </div>
       </div>
 
       {/* iOS IAP Paywall */}

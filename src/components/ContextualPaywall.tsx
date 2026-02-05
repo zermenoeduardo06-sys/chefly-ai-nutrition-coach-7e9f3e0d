@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Crown, Camera, CheckCircle2, Sparkles, Zap, Utensils, MessageSquare } from "lucide-react";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import mascotHappy from "@/assets/mascot-happy.png";
 
 interface ContextualPaywallProps {
@@ -236,6 +236,12 @@ export default function ContextualPaywall({
             >
               {t.cancel}
             </button>
+            {/* Legal Links */}
+            <div className="text-center text-xs text-muted-foreground pt-1">
+              <Link to="/terms" className="underline">{language === 'es' ? 'Términos de Uso' : 'Terms of Use'}</Link>
+              {" · "}
+              <Link to="/privacy" className="underline">{language === 'es' ? 'Política de Privacidad' : 'Privacy Policy'}</Link>
+            </div>
           </div>
         </div>
       </DialogContent>
