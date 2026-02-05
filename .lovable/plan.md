@@ -1,95 +1,105 @@
 
-# Plan: Solucionar Problemas de Layout en iOS
 
-## Problemas Identificados
+# Plan: Correcciones para Apple App Store (Sin Trial)
 
-### Problema 1: Header "Muy Alto" (Apariencia de Doble Header)
-Al analizar la captura de pantalla y el código, el problema es que hay **demasiado espacio vertical** entre la barra de estado de iOS y el saludo "¡Buenas noches". Esto crea la apariencia visual de dos headers.
+## Resumen de Cambios
 
-**Causas encontradas:**
-1. El `DashboardLayout` aplica `paddingTop: env(safe-area-inset-top)` a todo el contenedor
-2. Luego el `Dashboard.tsx` tiene `py-4` (16px) de padding adicional en el `<main>`
-3. El `DashboardHeader` tiene un `mb-6` (24px) de margen inferior
-4. El total resulta en ~90-100px de espacio superior, creando la ilusión de "doble header"
+Este plan corrige todos los problemas reportados por Apple y **elimina completamente el flujo de trial gratuito** (se agregará en el futuro).
 
-### Problema 2: Footer que se "Levanta" Intermitentemente
-El enfoque actual con `visualViewport` tiene problemas:
+---
 
-1. **Solución actual incompleta:** Solo detecta si el viewport es < 80% de la altura de la ventana
-2. **No usa el plugin nativo de Capacitor Keyboard** que proporciona eventos más confiables
-3. **Transición abrupta:** El nav desaparece completamente en lugar de reposicionarse suavemente
+## Cambios a Realizar
 
-## Solución Propuesta
+### 1. Eliminar Flujo de Ruleta y Trial (Guideline 3.1.1)
 
-### Parte 1: Reducir Altura del Header
+**Archivos a modificar:**
 
-**Archivo: `src/components/DashboardHeader.tsx`**
-- Reducir el margen inferior de `mb-6` a `mb-4`
-- Reducir `min-h-[72px]` a `min-h-[56px]` para compactar más el header
+| Archivo | Acción |
+|---------|--------|
+| `src/components/onboarding/CommitmentScreen.tsx` | Cambiar navegación de `/trial-roulette` a `/dashboard` |
+| `src/components/AnimatedRoutes.tsx` | Eliminar rutas: `/trial-roulette`, `/trial-won`, `/trial-trust`, `/trial-activate` |
+| `src/components/trial/index.ts` | Limpiar exports |
 
-**Archivo: `src/pages/Dashboard.tsx`**
-- Reducir el padding superior del main de `py-4` a `pt-2 pb-4` para menos espacio arriba
+**Archivos a eliminar:**
+- `src/components/trial/FreeTrialRoulette.tsx`
+- `src/components/trial/TrialWonCelebration.tsx`
+- `src/components/trial/TrialTrustScreen.tsx`
+- `src/components/trial/TrialActivation.tsx`
 
-### Parte 2: Implementar Solución Robusta para el Footer
-
-**Enfoque: Usar el Plugin @capacitor/keyboard**
-
-Según la documentación oficial de Capacitor y patrones de apps como YAZIO/MyFitnessPal:
-
-1. **Instalar el plugin @capacitor/keyboard**
-2. **Configurar en capacitor.config.ts:**
-   ```typescript
-   plugins: {
-     Keyboard: {
-       resize: "none", // Prevenir que el WebView se redimensione
-       style: "dark"
-     }
-   }
-   ```
-3. **Actualizar MobileBottomNav.tsx:**
-   - Usar eventos nativos del plugin `Keyboard.addListener('keyboardWillShow')` y `keyboardWillHide`
-   - Implementar transición animada suave (slide down cuando keyboard aparece)
-   - Fallback a `visualViewport` para web
-
-**Nuevo código para MobileBottomNav:**
-```typescript
-import { Keyboard } from '@capacitor/keyboard';
-import { Capacitor } from '@capacitor/core';
-
-// En useEffect:
-if (Capacitor.isNativePlatform()) {
-  Keyboard.addListener('keyboardWillShow', () => {
-    setIsKeyboardOpen(true);
-  });
-  Keyboard.addListener('keyboardWillHide', () => {
-    setIsKeyboardOpen(false);
-  });
-} else {
-  // Fallback visualViewport para web
-}
+**Nuevo flujo post-onboarding:**
+```
+Onboarding (29 pasos) → Auth → CommitmentScreen → Dashboard
 ```
 
-### Parte 3: Ajustar Safe Area en DashboardLayout
+---
 
-**Archivo: `src/components/AnimatedRoutes.tsx`**
-- El padding-top del safe-area está bien, pero verificar que no haya duplicación
+### 2. Agregar Links Legales Faltantes (Guideline 3.1.2)
 
-## Pasos de Implementación
+**Archivos a modificar:**
 
-1. **Instalar dependencia:** `@capacitor/keyboard`
-2. **Actualizar capacitor.config.ts** con configuración del plugin Keyboard
-3. **Modificar DashboardHeader.tsx:**
-   - `mb-6` → `mb-3`
-   - `min-h-[72px]` → `min-h-[56px]`
-4. **Modificar Dashboard.tsx:**
-   - `py-4` → `pt-2 pb-4`
-5. **Refactorizar MobileBottomNav.tsx:**
-   - Usar plugin Keyboard nativo con listeners
-   - Agregar animación de slide-down suave
-   - Mantener fallback visualViewport
+| Archivo | Cambio |
+|---------|--------|
+| `src/components/onboarding/OnboardingAuthStep.tsx` | Cambiar `<a href="/terms">` a `<Link to="/terms">` |
+| `src/components/ContextualPaywall.tsx` | Agregar links a Terms y Privacy |
+| `src/pages/PostRegisterPaywall.tsx` | Agregar links a Terms y Privacy |
+| `src/pages/PremiumPaywall.tsx` | Agregar links a Terms y Privacy |
+
+**Formato de links a agregar:**
+```tsx
+<div className="text-center text-xs text-muted-foreground">
+  <Link to="/terms" className="underline">Términos de Uso</Link>
+  {" · "}
+  <Link to="/privacy" className="underline">Política de Privacidad</Link>
+</div>
+```
+
+---
+
+### 3. Simplificación del Flujo (Guideline 2.1 - Bug iPad)
+
+Al eliminar las 4 pantallas del trial, el flujo se reduce significativamente:
+
+**Antes (problemático):**
+```
+Auth → Commitment → Roulette → Won → Trust → Activate → Dashboard
+       (6 pantallas adicionales con animaciones pesadas)
+```
+
+**Después (simplificado):**
+```
+Auth → Commitment → Dashboard
+       (1 pantalla adicional, navegación directa)
+```
+
+Esto minimiza la probabilidad de bugs en iPad Air M3.
+
+---
+
+## Archivos Finales
+
+### Modificar:
+1. `src/components/onboarding/CommitmentScreen.tsx`
+2. `src/components/onboarding/OnboardingAuthStep.tsx`
+3. `src/components/ContextualPaywall.tsx`
+4. `src/pages/PostRegisterPaywall.tsx`
+5. `src/pages/PremiumPaywall.tsx`
+6. `src/components/AnimatedRoutes.tsx`
+7. `src/components/trial/index.ts`
+
+### Eliminar:
+1. `src/components/trial/FreeTrialRoulette.tsx`
+2. `src/components/trial/TrialWonCelebration.tsx`
+3. `src/components/trial/TrialTrustScreen.tsx`
+4. `src/components/trial/TrialActivation.tsx`
+
+---
 
 ## Resultado Esperado
 
-1. **Header más compacto:** ~30px menos de altura superior, apariencia de single header
-2. **Footer estable:** El nav inferior se oculta suavemente cuando el teclado aparece usando eventos nativos confiables
-3. **Compatibilidad:** Funciona en iOS nativo, Android y web
+| Guideline | Problema | Solución |
+|-----------|----------|----------|
+| 3.1.2 | Links legales faltantes | ✅ Agregados en todos los paywalls |
+| 3.1.1 | Promo codes (ruleta) | ✅ Eliminado completamente |
+| 2.1 | Bug iPad post-onboarding | ✅ Flujo simplificado (menos pantallas) |
+| 2.1 | Placeholder text | ✅ Ya estaba resuelto |
+
