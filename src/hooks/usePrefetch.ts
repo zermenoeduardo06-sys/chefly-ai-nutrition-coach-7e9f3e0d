@@ -1,7 +1,7 @@
-import { useCallback } from "react";
+import { useCallback, useRef, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { startOfDay, subDays, startOfWeek, endOfWeek, eachDayOfInterval, format } from "date-fns";
+import { startOfDay, subDays, startOfWeek, endOfWeek, format } from "date-fns";
 import { fetchDailyIntakeData } from "./useDailyFoodIntake";
 import { getLocalDateString } from "@/lib/dateUtils";
 
@@ -9,37 +9,48 @@ import { getLocalDateString } from "@/lib/dateUtils";
  * Selective prefetch hook for high-probability navigation targets.
  * Prefetches data in background so pages load instantly.
  * Only prefetches lightweight data - never AI or heavy queries.
+ * 
+ * IMPORTANT: Uses "latest ref" pattern to ensure stable callback references
+ * and prevent infinite re-render loops when userId changes.
  */
 export const usePrefetch = (userId: string | undefined) => {
   const queryClient = useQueryClient();
+  
+  // Use ref pattern to keep userId current without changing callback references
+  const userIdRef = useRef(userId);
+  useEffect(() => {
+    userIdRef.current = userId;
+  }, [userId]);
 
   // Prefetch Diary/Dashboard data (food intake for today)
   const prefetchDiary = useCallback(() => {
-    if (!userId) return;
+    const currentUserId = userIdRef.current;
+    if (!currentUserId) return;
     
     // CRITICAL: Use getLocalDateString() to preserve local date for food queries
     const today = getLocalDateString();
     
     // Today's food intake
     queryClient.prefetchQuery({
-      queryKey: ['foodIntake', userId, today],
-      queryFn: () => fetchDailyIntakeData(userId, today),
+      queryKey: ['foodIntake', currentUserId, today],
+      queryFn: () => fetchDailyIntakeData(currentUserId, today),
       staleTime: 2 * 60 * 1000,
     });
-  }, [userId, queryClient]);
+  }, [queryClient]);
 
   // Prefetch Progress page data
   const prefetchProgress = useCallback(() => {
-    if (!userId) return;
+    const currentUserId = userIdRef.current;
+    if (!currentUserId) return;
 
     // Latest weight
     queryClient.prefetchQuery({
-      queryKey: ['progress', 'latestWeight', userId],
+      queryKey: ['progress', 'latestWeight', currentUserId],
       queryFn: async () => {
         const { data } = await supabase
           .from("body_measurements")
           .select("weight")
-          .eq("user_id", userId)
+          .eq("user_id", currentUserId)
           .order("measurement_date", { ascending: false })
           .limit(1)
           .maybeSingle();
@@ -50,12 +61,12 @@ export const usePrefetch = (userId: string | undefined) => {
 
     // Body measurements
     queryClient.prefetchQuery({
-      queryKey: ['progress', 'measurements', userId],
+      queryKey: ['progress', 'measurements', currentUserId],
       queryFn: async () => {
         const { data } = await supabase
           .from("body_measurements")
           .select("*")
-          .eq("user_id", userId)
+          .eq("user_id", currentUserId)
           .order("measurement_date", { ascending: false })
           .limit(30);
         return data || [];
@@ -65,12 +76,12 @@ export const usePrefetch = (userId: string | undefined) => {
 
     // User stats
     queryClient.prefetchQuery({
-      queryKey: ['progress', 'stats', userId],
+      queryKey: ['progress', 'stats', currentUserId],
       queryFn: async () => {
         const { data } = await supabase
           .from("user_stats")
           .select("*")
-          .eq("user_id", userId)
+          .eq("user_id", currentUserId)
           .maybeSingle();
         return data;
       },
@@ -83,19 +94,19 @@ export const usePrefetch = (userId: string | undefined) => {
     const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
 
     queryClient.prefetchQuery({
-      queryKey: ['nutritionProgress', 'weekly', userId, format(now, 'yyyy-ww')],
+      queryKey: ['nutritionProgress', 'weekly', currentUserId, format(now, 'yyyy-ww')],
       queryFn: async () => {
         const [completions, foodScans] = await Promise.all([
           supabase
             .from("meal_completions")
             .select(`completed_at, meals (calories, protein, carbs, fats)`)
-            .eq("user_id", userId)
+            .eq("user_id", currentUserId)
             .gte("completed_at", weekStart.toISOString())
             .lte("completed_at", weekEnd.toISOString()),
           supabase
             .from("food_scans")
             .select("scanned_at, calories, protein, carbs, fat")
-            .eq("user_id", userId)
+            .eq("user_id", currentUserId)
             .gte("scanned_at", weekStart.toISOString())
             .lte("scanned_at", weekEnd.toISOString()),
         ]);
@@ -103,11 +114,12 @@ export const usePrefetch = (userId: string | undefined) => {
       },
       staleTime: 5 * 60 * 1000,
     });
-  }, [userId, queryClient]);
+  }, [queryClient]);
 
   // Prefetch Achievements data
   const prefetchAchievements = useCallback(() => {
-    if (!userId) return;
+    const currentUserId = userIdRef.current;
+    if (!currentUserId) return;
 
     // All achievements definition (rarely changes)
     queryClient.prefetchQuery({
@@ -124,33 +136,34 @@ export const usePrefetch = (userId: string | undefined) => {
 
     // User's unlocked achievements
     queryClient.prefetchQuery({
-      queryKey: ['achievements', 'user', userId],
+      queryKey: ['achievements', 'user', currentUserId],
       queryFn: async () => {
         const { data } = await supabase
           .from("user_achievements")
           .select("achievement_id")
-          .eq("user_id", userId);
+          .eq("user_id", currentUserId);
         return data?.map(ua => ua.achievement_id) || [];
       },
       staleTime: 5 * 60 * 1000,
     });
-  }, [userId, queryClient]);
+  }, [queryClient]);
 
   // Prefetch Wellness page data
   const prefetchWellness = useCallback(() => {
-    if (!userId) return;
+    const currentUserId = userIdRef.current;
+    if (!currentUserId) return;
 
     const today = startOfDay(new Date());
     const weekAgo = subDays(today, 7);
 
     // Today's mood
     queryClient.prefetchQuery({
-      queryKey: ['wellness', 'mood', 'today', userId],
+      queryKey: ['wellness', 'mood', 'today', currentUserId],
       queryFn: async () => {
         const { data } = await supabase
           .from("mood_logs")
           .select("*")
-          .eq("user_id", userId)
+          .eq("user_id", currentUserId)
           .gte("logged_at", today.toISOString())
           .order("logged_at", { ascending: false })
           .limit(1)
@@ -162,12 +175,12 @@ export const usePrefetch = (userId: string | undefined) => {
 
     // Weekly moods
     queryClient.prefetchQuery({
-      queryKey: ['wellness', 'mood', 'weekly', userId],
+      queryKey: ['wellness', 'mood', 'weekly', currentUserId],
       queryFn: async () => {
         const { data } = await supabase
           .from("mood_logs")
           .select("*")
-          .eq("user_id", userId)
+          .eq("user_id", currentUserId)
           .gte("logged_at", weekAgo.toISOString())
           .order("logged_at", { ascending: true });
         return data || [];
@@ -177,12 +190,12 @@ export const usePrefetch = (userId: string | undefined) => {
 
     // Insights
     queryClient.prefetchQuery({
-      queryKey: ['wellness', 'insights', userId],
+      queryKey: ['wellness', 'insights', currentUserId],
       queryFn: async () => {
         const { data } = await supabase
           .from("wellness_insights")
           .select("*")
-          .eq("user_id", userId)
+          .eq("user_id", currentUserId)
           .order("generated_at", { ascending: false })
           .limit(10);
         return data || [];
@@ -192,31 +205,32 @@ export const usePrefetch = (userId: string | undefined) => {
 
     // Body scans
     queryClient.prefetchQuery({
-      queryKey: ['wellness', 'bodyScans', userId],
+      queryKey: ['wellness', 'bodyScans', currentUserId],
       queryFn: async () => {
         const { data } = await supabase
           .from("body_scans")
           .select("*")
-          .eq("user_id", userId)
+          .eq("user_id", currentUserId)
           .order("scanned_at", { ascending: false })
           .limit(12);
         return data || [];
       },
       staleTime: 10 * 60 * 1000,
     });
-  }, [userId, queryClient]);
+  }, [queryClient]);
 
   // Prefetch Recipes page data (just meal plan ID, not full meals)
   const prefetchRecipes = useCallback(() => {
-    if (!userId) return;
+    const currentUserId = userIdRef.current;
+    if (!currentUserId) return;
 
     queryClient.prefetchQuery({
-      queryKey: ['recipes', 'mealPlanId', userId],
+      queryKey: ['recipes', 'mealPlanId', currentUserId],
       queryFn: async () => {
         const { data } = await supabase
           .from("meal_plans")
           .select("id")
-          .eq("user_id", userId)
+          .eq("user_id", currentUserId)
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();
@@ -224,37 +238,40 @@ export const usePrefetch = (userId: string | undefined) => {
       },
       staleTime: 10 * 60 * 1000,
     });
-  }, [userId, queryClient]);
+  }, [queryClient]);
 
   // Prefetch ChefIA chat messages
   const prefetchChat = useCallback(() => {
-    if (!userId) return;
+    const currentUserId = userIdRef.current;
+    if (!currentUserId) return;
 
     queryClient.prefetchQuery({
-      queryKey: ['chat', 'messages', userId],
+      queryKey: ['chat', 'messages', currentUserId],
       queryFn: async () => {
         const { data } = await supabase
           .from("chat_messages")
           .select("*")
-          .eq("user_id", userId)
+          .eq("user_id", currentUserId)
           .order("created_at", { ascending: true })
           .limit(50);
         return data || [];
       },
       staleTime: 2 * 60 * 1000,
     });
-  }, [userId, queryClient]);
+  }, [queryClient]);
 
   // Prefetch all main sections at once (for Dashboard mount)
+  // STABLE: Only depends on queryClient which never changes
   const prefetchAll = useCallback(() => {
-    if (!userId) return;
+    const currentUserId = userIdRef.current;
+    if (!currentUserId) return;
     prefetchDiary();
     prefetchProgress();
     prefetchWellness();
     prefetchRecipes();
     prefetchChat();
     prefetchAchievements();
-  }, [userId, prefetchDiary, prefetchProgress, prefetchWellness, prefetchRecipes, prefetchChat, prefetchAchievements]);
+  }, [prefetchDiary, prefetchProgress, prefetchWellness, prefetchRecipes, prefetchChat, prefetchAchievements]);
 
   return {
     prefetchDiary,
