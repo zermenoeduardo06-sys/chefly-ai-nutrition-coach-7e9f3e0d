@@ -478,7 +478,7 @@ const Dashboard = () => {
   // Schedule meal reminders when dashboard loads on native platform
   useEffect(() => {
     if (isNative && permissionGranted && userId) {
-      scheduleMealReminders(language);
+      scheduleMealReminders(language); // throttled internally, won't spam
     }
   }, [isNative, permissionGranted, userId, language]);
 

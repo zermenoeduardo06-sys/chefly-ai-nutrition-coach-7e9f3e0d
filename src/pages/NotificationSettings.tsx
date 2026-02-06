@@ -43,7 +43,7 @@ const NotificationSettings = () => {
           ? 'Recibirás recordatorios personalizados' 
           : 'You will receive personalized reminders',
       });
-      await scheduleMealReminders(language);
+      await scheduleMealReminders(language, true);
       await scheduleWeeklyCheckInReminder(language);
     } else {
       toast({
@@ -64,7 +64,7 @@ const NotificationSettings = () => {
   const handleTimeChange = async (meal: 'breakfastTime' | 'lunchTime' | 'dinnerTime', time: string) => {
     setLocalSettings(prev => ({ ...prev, [meal]: time }));
     await updateSettings({ [meal]: time }, language);
-    await scheduleMealReminders(language);
+    await scheduleMealReminders(language, true);
   };
 
   const texts = {

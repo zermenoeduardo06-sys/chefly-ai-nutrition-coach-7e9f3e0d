@@ -25,6 +25,42 @@ const DEFAULT_SETTINGS: NotificationSettings = {
   dinnerTime: "19:00",
 };
 
+const SCHEDULE_THROTTLE_KEY = 'notifications_last_scheduled';
+const DAILY_NOTIF_COUNT_KEY = 'notifications_daily_count';
+const DAILY_NOTIF_DATE_KEY = 'notifications_daily_date';
+const MAX_DAILY_NOTIFICATIONS = 3;
+
+const canScheduleToday = (): boolean => {
+  const lastScheduled = localStorage.getItem(SCHEDULE_THROTTLE_KEY);
+  if (!lastScheduled) return true;
+  const today = new Date().toDateString();
+  return lastScheduled !== today;
+};
+
+const markScheduledToday = () => {
+  localStorage.setItem(SCHEDULE_THROTTLE_KEY, new Date().toDateString());
+};
+
+const getDailyNotifCount = (): number => {
+  const savedDate = localStorage.getItem(DAILY_NOTIF_DATE_KEY);
+  const today = new Date().toDateString();
+  if (savedDate !== today) {
+    localStorage.setItem(DAILY_NOTIF_DATE_KEY, today);
+    localStorage.setItem(DAILY_NOTIF_COUNT_KEY, '0');
+    return 0;
+  }
+  return parseInt(localStorage.getItem(DAILY_NOTIF_COUNT_KEY) || '0', 10);
+};
+
+const incrementDailyNotifCount = () => {
+  const count = getDailyNotifCount();
+  localStorage.setItem(DAILY_NOTIF_COUNT_KEY, String(count + 1));
+};
+
+const canSendNotification = (): boolean => {
+  return getDailyNotifCount() < MAX_DAILY_NOTIFICATIONS;
+};
+
 const NOTIFICATION_IDS = {
   BREAKFAST: 1,
   LUNCH: 2,
@@ -132,8 +168,14 @@ export const useNotifications = () => {
     });
   };
 
-  const scheduleMealReminders = async (language: 'es' | 'en' = 'es') => {
+  const scheduleMealReminders = async (language: 'es' | 'en' = 'es', force = false) => {
     if (!isNative || !permissionGranted || !settings.mealReminders) return;
+    
+    // Throttle: only reschedule once per day unless forced (e.g. settings change)
+    if (!force && !canScheduleToday()) {
+      console.log('Meal reminders already scheduled today, skipping');
+      return;
+    }
 
     try {
       await LocalNotifications.cancel({
@@ -188,6 +230,7 @@ export const useNotifications = () => {
         { type: 'meal', mealType: 'dinner' }
       );
 
+      markScheduledToday();
       console.log('Meal reminders scheduled successfully');
     } catch (error) {
       console.error('Error scheduling meal reminders:', error);
@@ -199,7 +242,7 @@ export const useNotifications = () => {
     lastActivityDate: string | null,
     language: 'es' | 'en' = 'es'
   ) => {
-    if (!isNative || !permissionGranted || !settings.streakAlerts || currentStreak < 2) return;
+    if (!isNative || !permissionGranted || !settings.streakAlerts || currentStreak < 2 || !canSendNotification()) return;
 
     try {
       await LocalNotifications.cancel({
@@ -431,7 +474,7 @@ export const useNotifications = () => {
     
     // Reschedule based on new settings
     if (updated.mealReminders) {
-      await scheduleMealReminders(language);
+      await scheduleMealReminders(language, true); // force since user changed settings
     } else {
       await LocalNotifications.cancel({
         notifications: [
