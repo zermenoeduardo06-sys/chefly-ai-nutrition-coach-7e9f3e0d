@@ -74,12 +74,26 @@ export const OnboardingHealthStep: React.FC<OnboardingHealthStepProps> = ({ onNe
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="text-muted-foreground text-center"
+          className="text-muted-foreground text-center mb-8"
         >
           {language === 'es' 
             ? 'Tus datos de Apple Health se sincronizarán automáticamente'
             : 'Your Apple Health data will sync automatically'}
         </motion.p>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+        >
+          <Button
+            onClick={onNext}
+            className="w-full h-14 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-500 text-white text-lg font-semibold px-12"
+          >
+            {language === 'es' ? 'Continuar' : 'Continue'}
+            <ChevronRight className="w-5 h-5 ml-2" />
+          </Button>
+        </motion.div>
       </div>
     );
   }
