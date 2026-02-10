@@ -1,4 +1,5 @@
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { format } from "date-fns";
@@ -108,8 +109,8 @@ const Dashboard = () => {
   
   // Track previous userId to detect user changes (not initial mount)
   const previousUserIdRef = useRef<string | undefined>(undefined);
+  const queryClient = useQueryClient();
   const [generating, setGenerating] = useState(false);
-  const [profile, setProfile] = useState<any>(null);
   const [mealPlan, setMealPlan] = useState<MealPlan | null>(null);
   const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null);
   const [mealDialogOpen, setMealDialogOpen] = useState(false);
@@ -135,6 +136,22 @@ const Dashboard = () => {
   const [showAchievementUnlock, setShowAchievementUnlock] = useState(false);
   const [unlockedAchievement, setUnlockedAchievement] = useState<any>(null);
   const [userId, setUserId] = useState<string | undefined>(undefined);
+
+  // Profile with React Query cache (instant on re-visits, no flicker)
+  const { data: profile } = useQuery({
+    queryKey: ['profile', userId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId!)
+        .single();
+      return data;
+    },
+    enabled: !!userId,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
   const [showTutorial, setShowTutorial] = useState(false);
   const [showInAppTour, setShowInAppTour] = useState(false);
   const [showMobileWelcome, setShowMobileWelcome] = useState(false);
@@ -258,7 +275,7 @@ const Dashboard = () => {
     // Only reset if we're switching from one valid user to another different user
     // Skip on initial mount (prevId === undefined) or when logging out (userId === undefined)
     if (prevId !== undefined && userId !== undefined && prevId !== userId) {
-      setProfile(null);
+      queryClient.removeQueries({ queryKey: ['profile'] });
       setMealPlan(null);
       setUserStats({
         total_points: 0,
@@ -345,7 +362,7 @@ const Dashboard = () => {
 
     // Load secondary data in background (non-blocking)
     Promise.all([
-      loadProfile(userId),
+      // profile is handled by React Query
       loadUserStats(userId),
       loadMealPlan(userId),
     ]).catch(error => {
@@ -820,18 +837,7 @@ const Dashboard = () => {
     }, duration);
   };
 
-  const loadProfile = async (userId: string) => {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .single();
-
-    if (data) {
-      setProfile(data);
-      // Freemium model: all users have access, no trial blocking
-    }
-  };
+  // Profile loading is now handled by React Query below
 
   const loadMealPlan = async (userId: string) => {
     // Prevent execution if redirecting
