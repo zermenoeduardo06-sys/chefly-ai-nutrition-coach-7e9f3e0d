@@ -8,10 +8,9 @@ import { OnboardingMascotInteraction } from './OnboardingMascotInteraction';
 
 interface OnboardingHealthStepProps {
   onNext: () => void;
-  onSkip: () => void;
 }
 
-export const OnboardingHealthStep: React.FC<OnboardingHealthStepProps> = ({ onNext, onSkip }) => {
+export const OnboardingHealthStep: React.FC<OnboardingHealthStepProps> = ({ onNext }) => {
   const { language } = useLanguage();
   const { requestAuthorization, isLoading, isAuthorized } = useAppleHealth();
   const [connecting, setConnecting] = useState(false);
@@ -19,16 +18,10 @@ export const OnboardingHealthStep: React.FC<OnboardingHealthStepProps> = ({ onNe
 
   const handleConnect = async () => {
     setConnecting(true);
-    const success = await requestAuthorization();
+    await requestAuthorization();
     setConnecting(false);
-    
-    if (success) {
-      setConnected(true);
-      // Wait a moment to show success, then proceed
-      setTimeout(() => {
-        onNext();
-      }, 1500);
-    }
+    setConnected(true);
+    setTimeout(() => onNext(), 1500);
   };
 
   const benefits = [
@@ -102,8 +95,8 @@ export const OnboardingHealthStep: React.FC<OnboardingHealthStepProps> = ({ onNe
     <div className="flex-1 flex flex-col px-6 py-8">
       <OnboardingMascotInteraction 
         message={language === 'es' 
-          ? "¿Quieres conectar Apple Health? 🍎 Así tus metas serán más precisas basándose en tu actividad real."
-          : "Want to connect Apple Health? 🍎 Your goals will be more accurate based on real activity."}
+          ? "Vamos a conectar Apple Health para que tus metas sean más precisas basándose en tu actividad real. 🍎"
+          : "Let's connect Apple Health so your goals are more accurate based on real activity. 🍎"}
         pose="health"
         size="small"
         className="mb-6"
@@ -169,13 +162,6 @@ export const OnboardingHealthStep: React.FC<OnboardingHealthStepProps> = ({ onNe
           )}
         </Button>
 
-        <button
-          onClick={onSkip}
-          className="w-full py-3 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          {language === 'es' ? 'Más tarde' : 'Maybe later'}
-          <ChevronRight className="w-4 h-4 inline ml-1" />
-        </button>
       </div>
     </div>
   );

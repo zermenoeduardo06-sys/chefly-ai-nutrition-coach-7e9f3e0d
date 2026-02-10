@@ -746,7 +746,6 @@ const PreOnboarding: React.FC = () => {
           return (
             <OnboardingHealthStep
               onNext={handleNext}
-              onSkip={handleNext}
             />
           );
         }
