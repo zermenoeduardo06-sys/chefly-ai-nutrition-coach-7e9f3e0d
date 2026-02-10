@@ -438,7 +438,7 @@ const PreOnboarding: React.FC = () => {
             <div className="w-full max-w-xs mt-8">
               <Input
                 type="text"
-                placeholder={t('preOnboarding.name.placeholder')}
+                placeholder={t('preOnboarding.namePlaceholder')}
                 value={data.name}
                 onChange={(e) => updateField('name', e.target.value)}
                 className="text-center text-xl py-6 border-2"
