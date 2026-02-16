@@ -143,7 +143,7 @@ const Dashboard = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("*")
+        .select("id, display_name, avatar_url, avatar_config, avatar_background_color, email")
         .eq("id", userId!)
         .single();
       return data;
@@ -461,7 +461,7 @@ const Dashboard = () => {
   const loadUserStats = async (userId: string) => {
     const { data, error } = await supabase
       .from("user_stats")
-      .select("*")
+      .select("user_id, total_points, current_streak, longest_streak, meals_completed, level, last_activity_date, streak_freeze_available")
       .eq("user_id", userId)
       .single();
 
@@ -540,6 +540,7 @@ const Dashboard = () => {
   };
 
   // Actually completes the meal after photo is taken
+  // Uses OPTIMISTIC UPDATE: UI updates instantly, server request in background
   const completeMeal = async (mealId: string) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
@@ -562,7 +563,22 @@ const Dashboard = () => {
       return;
     }
 
-    // Mark as completed
+    // 1. OPTIMISTIC UPDATE: Update UI immediately before server response
+    setCompletedMeals(prev => new Set([...prev, mealId]));
+    successNotification();
+    triggerCelebration();
+    invalidateNutritionSummary();
+    checkDayCompletion(mealId);
+
+    // Check if we should request an iOS app review (based on engagement)
+    if (userStats.meals_completed >= 4 && userStats.current_streak >= 2) {
+      checkAndRequestReview({
+        meals_completed: userStats.meals_completed + 1,
+        current_streak: userStats.current_streak,
+      });
+    }
+
+    // 2. Server request in background
     const { error } = await supabase
       .from("meal_completions")
       .insert({
@@ -571,7 +587,13 @@ const Dashboard = () => {
         points_earned: 10,
       });
 
+    // 3. Rollback if server request fails
     if (error) {
+      setCompletedMeals(prev => {
+        const next = new Set(prev);
+        next.delete(mealId);
+        return next;
+      });
       toast({
         variant: "destructive",
         title: t("common.error"),
@@ -580,32 +602,8 @@ const Dashboard = () => {
       return;
     }
 
-    // Update local state
-    setCompletedMeals(prev => new Set([...prev, mealId]));
-
-    // Haptic feedback for meal completion
-    successNotification();
-
-    // Update stats
-    await updateUserStats(user.id);
-
-    // Invalidate nutrition summary to reflect the new meal completion
-    invalidateNutritionSummary();
-
-    // Show celebration
-    triggerCelebration();
-
-    // Check if all meals for this day are completed
-    checkDayCompletion(mealId);
-    
-    // Check if we should request an iOS app review (based on engagement)
-    if (userStats.meals_completed >= 4 && userStats.current_streak >= 2) {
-      // +1 because we just completed one more
-      checkAndRequestReview({
-        meals_completed: userStats.meals_completed + 1,
-        current_streak: userStats.current_streak,
-      });
-    }
+    // 4. Stats update in background (non-blocking)
+    updateUserStats(user.id);
   };
 
   const updateUserStats = async (userId: string) => {
@@ -615,7 +613,7 @@ const Dashboard = () => {
     // Calculate new streak
     const { data: stats } = await supabase
       .from("user_stats")
-      .select("*")
+      .select("user_id, total_points, current_streak, longest_streak, meals_completed, level, last_activity_date, streak_freeze_available")
       .eq("user_id", userId)
       .single();
 
