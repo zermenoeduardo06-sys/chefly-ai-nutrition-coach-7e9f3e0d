@@ -85,18 +85,7 @@ const DashboardLayout = () => {
             ref={mainRef}
             className="flex-1 overflow-y-auto overflow-x-hidden pb-mobile-nav lg:pb-0 scroll-touch bg-background"
           >
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={location.pathname}
-                initial={{ opacity: 0.5 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0.5 }}
-                transition={{ duration: 0.08 }}
-                className="min-h-full"
-              >
-                <Outlet />
-              </motion.div>
-            </AnimatePresence>
+            <Outlet />
           </main>
         </div>
       </div>
