@@ -65,7 +65,7 @@ export const usePrefetch = (userId: string | undefined) => {
       queryFn: async () => {
         const { data } = await supabase
           .from("body_measurements")
-          .select("*")
+          .select("id, weight, measurement_date")
           .eq("user_id", currentUserId)
           .order("measurement_date", { ascending: false })
           .limit(30);
@@ -80,7 +80,7 @@ export const usePrefetch = (userId: string | undefined) => {
       queryFn: async () => {
         const { data } = await supabase
           .from("user_stats")
-          .select("*")
+          .select("user_id, total_points, current_streak, longest_streak, meals_completed, level")
           .eq("user_id", currentUserId)
           .maybeSingle();
         return data;
@@ -162,7 +162,7 @@ export const usePrefetch = (userId: string | undefined) => {
       queryFn: async () => {
         const { data } = await supabase
           .from("mood_logs")
-          .select("*")
+          .select("id, mood_score, factors, note, logged_at")
           .eq("user_id", currentUserId)
           .gte("logged_at", today.toISOString())
           .order("logged_at", { ascending: false })
@@ -179,7 +179,7 @@ export const usePrefetch = (userId: string | undefined) => {
       queryFn: async () => {
         const { data } = await supabase
           .from("mood_logs")
-          .select("*")
+          .select("id, mood_score, factors, note, logged_at")
           .eq("user_id", currentUserId)
           .gte("logged_at", weekAgo.toISOString())
           .order("logged_at", { ascending: true });
@@ -194,7 +194,7 @@ export const usePrefetch = (userId: string | undefined) => {
       queryFn: async () => {
         const { data } = await supabase
           .from("wellness_insights")
-          .select("*")
+          .select("id, insight_type, content, generated_at")
           .eq("user_id", currentUserId)
           .order("generated_at", { ascending: false })
           .limit(10);
@@ -209,7 +209,7 @@ export const usePrefetch = (userId: string | undefined) => {
       queryFn: async () => {
         const { data } = await supabase
           .from("body_scans")
-          .select("*")
+          .select("id, estimated_body_fat_min, estimated_body_fat_max, body_type, scanned_at, image_url")
           .eq("user_id", currentUserId)
           .order("scanned_at", { ascending: false })
           .limit(12);
@@ -260,20 +260,41 @@ export const usePrefetch = (userId: string | undefined) => {
     });
   }, [queryClient]);
 
+  // Prefetch user profile for instant Dashboard header
+  const prefetchProfile = useCallback(() => {
+    const currentUserId = userIdRef.current;
+    if (!currentUserId) return;
+
+    queryClient.prefetchQuery({
+      queryKey: ['profile', currentUserId],
+      queryFn: async () => {
+        const { data } = await supabase
+          .from("profiles")
+          .select("id, display_name, avatar_url, avatar_config, avatar_background_color, email")
+          .eq("id", currentUserId)
+          .single();
+        return data;
+      },
+      staleTime: 10 * 60 * 1000,
+    });
+  }, [queryClient]);
+
   // Prefetch all main sections at once (for Dashboard mount)
   // STABLE: Only depends on queryClient which never changes
   const prefetchAll = useCallback(() => {
     const currentUserId = userIdRef.current;
     if (!currentUserId) return;
+    prefetchProfile();
     prefetchDiary();
     prefetchProgress();
     prefetchWellness();
     prefetchRecipes();
     prefetchChat();
     prefetchAchievements();
-  }, [prefetchDiary, prefetchProgress, prefetchWellness, prefetchRecipes, prefetchChat, prefetchAchievements]);
+  }, [prefetchProfile, prefetchDiary, prefetchProgress, prefetchWellness, prefetchRecipes, prefetchChat, prefetchAchievements]);
 
   return {
+    prefetchProfile,
     prefetchDiary,
     prefetchProgress,
     prefetchWellness,

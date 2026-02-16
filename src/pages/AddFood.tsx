@@ -202,98 +202,69 @@ export default function AddFood() {
       return;
     }
 
-    setIsSaving(true);
+    // Track usage for each selected food - non-blocking
+    Promise.all(selectedFoods.map(food => trackFoodUsage(food.id)))
+      .catch(err => console.warn('[AddFood] trackFoodUsage failed (non-blocking):', err));
 
-    try {
-      // Track usage for each selected food - non-blocking
-      Promise.all(selectedFoods.map(food => trackFoodUsage(food.id)))
-        .catch(err => console.warn('[AddFood] trackFoodUsage failed (non-blocking):', err));
+    // Calculate celebration data BEFORE navigating
+    const totalCalories = selectedFoods.reduce((sum, f) => sum + f.calories, 0);
+    const pointsEarned = selectedFoods.length * 10;
+    const firstName = selectedFoods[0]?.name || '';
+    const displayName = selectedFoods.length > 1 
+      ? `${firstName} +${selectedFoods.length - 1}`
+      : firstName;
 
-      // Use createMealTimestamp to preserve the selected date without timezone conversion
-      const scannedAt = createMealTimestamp(selectedDate, validMealType);
+    // 1. OPTIMISTIC: Show celebration and trigger effects IMMEDIATELY
+    setCelebrationData({
+      name: displayName,
+      calories: totalCalories,
+      points: pointsEarned,
+    });
+    celebrateFoodAdded(firstName, pointsEarned);
+    triggerXP(pointsEarned, 'food');
+    invalidateFoodIntake();
+    invalidateNutritionSummary();
+    setShowFoodCelebration(true);
 
-      // Save each selected food to food_scans with the meal_type
-      // IMPORTANT: Round ALL numeric values to integers to prevent "22P02" errors
-      const foodScansToInsert = selectedFoods.map(food => {
-        const calories = Math.round(Number(food.calories) || 0);
-        const protein = Math.round(Number(food.protein) || 0);
-        const carbs = Math.round(Number(food.carbs) || 0);
-        const fat = Math.round(Number(food.fats) || 0);
-        const fiber = Math.round(Number(food.fiber) || 0);
-        
-        console.log('[AddFood] Processing food:', food.name, { calories, protein, carbs, fat, fiber });
-        
-        return {
-          user_id: userId,
-          dish_name: food.name || 'Unknown food',
-          calories,
-          protein,
-          carbs,
-          fat,
-          fiber,
-          portion_estimate: food.portion || '1 porción',
-          meal_type: validMealType,
-          confidence: 'high',
-          scanned_at: scannedAt,
-        };
+    // Navigate after celebration animation
+    setTimeout(() => {
+      setShowFoodCelebration(false);
+      navigate(-1);
+    }, 1800);
+
+    // 2. Server INSERT in background (non-blocking)
+    const scannedAt = createMealTimestamp(selectedDate, validMealType);
+    const foodScansToInsert = selectedFoods.map(food => ({
+      user_id: userId,
+      dish_name: food.name || 'Unknown food',
+      calories: Math.round(Number(food.calories) || 0),
+      protein: Math.round(Number(food.protein) || 0),
+      carbs: Math.round(Number(food.carbs) || 0),
+      fat: Math.round(Number(food.fats) || 0),
+      fiber: Math.round(Number(food.fiber) || 0),
+      portion_estimate: food.portion || '1 porción',
+      meal_type: validMealType,
+      confidence: 'high',
+      scanned_at: scannedAt,
+    }));
+
+    console.log('[AddFood] Inserting food scans in background:', foodScansToInsert);
+
+    supabase
+      .from('food_scans')
+      .insert(foodScansToInsert)
+      .select()
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('[AddFood] Background save error:', error);
+          toast.error(language === 'es' ? `Error al guardar: ${error.message}` : `Error saving: ${error.message}`);
+          // Re-invalidate to refresh with actual server state
+          invalidateFoodIntake();
+          invalidateNutritionSummary();
+        } else {
+          console.log('[AddFood] Background save success:', data?.length, 'records');
+        }
       });
-
-      console.log('[AddFood] Inserting food scans:', foodScansToInsert);
-
-      const { data, error } = await supabase
-        .from('food_scans')
-        .insert(foodScansToInsert)
-        .select();
-
-      console.log('[AddFood] Supabase response:', { data, error });
-
-      if (error) {
-        console.error('[AddFood] Error saving foods:', error);
-        toast.error(language === 'es' ? `Error al guardar: ${error.message}` : `Error saving: ${error.message}`);
-        setIsSaving(false);
-        return;
-      }
-      
-      // Success! Calculate total calories and points
-      const totalCalories = selectedFoods.reduce((sum, f) => sum + f.calories, 0);
-      const pointsEarned = selectedFoods.length * 10;
-      const firstName = selectedFoods[0]?.name || '';
-      const displayName = selectedFoods.length > 1 
-        ? `${firstName} +${selectedFoods.length - 1}`
-        : firstName;
-
-      console.log('[AddFood] Foods saved successfully:', { totalCalories, pointsEarned, displayName });
-
-      // Set celebration data
-      setCelebrationData({
-        name: displayName,
-        calories: totalCalories,
-        points: pointsEarned,
-      });
-
-      // Trigger celebration effects
-      celebrateFoodAdded(firstName, pointsEarned);
-      triggerXP(pointsEarned, 'food');
-      invalidateFoodIntake();
-      invalidateNutritionSummary();
-
-      // Show celebration overlay
-      setShowFoodCelebration(true);
-
-      // Wait for celebration to finish before navigating
-      setTimeout(() => {
-        setShowFoodCelebration(false);
-        navigate(-1);
-      }, 1800);
-      
-      setIsSaving(false);
-      return; // Exit early to prevent immediate navigation
-      
-    } catch (error) {
-      console.error('[AddFood] Unexpected error:', error);
-      toast.error(language === 'es' ? 'Error inesperado al guardar' : 'Unexpected error saving');
-      setIsSaving(false);
-    }
   };
 
   // Get foods to display based on current state
