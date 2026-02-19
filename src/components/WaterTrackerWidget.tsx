@@ -96,14 +96,14 @@ export function WaterTrackerWidget({ userId, selectedDate }: WaterTrackerWidgetP
         )}
       </AnimatePresence>
 
-      <Card3DContent className="p-5">
+      <Card3DContent className="p-4">
         <div className="flex items-center justify-between gap-4">
           {/* Left: Animated Water Drop with fill */}
           <div className="relative">
             <motion.div
               className="relative w-16 h-16 flex items-center justify-center"
-              animate={isComplete ? { scale: [1, 1.05, 1] } : {}}
-              transition={{ repeat: isComplete ? Infinity : 0, duration: 2 }}
+              animate={isComplete ? { scale: [1, 1.05, 1] } : showSplash ? { scale: [1, 1.08, 1] } : {}}
+              transition={{ repeat: isComplete ? Infinity : 0, duration: isComplete ? 2 : 0.3 }}
             >
               {/* Water drop background */}
               <svg viewBox="0 0 64 64" className="w-full h-full">

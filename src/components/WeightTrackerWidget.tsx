@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card3D, Card3DContent } from "@/components/ui/card-3d";
 import { Button } from "@/components/ui/button";
 import { Minus, Plus, Scale, TrendingDown, TrendingUp, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useInvalidateProgressData } from "@/hooks/useProgressData";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface WeightTrackerWidgetProps {
   userId?: string;
@@ -38,7 +39,6 @@ export const WeightTrackerWidget = ({ userId }: WeightTrackerWidgetProps) => {
     if (!userId) return;
     
     try {
-      // Get target weight from user_preferences
       const { data: preferences } = await supabase
         .from("user_preferences")
         .select("weight, target_weight")
@@ -47,13 +47,11 @@ export const WeightTrackerWidget = ({ userId }: WeightTrackerWidgetProps) => {
 
       if (preferences) {
         setTargetWeight(preferences.target_weight);
-        // Start with the weight from preferences if no measurements exist
         if (preferences.weight) {
           setCurrentWeight(preferences.weight);
         }
       }
 
-      // Get the latest weight from body_measurements
       const { data: latestMeasurement } = await supabase
         .from("body_measurements")
         .select("weight")
@@ -73,7 +71,6 @@ export const WeightTrackerWidget = ({ userId }: WeightTrackerWidgetProps) => {
     }
   };
 
-  // Determine if user is moving toward or away from goal
   const getTrendDirection = (change: number): TrendDirection => {
     if (!targetWeight || currentWeight === null) return null;
     
@@ -82,27 +79,22 @@ export const WeightTrackerWidget = ({ userId }: WeightTrackerWidgetProps) => {
     const atGoal = Math.abs(currentWeight - targetWeight) < 0.1;
     
     if (atGoal) return "at-goal";
-    
-    // If needs to lose weight and decreased → toward goal
-    // If needs to gain weight and increased → toward goal
     if ((needsToLose && change < 0) || (needsToGain && change > 0)) {
       return "toward-goal";
     }
-    
     return "away-from-goal";
   };
 
   const updateWeight = async (change: number) => {
     if (!userId || currentWeight === null) return;
     
-    const newWeight = Math.max(30, currentWeight + change); // Minimum 30kg
+    const newWeight = Math.max(30, currentWeight + change);
     setUpdating(true);
     setLastChange(change);
     
     try {
       const today = format(new Date(), "yyyy-MM-dd");
       
-      // Check if there's already a measurement for today
       const { data: existingMeasurement } = await supabase
         .from("body_measurements")
         .select("id")
@@ -111,13 +103,11 @@ export const WeightTrackerWidget = ({ userId }: WeightTrackerWidgetProps) => {
         .single();
 
       if (existingMeasurement) {
-        // Update existing measurement
         await supabase
           .from("body_measurements")
           .update({ weight: newWeight })
           .eq("id", existingMeasurement.id);
       } else {
-        // Create new measurement
         await supabase
           .from("body_measurements")
           .insert({
@@ -127,18 +117,13 @@ export const WeightTrackerWidget = ({ userId }: WeightTrackerWidgetProps) => {
           });
       }
 
-      // Also update weight in user_preferences
       await supabase
         .from("user_preferences")
         .update({ weight: newWeight })
         .eq("user_id", userId);
 
       setCurrentWeight(newWeight);
-      
-      // Invalidate progress cache so Progress page updates
       invalidateProgressData();
-      
-      // Show trend indicator
       setShowTrend(true);
       setTimeout(() => setShowTrend(false), 1500);
       
@@ -146,7 +131,7 @@ export const WeightTrackerWidget = ({ userId }: WeightTrackerWidgetProps) => {
       console.error("Error updating weight:", error);
       toast({
         variant: "destructive",
-        title: language === "es" ? "Error" : "Error",
+        title: "Error",
         description: language === "es" 
           ? "No se pudo actualizar el peso" 
           : "Could not update weight",
@@ -161,7 +146,6 @@ export const WeightTrackerWidget = ({ userId }: WeightTrackerWidgetProps) => {
 
   const trendDirection = getTrendDirection(lastChange);
 
-  // Trend indicator component
   const TrendIndicator = () => {
     if (!showTrend || !trendDirection) return null;
 
@@ -184,31 +168,17 @@ export const WeightTrackerWidget = ({ userId }: WeightTrackerWidgetProps) => {
           }`}
         >
           {isAtGoal ? (
-            <>
-              <Check className="h-3 w-3" />
-              <span>{language === "es" ? "¡Meta!" : "Goal!"}</span>
-            </>
+            <><Check className="h-3 w-3" /><span>{language === "es" ? "¡Meta!" : "Goal!"}</span></>
           ) : isDecreasing ? (
-            <>
-              <TrendingDown className="h-3 w-3" />
-              <span>{isTowardGoal 
-                ? (language === "es" ? "¡Bien!" : "Great!") 
-                : (language === "es" ? "-0.1" : "-0.1")}</span>
-            </>
+            <><TrendingDown className="h-3 w-3" /><span>{isTowardGoal ? (language === "es" ? "¡Bien!" : "Great!") : "-0.1"}</span></>
           ) : (
-            <>
-              <TrendingUp className="h-3 w-3" />
-              <span>{isTowardGoal 
-                ? (language === "es" ? "¡Bien!" : "Great!") 
-                : (language === "es" ? "+0.1" : "+0.1")}</span>
-            </>
+            <><TrendingUp className="h-3 w-3" /><span>{isTowardGoal ? (language === "es" ? "¡Bien!" : "Great!") : "+0.1"}</span></>
           )}
         </motion.div>
       </AnimatePresence>
     );
   };
 
-  // Progress percentage toward goal
   const getProgressInfo = () => {
     if (!targetWeight || currentWeight === null) return null;
     
@@ -229,9 +199,7 @@ export const WeightTrackerWidget = ({ userId }: WeightTrackerWidgetProps) => {
         ? (language === "es" ? "por bajar" : "to lose") 
         : (language === "es" ? "por subir" : "to gain")}`,
       color: "text-muted-foreground",
-      icon: needsToLose 
-        ? <TrendingDown className="h-3 w-3" /> 
-        : <TrendingUp className="h-3 w-3" />,
+      icon: needsToLose ? <TrendingDown className="h-3 w-3" /> : <TrendingUp className="h-3 w-3" />,
     };
   };
 
@@ -239,23 +207,26 @@ export const WeightTrackerWidget = ({ userId }: WeightTrackerWidgetProps) => {
 
   if (loading) {
     return (
-      <Card className="border-border/50 shadow-lg bg-card">
-        <CardContent className="p-4">
-          <div className="h-24 animate-pulse bg-muted rounded-lg" />
-        </CardContent>
-      </Card>
+      <div className="space-y-2">
+        <Skeleton className="h-5 w-32" />
+        <Card3D variant="default" hover={false}>
+          <Card3DContent className="p-4">
+            <div className="h-24 animate-pulse bg-muted rounded-lg" />
+          </Card3DContent>
+        </Card3D>
+      </div>
     );
   }
 
   if (currentWeight === null) {
-    return null; // Don't show widget if no weight data
+    return null;
   }
 
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between px-1">
-        <h3 className="text-base font-semibold text-foreground">
-          {language === "es" ? "Valores corporales" : "Body values"}
+        <h3 className="section-header">
+          {language === "es" ? "Peso" : "Weight"}
         </h3>
         <button 
           onClick={() => navigate("/dashboard/progress")}
@@ -265,33 +236,29 @@ export const WeightTrackerWidget = ({ userId }: WeightTrackerWidgetProps) => {
         </button>
       </div>
       
-      <Card className="border-border/50 shadow-lg bg-card">
-        <CardContent className="p-4">
+      <Card3D variant="default" hover={false}>
+        <Card3DContent className="p-4">
           <div className="flex flex-col items-center space-y-2 relative">
-            {/* Trend indicator - floating */}
             <TrendIndicator />
             
-            {/* Header with icon */}
             <div className="flex items-center gap-2 text-muted-foreground">
               <Scale className="h-4 w-4" />
               <span className="text-sm font-medium">
-                {language === "es" ? "Peso" : "Weight"}
+                {language === "es" ? "Peso actual" : "Current weight"}
               </span>
             </div>
             
-            {/* Target weight */}
             {targetWeight && (
               <p className="text-xs text-muted-foreground">
                 {language === "es" ? "Objetivo:" : "Goal:"} {targetWeight.toFixed(1)} kg
               </p>
             )}
             
-            {/* Weight control */}
             <div className="flex items-center gap-4 mt-2">
               <Button
-                variant="outline"
+                variant="modern3dOutline"
                 size="icon"
-                className="h-12 w-12 rounded-full border-2 transition-all active:scale-95"
+                className="h-12 w-12 rounded-xl"
                 onClick={handleDecreaseWeight}
                 disabled={updating || currentWeight <= 30}
               >
@@ -314,9 +281,9 @@ export const WeightTrackerWidget = ({ userId }: WeightTrackerWidgetProps) => {
               </motion.div>
               
               <Button
-                variant="outline"
+                variant="modern3dOutline"
                 size="icon"
-                className="h-12 w-12 rounded-full border-2 transition-all active:scale-95"
+                className="h-12 w-12 rounded-xl"
                 onClick={handleIncreaseWeight}
                 disabled={updating}
               >
@@ -324,7 +291,6 @@ export const WeightTrackerWidget = ({ userId }: WeightTrackerWidgetProps) => {
               </Button>
             </div>
 
-            {/* Progress toward goal */}
             {progressInfo && (
               <motion.div 
                 className={`flex items-center gap-1 text-xs ${progressInfo.color}`}
@@ -336,8 +302,8 @@ export const WeightTrackerWidget = ({ userId }: WeightTrackerWidgetProps) => {
               </motion.div>
             )}
           </div>
-        </CardContent>
-      </Card>
+        </Card3DContent>
+      </Card3D>
     </div>
   );
 };

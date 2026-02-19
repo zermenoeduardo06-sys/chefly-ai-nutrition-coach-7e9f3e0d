@@ -114,7 +114,7 @@ export function DiaryDateHeader({ selectedDate, onDateChange }: DiaryDateHeaderP
               initial="enter"
               animate="center"
               exit="exit"
-              transition={{ duration: 0.2, ease: "easeInOut" }}
+              transition={{ duration: 0.15, ease: "easeInOut" }}
               className="text-center"
             >
               <h2 className={cn(
