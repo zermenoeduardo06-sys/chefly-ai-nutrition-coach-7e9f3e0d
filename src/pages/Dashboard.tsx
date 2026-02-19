@@ -7,7 +7,7 @@ import { getLocalDateString } from "@/lib/dateUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card3D, Card3DContent } from "@/components/ui/card-3d";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Sparkles, Check } from "lucide-react";
@@ -1206,7 +1206,7 @@ const Dashboard = () => {
   return (
     <TooltipProvider delayDuration={300}>
     <div className="min-h-full bg-gradient-to-b from-background to-muted/30 overflow-x-hidden relative">
-      <main className="container mx-auto px-4 tablet:px-6 pt-2 pb-28 tablet:pt-4 tablet:pb-8 space-y-5 tablet:space-y-7 max-w-3xl overflow-hidden lg:pb-8">
+      <main className="container mx-auto px-4 tablet:px-6 pt-2 pb-28 tablet:pt-4 tablet:pb-8 max-w-3xl overflow-hidden lg:pb-8">
         
         {/* Offline/Syncing Indicator */}
         {(!isOnline || pendingCount > 0) && (
@@ -1234,7 +1234,7 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* GREETING HEADER - Welcome message with name and profile avatar */}
+        {/* GREETING HEADER */}
         <DashboardHeader
           displayName={profile?.display_name}
           currentStreak={userStats.current_streak}
@@ -1243,51 +1243,64 @@ const Dashboard = () => {
           isProfileLoading={!profile && initialLoadComplete}
         />
 
-        {/* SUBSCRIPTION PROMO BANNER - For free users on native platforms */}
+        {/* SUBSCRIPTION PROMO BANNER */}
         {shouldShowBanner && (
-          <SubscriptionPromoBanner 
-            visible={isVisible}
-            onDismiss={dismissBanner}
+          <div className="mt-2">
+            <SubscriptionPromoBanner 
+              visible={isVisible}
+              onDismiss={dismissBanner}
+            />
+          </div>
+        )}
+
+        {/* Date Header */}
+        <div className="mt-2">
+          <DiaryDateHeader 
+            selectedDate={selectedDate}
+            onDateChange={setSelectedDate}
           />
-        )}
+        </div>
 
-        {/* YAZIO-Style Date Header with swipe - only past and present */}
-        <DiaryDateHeader 
-          selectedDate={selectedDate}
-          onDateChange={setSelectedDate}
-        />
+        {/* NUTRITION SUMMARY */}
+        <div className="mt-4">
+          {userId && <NutritionSummaryWidget userId={userId} selectedDate={selectedDate} />}
+        </div>
 
-        {/* NUTRITION SUMMARY - Below date header, YAZIO style */}
-        {userId && <NutritionSummaryWidget userId={userId} selectedDate={selectedDate} />}
+        {/* MEAL MODULES */}
+        <div className="mt-5">
+          <MealModulesSection
+            consumedCalories={consumedCalories}
+            targetCalories={targetCalories}
+            recentFoods={recentFoods}
+            selectedDate={selectedDate}
+          />
+        </div>
 
-        {/* MEAL MODULES - YAZIO Style (Desayuno, Almuerzo, Cena, Snacks) */}
-        <MealModulesSection
-          consumedCalories={consumedCalories}
-          targetCalories={targetCalories}
-          recentFoods={recentFoods}
-          selectedDate={selectedDate}
-        />
+        {/* DAILY PROGRESS MILESTONES */}
+        <div className="mt-5">
+          <DailyProgressMilestones
+            currentCalories={consumedMacros.calories}
+            targetCalories={nutritionGoals.calories}
+          />
+        </div>
 
-        {/* DAILY PROGRESS MILESTONES - Celebrate 25%, 50%, 75%, 100% */}
-        <DailyProgressMilestones
-          currentCalories={consumedMacros.calories}
-          targetCalories={nutritionGoals.calories}
-        />
+        {/* WATER + WEIGHT - New section group */}
+        <div className="mt-8 space-y-5">
+          <WaterTrackerWidget userId={userId} selectedDate={selectedDate} />
+          <WeightTrackerWidget userId={userId} />
+        </div>
 
-        {/* WATER TRACKER - Daily hydration goal */}
-        <WaterTrackerWidget userId={userId} selectedDate={selectedDate} />
-
-        {/* WEIGHT TRACKER - Current weight with +/- controls */}
-        <WeightTrackerWidget userId={userId} />
-
-        {/* AI USAGE INDICATOR - Only for Chefly Plus users */}
+        {/* AI USAGE INDICATOR */}
         {limits.isCheflyPlus && userId && (
-          <AiUsageIndicator userId={userId} showDetails />
+          <div className="mt-5">
+            <AiUsageIndicator userId={userId} showDetails />
+          </div>
         )}
 
-        {/* Gamification - Simplified with just mascot + level progress */}
-        <Card data-tour="gamification" className="border-border/50 shadow-lg bg-gradient-to-br from-card to-muted/20">
-          <CardContent className="p-4">
+        {/* Gamification */}
+        <div className="mt-5">
+        <Card3D data-tour="gamification" variant="default" hover={false}>
+          <Card3DContent className="p-4">
             <div className="flex items-center gap-4">
               <MascotCompanion
                 points={userStats.total_points}
@@ -1314,8 +1327,9 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </Card3DContent>
+        </Card3D>
+        </div>
 
       </main>
       
