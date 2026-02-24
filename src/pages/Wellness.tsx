@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useInitialAnimation } from "@/hooks/useInitialAnimation";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -17,6 +18,7 @@ import { Heart, Brain } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const Wellness = () => {
+  const shouldAnimate = useInitialAnimation();
   const navigate = useNavigate();
   const { language } = useLanguage();
   const { toast } = useToast();

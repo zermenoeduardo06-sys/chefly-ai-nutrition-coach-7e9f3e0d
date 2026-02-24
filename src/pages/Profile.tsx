@@ -11,6 +11,7 @@ import { ProfileMenuLinks } from "@/components/profile/ProfileMenuLinks";
 import { AiUsageIndicator } from "@/components/AiUsageIndicator";
 import { Loader2, Settings, UserPlus, Pencil, Crown, Zap, ChevronRight, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
+import { useInitialAnimation } from "@/hooks/useInitialAnimation";
 import { format } from "date-fns";
 import { es, enUS } from "date-fns/locale";
 
@@ -29,6 +30,7 @@ interface ProfileData {
 
 
 const Profile = () => {
+  const shouldAnimate = useInitialAnimation();
   const navigate = useNavigate();
   const { t, language } = useLanguage();
   const { isBlocked, isLoading: trialLoading } = useTrialGuard();
@@ -136,7 +138,7 @@ const Profile = () => {
 
       {/* Avatar Hero Section */}
       <motion.div 
-        initial={{ opacity: 0, y: 20 }}
+        initial={shouldAnimate ? { opacity: 0, y: 20 } : false}
         animate={{ opacity: 1, y: 0 }}
         className="flex flex-col items-center px-6 pb-6"
       >
@@ -194,7 +196,7 @@ const Profile = () => {
 
       {/* Subscription Widget */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={shouldAnimate ? { opacity: 0, y: 20 } : false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
         className="px-4 mb-5"
@@ -264,7 +266,7 @@ const Profile = () => {
       {/* AI Usage Indicator - Only for Plus users */}
       {limits.isCheflyPlus && (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={shouldAnimate ? { opacity: 0, y: 20 } : false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
           className="px-4 mb-5"
@@ -275,7 +277,7 @@ const Profile = () => {
 
       {/* Menu Links */}
       <motion.div 
-        initial={{ opacity: 0, y: 20 }}
+        initial={shouldAnimate ? { opacity: 0, y: 20 } : false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
         className="px-4"

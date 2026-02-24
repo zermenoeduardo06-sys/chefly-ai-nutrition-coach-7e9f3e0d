@@ -22,6 +22,7 @@ import {
   Heart
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useInitialAnimation } from "@/hooks/useInitialAnimation";
 import { useToast } from "@/hooks/use-toast";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -37,6 +38,7 @@ interface SettingsItem {
 }
 
 const Settings = () => {
+  const shouldAnimate = useInitialAnimation();
   const navigate = useNavigate();
   const { t, language } = useLanguage();
   const { toast } = useToast();
@@ -104,7 +106,7 @@ const Settings = () => {
   const renderItem = (item: SettingsItem, index: number) => {
     const content = (
       <motion.div
-        initial={{ opacity: 0, x: -10 }}
+        initial={shouldAnimate ? { opacity: 0, x: -10 } : false}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: index * 0.03 }}
         className={`flex items-center justify-between py-4 px-1 ${
@@ -156,7 +158,7 @@ const Settings = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <motion.div 
-        initial={{ opacity: 0, y: -20 }}
+        initial={shouldAnimate ? { opacity: 0, y: -20 } : false}
         animate={{ opacity: 1, y: 0 }}
         className="sticky top-0 z-50 bg-background border-b border-border"
       >
@@ -173,7 +175,7 @@ const Settings = () => {
       <div className="px-4 py-6 space-y-8 pb-24">
         {/* Account Section */}
         <motion.section
-          initial={{ opacity: 0, y: 20 }}
+          initial={shouldAnimate ? { opacity: 0, y: 20 } : false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
@@ -187,7 +189,7 @@ const Settings = () => {
 
         {/* Subscription Section */}
         <motion.section
-          initial={{ opacity: 0, y: 20 }}
+          initial={shouldAnimate ? { opacity: 0, y: 20 } : false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
@@ -202,7 +204,7 @@ const Settings = () => {
         {/* Integrations Section - iOS only */}
         {isNativeiOS && (
           <motion.section
-            initial={{ opacity: 0, y: 20 }}
+            initial={shouldAnimate ? { opacity: 0, y: 20 } : false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 }}
           >
@@ -215,7 +217,7 @@ const Settings = () => {
 
         {/* Support Section */}
         <motion.section
-          initial={{ opacity: 0, y: 20 }}
+          initial={shouldAnimate ? { opacity: 0, y: 20 } : false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
@@ -239,7 +241,7 @@ const Settings = () => {
 
         {/* Legal Links */}
         <motion.section
-          initial={{ opacity: 0, y: 20 }}
+          initial={shouldAnimate ? { opacity: 0, y: 20 } : false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
           className="space-y-2"
