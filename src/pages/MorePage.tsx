@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useInitialAnimation } from "@/hooks/useInitialAnimation";
 import { 
   User, 
   Crown, 
@@ -142,6 +143,7 @@ function MenuSection({ title, children }: MenuSectionProps) {
 }
 
 export default function MorePage() {
+  const shouldAnimate = useInitialAnimation();
   const navigate = useNavigate();
   const { language } = useLanguage();
   const t = texts[language];
@@ -211,7 +213,7 @@ export default function MorePage() {
     <div className="min-h-full bg-background pb-28 lg:pb-6">
       {/* Profile header */}
       <motion.div
-        initial={{ opacity: 0, y: -10 }}
+        initial={shouldAnimate ? { opacity: 0, y: -10 } : false}
         animate={{ opacity: 1, y: 0 }}
         className="px-4 tablet:px-6 pt-6 pb-4 max-w-2xl mx-auto"
       >
@@ -278,7 +280,7 @@ export default function MorePage() {
       <div className="px-4 tablet:px-6 space-y-4 max-w-2xl mx-auto">
         {/* Subscription */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={shouldAnimate ? { opacity: 0, y: 10 } : false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
         >
@@ -295,7 +297,7 @@ export default function MorePage() {
 
         {/* Wellness */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={shouldAnimate ? { opacity: 0, y: 10 } : false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
@@ -310,7 +312,7 @@ export default function MorePage() {
 
         {/* Social */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={shouldAnimate ? { opacity: 0, y: 10 } : false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
         >
@@ -327,7 +329,7 @@ export default function MorePage() {
 
         {/* Settings */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={shouldAnimate ? { opacity: 0, y: 10 } : false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
         >
@@ -352,7 +354,7 @@ export default function MorePage() {
 
         {/* Support */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={shouldAnimate ? { opacity: 0, y: 10 } : false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
@@ -382,7 +384,7 @@ export default function MorePage() {
 
         {/* Logout */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={shouldAnimate ? { opacity: 0, y: 10 } : false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
           className="pt-2"

@@ -5,6 +5,7 @@ import { useTrialGuard } from "@/hooks/useTrialGuard";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Loader2, Trophy, Lock, Star, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
+import { useInitialAnimation } from "@/hooks/useInitialAnimation";
 import mascotLime from "@/assets/mascot-lime.png";
 
 interface Achievement {
@@ -19,6 +20,7 @@ interface Achievement {
 }
 
 const Achievements = () => {
+  const shouldAnimate = useInitialAnimation();
   const navigate = useNavigate();
   const { t, language } = useLanguage();
   const [achievements, setAchievements] = useState<Achievement[]>([]);
@@ -111,7 +113,7 @@ const Achievements = () => {
         <div className="relative px-4 pt-4 pb-8">
           {/* Title */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={shouldAnimate ? { opacity: 0, y: 20 } : false}
             animate={{ opacity: 1, y: 0 }}
             className="text-center"
           >
@@ -130,7 +132,7 @@ const Achievements = () => {
 
           {/* Progress stats */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={shouldAnimate ? { opacity: 0, scale: 0.9 } : false}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2 }}
             className="flex justify-center mt-4"
@@ -158,7 +160,7 @@ const Achievements = () => {
           return (
             <motion.div
               key={achievement.id}
-              initial={{ opacity: 0, y: 20 }}
+              initial={shouldAnimate ? { opacity: 0, y: 20 } : false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 + index * 0.05 }}
             >
@@ -228,7 +230,7 @@ const Achievements = () => {
       {/* Mascot decoration */}
       <motion.div 
         className="fixed bottom-24 right-4 md:bottom-8 md:right-8 pointer-events-none"
-        initial={{ opacity: 0, scale: 0, y: 20 }}
+        initial={shouldAnimate ? { opacity: 0, scale: 0, y: 20 } : false}
         animate={{ opacity: 1, scale: 1, y: [0, -8, 0] }}
         transition={{ 
           opacity: { delay: 0.5, duration: 0.5 },

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useInitialAnimation } from "@/hooks/useInitialAnimation";
 import { useNavigate } from "react-router-dom";
 import { NutritionProgressCharts } from "@/components/NutritionProgressCharts";
 import { BodyMeasurementForm } from "@/components/BodyMeasurementForm";
@@ -30,6 +31,7 @@ import { useProgressData } from "@/hooks/useProgressData";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const Progress = () => {
+  const shouldAnimate = useInitialAnimation();
   const { isBlocked, isLoading: trialLoading } = useTrialGuard();
   const { t, language } = useLanguage();
   const navigate = useNavigate();

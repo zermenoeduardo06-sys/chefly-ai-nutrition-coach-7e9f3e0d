@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useInitialAnimation } from "@/hooks/useInitialAnimation";
 import { Search, ArrowLeft, Clock, Star, TrendingUp, Utensils } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ const sampleFoods = [
 ];
 
 export default function FoodSearch() {
+  const shouldAnimate = useInitialAnimation();
   const navigate = useNavigate();
   const { language } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
@@ -132,7 +134,7 @@ export default function FoodSearch() {
           filteredFoods.map((food, index) => (
             <motion.div
               key={food.id}
-              initial={{ opacity: 0, y: 10 }}
+              initial={shouldAnimate ? { opacity: 0, y: 10 } : false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
             >

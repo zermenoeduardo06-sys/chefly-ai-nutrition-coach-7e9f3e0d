@@ -8,6 +8,7 @@ import { ArrowLeft, Trash2, Flame, Beef, Wheat, Droplets, Calendar, Camera, Spar
 import { format } from 'date-fns';
 import { es, enUS } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useInitialAnimation } from '@/hooks/useInitialAnimation';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,6 +42,7 @@ type MealTypeFilter = 'all' | 'breakfast' | 'lunch' | 'dinner';
 type SourceFilter = 'all' | 'scanned' | 'meal_plan';
 
 const FoodHistory = () => {
+  const shouldAnimate = useInitialAnimation();
   const [scans, setScans] = useState<FoodScan[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -324,7 +326,7 @@ const FoodHistory = () => {
           {/* Today's Stats Summary Card */}
           {todayStats.count > 0 && (
             <motion.div 
-              initial={{ opacity: 0, y: 20 }}
+              initial={shouldAnimate ? { opacity: 0, y: 20 } : false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
               className="mt-5 bg-white/15 backdrop-blur-md rounded-2xl p-4 border border-white/10"
@@ -374,7 +376,7 @@ const FoodHistory = () => {
         {/* Filters Section */}
         {scans.length > 0 && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
+            initial={shouldAnimate ? { opacity: 0, y: -10 } : false}
             animate={{ opacity: 1, y: 0 }}
             className="space-y-3"
           >
@@ -490,7 +492,7 @@ const FoodHistory = () => {
 
         {scans.length === 0 ? (
           <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={shouldAnimate ? { opacity: 0, scale: 0.95 } : false}
             animate={{ opacity: 1, scale: 1 }}
             className="text-center py-16"
           >
@@ -516,7 +518,7 @@ const FoodHistory = () => {
           </motion.div>
         ) : filteredScans.length === 0 ? (
           <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={shouldAnimate ? { opacity: 0, scale: 0.95 } : false}
             animate={{ opacity: 1, scale: 1 }}
             className="text-center py-12"
           >
@@ -542,7 +544,7 @@ const FoodHistory = () => {
             {Object.entries(groupScansByDate()).map(([dateKey, dateScans], groupIdx) => (
               <motion.div 
                 key={dateKey} 
-                initial={{ opacity: 0, y: 20 }}
+                initial={shouldAnimate ? { opacity: 0, y: 20 } : false}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: groupIdx * 0.1 }}
                 className="space-y-3"
@@ -566,7 +568,7 @@ const FoodHistory = () => {
                   {dateScans.map((scan, idx) => (
                     <motion.div
                       key={scan.id}
-                      initial={{ opacity: 0, x: -20 }}
+                      initial={shouldAnimate ? { opacity: 0, x: -20 } : false}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 100 }}
                       transition={{ delay: idx * 0.05 }}

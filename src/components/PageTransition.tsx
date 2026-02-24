@@ -1,13 +1,11 @@
 import { motion } from 'framer-motion';
 import { ReactNode, useRef } from 'react';
+import { isInitialLoad, markInitialLoadComplete } from '@/hooks/useInitialAnimation';
 
 interface PageTransitionProps {
   children: ReactNode;
   className?: string;
 }
-
-// Module-level flag: only the very first mount gets an animation
-let hasCompletedInitialLoad = false;
 
 const pageVariants = {
   initial: { opacity: 0 },
@@ -21,11 +19,10 @@ const pageTransition = {
 };
 
 export const PageTransition = ({ children, className = '' }: PageTransitionProps) => {
-  // Capture whether this is the first-ever mount
-  const isInitial = useRef(!hasCompletedInitialLoad);
+  const isFirst = useRef(isInitialLoad());
 
-  if (isInitial.current) {
-    hasCompletedInitialLoad = true;
+  if (isFirst.current) {
+    markInitialLoadComplete();
     return (
       <motion.div
         initial="initial"
@@ -40,7 +37,6 @@ export const PageTransition = ({ children, className = '' }: PageTransitionProps
     );
   }
 
-  // Subsequent navigations: no animation, instant render
   return (
     <div className={className} style={{ width: '100%' }}>
       {children}
