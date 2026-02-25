@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { startOfDay, subDays, startOfWeek, endOfWeek, format } from "date-fns";
 import { fetchDailyIntakeData } from "./useDailyFoodIntake";
 import { getLocalDateString } from "@/lib/dateUtils";
+import { fetchWaterIntake } from "./useWaterIntake";
 
 /**
  * Selective prefetch hook for high-probability navigation targets.
@@ -279,6 +280,79 @@ export const usePrefetch = (userId: string | undefined) => {
     });
   }, [queryClient]);
 
+  // Prefetch water intake for today
+  const prefetchWaterIntake = useCallback(() => {
+    const currentUserId = userIdRef.current;
+    if (!currentUserId) return;
+    const today = format(new Date(), "yyyy-MM-dd");
+    queryClient.prefetchQuery({
+      queryKey: ['waterIntake', currentUserId, today],
+      queryFn: () => fetchWaterIntake(currentUserId, today),
+      staleTime: 5 * 60 * 1000,
+    });
+  }, [queryClient]);
+
+  // Prefetch streak data
+  const prefetchStreak = useCallback(() => {
+    const currentUserId = userIdRef.current;
+    if (!currentUserId) return;
+    queryClient.prefetchQuery({
+      queryKey: ['streak', currentUserId],
+      queryFn: async () => {
+        const { data } = await supabase
+          .from("user_stats")
+          .select("current_streak, longest_streak, last_activity_date, streak_freeze_available, streak_frozen_at")
+          .eq("user_id", currentUserId)
+          .single();
+        return data ? {
+          currentStreak: data.current_streak || 0,
+          longestStreak: data.longest_streak || 0,
+          lastActivityDate: data.last_activity_date,
+          streakFreezeAvailable: data.streak_freeze_available || 0,
+          streakFrozenAt: data.streak_frozen_at,
+        } : { currentStreak: 0, longestStreak: 0, lastActivityDate: null, streakFreezeAvailable: 0, streakFrozenAt: null };
+      },
+      staleTime: 5 * 60 * 1000,
+    });
+  }, [queryClient]);
+
+  // Prefetch user stats for dashboard
+  const prefetchUserStats = useCallback(() => {
+    const currentUserId = userIdRef.current;
+    if (!currentUserId) return;
+    queryClient.prefetchQuery({
+      queryKey: ['userStats', currentUserId],
+      queryFn: async () => {
+        const { data } = await supabase
+          .from("user_stats")
+          .select("user_id, total_points, current_streak, longest_streak, meals_completed, level, last_activity_date, streak_freeze_available")
+          .eq("user_id", currentUserId)
+          .single();
+        return data ?? { total_points: 0, current_streak: 0, longest_streak: 0, meals_completed: 0, level: 1 };
+      },
+      staleTime: 5 * 60 * 1000,
+    });
+  }, [queryClient]);
+
+  // Prefetch completed meals for today
+  const prefetchCompletedMeals = useCallback(() => {
+    const currentUserId = userIdRef.current;
+    if (!currentUserId) return;
+    const today = getLocalDateString();
+    queryClient.prefetchQuery({
+      queryKey: ['completedMeals', currentUserId, today],
+      queryFn: async () => {
+        const { data } = await supabase
+          .from("meal_completions")
+          .select("meal_id")
+          .eq("user_id", currentUserId)
+          .gte("completed_at", today);
+        return data?.map(c => c.meal_id) ?? [];
+      },
+      staleTime: 2 * 60 * 1000,
+    });
+  }, [queryClient]);
+
   // Prefetch all main sections at once (for Dashboard mount)
   // STABLE: Only depends on queryClient which never changes
   const prefetchAll = useCallback(() => {
@@ -291,7 +365,11 @@ export const usePrefetch = (userId: string | undefined) => {
     prefetchRecipes();
     prefetchChat();
     prefetchAchievements();
-  }, [prefetchProfile, prefetchDiary, prefetchProgress, prefetchWellness, prefetchRecipes, prefetchChat, prefetchAchievements]);
+    prefetchWaterIntake();
+    prefetchStreak();
+    prefetchUserStats();
+    prefetchCompletedMeals();
+  }, [prefetchProfile, prefetchDiary, prefetchProgress, prefetchWellness, prefetchRecipes, prefetchChat, prefetchAchievements, prefetchWaterIntake, prefetchStreak, prefetchUserStats, prefetchCompletedMeals]);
 
   return {
     prefetchProfile,
@@ -301,6 +379,10 @@ export const usePrefetch = (userId: string | undefined) => {
     prefetchRecipes,
     prefetchChat,
     prefetchAchievements,
+    prefetchWaterIntake,
+    prefetchStreak,
+    prefetchUserStats,
+    prefetchCompletedMeals,
     prefetchAll,
   };
 };
