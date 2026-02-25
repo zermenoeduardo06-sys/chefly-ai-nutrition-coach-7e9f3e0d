@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card3D, Card3DContent } from "@/components/ui/card-3d";
 import { Button } from "@/components/ui/button";
 import { Minus, Plus, Scale, TrendingDown, TrendingUp, Check } from "lucide-react";
@@ -15,12 +16,42 @@ interface WeightTrackerWidgetProps {
   userId?: string;
 }
 
+interface WeightData {
+  currentWeight: number | null;
+  targetWeight: number | null;
+}
+
 type TrendDirection = "toward-goal" | "away-from-goal" | "at-goal" | null;
 
+async function fetchWeightData(userId: string): Promise<WeightData> {
+  const [prefsResult, measurementResult] = await Promise.all([
+    supabase
+      .from("user_preferences")
+      .select("weight, target_weight")
+      .eq("user_id", userId)
+      .single(),
+    supabase
+      .from("body_measurements")
+      .select("weight")
+      .eq("user_id", userId)
+      .not("weight", "is", null)
+      .order("measurement_date", { ascending: false })
+      .limit(1)
+      .single(),
+  ]);
+
+  const prefWeight = prefsResult.data?.weight ?? null;
+  const targetWeight = prefsResult.data?.target_weight ?? null;
+  const latestWeight = measurementResult.data?.weight ?? null;
+
+  return {
+    currentWeight: latestWeight ?? prefWeight,
+    targetWeight,
+  };
+}
+
 export const WeightTrackerWidget = ({ userId }: WeightTrackerWidgetProps) => {
-  const [currentWeight, setCurrentWeight] = useState<number | null>(null);
-  const [targetWeight, setTargetWeight] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [updating, setUpdating] = useState(false);
   const [lastChange, setLastChange] = useState<number>(0);
   const [showTrend, setShowTrend] = useState(false);
@@ -29,72 +60,46 @@ export const WeightTrackerWidget = ({ userId }: WeightTrackerWidgetProps) => {
   const navigate = useNavigate();
   const invalidateProgressData = useInvalidateProgressData();
 
-  useEffect(() => {
-    if (userId) {
-      loadWeightData();
-    }
-  }, [userId]);
+  const queryKey = ['weight', 'widget', userId];
 
-  const loadWeightData = async () => {
-    if (!userId) return;
-    
-    try {
-      const { data: preferences } = await supabase
-        .from("user_preferences")
-        .select("weight, target_weight")
-        .eq("user_id", userId)
-        .single();
+  const { data, isLoading: loading } = useQuery({
+    queryKey,
+    queryFn: () => fetchWeightData(userId!),
+    enabled: !!userId,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
 
-      if (preferences) {
-        setTargetWeight(preferences.target_weight);
-        if (preferences.weight) {
-          setCurrentWeight(preferences.weight);
-        }
-      }
-
-      const { data: latestMeasurement } = await supabase
-        .from("body_measurements")
-        .select("weight")
-        .eq("user_id", userId)
-        .not("weight", "is", null)
-        .order("measurement_date", { ascending: false })
-        .limit(1)
-        .single();
-
-      if (latestMeasurement?.weight) {
-        setCurrentWeight(latestMeasurement.weight);
-      }
-    } catch (error) {
-      console.error("Error loading weight data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const currentWeight = data?.currentWeight ?? null;
+  const targetWeight = data?.targetWeight ?? null;
 
   const getTrendDirection = (change: number): TrendDirection => {
     if (!targetWeight || currentWeight === null) return null;
-    
     const needsToLose = currentWeight > targetWeight;
     const needsToGain = currentWeight < targetWeight;
     const atGoal = Math.abs(currentWeight - targetWeight) < 0.1;
-    
     if (atGoal) return "at-goal";
-    if ((needsToLose && change < 0) || (needsToGain && change > 0)) {
-      return "toward-goal";
-    }
+    if ((needsToLose && change < 0) || (needsToGain && change > 0)) return "toward-goal";
     return "away-from-goal";
   };
 
   const updateWeight = async (change: number) => {
     if (!userId || currentWeight === null) return;
-    
+
     const newWeight = Math.max(30, currentWeight + change);
     setUpdating(true);
     setLastChange(change);
-    
+
+    // Optimistic update
+    const prev = queryClient.getQueryData<WeightData>(queryKey);
+    queryClient.setQueryData<WeightData>(queryKey, {
+      currentWeight: newWeight,
+      targetWeight: targetWeight,
+    });
+
     try {
       const today = format(new Date(), "yyyy-MM-dd");
-      
+
       const { data: existingMeasurement } = await supabase
         .from("body_measurements")
         .select("id")
@@ -110,11 +115,7 @@ export const WeightTrackerWidget = ({ userId }: WeightTrackerWidgetProps) => {
       } else {
         await supabase
           .from("body_measurements")
-          .insert({
-            user_id: userId,
-            measurement_date: today,
-            weight: newWeight,
-          });
+          .insert({ user_id: userId, measurement_date: today, weight: newWeight });
       }
 
       await supabase
@@ -122,18 +123,18 @@ export const WeightTrackerWidget = ({ userId }: WeightTrackerWidgetProps) => {
         .update({ weight: newWeight })
         .eq("user_id", userId);
 
-      setCurrentWeight(newWeight);
       invalidateProgressData();
       setShowTrend(true);
       setTimeout(() => setShowTrend(false), 1500);
-      
     } catch (error) {
+      // Rollback
+      if (prev) queryClient.setQueryData<WeightData>(queryKey, prev);
       console.error("Error updating weight:", error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: language === "es" 
-          ? "No se pudo actualizar el peso" 
+        description: language === "es"
+          ? "No se pudo actualizar el peso"
           : "Could not update weight",
       });
     } finally {
@@ -148,7 +149,6 @@ export const WeightTrackerWidget = ({ userId }: WeightTrackerWidgetProps) => {
 
   const TrendIndicator = () => {
     if (!showTrend || !trendDirection) return null;
-
     const isTowardGoal = trendDirection === "toward-goal";
     const isAtGoal = trendDirection === "at-goal";
     const isDecreasing = lastChange < 0;
@@ -181,11 +181,10 @@ export const WeightTrackerWidget = ({ userId }: WeightTrackerWidgetProps) => {
 
   const getProgressInfo = () => {
     if (!targetWeight || currentWeight === null) return null;
-    
     const difference = Math.abs(currentWeight - targetWeight);
     const isAtGoal = difference < 0.1;
     const needsToLose = currentWeight > targetWeight;
-    
+
     if (isAtGoal) {
       return {
         text: language === "es" ? "¡Meta alcanzada!" : "Goal reached!",
@@ -193,10 +192,10 @@ export const WeightTrackerWidget = ({ userId }: WeightTrackerWidgetProps) => {
         icon: <Check className="h-3 w-3" />,
       };
     }
-    
+
     return {
-      text: `${difference.toFixed(1)} kg ${needsToLose 
-        ? (language === "es" ? "por bajar" : "to lose") 
+      text: `${difference.toFixed(1)} kg ${needsToLose
+        ? (language === "es" ? "por bajar" : "to lose")
         : (language === "es" ? "por subir" : "to gain")}`,
       color: "text-muted-foreground",
       icon: needsToLose ? <TrendingDown className="h-3 w-3" /> : <TrendingUp className="h-3 w-3" />,
@@ -218,9 +217,7 @@ export const WeightTrackerWidget = ({ userId }: WeightTrackerWidgetProps) => {
     );
   }
 
-  if (currentWeight === null) {
-    return null;
-  }
+  if (currentWeight === null) return null;
 
   return (
     <div className="space-y-2">
@@ -228,32 +225,32 @@ export const WeightTrackerWidget = ({ userId }: WeightTrackerWidgetProps) => {
         <h3 className="section-header">
           {language === "es" ? "Peso" : "Weight"}
         </h3>
-        <button 
+        <button
           onClick={() => navigate("/dashboard/progress")}
           className="text-sm font-medium text-primary hover:underline"
         >
           {language === "es" ? "Más" : "More"}
         </button>
       </div>
-      
+
       <Card3D variant="default" hover={false}>
         <Card3DContent className="p-4">
           <div className="flex flex-col items-center space-y-2 relative">
             <TrendIndicator />
-            
+
             <div className="flex items-center gap-2 text-muted-foreground">
               <Scale className="h-4 w-4" />
               <span className="text-sm font-medium">
                 {language === "es" ? "Peso actual" : "Current weight"}
               </span>
             </div>
-            
+
             {targetWeight && (
               <p className="text-xs text-muted-foreground">
                 {language === "es" ? "Objetivo:" : "Goal:"} {targetWeight.toFixed(1)} kg
               </p>
             )}
-            
+
             <div className="flex items-center gap-4 mt-2">
               <Button
                 variant="modern3dOutline"
@@ -264,8 +261,8 @@ export const WeightTrackerWidget = ({ userId }: WeightTrackerWidgetProps) => {
               >
                 <Minus className="h-5 w-5" />
               </Button>
-              
-              <motion.div 
+
+              <motion.div
                 className="text-center min-w-[100px]"
                 key={currentWeight}
                 initial={{ scale: 1.1 }}
@@ -279,7 +276,7 @@ export const WeightTrackerWidget = ({ userId }: WeightTrackerWidgetProps) => {
                   kg
                 </span>
               </motion.div>
-              
+
               <Button
                 variant="modern3dOutline"
                 size="icon"
@@ -292,7 +289,7 @@ export const WeightTrackerWidget = ({ userId }: WeightTrackerWidgetProps) => {
             </div>
 
             {progressInfo && (
-              <motion.div 
+              <motion.div
                 className={`flex items-center gap-1 text-xs ${progressInfo.color}`}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}

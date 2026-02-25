@@ -115,14 +115,6 @@ const Dashboard = () => {
   const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null);
   const [mealDialogOpen, setMealDialogOpen] = useState(false);
   const [swapDialogOpen, setSwapDialogOpen] = useState(false);
-  const [userStats, setUserStats] = useState<UserStats>({
-    total_points: 0,
-    current_streak: 0,
-    longest_streak: 0,
-    meals_completed: 0,
-    level: 1,
-  });
-  const [completedMeals, setCompletedMeals] = useState<Set<string>>(new Set());
   const [showCelebration, setShowCelebration] = useState(false);
   const [mascotMessage, setMascotMessage] = useState("");
   const [showDailySummary, setShowDailySummary] = useState(false);
@@ -136,6 +128,51 @@ const Dashboard = () => {
   const [showAchievementUnlock, setShowAchievementUnlock] = useState(false);
   const [unlockedAchievement, setUnlockedAchievement] = useState<any>(null);
   const [userId, setUserId] = useState<string | undefined>(undefined);
+
+  // User stats via React Query (cached across navigations)
+  const { data: userStatsData } = useQuery({
+    queryKey: ['userStats', userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_stats")
+        .select("user_id, total_points, current_streak, longest_streak, meals_completed, level, last_activity_date, streak_freeze_available")
+        .eq("user_id", userId!)
+        .single();
+
+      if (data) return data;
+      if (!error || error.code === 'PGRST116') {
+        const { data: newStats } = await supabase
+          .from("user_stats")
+          .insert({ user_id: userId!, total_points: 0, current_streak: 0, longest_streak: 0, meals_completed: 0, level: 1 })
+          .select()
+          .single();
+        return newStats ?? { total_points: 0, current_streak: 0, longest_streak: 0, meals_completed: 0, level: 1 };
+      }
+      return { total_points: 0, current_streak: 0, longest_streak: 0, meals_completed: 0, level: 1 };
+    },
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+  });
+  const userStats: UserStats = userStatsData ?? { total_points: 0, current_streak: 0, longest_streak: 0, meals_completed: 0, level: 1 };
+
+  // Completed meals via React Query (array → Set via useMemo)
+  const todayStr = getLocalDateString();
+  const { data: completedMealIds = [] } = useQuery({
+    queryKey: ['completedMeals', userId, todayStr],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("meal_completions")
+        .select("meal_id")
+        .eq("user_id", userId!)
+        .gte("completed_at", todayStr);
+      return data?.map(c => c.meal_id) ?? [];
+    },
+    enabled: !!userId,
+    staleTime: 2 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
+  const completedMeals = useMemo(() => new Set(completedMealIds), [completedMealIds]);
 
   // Profile with React Query cache (instant on re-visits, no flicker)
   const { data: profile } = useQuery({
@@ -276,15 +313,9 @@ const Dashboard = () => {
     // Skip on initial mount (prevId === undefined) or when logging out (userId === undefined)
     if (prevId !== undefined && userId !== undefined && prevId !== userId) {
       queryClient.removeQueries({ queryKey: ['profile'] });
+      queryClient.removeQueries({ queryKey: ['userStats'] });
+      queryClient.removeQueries({ queryKey: ['completedMeals'] });
       setMealPlan(null);
-      setUserStats({
-        total_points: 0,
-        current_streak: 0,
-        longest_streak: 0,
-        meals_completed: 0,
-        level: 1,
-      });
-      setCompletedMeals(new Set());
       setPreferencesChecked(false);
       setInitialLoadComplete(false);
       redirectingRef.current = false;
@@ -361,9 +392,8 @@ const Dashboard = () => {
     setInitialLoadComplete(true);
 
     // Load secondary data in background (non-blocking)
+    // userStats and completedMeals are now handled by React Query automatically
     Promise.all([
-      // profile is handled by React Query
-      loadUserStats(userId),
       loadMealPlan(userId),
     ]).catch(error => {
       console.error("Error loading initial data:", error);
@@ -458,61 +488,13 @@ const Dashboard = () => {
     }
   }, [isNative, permissionGranted, notificationPrompts.isLoaded, initialLoadComplete]);
 
-  const loadUserStats = async (userId: string) => {
-    const { data, error } = await supabase
-      .from("user_stats")
-      .select("user_id, total_points, current_streak, longest_streak, meals_completed, level, last_activity_date, streak_freeze_available")
-      .eq("user_id", userId)
-      .single();
-
-    if (data) {
-      setUserStats(data);
-      // Schedule streak risk alert if on native platform with permissions
-      if (isNative && permissionGranted && data.current_streak >= 2) {
-        scheduleStreakRiskAlert(data.current_streak, data.last_activity_date, language);
-      }
-    } else if (!error || error.code === 'PGRST116') {
-      // Create initial stats if they don't exist
-      const { data: newStats } = await supabase
-        .from("user_stats")
-        .insert({
-          user_id: userId,
-          total_points: 0,
-          current_streak: 0,
-          longest_streak: 0,
-          meals_completed: 0,
-          level: 1,
-        })
-        .select()
-        .single();
-      
-      if (newStats) {
-        setUserStats(newStats);
-      }
-    }
-  };
-
-  // Schedule meal reminders when dashboard loads on native platform
+  // Schedule streak risk alert when stats load on native
   useEffect(() => {
-    if (isNative && permissionGranted && userId) {
-      scheduleMealReminders(language); // throttled internally, won't spam
+    const lastAct = (userStatsData as any)?.last_activity_date;
+    if (isNative && permissionGranted && userStats.current_streak >= 2 && lastAct) {
+      scheduleStreakRiskAlert(userStats.current_streak, lastAct, language);
     }
-  }, [isNative, permissionGranted, userId, language]);
-
-
-  const loadCompletedMeals = async (userId: string) => {
-    // Use getLocalDateString() for consistency with food logging
-    const today = getLocalDateString();
-    const { data } = await supabase
-      .from("meal_completions")
-      .select("meal_id")
-      .eq("user_id", userId)
-      .gte("completed_at", today);
-
-    if (data) {
-      setCompletedMeals(new Set(data.map(c => c.meal_id)));
-    }
-  };
+  }, [isNative, permissionGranted, userStats.current_streak, userStatsData, language]);
 
   // Opens photo dialog before completing meal
   const handleMealComplete = (meal: Meal) => {
@@ -553,7 +535,7 @@ const Dashboard = () => {
     // If offline, queue for later sync
     if (!isOnline) {
       addPendingCompletion(mealId);
-      setCompletedMeals(prev => new Set([...prev, mealId]));
+      queryClient.setQueryData(['completedMeals', userId, todayStr], (old: string[] = []) => [...old, mealId]);
       successNotification();
       triggerCelebration();
       toast({
@@ -564,7 +546,7 @@ const Dashboard = () => {
     }
 
     // 1. OPTIMISTIC UPDATE: Update UI immediately before server response
-    setCompletedMeals(prev => new Set([...prev, mealId]));
+    queryClient.setQueryData(['completedMeals', userId, todayStr], (old: string[] = []) => [...old, mealId]);
     successNotification();
     triggerCelebration();
     invalidateNutritionSummary();
@@ -589,11 +571,7 @@ const Dashboard = () => {
 
     // 3. Rollback if server request fails
     if (error) {
-      setCompletedMeals(prev => {
-        const next = new Set(prev);
-        next.delete(mealId);
-        return next;
-      });
+      queryClient.setQueryData(['completedMeals', userId, todayStr], (old: string[] = []) => old.filter(id => id !== mealId));
       toast({
         variant: "destructive",
         title: t("common.error"),
@@ -653,7 +631,7 @@ const Dashboard = () => {
       .single();
 
     if (updatedStats) {
-      setUserStats(updatedStats);
+      queryClient.setQueryData(['userStats', userId], updatedStats);
       
       // Invalidate progress data cache for instant updates on Progress page
       invalidateProgressData();
@@ -730,7 +708,7 @@ const Dashboard = () => {
 
             // Update local state immediately
             if (updatedStats) {
-              setUserStats(updatedStats);
+              queryClient.setQueryData(['userStats', userId], updatedStats);
             }
 
             // Show unlock animation
@@ -972,7 +950,7 @@ const Dashboard = () => {
         cacheMeals({ id: planId, week_start_date: plan.week_start_date }, mealsWithAdaptations);
         
         // Load completed meals for today
-        await loadCompletedMeals(userId);
+        // completedMeals are now loaded by React Query automatically
       } else {
         // No meal plan exists, generate first one
         console.log("No meal plan found, generating first plan...");
